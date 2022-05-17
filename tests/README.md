@@ -7,7 +7,6 @@ rosetta-cli check:data --configuration-file testnet-data-002.json
 
 ## Run construction checks
 
-TBD
-
 ```
+rosetta-cli check:construction --configuration-file testnet-construction-001.json
 ```

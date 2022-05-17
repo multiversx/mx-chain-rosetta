@@ -1,4 +1,4 @@
-@baseUrl = http://localhost:8091
+@baseUrl = http://rosetta-testnet:8091
 @baseNetwork = T
 
 ###

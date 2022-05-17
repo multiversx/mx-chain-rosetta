@@ -3,7 +3,7 @@
     "blockchain": "Elrond",
     "network": "T"
   },
-  "online_url": "http://localhost:8091",
+  "online_url": "http://rosetta-testnet:8091",
   "data_directory": "",
   "http_timeout": 10,
   "tip_delay": 300,

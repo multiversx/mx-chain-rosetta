@@ -1,0 +1,39 @@
+{
+    "network": {
+        "blockchain": "Elrond",
+        "network": "T"
+    },
+    "online_url": "http://rosetta-testnet:8091",
+    "data_directory": "",
+    "http_timeout": 200,
+    "max_retries": 3,
+    "tip_delay": 1652796180000,
+    "max_online_connections": 120,
+    "max_sync_concurrency": 1,
+    "construction": {
+        "offline_url": "http://rosetta-testnet:8092",
+        "stale_depth": 5,
+        "broadcast_limit": 5,
+        "constructor_dsl_file": "testnet-construction-001.ros",
+        "prefunded_accounts": [
+            {
+                "account_identifier": {
+                    "address": "erd1ekrktkp7meytt8cvlhvavtzpz795056xpftw9lwxyc8gu4a7kw2qjfzpy9"
+                },
+                "privkey": "{{ PRIVATE_KEY }}",
+                "curve_type": "edwards25519",
+                "currency": {
+                    "symbol": "XeGLD",
+                    "decimals": 18
+                }
+            }
+        ]
+    },
+    "data": {
+        "start_index": 919419,
+        "historical_balance_disabled": true,
+        "reconciliation_disabled": true,
+        "inactive_discrepancy_search_disabled": true,
+        "balance_tracking_disabled": true
+    }
+}
