@@ -1,4 +1,4 @@
-FROM golang:1.15.7 as builder
+FROM golang:1.17.6 as builder
 
 # Clone repositories
 RUN git clone https://github.com/ElrondNetwork/elrond-proxy-go.git --branch=rosetta-0.1.0 --depth=1

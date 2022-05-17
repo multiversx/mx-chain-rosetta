@@ -1,4 +1,4 @@
-FROM golang:1.15.7 as builder
+FROM golang:1.17.6 as builder
 
 # Clone repositories
 RUN git clone https://github.com/ElrondNetwork/elrond-config-testnet --branch=T1.3.22.0 --depth=1
