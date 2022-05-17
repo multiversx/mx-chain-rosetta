@@ -1,0 +1,20 @@
+{
+  "network": {
+    "blockchain": "Elrond",
+    "network": "T"
+  },
+  "online_url": "http://localhost:8091",
+  "data_directory": "",
+  "http_timeout": 10,
+  "tip_delay": 300,
+  "data": {
+    "start_index": 919289,
+    "historical_balance_disabled": true,
+    "reconciliation_disabled": true,
+    "inactive_discrepancy_search_disabled": true,
+    "balance_tracking_disabled": true,
+    "end_conditions": {
+      "tip": true
+    }
+  }
+}
