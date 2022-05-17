@@ -14,6 +14,8 @@ The Rosetta deployment for Elrond takes the shape of two Docker images (Elrond P
 ### Build the images
 
 ```
+docker image build . -t proxy:latest -f ./proxy/proxy.dockerfile
+
 docker image build . -t rosetta-observer-testnet:latest -f ./observer/testnet.dockerfile
 docker image build . -t rosetta-observer-devnet:latest -f ./observer/devnet.dockerfile
 docker image build . -t rosetta-observer-mainnet:latest -f ./observer/mainnet.dockerfile
@@ -40,6 +42,7 @@ The following script generates the node keys, required by the observers:
 ## Run on testnet
 
 ```
+export PROXY_IMAGE=proxy:latest
 export OBSERVER_IMAGE=rosetta-observer-testnet:latest
 export DATA_FOLDER=${HOME}/rosetta/testnet
 export KEYS_FOLDER=${HOME}/rosetta/keys
@@ -50,6 +53,7 @@ docker compose --file ./docker-compose.yml up
 ## Run on devnet
 
 ```
+export PROXY_IMAGE=proxy:latest
 export OBSERVER_IMAGE=rosetta-observer-devnet:latest
 export DATA_FOLDER=${HOME}/rosetta/devnet
 export KEYS_FOLDER=${HOME}/rosetta/keys
@@ -60,6 +64,7 @@ docker compose --file ./docker-compose.yml up
 ## Run on mainnet
 
 ```
+export PROXY_IMAGE=proxy:latest
 export OBSERVER_IMAGE=rosetta-observer-mainnet:latest
 export DATA_FOLDER=${HOME}/rosetta/mainnet
 export KEYS_FOLDER=${HOME}/rosetta/keys

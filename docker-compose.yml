@@ -57,6 +57,27 @@ services:
       elrond-rosetta-squad:
         ipv4_address: 10.0.0.13
 
+  proxy:
+    image: ${PROXY_IMAGE}
+    ports:
+      - "8090:8080"
+    volumes:
+      - ${DATA_FOLDER}/proxy/logs:/data/logs
+    networks:
+      elrond-rosetta-squad:
+        ipv4_address: 10.0.0.20
+
+  proxy-rosetta:
+    image: ${PROXY_IMAGE}
+    ports:
+      - "8091:8080"
+    volumes:
+      - ${DATA_FOLDER}/proxy-rosetta/logs:/data/logs
+    command: --rosetta
+    networks:
+      elrond-rosetta-squad:
+        ipv4_address: 10.0.0.21
+
 networks:
   elrond-rosetta-squad:
     ipam:
