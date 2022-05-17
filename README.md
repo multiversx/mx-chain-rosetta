@@ -43,6 +43,7 @@ The following script generates the node keys, required by the observers:
 
 ```
 export PROXY_IMAGE=proxy:latest
+export OFFLINE_CONFIG=offline_testnet.toml
 export OBSERVER_IMAGE=rosetta-observer-testnet:latest
 export DATA_FOLDER=${HOME}/rosetta/testnet
 export KEYS_FOLDER=${HOME}/rosetta/keys
@@ -54,6 +55,7 @@ docker compose --file ./docker-compose.yml up
 
 ```
 export PROXY_IMAGE=proxy:latest
+export OFFLINE_CONFIG=offline_devnet.toml
 export OBSERVER_IMAGE=rosetta-observer-devnet:latest
 export DATA_FOLDER=${HOME}/rosetta/devnet
 export KEYS_FOLDER=${HOME}/rosetta/keys
@@ -65,6 +67,7 @@ docker compose --file ./docker-compose.yml up
 
 ```
 export PROXY_IMAGE=proxy:latest
+export OFFLINE_CONFIG=offline_mainnet.toml
 export OBSERVER_IMAGE=rosetta-observer-mainnet:latest
 export DATA_FOLDER=${HOME}/rosetta/mainnet
 export KEYS_FOLDER=${HOME}/rosetta/keys

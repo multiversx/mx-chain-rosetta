@@ -9,6 +9,7 @@ do
     mkdir -p ${BASE_FOLDER}/${NETWORK}
     mkdir -p ${BASE_FOLDER}/${NETWORK}/proxy
     mkdir -p ${BASE_FOLDER}/${NETWORK}/proxy-rosetta
+    mkdir -p ${BASE_FOLDER}/${NETWORK}/proxy-rosetta-offline
 
     for SHARD in ${SHARDS[@]};
     do

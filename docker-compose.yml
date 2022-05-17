@@ -78,6 +78,17 @@ services:
       elrond-rosetta-squad:
         ipv4_address: 10.0.0.21
 
+  proxy-rosetta-offline:
+    image: ${PROXY_IMAGE}
+    ports:
+      - "8092:8080"
+    volumes:
+      - ${DATA_FOLDER}/proxy-rosetta-offline/logs:/data/logs
+    command: --rosetta --offline --offline-config=/elrond/config/${OFFLINE_CONFIG}
+    networks:
+      elrond-rosetta-squad:
+        ipv4_address: 10.0.0.22
+
 networks:
   elrond-rosetta-squad:
     ipam:
