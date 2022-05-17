@@ -5,6 +5,8 @@ SHARDS=("0" "1" "2" "metachain")
 for NETWORK in ${NETWORKS[@]};
 do
     mkdir -p ${BASE_FOLDER}/${NETWORK}
+    mkdir -p ${BASE_FOLDER}/${NETWORK}/proxy
+    mkdir -p ${BASE_FOLDER}/${NETWORK}/proxy-rosetta
 
     for SHARD in ${SHARDS[@]};
     do
