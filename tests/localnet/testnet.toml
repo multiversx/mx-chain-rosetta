@@ -1,0 +1,9 @@
+[folders]
+elrond_go = "~/rosetta-localnet/elrond-go"
+elrond_proxy_go = "~/rosetta-localnet/elrond-proxy-go"
+
+[networking]
+port_proxy = 8090
+
+[shards]
+count = 3
