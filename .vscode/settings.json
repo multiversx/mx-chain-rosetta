@@ -1,0 +1,4 @@
+{
+    "mochaExplorer.cwd": "tests/localnet/snippets",
+    "mochaExplorer.mochaPath": "tests/localnet/snippets/node_modules/mocha"
+}
