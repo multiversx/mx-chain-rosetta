@@ -26,15 +26,7 @@ describe("lottery snippet", async function () {
     this.beforeEach(async function () {
         session.correlation.step = this.currentTest?.fullTitle() || "";
     });
-
-    it("airdrop EGLD", async function () {
-        this.timeout(FiveMinutesInMilliseconds);
-
-        let payment = TokenPayment.egldFromAmount(0.1);
-        await session.syncUsers([whale]);
-        await createAirdropService(session).sendToEachUser(whale, friends, [payment]);
-    });
-
+    
     it("issue lottery token", async function () {
         this.timeout(FiveMinutesInMilliseconds);
 
