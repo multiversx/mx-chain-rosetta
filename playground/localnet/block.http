@@ -1,6 +1,6 @@
 @proxyUrl = http://localhost:8090
 @rosettaUrl = http://localhost:8091
-@baseNetwork = local-testnet
+@baseNetwork = localnet
 
 ###
 

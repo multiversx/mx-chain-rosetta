@@ -1,7 +1,7 @@
 {
   "network": {
     "blockchain": "Elrond",
-    "network": "local-testnet"
+    "network": "localnet"
   },
   "online_url": "http://localhost:8091",
   "data_directory": "",
