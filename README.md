@@ -11,9 +11,18 @@ The Rosetta deployment for Elrond takes the shape of two Docker images (Elrond P
 
 ## Prerequisites
 
+### Clone the repository (repositories)
+
+```
+cd $HOME
+git clone https://github.com/ElrondNetwork/rosetta-images.git
+```
+
 ### Build the images
 
 ```
+cd $HOME/rosetta-images
+
 docker image build . -t proxy:latest -f ./proxy/proxy.dockerfile
 
 docker image build . -t rosetta-observer-testnet:latest -f ./observer/testnet.dockerfile
@@ -26,6 +35,8 @@ docker image build . -t rosetta-observer-mainnet:latest -f ./observer/mainnet.do
 The following script prepares the required folder structure on host:
 
 ```
+cd $HOME/rosetta-images
+
 ./prepare_host.sh ${HOME}/rosetta
 ```
 
@@ -34,6 +45,8 @@ The following script prepares the required folder structure on host:
 The following script generates the node keys, required by the observers:
 
 ```
+cd $HOME/rosetta-images
+
 ./generate_keys.sh ${HOME}/rosetta/keys
 ```
 
@@ -42,35 +55,72 @@ The following script generates the node keys, required by the observers:
 ## Run on testnet
 
 ```
+cd $HOME/rosetta-images
+
 export PROXY_IMAGE=proxy:latest
 export OFFLINE_CONFIG=offline_testnet.toml
 export OBSERVER_IMAGE=rosetta-observer-testnet:latest
 export DATA_FOLDER=${HOME}/rosetta/testnet
 export KEYS_FOLDER=${HOME}/rosetta/keys
 
-docker compose --file ./docker-compose.yml up
+docker compose --file ./docker-compose.yml up --detach
 ```
 
 ## Run on devnet
 
 ```
+cd $HOME/rosetta-images
+
 export PROXY_IMAGE=proxy:latest
 export OFFLINE_CONFIG=offline_devnet.toml
 export OBSERVER_IMAGE=rosetta-observer-devnet:latest
 export DATA_FOLDER=${HOME}/rosetta/devnet
 export KEYS_FOLDER=${HOME}/rosetta/keys
 
-docker compose --file ./docker-compose.yml up
+docker compose --file ./docker-compose.yml up --detach
 ```
 
 ## Run on mainnet
 
 ```
+cd $HOME/rosetta-images
+
 export PROXY_IMAGE=proxy:latest
 export OFFLINE_CONFIG=offline_mainnet.toml
 export OBSERVER_IMAGE=rosetta-observer-mainnet:latest
 export DATA_FOLDER=${HOME}/rosetta/mainnet
 export KEYS_FOLDER=${HOME}/rosetta/keys
 
-docker compose --file ./docker-compose.yml up
+docker compose --file ./docker-compose.yml up --detach
 ```
+
+## Update rosetta
+
+Update the repository (repositories):
+
+```
+cd $HOME/rosetta-images
+git pull origin
+```
+
+Stop the running containers:
+
+```
+docker stop rosetta-images-observer-0-1
+docker stop rosetta-images-observer-1-1
+docker stop rosetta-images-observer-2-1
+docker stop rosetta-images-observer-metachain-1
+docker stop rosetta-images-proxy-1
+docker stop rosetta-images-proxy-rosetta-1
+docker stop rosetta-images-proxy-rosetta-offline-1
+```
+
+Re-build the images as described above.
+
+Optionally, remove the attached volumes (for testnet):
+
+```
+TBD
+```
+
+Run the containers as described above.
