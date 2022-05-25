@@ -1,8 +1,8 @@
 FROM golang:1.17.6 as builder
 
 # Clone repositories
-RUN git clone https://github.com/ElrondNetwork/elrond-config-testnet --branch=T1.3.22.0 --depth=1
-RUN git clone https://github.com/ElrondNetwork/elrond-go.git --branch=v1.3.22 --depth=1
+RUN git clone https://github.com/ElrondNetwork/elrond-config-testnet --branch=T1.3.23.1 --depth=1
+RUN git clone https://github.com/ElrondNetwork/elrond-go.git --branch=v1.3.23 --depth=1
 
 # Build node
 WORKDIR /go/elrond-go/cmd/node
