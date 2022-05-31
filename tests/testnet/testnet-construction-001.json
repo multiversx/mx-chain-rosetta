@@ -20,7 +20,7 @@
                 "account_identifier": {
                     "address": "erd1ekrktkp7meytt8cvlhvavtzpz795056xpftw9lwxyc8gu4a7kw2qjfzpy9"
                 },
-                "privkey": "{{ PRIVATE_KEY }}",
+                "privkey": "0b3b9eae3c6eacf29fc5424f9f0b29e64f00844d0e08d1cef1b68cedbfaaa769",
                 "curve_type": "edwards25519",
                 "currency": {
                     "symbol": "XeGLD",
