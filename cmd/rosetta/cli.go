@@ -22,8 +22,6 @@ VERSION:
    {{end}}
 `
 
-	log = logger.GetOrCreate("rosetta")
-
 	cliFlagPort = cli.IntFlag{
 		Name:  "port",
 		Usage: "Specifies the TCP port used by Rosetta endpoints.",

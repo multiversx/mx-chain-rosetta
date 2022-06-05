@@ -16,6 +16,8 @@ const (
 	logFileLifeSpanInSec = 86400
 )
 
+var log = logger.GetOrCreate("main")
+
 func initializeLogger(logsFolder string, logLevel string) (io.Closer, error) {
 	currentDirectory, err := os.Getwd()
 	if err != nil {
