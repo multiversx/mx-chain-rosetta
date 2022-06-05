@@ -44,46 +44,79 @@ VERSION:
 
 	log = logger.GetOrCreate("rosetta")
 
-	configurationFile = cli.StringFlag{
-		Name:  "config",
-		Usage: "The main configuration file to load",
-		Value: "./config/config.toml",
-	}
-
-	offline = cli.BoolFlag{
+	cliFlagOffline = cli.BoolFlag{
 		Name:  "offline",
 		Usage: "Starts in offline mode",
 	}
 
-	logLevel = cli.StringFlag{
+	cliParamLogLevel = cli.StringFlag{
 		Name: "log-level",
-		Usage: "This flag specifies the logger `level(s)`. It can contain multiple comma-separated value. For example" +
+		Usage: "Specifies the logger `level(s)`. It can contain multiple comma-separated value. For example" +
 			", if set to *:INFO the logs for all packages will have the INFO level. However, if set to *:INFO,api:DEBUG" +
 			" the logs for all packages will have the INFO level, excepting the api package which will receive a DEBUG" +
 			" log level.",
 		Value: "*:" + logger.LogInfo.String(),
 	}
 
-	logsFolder = cli.StringFlag{
+	cliParamLogsFolder = cli.StringFlag{
 		Name:  "logs-folder",
-		Usage: "This flag specifies the `folder` where the application will store logs.",
+		Usage: "Specifies where to save the log files.",
 		Value: "",
+	}
+
+	cliParamObserveActualShard = cli.UintFlag{
+		Name:  "observe-actual-shard",
+		Usage: "Specifies the actual shard to observe.",
+		Value: 0,
+	}
+
+	cliParamObserveProjectedShard = cli.UintFlag{
+		Name:  "observe-projected-shard",
+		Usage: "Specifies the projected shard to observe.",
+		Value: 0,
+	}
+
+	cliParamObserver = cli.StringFlag{
+		Name:  "observer",
+		Usage: "Specifies the URL of the observer.",
+		Value: "http://localhost:10100",
+	}
+
+	cliParamChainID = cli.StringFlag{
+		Name:  "chain-id",
+		Usage: "Specifies the Chain ID (the parameter is necessary when constructing transactions in offline mode).",
+		Value: "local-testnet",
+	}
+
+	cliParamMinGasPrice = cli.Uint64Flag{
+		Name:  "min-gas-price",
+		Usage: "Specifies the minimum gas price (the parameter is necessary when constructing transactions in offline mode).",
+		Value: 1000000000,
+	}
+
+	cliParamMinGasLimit = cli.Uint64Flag{
+		Name:  "min-gas-limit",
+		Usage: "Specifies the minimum gas limit (the parameter is necessary when constructing transactions in offline mode).",
+		Value: 50000,
 	}
 )
 
 func main() {
-	//	removeLogColors()
-
 	app := cli.NewApp()
 	cli.AppHelpTemplate = helpTemplate
 	app.Name = "Elrond Rosetta CLI App"
 	app.Version = "v1.0.0"
 	app.Usage = "This is the entry point for starting a new Elrond Rosetta instance"
 	app.Flags = []cli.Flag{
-		configurationFile,
-		offline,
-		logLevel,
-		logsFolder,
+		cliFlagOffline,
+		cliParamLogLevel,
+		cliParamLogsFolder,
+		cliParamObserveActualShard,
+		cliParamObserveProjectedShard,
+		cliParamObserver,
+		cliParamChainID,
+		cliParamMinGasPrice,
+		cliParamMinGasLimit,
 	}
 	app.Authors = []cli.Author{
 		{
@@ -109,12 +142,13 @@ func startRosetta(ctx *cli.Context) error {
 
 	log.Info("Starting Rosetta...")
 
-	pubKeyConverter, err := pubkeyConverter.NewBech32PubkeyConverter(32)
+	pubKeyConverter, err := pubkeyConverter.NewBech32PubkeyConverter(pubKeyLength)
 	if err != nil {
 		return err
 	}
 
-	observersProvider, err := observer.NewSimpleNodesProvider([]*data.NodeData{{ShardId: 0, Address: "http://localhost:10100", IsSynced: true}}, "")
+	observerUrl := cliParamObserver.Value
+	observersProvider, err := observer.NewSimpleNodesProvider([]*data.NodeData{{ShardId: 0, Address: observerUrl, IsSynced: true}}, "")
 	if err != nil {
 		return err
 	}
@@ -130,7 +164,7 @@ func startRosetta(ctx *cli.Context) error {
 	}
 
 	baseProcessor, err := process.NewBaseProcessor(
-		10,
+		requestTimeoutInSeconds,
 		shardCoordinator,
 		observersProvider,
 		disabledObserversProvider,
@@ -152,12 +186,12 @@ func startRosetta(ctx *cli.Context) error {
 
 	fmt.Println(account.Balance)
 
-	transactionHasher, err := hasherFactory.NewHasher("blake2b")
+	transactionHasher, err := hasherFactory.NewHasher(transactionsHasherType)
 	if err != nil {
 		return err
 	}
 
-	transactionMarshalizer, err := marshalFactory.NewMarshalizer("gogo protobuf")
+	transactionMarshalizer, err := marshalFactory.NewMarshalizer(transactionsMarshalizerType)
 
 	transactionProcessor, err := processFactory.CreateTransactionProcessor(
 		baseProcessor,
@@ -201,13 +235,6 @@ func startRosetta(ctx *cli.Context) error {
 	}
 
 	fmt.Println(networkConfig.Data)
-
-	// configurationFileName := ctx.GlobalString(configurationFile.Name)
-	// generalConfig, err := loadMainConfig(configurationFileName)
-	// if err != nil {
-	// 	return err
-	// }
-	// log.Info(fmt.Sprintf("Initialized with main config from: %s", configurationFile))
 
 	// httpServer, err := startWebServer(versionsRegistry, ctx, generalConfig, *credentialsConfig, statusMetricsProvider, isProfileModeActivated)
 	// if err != nil {
@@ -427,16 +454,4 @@ func startRosetta(ctx *cli.Context) error {
 // 	defer cancel()
 // 	_ = httpServer.Shutdown(shutdownContext)
 // 	_ = httpServer.Close()
-// }
-
-// func removeLogColors() {
-// 	err := logger.RemoveLogObserver(os.Stdout)
-// 	if err != nil {
-// 		panic("error removing log observer: " + err.Error())
-// 	}
-
-// 	err = logger.AddLogObserver(os.Stdout, &logger.PlainFormatter{})
-// 	if err != nil {
-// 		panic("error setting log observer: " + err.Error())
-// 	}
 // }

@@ -12,8 +12,9 @@ import (
 )
 
 func initializeLogger(ctx *cli.Context) (io.Closer, error) {
-	logLevelFlagValue := ctx.GlobalString(logLevel.Name)
-	err := logger.SetLogLevel(logLevelFlagValue)
+	logLevel := ctx.GlobalString(cliParamLogLevel.Name)
+
+	err := logger.SetLogLevel(logLevel)
 	if err != nil {
 		return nil, err
 	}
@@ -37,8 +38,8 @@ func initializeLogger(ctx *cli.Context) (io.Closer, error) {
 }
 
 func getLogsFolder(ctx *cli.Context) (string, error) {
-	if ctx.IsSet(logsFolder.Name) {
-		return ctx.GlobalString(logsFolder.Name), nil
+	if ctx.IsSet(cliParamLogsFolder.Name) {
+		return ctx.GlobalString(cliParamLogsFolder.Name), nil
 	}
 
 	return os.Getwd()
