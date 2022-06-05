@@ -40,6 +40,7 @@ type ArgsNewNetworkProvider struct {
 	ObservedProjectedShardIsSet bool
 	ObserverUrl                 string
 	ObserverPubkey              string
+	ChainID                     string
 	NativeCurrencySymbol        string
 	GenesisBlockHash            string
 }
@@ -59,6 +60,7 @@ type networkProvider struct {
 	observedProjectedShardIsSet bool
 	observerUrl                 string
 	observerPubkey              string
+	chainID                     string
 	nativeCurrencySymbol        string
 	genesisBlockHash            string
 
@@ -163,6 +165,7 @@ func NewNetworkProvider(args ArgsNewNetworkProvider) (*networkProvider, error) {
 		observedProjectedShard:      args.ObservedProjectedShard,
 		observedProjectedShardIsSet: args.ObservedProjectedShardIsSet,
 		observerUrl:                 args.ObserverUrl,
+		chainID:                     args.ChainID,
 		nativeCurrencySymbol:        args.NativeCurrencySymbol,
 		genesisBlockHash:            args.GenesisBlockHash,
 	}, nil
@@ -176,13 +179,8 @@ func (provider *networkProvider) GetBlockchainName() string {
 	return resources.BlockchainName
 }
 
-func (provider *networkProvider) GetChainID() (string, error) {
-	config, err := provider.GetNetworkConfig()
-	if err != nil {
-		return "", err
-	}
-
-	return config.ChainID, nil
+func (provider *networkProvider) GetChainID() string {
+	return provider.chainID
 }
 
 func (provider *networkProvider) GetObservedActualShard() uint32 {

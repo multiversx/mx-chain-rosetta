@@ -74,7 +74,7 @@ VERSION:
 
 	cliFlagChainID = cli.StringFlag{
 		Name:  "chain-id",
-		Usage: "Specifies the Chain ID (required in offline mode).",
+		Usage: "Specifies the Chain ID.",
 		Value: "local-testnet",
 	}
 

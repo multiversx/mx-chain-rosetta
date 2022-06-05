@@ -8,7 +8,7 @@ import (
 type NetworkProvider interface {
 	IsOffline() bool
 	GetBlockchainName() string
-	GetChainID() (string, error)
+	GetChainID() string
 	GetNativeCurrency() resources.NativeCurrency
 	GetObservedActualShard() uint32
 	GetObserverPubkey() string

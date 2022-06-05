@@ -1,12 +1,15 @@
 package factory
 
 import (
+	logger "github.com/ElrondNetwork/elrond-go-logger"
 	"github.com/ElrondNetwork/rosetta/server/services"
 	"github.com/ElrondNetwork/rosetta/server/services/offline"
 	"github.com/coinbase/rosetta-sdk-go/asserter"
 	"github.com/coinbase/rosetta-sdk-go/server"
 	"github.com/coinbase/rosetta-sdk-go/types"
 )
+
+var log = logger.GetOrCreate("server/factory")
 
 func CreateControllers(networkProvider services.NetworkProvider) ([]server.Router, error) {
 	if networkProvider.IsOffline() {
@@ -17,6 +20,8 @@ func CreateControllers(networkProvider services.NetworkProvider) ([]server.Route
 }
 
 func createOfflineControllers(networkProvider services.NetworkProvider) ([]server.Router, error) {
+	log.Info("createOfflineControllers()")
+
 	asserter, err := createAsserter(networkProvider)
 	if err != nil {
 		return nil, err
@@ -44,6 +49,8 @@ func createOfflineControllers(networkProvider services.NetworkProvider) ([]serve
 }
 
 func createOnlineControllers(networkProvider services.NetworkProvider) ([]server.Router, error) {
+	log.Info("createOnlineControllers()")
+
 	asserter, err := createAsserter(networkProvider)
 	if err != nil {
 		return nil, err
@@ -74,11 +81,6 @@ func createOnlineControllers(networkProvider services.NetworkProvider) ([]server
 }
 
 func createAsserter(networkProvider services.NetworkProvider) (*asserter.Asserter, error) {
-	chainID, err := networkProvider.GetChainID()
-	if err != nil {
-		return nil, err
-	}
-
 	// The asserter automatically rejects incorrectly formatted requests.
 	asserterServer, err := asserter.NewServer(
 		services.SupportedOperationTypes,
@@ -86,7 +88,7 @@ func createAsserter(networkProvider services.NetworkProvider) (*asserter.Asserte
 		[]*types.NetworkIdentifier{
 			{
 				Blockchain: networkProvider.GetBlockchainName(),
-				Network:    chainID,
+				Network:    networkProvider.GetChainID(),
 				// TODO: Perhaps add subnetwork identifier, as well?
 			},
 		},

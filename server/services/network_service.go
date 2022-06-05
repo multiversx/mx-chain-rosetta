@@ -24,14 +24,11 @@ func (service *networkAPIService) NetworkList(
 	_ context.Context,
 	_ *types.MetadataRequest,
 ) (*types.NetworkListResponse, *types.Error) {
-	chainID, err := service.provider.GetChainID()
-	if err != nil {
-		return nil, wrapErr(ErrUnableToGetChainID, err)
-	}
+	chainID := service.provider.GetChainID()
 
 	return &types.NetworkListResponse{
 		NetworkIdentifiers: []*types.NetworkIdentifier{
-			&types.NetworkIdentifier{
+			{
 				Blockchain: service.provider.GetBlockchainName(),
 				Network:    chainID,
 			},

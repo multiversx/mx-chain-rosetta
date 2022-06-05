@@ -194,12 +194,7 @@ func (service *constructionAPIService) computeMetadata(options objectsMap) (obje
 		return nil, wrapErr(ErrMalformedValue, errors.New("value missing"))
 	}
 
-	chainID, err := service.provider.GetChainID()
-	if err != nil {
-		return nil, wrapErr(ErrUnableToGetChainID, err)
-	}
-
-	metadata["chainID"] = chainID
+	metadata["chainID"] = service.provider.GetChainID()
 	metadata["version"] = transactionVersion
 
 	senderAddressI, ok := options["sender"]
