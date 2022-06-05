@@ -34,7 +34,8 @@ def main(cli_args: List[str]):
             "value": balance
         }
 
-        balances_data.append(balances_entry)
+        if balance and balance != "0":
+            balances_data.append(balances_entry)
 
     utils.write_json_file(output_file, balances_data)
 

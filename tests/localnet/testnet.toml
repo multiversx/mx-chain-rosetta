@@ -1,6 +1,6 @@
 [folders]
-elrond_go = "/home/andrei/Desktop/workspace/elrond-go"
-elrond_proxy_go = "/home/andrei/Desktop/workspace/elrond-proxy-go"
+elrond_go = "~/rosetta-localnet/elrond-go"
+elrond_proxy_go = "~/rosetta-localnet/elrond-proxy-go"
 
 [networking]
 port_proxy = 8090

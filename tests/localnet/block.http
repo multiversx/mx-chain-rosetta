@@ -17,6 +17,6 @@ Content-Type: application/json
     "network": "{{baseNetwork}}"
   },
   "block_identifier": {
-    "index": 89
+    "index": 9
   }
 }

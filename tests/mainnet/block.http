@@ -12,6 +12,6 @@ Content-Type: application/json
     "network": "{{baseNetwork}}"
   },
   "block_identifier": {
-    "index": 1
+    "index": 2603313
   }
 }

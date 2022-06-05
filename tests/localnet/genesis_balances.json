@@ -1,36 +1,6 @@
 [
     {
         "account_identifier": {
-            "address": "erd1lgvcwjt3udzpuzajedz9malydaazwh0mg7apdd33j4a6qthyfz0q6nl2qv"
-        },
-        "currency": {
-            "symbol": "XeGLD",
-            "decimals": 18
-        },
-        "value": "0"
-    },
-    {
-        "account_identifier": {
-            "address": "erd1fdxl8gkjcawmc7rw3s7fsdddxtqayjl85uf4vfa3ftqr0nmg3avqscfd7z"
-        },
-        "currency": {
-            "symbol": "XeGLD",
-            "decimals": 18
-        },
-        "value": "0"
-    },
-    {
-        "account_identifier": {
-            "address": "erd12lqeap62f8qjfwktqxtv5avusu679xfnmcsl02u0wlx5em6nptqqfe8w49"
-        },
-        "currency": {
-            "symbol": "XeGLD",
-            "decimals": 18
-        },
-        "value": "0"
-    },
-    {
-        "account_identifier": {
             "address": "erd1qyu5wthldzr8wx5c9ucg8kjagg0jfs53s8nr3zpz3hypefsdd8ssycr6th"
         },
         "currency": {
