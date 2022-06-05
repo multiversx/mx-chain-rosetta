@@ -1,5 +1,5 @@
 KEYS_FOLDER=$1
-OBSERVERS=("0" "1" "2" "metachain")
+OBSERVERS=("0")
 
 for OBSERVER in ${OBSERVERS[@]};
 do
