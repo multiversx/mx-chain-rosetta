@@ -1,4 +1,4 @@
-package mocks
+package testscommon
 
 import (
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
@@ -15,7 +15,6 @@ type ElrondProviderMock struct {
 	EncodeAddressCalled                func(address []byte) (string, error)
 	SendTxCalled                       func(tx *data.Transaction) (string, error)
 	ComputeTransactionHashCalled       func(tx *data.Transaction) (string, error)
-	CalculateBlockTimestampUnixCalled  func(round uint64) int64
 	GetTransactionByHashFromPoolCalled func(txHash string) (*data.FullTransaction, bool)
 	DecodeAddressCalled                func(address string) ([]byte, error)
 }
@@ -80,14 +79,6 @@ func (epm *ElrondProviderMock) ComputeTransactionHash(tx *data.Transaction) (str
 		return epm.ComputeTransactionHashCalled(tx)
 	}
 	return "", nil
-}
-
-// CalculateBlockTimestampUnix -
-func (epm *ElrondProviderMock) CalculateBlockTimestampUnix(round uint64) int64 {
-	if epm.CalculateBlockTimestampUnixCalled != nil {
-		return epm.CalculateBlockTimestampUnixCalled(round)
-	}
-	return 0
 }
 
 // GetTransactionByHashFromPool -

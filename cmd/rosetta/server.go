@@ -1,15 +1,5 @@
 package main
 
-import (
-	"fmt"
-	"net/http"
-
-	"github.com/ElrondNetwork/rosetta/services"
-	"github.com/coinbase/rosetta-sdk-go/asserter"
-	"github.com/coinbase/rosetta-sdk-go/server"
-	"github.com/coinbase/rosetta-sdk-go/types"
-)
-
 // import (
 // 	"fmt"
 // 	"net/http"
@@ -70,38 +60,7 @@ import (
 // 	// networkAPIService := services.NewNetworkAPIService(elrondProvider, cfg, true)
 // 	// networkAPIController := server.NewNetworkAPIController(networkAPIService, asserterServer)
 
-// 	// log.Info("elrond rosetta server is in offline mode")
-
-// 	return createHttpServer(port, networkAPIController, accountAPIController, blockAPIController, constructionAPIController, mempoolAPIController)
-// }
-
-func createHttpServer(port int, routers ...server.Router) (*http.Server, error) {
-	router := server.NewRouter(
-		routers...,
-	)
-
-	loggedRouter := server.LoggerMiddleware(router)
-	corsRouter := server.CorsMiddleware(loggedRouter)
-
-	httpServer := &http.Server{
-		Addr:    fmt.Sprintf(":%d", port),
-		Handler: corsRouter,
-	}
-
-	return httpServer, nil
-}
-
-// func createOnlineServer(
-// 	elrondFacade api.ElrondProxyHandler,
-// 	generalConfig *config.Config,
-// 	port int,
-// ) (*http.Server, error) {
-// 	elrondProvider, err := provider.NewElrondProvider(elrondFacade)
-// 	if err != nil {
-// 		log.Error("cannot create elrond provider", "err", err)
-// 		return nil, err
-// 	}
-
+// ONLINE!!!!!!!!!!!!!!
 // 	networkConfig, err := elrondProvider.GetNetworkConfig()
 // 	if err != nil {
 // 		log.Error("cannot get network config", "err", err)
@@ -154,22 +113,22 @@ func createHttpServer(port int, routers ...server.Router) (*http.Server, error) 
 // 	return createHttpServer(port, networkAPIController, accountAPIController, blockAPIController, constructionAPIController, mempoolAPIController)
 // }
 
-func createAsserter(network *types.NetworkIdentifier) (*asserter.Asserter, error) {
-	// The asserter automatically rejects incorrectly formatted
-	// requests.
-	asserterServer, err := asserter.NewServer(
-		services.SupportedOperationTypes,
-		false,
-		[]*types.NetworkIdentifier{
-			network,
-		},
-		nil,
-		false,
-		"",
-	)
-	if err != nil {
-		return nil, err
-	}
+// func createAsserter(network *types.NetworkIdentifier) (*asserter.Asserter, error) {
+// 	// The asserter automatically rejects incorrectly formatted
+// 	// requests.
+// 	asserterServer, err := asserter.NewServer(
+// 		services.SupportedOperationTypes,
+// 		false,
+// 		[]*types.NetworkIdentifier{
+// 			network,
+// 		},
+// 		nil,
+// 		false,
+// 		"",
+// 	)
+// 	if err != nil {
+// 		return nil, err
+// 	}
 
-	return asserterServer, nil
-}
+// 	return asserterServer, nil
+// }

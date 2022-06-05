@@ -74,9 +74,6 @@ func createService() *blockAPIService {
 
 			return &response.Data.Hyperblock, nil
 		},
-		CalculateBlockTimestampUnixCalled: func(round uint64) int64 {
-			return int64(networkConfig.StartTime)*1000 + int64(round*networkConfig.RoundDuration)
-		},
 		DecodeAddressCalled: func(address string) ([]byte, error) {
 			var publicKeyConverter, _ = pubkeyConverter.NewBech32PubkeyConverter(32)
 			return publicKeyConverter.Decode(address)

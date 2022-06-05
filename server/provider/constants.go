@@ -1,4 +1,6 @@
-package main
+package provider
+
+import "time"
 
 // Defined by the Network:
 var transactionsHasherType = "blake2b"
@@ -8,4 +10,4 @@ var nativeCurrencyNumDecimals = 18
 
 // Defined in the scope of the Rosetta node:
 var requestTimeoutInSeconds = 60
-var blockchainName = "Elrond"
+var nodeStatusCacheDuration = time.Duration(1 * time.Second)

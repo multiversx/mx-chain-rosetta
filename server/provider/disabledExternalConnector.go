@@ -1,6 +1,8 @@
-package main
+package provider
 
-import "github.com/ElrondNetwork/elrond-proxy-go/data"
+import (
+	"github.com/ElrondNetwork/elrond-proxy-go/data"
+)
 
 type disabledExternalStorageConnector struct {
 }

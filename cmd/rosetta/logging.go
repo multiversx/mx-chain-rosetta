@@ -8,23 +8,34 @@ import (
 
 	logger "github.com/ElrondNetwork/elrond-go-logger"
 	"github.com/ElrondNetwork/elrond-go/core/logging"
-	"github.com/urfave/cli"
 )
 
-func initializeLogger(ctx *cli.Context) (io.Closer, error) {
-	logLevel := ctx.GlobalString(cliParamLogLevel.Name)
+const (
+	defaultLogsPath      = "logs"
+	logFilePrefix        = "rosetta"
+	logFileLifeSpanInSec = 86400
+)
 
-	err := logger.SetLogLevel(logLevel)
+func initializeLogger(logsFolder string, logLevel string) (io.Closer, error) {
+	currentDirectory, err := os.Getwd()
 	if err != nil {
 		return nil, err
 	}
 
-	folder, err := getLogsFolder(ctx)
+	logsFolderNotSpecified := len(logsFolder) == 0
+	if logsFolderNotSpecified {
+		logsFolder = currentDirectory
+	}
+
+	err = logger.SetLogLevel(logLevel)
 	if err != nil {
 		return nil, err
 	}
 
-	fileLogging, err := logging.NewFileLogging(folder, defaultLogsPath, logFilePrefix)
+	if len(logsFolder) == 0 {
+	}
+
+	fileLogging, err := logging.NewFileLogging(logsFolder, defaultLogsPath, logFilePrefix)
 	if err != nil {
 		return nil, fmt.Errorf("%w creating a log file", err)
 	}
@@ -35,12 +46,4 @@ func initializeLogger(ctx *cli.Context) (io.Closer, error) {
 	}
 
 	return fileLogging, nil
-}
-
-func getLogsFolder(ctx *cli.Context) (string, error) {
-	if ctx.IsSet(cliParamLogsFolder.Name) {
-		return ctx.GlobalString(cliParamLogsFolder.Name), nil
-	}
-
-	return os.Getwd()
 }

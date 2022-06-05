@@ -23,3 +23,5 @@ var (
 const (
 	TransactionProcessingTypeRelayed = "RelayedTx"
 )
+
+var blockchainName = "Elrond"
