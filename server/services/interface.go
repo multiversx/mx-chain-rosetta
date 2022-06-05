@@ -16,12 +16,12 @@ type NetworkProvider interface {
 	GetNetworkConfig() (*resources.NetworkConfig, error)
 	GetGenesisBlockSummary() (*resources.BlockSummary, error)
 	GetLatestBlockSummary() (*resources.BlockSummary, error)
-	GetBlockByNonce(nonce int64) (*data.Block, error)
+	GetBlockByNonce(nonce uint64) (*data.Block, error)
 	GetBlockByHash(hash string) (*data.Block, error)
 	GetAccount(address string) (*data.Account, error)
-	ConvertPubKeyToAddress(address []byte) (string, error)
+	ConvertPubKeyToAddress(pubkey []byte) string
 	ConvertAddressToPubKey(address string) ([]byte, error)
 	SendTransaction(tx *data.Transaction) (string, error)
 	ComputeTransactionHash(tx *data.Transaction) (string, error)
-	GetTransactionByHashFromPool(hash string) (*data.FullTransaction, bool)
+	GetTransactionByHashFromPool(hash string) (*data.FullTransaction, error)
 }

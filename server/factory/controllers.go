@@ -1,4 +1,4 @@
-package controllers
+package factory
 
 import (
 	"github.com/ElrondNetwork/rosetta/server/services"
@@ -8,7 +8,15 @@ import (
 	"github.com/coinbase/rosetta-sdk-go/types"
 )
 
-func CreateOfflineControllers(networkProvider services.NetworkProvider) ([]server.Router, error) {
+func CreateControllers(networkProvider services.NetworkProvider) ([]server.Router, error) {
+	if networkProvider.IsOffline() {
+		return createOfflineControllers(networkProvider)
+	}
+
+	return createOnlineControllers(networkProvider)
+}
+
+func createOfflineControllers(networkProvider services.NetworkProvider) ([]server.Router, error) {
 	asserter, err := createAsserter(networkProvider)
 	if err != nil {
 		return nil, err
@@ -35,7 +43,7 @@ func CreateOfflineControllers(networkProvider services.NetworkProvider) ([]serve
 	}, nil
 }
 
-func CreateOnlineControllers(networkProvider services.NetworkProvider) ([]server.Router, error) {
+func createOnlineControllers(networkProvider services.NetworkProvider) ([]server.Router, error) {
 	asserter, err := createAsserter(networkProvider)
 	if err != nil {
 		return nil, err

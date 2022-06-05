@@ -30,8 +30,11 @@ func (mas *mempoolAPIService) MempoolTransaction(
 	_ context.Context,
 	request *types.MempoolTransactionRequest,
 ) (*types.MempoolTransactionResponse, *types.Error) {
-	tx, ok := mas.provider.GetTransactionByHashFromPool(request.TransactionIdentifier.Hash)
-	if !ok {
+	tx, err := mas.provider.GetTransactionByHashFromPool(request.TransactionIdentifier.Hash)
+	if err != nil {
+		return nil, wrapErr(ErrCannotParsePoolTransaction, err)
+	}
+	if tx == nil {
 		return nil, ErrTransactionIsNotInPool
 	}
 

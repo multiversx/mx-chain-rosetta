@@ -41,6 +41,7 @@ type ArgsNewNetworkProvider struct {
 	ObserverUrl                 string
 	ObserverPubkey              string
 	NativeCurrencySymbol        string
+	GenesisBlockHash            string
 }
 
 type networkProvider struct {
@@ -59,6 +60,7 @@ type networkProvider struct {
 	observerUrl                 string
 	observerPubkey              string
 	nativeCurrencySymbol        string
+	genesisBlockHash            string
 
 	networkConfig *resources.NetworkConfig
 	mutex         sync.RWMutex
@@ -162,6 +164,7 @@ func NewNetworkProvider(args ArgsNewNetworkProvider) (*networkProvider, error) {
 		observedProjectedShardIsSet: args.ObservedProjectedShardIsSet,
 		observerUrl:                 args.ObserverUrl,
 		nativeCurrencySymbol:        args.NativeCurrencySymbol,
+		genesisBlockHash:            args.GenesisBlockHash,
 	}, nil
 }
 
@@ -169,8 +172,8 @@ func (provider *networkProvider) IsOffline() bool {
 	return provider.isOffline
 }
 
-func (provider *networkProvider) GetBlockchainName() uint32 {
-	return provider.observedActualShard
+func (provider *networkProvider) GetBlockchainName() string {
+	return resources.BlockchainName
 }
 
 func (provider *networkProvider) GetChainID() (string, error) {
@@ -246,6 +249,14 @@ func (provider *networkProvider) doGetNetworkConfig() (*resources.NetworkConfig,
 	}
 
 	return &response.Data.Config, nil
+}
+
+// GetGenesisBlockSummary gets a summary of the genesis block
+func (provider *networkProvider) GetGenesisBlockSummary() (*resources.BlockSummary, error) {
+	return &resources.BlockSummary{
+		Nonce: uint64(genesisBlockNonce),
+		Hash:  provider.genesisBlockHash,
+	}, nil
 }
 
 // GetLatestBlockSummary gets a summary of the latest block

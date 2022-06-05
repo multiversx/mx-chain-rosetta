@@ -8,6 +8,7 @@ import (
 	"os/signal"
 	"time"
 
+	"github.com/ElrondNetwork/rosetta/server/factory"
 	"github.com/ElrondNetwork/rosetta/server/provider"
 	"github.com/coinbase/rosetta-sdk-go/server"
 
@@ -47,7 +48,7 @@ func startRosetta(ctx *cli.Context) error {
 
 	log.Info("Starting Rosetta...")
 
-	_, err = provider.NewNetworkProvider(provider.ArgsNewNetworkProvider{
+	networkProvider, err := provider.NewNetworkProvider(provider.ArgsNewNetworkProvider{
 		IsOffline:                   cliFlags.offline,
 		NumShards:                   cliFlags.numShards,
 		ObservedActualShard:         cliFlags.observeActualShard,
@@ -55,13 +56,18 @@ func startRosetta(ctx *cli.Context) error {
 		ObservedProjectedShardIsSet: cliFlags.observeProjectedShardIsSet,
 		ObserverUrl:                 cliFlags.observer,
 		NativeCurrencySymbol:        cliFlags.nativeCurrencySymbol,
+		GenesisBlockHash:            cliFlags.genesisBlock,
 	})
 	if err != nil {
 		return err
 	}
 
-	// networkAPIController, accountAPIController, blockAPIController, constructionAPIController, mempoolAPIController
-	httpServer, err := createHttpServer(cliFlags.port)
+	controllers, err := factory.CreateControllers(networkProvider)
+	if err != nil {
+		return err
+	}
+
+	httpServer, err := createHttpServer(cliFlags.port, controllers...)
 	if err != nil {
 		return err
 	}

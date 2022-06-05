@@ -351,10 +351,7 @@ func (service *constructionAPIService) ConstructionDerive(
 	}
 
 	pubKey := request.PublicKey.Bytes
-	address, err := service.provider.ConvertPubKeyToAddress(pubKey)
-	if err != nil {
-		return nil, wrapErr(ErrMalformedValue, err)
-	}
+	address := service.provider.ConvertPubKeyToAddress(pubKey)
 
 	return &types.ConstructionDeriveResponse{
 		AccountIdentifier: &types.AccountIdentifier{

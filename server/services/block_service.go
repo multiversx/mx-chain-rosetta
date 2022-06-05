@@ -38,7 +38,7 @@ func (service *blockAPIService) Block(
 }
 
 func (service *blockAPIService) getBlockByNonce(nonce int64) (*types.BlockResponse, *types.Error) {
-	block, err := service.provider.GetBlockByNonce(nonce)
+	block, err := service.provider.GetBlockByNonce(uint64(nonce))
 	if err != nil {
 		return nil, wrapErr(ErrUnableToGetBlock, err)
 	}

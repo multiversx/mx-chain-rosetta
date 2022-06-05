@@ -7,6 +7,7 @@ var transactionsHasherType = "blake2b"
 var transactionsMarshalizerType = "gogo protobuf"
 var pubKeyLength = 32
 var nativeCurrencyNumDecimals = 18
+var genesisBlockNonce = 1
 
 // Defined in the scope of the Rosetta node:
 var requestTimeoutInSeconds = 60

@@ -69,7 +69,7 @@ VERSION:
 	cliFlagObserverPubKey = cli.StringFlag{
 		Name:  "observer-pubkey",
 		Usage: "Specifies the public key of the observer.",
-		Value: "0x0000000000000000000000000000000000000000000000000000000000000000",
+		Value: "0000000000000000000000000000000000000000000000000000000000000000",
 	}
 
 	cliFlagChainID = cli.StringFlag{
@@ -87,7 +87,7 @@ VERSION:
 	cliFlagGenesisBlock = cli.StringFlag{
 		Name:  "genesis-block",
 		Usage: "Specifies the hash of the genesis block, to be returned by network/status. For mainnet, it must be 0xcd229e4ad2753708e4bab01d7f249affe29441829524c9529e84d51b6d12f2a7.",
-		Value: "0x0000000000000000000000000000000000000000000000000000000000000000",
+		Value: "0000000000000000000000000000000000000000000000000000000000000000",
 	}
 
 	cliFlagMinGasPrice = cli.Uint64Flag{
