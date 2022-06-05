@@ -48,11 +48,13 @@ func startRosetta(ctx *cli.Context) error {
 	log.Info("Starting Rosetta...")
 
 	_, err = provider.NewNetworkProvider(provider.ArgsNewNetworkProvider{
+		IsOffline:                   cliFlags.offline,
 		NumShards:                   cliFlags.numShards,
 		ObservedActualShard:         cliFlags.observeActualShard,
 		ObservedProjectedShard:      cliFlags.observeProjectedShard,
 		ObservedProjectedShardIsSet: cliFlags.observeProjectedShardIsSet,
-		ObserverUrl:                 cliFlagObserver.Value,
+		ObserverUrl:                 cliFlags.observer,
+		NativeCurrencySymbol:        cliFlags.nativeCurrencySymbol,
 	})
 	if err != nil {
 		return err

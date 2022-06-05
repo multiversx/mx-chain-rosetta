@@ -4,83 +4,77 @@ import (
 	"context"
 
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
-	"github.com/ElrondNetwork/elrond-proxy-go/rosetta/configuration"
-	"github.com/ElrondNetwork/elrond-proxy-go/rosetta/provider"
 	"github.com/coinbase/rosetta-sdk-go/server"
 	"github.com/coinbase/rosetta-sdk-go/types"
 )
 
 type blockAPIService struct {
-	elrondProvider provider.ElrondProviderHandler
-	txsParser      *transactionsParser
+	provider  NetworkProvider
+	txsParser *transactionsParser
 }
 
 // NewBlockAPIService will create a new instance of blockAPIService
-func NewBlockAPIService(
-	elrondProvider provider.ElrondProviderHandler,
-	cfg *configuration.Configuration,
-	networkConfig *provider.NetworkConfig,
-) server.BlockAPIServicer {
+func NewBlockAPIService(provider NetworkProvider) server.BlockAPIServicer {
 	return &blockAPIService{
-		elrondProvider: elrondProvider,
-		txsParser:      newTransactionParser(elrondProvider, cfg, networkConfig),
+		provider:  provider,
+		txsParser: newTransactionParser(provider),
 	}
 }
 
 // Block implements the /block endpoint.
-func (bas *blockAPIService) Block(
+func (service *blockAPIService) Block(
 	_ context.Context,
 	request *types.BlockRequest,
 ) (*types.BlockResponse, *types.Error) {
 	if request.BlockIdentifier.Index != nil {
-		return bas.getBlockByNonce(*request.BlockIdentifier.Index)
+		return service.getBlockByNonce(*request.BlockIdentifier.Index)
 	}
 
 	if request.BlockIdentifier.Hash != nil {
-		return bas.getBlockByHash(*request.BlockIdentifier.Hash)
+		return service.getBlockByHash(*request.BlockIdentifier.Hash)
 	}
 
 	return nil, ErrMustQueryByIndexOrByHash
 }
 
-func (bas *blockAPIService) getBlockByNonce(nonce int64) (*types.BlockResponse, *types.Error) {
-	hyperBlock, err := bas.elrondProvider.GetBlockByNonce(nonce)
+func (service *blockAPIService) getBlockByNonce(nonce int64) (*types.BlockResponse, *types.Error) {
+	block, err := service.provider.GetBlockByNonce(nonce)
 	if err != nil {
 		return nil, wrapErr(ErrUnableToGetBlock, err)
 	}
 
-	block, err := bas.parseHyperBlock(hyperBlock)
+	rosettaBlock, err := service.parseBlock(block)
 	if err != nil {
 		return nil, wrapErr(ErrUnableToGetBlock, err)
 	}
 
-	return block, nil
+	return rosettaBlock, nil
 }
 
-func (bas *blockAPIService) getBlockByHash(hash string) (*types.BlockResponse, *types.Error) {
-	hyperBlock, err := bas.elrondProvider.GetBlockByHash(hash)
+func (service *blockAPIService) getBlockByHash(hash string) (*types.BlockResponse, *types.Error) {
+	block, err := service.provider.GetBlockByHash(hash)
 	if err != nil {
 		return nil, wrapErr(ErrUnableToGetBlock, err)
 	}
 
-	block, err := bas.parseHyperBlock(hyperBlock)
+	rosettaBlock, err := service.parseBlock(block)
 	if err != nil {
 		return nil, wrapErr(ErrUnableToGetBlock, err)
 	}
 
-	return block, nil
+	return rosettaBlock, nil
 }
 
-func (bas *blockAPIService) parseHyperBlock(hyperBlock *data.Hyperblock) (*types.BlockResponse, error) {
+func (service *blockAPIService) parseBlock(block *data.Block) (*types.BlockResponse, error) {
 	var parentBlockIdentifier *types.BlockIdentifier
-	if hyperBlock.Nonce != 0 {
+	if block.Nonce != 0 {
 		parentBlockIdentifier = &types.BlockIdentifier{
-			Index: int64(hyperBlock.Nonce - 1),
-			Hash:  hyperBlock.PrevBlockHash,
+			Index: int64(block.Nonce - 1),
+			Hash:  block.PrevBlockHash,
 		}
 	}
 
-	transactions, err := bas.txsParser.parseTxsFromHyperBlock(hyperBlock)
+	transactions, err := service.txsParser.parseTxsFromBlock(block)
 	if err != nil {
 		return nil, err
 	}
@@ -88,15 +82,15 @@ func (bas *blockAPIService) parseHyperBlock(hyperBlock *data.Hyperblock) (*types
 	return &types.BlockResponse{
 		Block: &types.Block{
 			BlockIdentifier: &types.BlockIdentifier{
-				Index: int64(hyperBlock.Nonce),
-				Hash:  hyperBlock.Hash,
+				Index: int64(block.Nonce),
+				Hash:  block.Hash,
 			},
 			ParentBlockIdentifier: parentBlockIdentifier,
-			Timestamp:             bas.elrondProvider.CalculateBlockTimestampUnix(hyperBlock.Round),
+			Timestamp:             int64(block.Timestamp),
 			Transactions:          transactions,
 			Metadata: objectsMap{
-				"epoch": hyperBlock.Epoch,
-				"round": hyperBlock.Round,
+				"epoch": block.Epoch,
+				"round": block.Round,
 			},
 		},
 	}, nil
@@ -104,7 +98,7 @@ func (bas *blockAPIService) parseHyperBlock(hyperBlock *data.Hyperblock) (*types
 
 // BlockTransaction - not implemented
 // We dont need this method because all transactions are returned by method Block
-func (bas *blockAPIService) BlockTransaction(
+func (service *blockAPIService) BlockTransaction(
 	_ context.Context,
 	_ *types.BlockTransactionRequest,
 ) (*types.BlockTransactionResponse, *types.Error) {

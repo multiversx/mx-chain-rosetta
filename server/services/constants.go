@@ -1,10 +1,7 @@
 package services
 
 const (
-	NumBlocksToGet = uint64(200)
-
-	RosettaVersion = "1.4.5"
-	NodeVersion    = "1.1.0"
+	transactionVersion = 1
 
 	opTransfer = "Transfer"
 	opFee      = "Fee"
@@ -23,5 +20,3 @@ var (
 const (
 	TransactionProcessingTypeRelayed = "RelayedTx"
 )
-
-var blockchainName = "Elrond"

@@ -6,48 +6,54 @@ import (
 	"github.com/ElrondNetwork/elrond-go/core"
 	"github.com/ElrondNetwork/elrond-go/data/transaction"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
-	"github.com/ElrondNetwork/elrond-proxy-go/rosetta/configuration"
-	"github.com/ElrondNetwork/elrond-proxy-go/rosetta/provider"
 	"github.com/coinbase/rosetta-sdk-go/types"
 )
 
 type transactionsParser struct {
-	config         *configuration.Configuration
-	networkConfig  *provider.NetworkConfig
-	elrondProvider provider.ElrondProviderHandler
+	provider NetworkProvider
 }
 
-func newTransactionParser(
-	provider provider.ElrondProviderHandler,
-	cfg *configuration.Configuration,
-	networkConfig *provider.NetworkConfig,
-) *transactionsParser {
+func newTransactionParser(provider NetworkProvider) *transactionsParser {
 	return &transactionsParser{
-		config:         cfg,
-		networkConfig:  networkConfig,
-		elrondProvider: provider,
+		provider: provider,
 	}
 }
 
-func (tp *transactionsParser) parseTxsFromHyperBlock(hyperBlock *data.Hyperblock) ([]*types.Transaction, error) {
-	nodeTxs := filterOutIntrashardContractResultsWhoseOriginalTransactionIsInInvalidMiniblock(hyperBlock.Transactions)
-	nodeTxs = filterOutIntrashardRelayedTransactionAlreadyHeldInInvalidMiniblock(nodeTxs)
-	// nodeTxs = filterOutIntraMetachainTransactions(nodeTxs)
-	nodeTxs = filterOutContractResultsWithNoValue(nodeTxs)
+func (parser *transactionsParser) getNativeCurrency() *types.Currency {
+	currency := parser.provider.GetNativeCurrency()
 
-	txs := make([]*types.Transaction, 0)
-	for _, eTx := range nodeTxs {
-		tx, err := tp.parseTx(eTx, false)
+	return &types.Currency{
+		Symbol:   currency.Symbol,
+		Decimals: currency.Decimals,
+	}
+}
+
+func (parser *transactionsParser) parseTxsFromBlock(block *data.Block) ([]*types.Transaction, error) {
+	txs := make([]*data.FullTransaction, 0)
+
+	for _, miniblock := range block.MiniBlocks {
+		for _, tx := range miniblock.Transactions {
+			txs = append(txs, tx)
+		}
+	}
+
+	txs = filterOutIntrashardContractResultsWhoseOriginalTransactionIsInInvalidMiniblock(txs)
+	txs = filterOutIntrashardRelayedTransactionAlreadyHeldInInvalidMiniblock(txs)
+	txs = filterOutContractResultsWithNoValue(txs)
+
+	rosettaTxs := make([]*types.Transaction, 0)
+	for _, tx := range txs {
+		rosettaTx, err := parser.parseTx(tx, false)
 		if err != nil {
 			return nil, err
 		}
 
 		// TODO: Should we populate related transactions?
 		// populateRelatedTransactions(tx, eTx)
-		txs = append(txs, tx)
+		rosettaTxs = append(rosettaTxs, rosettaTx)
 	}
 
-	return txs, nil
+	return rosettaTxs, nil
 }
 
 func (tp *transactionsParser) parseTx(eTx *data.FullTransaction, isInPool bool) (*types.Transaction, error) {
@@ -65,15 +71,15 @@ func (tp *transactionsParser) parseTx(eTx *data.FullTransaction, isInPool bool) 
 	}
 }
 
-func (tp *transactionsParser) createRosettaTxFromUnsignedTx(eTx *data.FullTransaction) *types.Transaction {
+func (parser *transactionsParser) createRosettaTxFromUnsignedTx(eTx *data.FullTransaction) *types.Transaction {
 	if eTx.IsRefund {
-		return tp.createRosettaTxWithGasRefund(eTx)
+		return parser.createRosettaTxWithGasRefund(eTx)
 	} else {
-		return tp.createRosettaTxUnsignedTxSendFunds(eTx)
+		return parser.createRosettaTxUnsignedTxSendFunds(eTx)
 	}
 }
 
-func (tp *transactionsParser) createRosettaTxWithGasRefund(eTx *data.FullTransaction) *types.Transaction {
+func (parser *transactionsParser) createRosettaTxWithGasRefund(eTx *data.FullTransaction) *types.Transaction {
 	return &types.Transaction{
 		TransactionIdentifier: &types.TransactionIdentifier{
 			Hash: eTx.Hash,
@@ -90,14 +96,14 @@ func (tp *transactionsParser) createRosettaTxWithGasRefund(eTx *data.FullTransac
 				},
 				Amount: &types.Amount{
 					Value:    eTx.Value,
-					Currency: tp.config.Currency,
+					Currency: parser.getNativeCurrency(),
 				},
 			},
 		},
 	}
 }
 
-func (tp *transactionsParser) createRosettaTxUnsignedTxSendFunds(eTx *data.FullTransaction) *types.Transaction {
+func (parser *transactionsParser) createRosettaTxUnsignedTxSendFunds(eTx *data.FullTransaction) *types.Transaction {
 	isFromMetachain := eTx.SourceShard == core.MetachainShardId
 	isToMetachain := eTx.DestinationShard == core.MetachainShardId
 
@@ -116,7 +122,7 @@ func (tp *transactionsParser) createRosettaTxUnsignedTxSendFunds(eTx *data.FullT
 			},
 			Amount: &types.Amount{
 				Value:    "-" + eTx.Value,
-				Currency: tp.config.Currency,
+				Currency: parser.getNativeCurrency(),
 			},
 		})
 
@@ -135,7 +141,7 @@ func (tp *transactionsParser) createRosettaTxUnsignedTxSendFunds(eTx *data.FullT
 			},
 			Amount: &types.Amount{
 				Value:    eTx.Value,
-				Currency: tp.config.Currency,
+				Currency: parser.getNativeCurrency(),
 			},
 		})
 
@@ -152,7 +158,7 @@ func (tp *transactionsParser) createRosettaTxUnsignedTxSendFunds(eTx *data.FullT
 	return tx
 }
 
-func (tp *transactionsParser) createRosettaTxFromReward(eTx *data.FullTransaction) *types.Transaction {
+func (parser *transactionsParser) createRosettaTxFromReward(eTx *data.FullTransaction) *types.Transaction {
 	return &types.Transaction{
 		TransactionIdentifier: &types.TransactionIdentifier{
 			Hash: eTx.Hash,
@@ -169,14 +175,14 @@ func (tp *transactionsParser) createRosettaTxFromReward(eTx *data.FullTransactio
 				},
 				Amount: &types.Amount{
 					Value:    eTx.Value,
-					Currency: tp.config.Currency,
+					Currency: parser.getNativeCurrency(),
 				},
 			},
 		},
 	}
 }
 
-func (tp *transactionsParser) createRosettaTxFromMoveBalance(eTx *data.FullTransaction, isInPool bool) *types.Transaction {
+func (parser *transactionsParser) createRosettaTxFromMoveBalance(eTx *data.FullTransaction, isInPool bool) *types.Transaction {
 	hasValue := eTx.Value != "0"
 	isFromMetachain := eTx.SourceShard == core.MetachainShardId
 	isToMetachain := eTx.DestinationShard == core.MetachainShardId
@@ -197,7 +203,7 @@ func (tp *transactionsParser) createRosettaTxFromMoveBalance(eTx *data.FullTrans
 				},
 				Amount: &types.Amount{
 					Value:    "-" + eTx.Value,
-					Currency: tp.config.Currency,
+					Currency: parser.getNativeCurrency(),
 				},
 			})
 
@@ -219,7 +225,7 @@ func (tp *transactionsParser) createRosettaTxFromMoveBalance(eTx *data.FullTrans
 				},
 				Amount: &types.Amount{
 					Value:    eTx.Value,
-					Currency: tp.config.Currency,
+					Currency: parser.getNativeCurrency(),
 				},
 			})
 
@@ -242,7 +248,7 @@ func (tp *transactionsParser) createRosettaTxFromMoveBalance(eTx *data.FullTrans
 			},
 			Amount: &types.Amount{
 				Value:    "-" + eTx.InitiallyPaidFee,
-				Currency: tp.config.Currency,
+				Currency: parser.getNativeCurrency(),
 			},
 		})
 	}
@@ -257,7 +263,7 @@ func (tp *transactionsParser) createRosettaTxFromMoveBalance(eTx *data.FullTrans
 	return tx
 }
 
-func (tp *transactionsParser) createOperationsFromPreparedTx(tx *data.Transaction) []*types.Operation {
+func (parser *transactionsParser) createOperationsFromPreparedTx(tx *data.Transaction) []*types.Operation {
 	operations := make([]*types.Operation, 0)
 
 	operations = append(operations, &types.Operation{
@@ -270,7 +276,7 @@ func (tp *transactionsParser) createOperationsFromPreparedTx(tx *data.Transactio
 		},
 		Amount: &types.Amount{
 			Value:    "-" + tx.Value,
-			Currency: tp.config.Currency,
+			Currency: parser.getNativeCurrency(),
 		},
 	})
 
@@ -287,14 +293,14 @@ func (tp *transactionsParser) createOperationsFromPreparedTx(tx *data.Transactio
 		},
 		Amount: &types.Amount{
 			Value:    tx.Value,
-			Currency: tp.config.Currency,
+			Currency: parser.getNativeCurrency(),
 		},
 	})
 
 	return operations
 }
 
-func (tp *transactionsParser) createRosettaTxFromInvalidTx(eTx *data.FullTransaction) *types.Transaction {
+func (parser *transactionsParser) createRosettaTxFromInvalidTx(eTx *data.FullTransaction) *types.Transaction {
 	return &types.Transaction{
 		TransactionIdentifier: &types.TransactionIdentifier{
 			Hash: eTx.Hash,
@@ -312,7 +318,7 @@ func (tp *transactionsParser) createRosettaTxFromInvalidTx(eTx *data.FullTransac
 				},
 				Amount: &types.Amount{
 					Value:    "-" + eTx.InitiallyPaidFee,
-					Currency: tp.config.Currency,
+					Currency: parser.getNativeCurrency(),
 				},
 			},
 		},

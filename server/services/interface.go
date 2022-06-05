@@ -1,16 +1,27 @@
-package server
+package services
 
-import "github.com/ElrondNetwork/elrond-proxy-go/data"
+import (
+	"github.com/ElrondNetwork/elrond-proxy-go/data"
+	"github.com/ElrondNetwork/rosetta/server/resources"
+)
 
-type NetworkProviderHandler interface {
-	GetNetworkConfig() (*NetworkConfig, error)
-	GetLatestBlockData() (*BlockData, error)
-	GetBlockByNonce(nonce int64) (*data.Hyperblock, error)
-	GetBlockByHash(hash string) (*data.Hyperblock, error)
+type NetworkProvider interface {
+	IsOffline() bool
+	GetBlockchainName() string
+	GetChainID() (string, error)
+	GetNativeCurrency() resources.NativeCurrency
+	GetObservedActualShard() uint32
+	GetObserverPubkey() string
+
+	GetNetworkConfig() (*resources.NetworkConfig, error)
+	GetGenesisBlockSummary() (*resources.BlockSummary, error)
+	GetLatestBlockSummary() (*resources.BlockSummary, error)
+	GetBlockByNonce(nonce int64) (*data.Block, error)
+	GetBlockByHash(hash string) (*data.Block, error)
 	GetAccount(address string) (*data.Account, error)
-	EncodeAddress(address []byte) (string, error)
-	DecodeAddress(address string) ([]byte, error)
-	SendTx(tx *data.Transaction) (string, error)
+	ConvertPubKeyToAddress(address []byte) (string, error)
+	ConvertAddressToPubKey(address string) ([]byte, error)
+	SendTransaction(tx *data.Transaction) (string, error)
 	ComputeTransactionHash(tx *data.Transaction) (string, error)
-	GetTransactionByHashFromPool(txHash string) (*data.FullTransaction, bool)
+	GetTransactionByHashFromPool(hash string) (*data.FullTransaction, bool)
 }

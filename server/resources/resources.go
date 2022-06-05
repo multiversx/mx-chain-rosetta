@@ -20,9 +20,6 @@ type NetworkConfig struct {
 	GasPerDataByte uint64 `json:"erd_gas_per_data_byte"`
 	MinGasPrice    uint64 `json:"erd_min_gas_price"`
 	MinGasLimit    uint64 `json:"erd_min_gas_limit"`
-	MinTxVersion   uint32 `json:"erd_min_transaction_version"`
-	StartTime      uint64 `json:"erd_start_time"`
-	NodeIsStarting string `json:"error"`
 }
 
 // NodeStatusApiResponse is an API resource
@@ -48,4 +45,10 @@ type BlockSummary struct {
 	Hash              string
 	PreviousBlockHash string
 	Timestamp         int64
+}
+
+// NativeCurrency is an internal resource
+type NativeCurrency struct {
+	Symbol   string
+	Decimals int32
 }

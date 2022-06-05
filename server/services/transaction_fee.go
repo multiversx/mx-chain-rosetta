@@ -4,11 +4,16 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/ElrondNetwork/elrond-proxy-go/rosetta/provider"
+	"github.com/ElrondNetwork/rosetta/server/resources"
 	"github.com/coinbase/rosetta-sdk-go/types"
 )
 
-func computeSuggestedFeeAndGas(txType string, options objectsMap, networkConfig *provider.NetworkConfig) (*big.Int, uint64, uint64, *types.Error) {
+func computeSuggestedFeeAndGas(txType string, options objectsMap, provider NetworkProvider) (*big.Int, uint64, uint64, *types.Error) {
+	networkConfig, err := provider.GetNetworkConfig()
+	if err != nil {
+		return nil, 0, 0, wrapErr(ErrUnableToGetNetworkConfig, err)
+	}
+
 	var gasLimit, gasPrice uint64
 
 	if gasLimitI, ok := options["gasLimit"]; ok {
@@ -83,7 +88,7 @@ func adjustTxFeeWithFeeMultiplier(
 	return result, gasPrice
 }
 
-func estimateGasLimit(operationType string, networkConfig *provider.NetworkConfig, options objectsMap) (uint64, *types.Error) {
+func estimateGasLimit(operationType string, networkConfig *resources.NetworkConfig, options objectsMap) (uint64, *types.Error) {
 	gasForDataField := uint64(0)
 	if dataFieldI, ok := options["data"]; ok {
 		dataField := fmt.Sprintf("%v", dataFieldI)
@@ -99,7 +104,7 @@ func estimateGasLimit(operationType string, networkConfig *provider.NetworkConfi
 	}
 }
 
-func checkProvidedGasLimit(providedGasLimit uint64, txType string, options objectsMap, networkConfig *provider.NetworkConfig) *types.Error {
+func checkProvidedGasLimit(providedGasLimit uint64, txType string, options objectsMap, networkConfig *resources.NetworkConfig) *types.Error {
 	estimatedGasLimit, err := estimateGasLimit(txType, networkConfig, options)
 	if err != nil {
 		return err

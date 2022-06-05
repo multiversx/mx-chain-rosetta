@@ -3,103 +3,90 @@ package services
 import (
 	"context"
 
-	"github.com/ElrondNetwork/elrond-proxy-go/rosetta/configuration"
-	"github.com/ElrondNetwork/elrond-proxy-go/rosetta/provider"
 	"github.com/coinbase/rosetta-sdk-go/server"
 	"github.com/coinbase/rosetta-sdk-go/types"
 )
 
 // NetworkAPIService implements the server.NetworkAPIServicer interface.
 type networkAPIService struct {
-	elrondProvider provider.ElrondProviderHandler
-	config         *configuration.Configuration
-	isOffline      bool
+	provider NetworkProvider
 }
 
 // NewNetworkAPIService creates a new instance of a NetworkAPIService.
-func NewNetworkAPIService(elrondProvider provider.ElrondProviderHandler, cfg *configuration.Configuration, isOffline bool) server.NetworkAPIServicer {
+func NewNetworkAPIService(networkProvider NetworkProvider) server.NetworkAPIServicer {
 	return &networkAPIService{
-		elrondProvider: elrondProvider,
-		config:         cfg,
-		isOffline:      isOffline,
+		provider: networkProvider,
 	}
 }
 
 // NetworkList implements the /network/list endpoint
-func (nas *networkAPIService) NetworkList(
+func (service *networkAPIService) NetworkList(
 	_ context.Context,
 	_ *types.MetadataRequest,
 ) (*types.NetworkListResponse, *types.Error) {
+	chainID, err := service.provider.GetChainID()
+	if err != nil {
+		return nil, wrapErr(ErrUnableToGetChainID, err)
+	}
+
 	return &types.NetworkListResponse{
 		NetworkIdentifiers: []*types.NetworkIdentifier{
-			nas.config.Network,
+			&types.NetworkIdentifier{
+				Blockchain: service.provider.GetBlockchainName(),
+				Network:    chainID,
+			},
 		},
 	}, nil
 }
 
 // NetworkStatus implements the /network/status endpoint.
-func (nas *networkAPIService) NetworkStatus(
+func (service *networkAPIService) NetworkStatus(
 	_ context.Context,
 	_ *types.NetworkRequest,
 ) (*types.NetworkStatusResponse, *types.Error) {
-	if nas.isOffline {
+	if service.provider.IsOffline() {
 		return nil, ErrOfflineMode
 	}
 
-	latestBlockData, err := nas.elrondProvider.GetLatestBlockData()
+	genesisBlockSummary, err := service.provider.GetGenesisBlockSummary()
 	if err != nil {
-		return nil, wrapErr(ErrUnableToGetNodeStatus, err)
+		return nil, wrapErr(ErrUnableToGetBlock, err)
+	}
+
+	latestBlockSummary, err := service.provider.GetLatestBlockSummary()
+	if err != nil {
+		return nil, wrapErr(ErrUnableToGetBlock, err)
 	}
 
 	networkStatusResponse := &types.NetworkStatusResponse{
 		CurrentBlockIdentifier: &types.BlockIdentifier{
-			Index: int64(latestBlockData.Nonce),
-			Hash:  latestBlockData.Hash,
+			Index: int64(latestBlockSummary.Nonce),
+			Hash:  latestBlockSummary.Hash,
 		},
-		CurrentBlockTimestamp:  latestBlockData.Timestamp,
-		GenesisBlockIdentifier: nas.config.GenesisBlockIdentifier,
-		Peers:                  nas.config.Peers,
-	}
-
-	oldBlock, err := nas.getOldestBlock(latestBlockData.Nonce)
-	if err == nil {
-		networkStatusResponse.OldestBlockIdentifier = &types.BlockIdentifier{
-			Index: int64(oldBlock.Nonce),
-			Hash:  oldBlock.Hash,
-		}
+		CurrentBlockTimestamp: latestBlockSummary.Timestamp,
+		GenesisBlockIdentifier: &types.BlockIdentifier{
+			Index: int64(genesisBlockSummary.Nonce),
+			Hash:  genesisBlockSummary.Hash,
+		},
+		Peers: []*types.Peer{
+			&types.Peer{
+				PeerID: service.provider.GetObserverPubkey(),
+			},
+		},
 	}
 
 	return networkStatusResponse, nil
 }
 
-func (nas *networkAPIService) getOldestBlock(latestBlockNonce uint64) (*provider.BlockData, error) {
-	oldestBlockNonce := uint64(1)
-
-	if latestBlockNonce > NumBlocksToGet {
-		oldestBlockNonce = latestBlockNonce - NumBlocksToGet
-	}
-
-	block, err := nas.elrondProvider.GetBlockByNonce(int64(oldestBlockNonce))
-	if err != nil {
-		return nil, err
-	}
-
-	return &provider.BlockData{
-		Nonce: block.Nonce,
-		Hash:  block.Hash,
-	}, nil
-
-}
-
 // NetworkOptions implements the /network/options endpoint.
-func (nas *networkAPIService) NetworkOptions(
+func (service *networkAPIService) NetworkOptions(
 	_ context.Context,
 	_ *types.NetworkRequest,
 ) (*types.NetworkOptionsResponse, *types.Error) {
 	return &types.NetworkOptionsResponse{
 		Version: &types.Version{
-			RosettaVersion: RosettaVersion,
-			NodeVersion:    NodeVersion,
+			RosettaVersion: "TBD/TODO",
+			NodeVersion:    "TBD/TODO",
 		},
 		Allow: &types.Allow{
 			OperationStatuses: []*types.OperationStatus{
@@ -117,16 +104,3 @@ func (nas *networkAPIService) NetworkOptions(
 		},
 	}, nil
 }
-
-// Network: &types.NetworkIdentifier{
-// 	Blockchain: BlockchainName,
-// 	Network:    networkConfig.ChainID,
-// },
-// Currency: &types.Currency{
-// 	Symbol:   MainnetElrondSymbol,
-// 	Decimals: NumDecimals,
-// },
-// GenesisBlockIdentifier: &types.BlockIdentifier{
-// 	Index: 1,
-// 	Hash:  GenesisBlockHashMainnet,
-// },

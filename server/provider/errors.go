@@ -5,7 +5,7 @@ import (
 	"fmt"
 )
 
-var errCannotUnwrapResponsePayload = errors.New("cannot unwrap response payload (data)")
+var errIsOffline = errors.New("server is in offline mode")
 var errCannotGetBlock = errors.New("cannot get block")
 var errCannotGetAccount = errors.New("cannot get account")
 var errCannotGetTransaction = errors.New("cannot get transaction")

@@ -4,26 +4,24 @@ import (
 	"context"
 
 	"github.com/ElrondNetwork/elrond-proxy-go/rosetta/configuration"
-	"github.com/ElrondNetwork/elrond-proxy-go/rosetta/provider"
 	"github.com/coinbase/rosetta-sdk-go/server"
 	"github.com/coinbase/rosetta-sdk-go/types"
 )
 
 type accountAPIService struct {
-	elrondProvider provider.ElrondProviderHandler
-	config         *configuration.Configuration
+	provider NetworkProvider
+	config   *configuration.Configuration
 }
 
 // NewAccountAPIService will create a new instance of accountAPIService
-func NewAccountAPIService(elrondProvider provider.ElrondProviderHandler, cfg *configuration.Configuration) server.AccountAPIServicer {
+func NewAccountAPIService(provider NetworkProvider) server.AccountAPIServicer {
 	return &accountAPIService{
-		elrondProvider: elrondProvider,
-		config:         cfg,
+		provider: provider,
 	}
 }
 
 // AccountBalance implements the /account/balance endpoint.
-func (aas *accountAPIService) AccountBalance(
+func (service *accountAPIService) AccountBalance(
 	_ context.Context,
 	request *types.AccountBalanceRequest,
 ) (*types.AccountBalanceResponse, *types.Error) {
@@ -32,12 +30,13 @@ func (aas *accountAPIService) AccountBalance(
 		return nil, ErrInvalidAccountAddress
 	}
 
-	latestBlockData, err := aas.elrondProvider.GetLatestBlockData()
+	// TODO: Adjust when Account.blockInfo is present.
+	latestBlockData, err := service.provider.GetLatestBlockSummary()
 	if err != nil {
 		return nil, wrapErr(ErrUnableToGetBlock, err)
 	}
 
-	account, err := aas.elrondProvider.GetAccount(request.AccountIdentifier.Address)
+	account, err := service.provider.GetAccount(request.AccountIdentifier.Address)
 	if err != nil {
 		return nil, wrapErr(ErrUnableToGetAccount, err)
 	}
@@ -50,7 +49,7 @@ func (aas *accountAPIService) AccountBalance(
 		Balances: []*types.Amount{
 			{
 				Value:    account.Balance,
-				Currency: aas.config.Currency,
+				Currency: service.config.Currency,
 			},
 		},
 		Metadata: map[string]interface{}{
@@ -62,6 +61,6 @@ func (aas *accountAPIService) AccountBalance(
 }
 
 // AccountCoins implements the /account/coins endpoint.
-func (aas *accountAPIService) AccountCoins(_ context.Context, _ *types.AccountCoinsRequest) (*types.AccountCoinsResponse, *types.Error) {
+func (service *accountAPIService) AccountCoins(_ context.Context, _ *types.AccountCoinsRequest) (*types.AccountCoinsResponse, *types.Error) {
 	return nil, ErrNotImplemented
 }

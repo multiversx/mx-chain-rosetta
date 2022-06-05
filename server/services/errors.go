@@ -60,36 +60,43 @@ var (
 		Message:   "unable to get client version",
 		Retriable: true,
 	}
+
 	ErrMustQueryByIndexOrByHash = &types.Error{
 		Code:      10,
 		Message:   "must query block by index or by hash",
 		Retriable: false,
 	}
+
 	ErrConstructionCheck = &types.Error{
 		Code:      11,
 		Message:   "operation construction check error",
 		Retriable: false,
 	}
+
 	ErrUnableToGetNetworkConfig = &types.Error{
 		Code:      12,
 		Message:   "unable to get network config",
 		Retriable: true,
 	}
+
 	ErrInvalidInputParam = &types.Error{
 		Code:      13,
 		Message:   "Invalid input param: ",
 		Retriable: false,
 	}
+
 	ErrUnsupportedCurveType = &types.Error{
 		Code:      14,
 		Message:   "unsupported curve type",
 		Retriable: false,
 	}
+
 	ErrInsufficientGasLimit = &types.Error{
 		Code:      15,
 		Message:   "insufficient gas limit",
 		Retriable: false,
 	}
+
 	ErrGasPriceTooLow = &types.Error{
 		Code:      16,
 		Message:   "gas price is to low",
@@ -100,16 +107,19 @@ var (
 		Message:   "transaction is not in pool",
 		Retriable: false,
 	}
+
 	ErrCannotParsePoolTransaction = &types.Error{
 		Code:      18,
 		Message:   "cannot parse pool transaction",
 		Retriable: false,
 	}
+
 	ErrOfflineMode = &types.Error{
 		Code:      19,
 		Message:   "rosetta server is in offline mode",
 		Retriable: false,
 	}
+
 	ErrUnexpectedError = &types.Error{
 		Code:      math.MaxInt32,
 		Message:   "unexpected error",

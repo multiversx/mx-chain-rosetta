@@ -33,14 +33,19 @@ var (
 var log = logger.GetOrCreate("server/provider")
 
 type ArgsNewNetworkProvider struct {
+	IsOffline                   bool
 	NumShards                   uint32
 	ObservedActualShard         uint32
 	ObservedProjectedShard      uint32
 	ObservedProjectedShardIsSet bool
 	ObserverUrl                 string
+	ObserverPubkey              string
+	NativeCurrencySymbol        string
 }
 
 type networkProvider struct {
+	isOffline bool
+
 	pubKeyConverter      core.PubkeyConverter
 	baseProcessor        process.Processor
 	accountProcessor     facade.AccountProcessor
@@ -52,11 +57,14 @@ type networkProvider struct {
 	observedProjectedShard      uint32
 	observedProjectedShardIsSet bool
 	observerUrl                 string
+	observerPubkey              string
+	nativeCurrencySymbol        string
 
 	networkConfig *resources.NetworkConfig
 	mutex         sync.RWMutex
 }
 
+// TODO: Move constructor calls to /factory. Receive dependencies in constructor.
 func NewNetworkProvider(args ArgsNewNetworkProvider) (*networkProvider, error) {
 	shardCoordinator, err := sharding.NewMultiShardCoordinator(args.NumShards, args.ObservedActualShard)
 	if err != nil {
@@ -140,6 +148,8 @@ func NewNetworkProvider(args ArgsNewNetworkProvider) (*networkProvider, error) {
 	}
 
 	return &networkProvider{
+		isOffline: args.IsOffline,
+
 		pubKeyConverter:      pubKeyConverter,
 		baseProcessor:        baseProcessor,
 		accountProcessor:     accountProcessor,
@@ -151,7 +161,47 @@ func NewNetworkProvider(args ArgsNewNetworkProvider) (*networkProvider, error) {
 		observedProjectedShard:      args.ObservedProjectedShard,
 		observedProjectedShardIsSet: args.ObservedProjectedShardIsSet,
 		observerUrl:                 args.ObserverUrl,
+		nativeCurrencySymbol:        args.NativeCurrencySymbol,
 	}, nil
+}
+
+func (provider *networkProvider) IsOffline() bool {
+	return provider.isOffline
+}
+
+func (provider *networkProvider) GetBlockchainName() uint32 {
+	return provider.observedActualShard
+}
+
+func (provider *networkProvider) GetChainID() (string, error) {
+	config, err := provider.GetNetworkConfig()
+	if err != nil {
+		return "", err
+	}
+
+	return config.ChainID, nil
+}
+
+func (provider *networkProvider) GetObservedActualShard() uint32 {
+	return provider.observedActualShard
+}
+
+func (provider *networkProvider) GetNativeCurrency() resources.NativeCurrency {
+	return resources.NativeCurrency{
+		Symbol:   provider.nativeCurrencySymbol,
+		Decimals: int32(nativeCurrencyNumDecimals),
+	}
+}
+
+func (provider *networkProvider) GetObserverPubkey() string {
+	return provider.observerPubkey
+}
+
+// SetNetworkConfig sets the network config (useful for offline mode)
+func (provider *networkProvider) SetNetworkConfig(networkConfig *resources.NetworkConfig) {
+	provider.mutex.Lock()
+	provider.networkConfig = networkConfig
+	provider.mutex.Unlock()
 }
 
 // GetNetworkConfig gets the network config (once fetched, the network config is indefinitely held in memory)
@@ -181,6 +231,10 @@ func (provider *networkProvider) GetNetworkConfig() (*resources.NetworkConfig, e
 }
 
 func (provider *networkProvider) doGetNetworkConfig() (*resources.NetworkConfig, error) {
+	if provider.isOffline {
+		return nil, errIsOffline
+	}
+
 	response := &resources.NetworkConfigApiResponse{}
 
 	_, err := provider.baseProcessor.CallGetRestEndPoint(provider.observerUrl, urlPathGetNetworkConfig, &response)
@@ -190,15 +244,16 @@ func (provider *networkProvider) doGetNetworkConfig() (*resources.NetworkConfig,
 	if response.Error != "" {
 		return nil, errors.New(response.Error)
 	}
-	if response.Data.Config.NodeIsStarting != "" {
-		return nil, errors.New(response.Data.Config.NodeIsStarting)
-	}
 
 	return &response.Data.Config, nil
 }
 
 // GetLatestBlockSummary gets a summary of the latest block
 func (provider *networkProvider) GetLatestBlockSummary() (*resources.BlockSummary, error) {
+	if provider.isOffline {
+		return nil, errIsOffline
+	}
+
 	nodeStatus, err := provider.getNodeStatus()
 	if err != nil {
 		return nil, err
@@ -227,6 +282,10 @@ func (provider *networkProvider) GetLatestBlockSummary() (*resources.BlockSummar
 }
 
 func (provider *networkProvider) getNodeStatus() (*resources.NodeStatus, error) {
+	if provider.isOffline {
+		return nil, errIsOffline
+	}
+
 	response := &resources.NodeStatusApiResponse{}
 
 	_, err := provider.baseProcessor.CallGetRestEndPoint(provider.observerUrl, urlPathGetNodeStatus, &response)
@@ -242,6 +301,10 @@ func (provider *networkProvider) getNodeStatus() (*resources.NodeStatus, error) 
 
 // GetBlockByNonce gets a block by nonce
 func (provider *networkProvider) GetBlockByNonce(nonce uint64) (*data.Block, error) {
+	if provider.isOffline {
+		return nil, errIsOffline
+	}
+
 	queryOptions := common.BlockQueryOptions{
 		WithTransactions: true,
 		WithLogs:         true,
@@ -260,6 +323,10 @@ func (provider *networkProvider) GetBlockByNonce(nonce uint64) (*data.Block, err
 
 // GetBlockByHash gets a block by hash
 func (provider *networkProvider) GetBlockByHash(hash string) (*data.Block, error) {
+	if provider.isOffline {
+		return nil, errIsOffline
+	}
+
 	queryOptions := common.BlockQueryOptions{
 		WithTransactions: true,
 		WithLogs:         true,
@@ -278,6 +345,10 @@ func (provider *networkProvider) GetBlockByHash(hash string) (*data.Block, error
 
 // GetAccount gets an account by address
 func (provider *networkProvider) GetAccount(address string) (*data.Account, error) {
+	if provider.isOffline {
+		return nil, errIsOffline
+	}
+
 	account, err := provider.accountProcessor.GetAccount(address)
 	if err != nil {
 		return nil, newErrCannotGetAccount(address, err)
@@ -302,7 +373,11 @@ func (provider *networkProvider) ComputeTransactionHash(tx *data.Transaction) (s
 }
 
 // SendTransaction broadcasts an already-signed transaction
-func (provider *networkProvider) SendTx(tx *data.Transaction) (string, error) {
+func (provider *networkProvider) SendTransaction(tx *data.Transaction) (string, error) {
+	if provider.isOffline {
+		return "", errIsOffline
+	}
+
 	_, hash, err := provider.transactionProcessor.SendTransaction(tx)
 	if err != nil {
 		return "", err
@@ -313,6 +388,10 @@ func (provider *networkProvider) SendTx(tx *data.Transaction) (string, error) {
 
 // GetTransactionByHashFromPool gets a transaction from the pool
 func (provider *networkProvider) GetTransactionByHashFromPool(hash string) (*data.FullTransaction, error) {
+	if provider.isOffline {
+		return nil, errIsOffline
+	}
+
 	tx, _, err := provider.transactionProcessor.GetTransactionByHashAndSenderAddress(hash, "", false)
 	if err != nil {
 		return nil, newErrCannotGetTransaction(hash, err)

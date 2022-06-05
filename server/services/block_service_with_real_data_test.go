@@ -81,8 +81,8 @@ func createService() *blockAPIService {
 	}
 
 	return &blockAPIService{
-		elrondProvider: providerMock,
-		txsParser:      newTransactionParser(providerMock, configuration, networkConfig),
+		provider:  providerMock,
+		txsParser: newTransactionParser(providerMock, configuration, networkConfig),
 	}
 }
 

@@ -66,9 +66,15 @@ VERSION:
 		Value: "http://localhost:10100",
 	}
 
+	cliFlagObserverPubKey = cli.StringFlag{
+		Name:  "observer-pubkey",
+		Usage: "Specifies the public key of the observer.",
+		Value: "0x0000000000000000000000000000000000000000000000000000000000000000",
+	}
+
 	cliFlagChainID = cli.StringFlag{
 		Name:  "chain-id",
-		Usage: "Specifies the Chain ID (the parameter is necessary when constructing transactions in offline mode).",
+		Usage: "Specifies the Chain ID (required in offline mode).",
 		Value: "local-testnet",
 	}
 
@@ -86,14 +92,20 @@ VERSION:
 
 	cliFlagMinGasPrice = cli.Uint64Flag{
 		Name:  "min-gas-price",
-		Usage: "Specifies the minimum gas price (the parameter is necessary when constructing transactions in offline mode).",
+		Usage: "Specifies the minimum gas price (required in offline mode).",
 		Value: 1000000000,
 	}
 
 	cliFlagMinGasLimit = cli.UintFlag{
 		Name:  "min-gas-limit",
-		Usage: "Specifies the minimum gas limit (the parameter is necessary when constructing transactions in offline mode).",
-		Value: 1,
+		Usage: "Specifies the minimum gas limit (required in offline mode).",
+		Value: 50000,
+	}
+
+	cliFlagGasPerDataByte = cli.UintFlag{
+		Name:  "gas-per-data-byte",
+		Usage: "Specifies the gas required per data byte (required in offline mode).",
+		Value: 1500,
 	}
 
 	cliFlagNativeCurrencySymbol = cli.StringFlag{
@@ -112,11 +124,13 @@ func getAllCliFlags() []cli.Flag {
 		cliFlagObserveActualShard,
 		cliFlagObserveProjectedShard,
 		cliFlagObserver,
+		cliFlagObserverPubKey,
 		cliFlagChainID,
 		cliFlagNumShards,
 		cliFlagGenesisBlock,
 		cliFlagMinGasPrice,
 		cliFlagMinGasLimit,
+		cliFlagGasPerDataByte,
 		cliFlagNativeCurrencySymbol,
 	}
 }
@@ -130,11 +144,13 @@ type parsedCliFlags struct {
 	observeProjectedShard      uint32
 	observeProjectedShardIsSet bool
 	observer                   string
+	observerPubkey             string
 	chainID                    string
 	numShards                  uint32
 	genesisBlock               string
 	minGasPrice                uint64
 	minGasLimit                uint64
+	gasPerDataByte             uint64
 	nativeCurrencySymbol       string
 }
 
@@ -148,11 +164,13 @@ func getParsedCliFlags(ctx *cli.Context) parsedCliFlags {
 		observeProjectedShard:      uint32(ctx.GlobalUint(cliFlagObserveProjectedShard.Name)),
 		observeProjectedShardIsSet: ctx.GlobalIsSet(cliFlagObserveProjectedShard.Name),
 		observer:                   ctx.GlobalString(cliFlagObserver.Name),
+		observerPubkey:             ctx.GlobalString(cliFlagObserverPubKey.Name),
 		chainID:                    ctx.GlobalString(cliFlagChainID.Name),
 		numShards:                  uint32(ctx.GlobalUint(cliFlagNumShards.Name)),
 		genesisBlock:               ctx.GlobalString(cliFlagGenesisBlock.Name),
 		minGasPrice:                ctx.GlobalUint64(cliFlagMinGasPrice.Name),
 		minGasLimit:                ctx.GlobalUint64(cliFlagMinGasLimit.Name),
+		gasPerDataByte:             ctx.GlobalUint64(cliFlagGasPerDataByte.Name),
 		nativeCurrencySymbol:       ctx.GlobalString(cliFlagNativeCurrencySymbol.Name),
 	}
 }
