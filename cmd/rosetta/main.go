@@ -88,16 +88,28 @@ VERSION:
 		Value: "local-testnet",
 	}
 
+	cliParamGenesisBlock = cli.StringFlag{
+		Name:  "genesis-block",
+		Usage: "Specifies the hash of the genesis block, to be returned by network/status. For mainnet, it must be 0xcd229e4ad2753708e4bab01d7f249affe29441829524c9529e84d51b6d12f2a7.",
+		Value: "0x0000000000000000000000000000000000000000000000000000000000000000",
+	}
+
 	cliParamMinGasPrice = cli.Uint64Flag{
 		Name:  "min-gas-price",
 		Usage: "Specifies the minimum gas price (the parameter is necessary when constructing transactions in offline mode).",
 		Value: 1000000000,
 	}
 
-	cliParamMinGasLimit = cli.Uint64Flag{
+	cliParamMinGasLimit = cli.UintFlag{
 		Name:  "min-gas-limit",
 		Usage: "Specifies the minimum gas limit (the parameter is necessary when constructing transactions in offline mode).",
 		Value: 50000,
+	}
+
+	cliNativeCurrencySymbol = cli.StringFlag{
+		Name:  "native-currency",
+		Usage: "Specifies the symbol of the native currency (must be EGLD for mainnet, XeGLD for testnet and devnet).",
+		Value: "XeGLD",
 	}
 )
 

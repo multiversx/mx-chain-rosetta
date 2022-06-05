@@ -117,3 +117,16 @@ func (nas *networkAPIService) NetworkOptions(
 		},
 	}, nil
 }
+
+// Network: &types.NetworkIdentifier{
+// 	Blockchain: BlockchainName,
+// 	Network:    networkConfig.ChainID,
+// },
+// Currency: &types.Currency{
+// 	Symbol:   MainnetElrondSymbol,
+// 	Decimals: NumDecimals,
+// },
+// GenesisBlockIdentifier: &types.BlockIdentifier{
+// 	Index: 1,
+// 	Hash:  GenesisBlockHashMainnet,
+// },
