@@ -2,7 +2,6 @@ package provider
 
 import (
 	"errors"
-	"sync"
 
 	logger "github.com/ElrondNetwork/elrond-go-logger"
 	"github.com/ElrondNetwork/elrond-go/core"
@@ -41,6 +40,9 @@ type ArgsNewNetworkProvider struct {
 	ObserverUrl                 string
 	ObserverPubkey              string
 	ChainID                     string
+	GasPerDataByte              uint64
+	MinGasPrice                 uint64
+	MinGasLimit                 uint64
 	NativeCurrencySymbol        string
 	GenesisBlockHash            string
 }
@@ -60,12 +62,10 @@ type networkProvider struct {
 	observedProjectedShardIsSet bool
 	observerUrl                 string
 	observerPubkey              string
-	chainID                     string
 	nativeCurrencySymbol        string
 	genesisBlockHash            string
 
 	networkConfig *resources.NetworkConfig
-	mutex         sync.RWMutex
 }
 
 // TODO: Move constructor calls to /factory. Receive dependencies in constructor.
@@ -165,9 +165,16 @@ func NewNetworkProvider(args ArgsNewNetworkProvider) (*networkProvider, error) {
 		observedProjectedShard:      args.ObservedProjectedShard,
 		observedProjectedShardIsSet: args.ObservedProjectedShardIsSet,
 		observerUrl:                 args.ObserverUrl,
-		chainID:                     args.ChainID,
+		observerPubkey:              args.ObserverPubkey,
 		nativeCurrencySymbol:        args.NativeCurrencySymbol,
 		genesisBlockHash:            args.GenesisBlockHash,
+
+		networkConfig: &resources.NetworkConfig{
+			ChainID:        args.ChainID,
+			GasPerDataByte: args.GasPerDataByte,
+			MinGasPrice:    args.MinGasPrice,
+			MinGasLimit:    args.MinGasLimit,
+		},
 	}, nil
 }
 
@@ -180,7 +187,7 @@ func (provider *networkProvider) GetBlockchainName() string {
 }
 
 func (provider *networkProvider) GetChainID() string {
-	return provider.chainID
+	return provider.networkConfig.ChainID
 }
 
 func (provider *networkProvider) GetObservedActualShard() uint32 {
@@ -198,40 +205,12 @@ func (provider *networkProvider) GetObserverPubkey() string {
 	return provider.observerPubkey
 }
 
-// SetNetworkConfig sets the network config (useful for offline mode)
-func (provider *networkProvider) SetNetworkConfig(networkConfig *resources.NetworkConfig) {
-	provider.mutex.Lock()
-	provider.networkConfig = networkConfig
-	provider.mutex.Unlock()
-}
-
 // GetNetworkConfig gets the network config (once fetched, the network config is indefinitely held in memory)
-func (provider *networkProvider) GetNetworkConfig() (*resources.NetworkConfig, error) {
-	// We are using "double-checked locking" pattern to lazily initialize the network config object.
-	provider.mutex.RLock()
-	existing := provider.networkConfig
-	provider.mutex.RUnlock()
-	if existing != nil {
-		return existing, nil
-	}
-
-	provider.mutex.Lock()
-	defer provider.mutex.Unlock()
-
-	if provider.networkConfig != nil {
-		return provider.networkConfig, nil
-	}
-
-	networkConfig, err := provider.doGetNetworkConfig()
-	if err != nil {
-		return nil, err
-	}
-
-	provider.networkConfig = networkConfig
-	return networkConfig, nil
+func (provider *networkProvider) GetNetworkConfig() *resources.NetworkConfig {
+	return provider.networkConfig
 }
 
-func (provider *networkProvider) doGetNetworkConfig() (*resources.NetworkConfig, error) {
+func (provider *networkProvider) FetchNetworkConfig() (*resources.NetworkConfig, error) {
 	if provider.isOffline {
 		return nil, errIsOffline
 	}

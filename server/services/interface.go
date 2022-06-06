@@ -13,7 +13,7 @@ type NetworkProvider interface {
 	GetObservedActualShard() uint32
 	GetObserverPubkey() string
 
-	GetNetworkConfig() (*resources.NetworkConfig, error)
+	GetNetworkConfig() *resources.NetworkConfig
 	GetGenesisBlockSummary() (*resources.BlockSummary, error)
 	GetLatestBlockSummary() (*resources.BlockSummary, error)
 	GetBlockByNonce(nonce uint64) (*data.Block, error)

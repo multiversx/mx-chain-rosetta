@@ -59,10 +59,10 @@ func createOnlineControllers(networkProvider services.NetworkProvider) ([]server
 	networkService := services.NewNetworkAPIService(networkProvider)
 	networkController := server.NewNetworkAPIController(networkService, asserter)
 
-	accountService := services.NewAccountAPIService(networkProvider)
+	accountService := services.NewAccountService(networkProvider)
 	accountController := server.NewAccountAPIController(accountService, asserter)
 
-	blockService := services.NewBlockAPIService(networkProvider)
+	blockService := services.NewBlockService(networkProvider)
 	blockController := server.NewBlockAPIController(blockService, asserter)
 
 	mempoolService := services.NewMempoolApiService(networkProvider)

@@ -9,10 +9,7 @@ import (
 )
 
 func computeSuggestedFeeAndGas(txType string, options objectsMap, provider NetworkProvider) (*big.Int, uint64, uint64, *types.Error) {
-	networkConfig, err := provider.GetNetworkConfig()
-	if err != nil {
-		return nil, 0, 0, wrapErr(ErrUnableToGetNetworkConfig, err)
-	}
+	networkConfig := provider.GetNetworkConfig()
 
 	var gasLimit, gasPrice uint64
 

@@ -16,7 +16,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestBlockAPIService_GetBlockByNonce_ShouldWorkWithRealWorldData(t *testing.T) {
+func TestBlockService_GetBlockByNonce_ShouldWorkWithRealWorldData(t *testing.T) {
 	t.Skip("Will be enabled upon re-fetching test data from the localnet.")
 	t.Parallel()
 
@@ -47,7 +47,7 @@ func checkBlock(t *testing.T, nonce int64) {
 	require.Equal(t, expectedJson, actualJson, fmt.Sprintf("check failed: nonce = %d", nonce))
 }
 
-func createService() *blockAPIService {
+func createService() *blockService {
 	networkConfig := &provider.NetworkConfig{
 		ChainID:        "localnet",
 		GasPerDataByte: 1500,
@@ -80,7 +80,7 @@ func createService() *blockAPIService {
 		},
 	}
 
-	return &blockAPIService{
+	return &blockService{
 		provider:  providerMock,
 		txsParser: newTransactionParser(providerMock, configuration, networkConfig),
 	}

@@ -13,7 +13,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestBlockAPIService_BlockByIndex(t *testing.T) {
+func TestBlockService_BlockByIndex(t *testing.T) {
 	t.Parallel()
 
 	blockIndex := int64(10)
@@ -70,7 +70,7 @@ func TestBlockAPIService_BlockByIndex(t *testing.T) {
 		MinGasLimit:    100,
 	}
 	cfg := &configuration.Configuration{}
-	blockAPIService := NewBlockAPIService(elrondProviderMock, cfg, networkCfg)
+	service := NewBlockService(elrondProviderMock, cfg, networkCfg)
 	tp := newTransactionParser(elrondProviderMock, cfg, networkCfg)
 
 	expectedBlock := &types.Block{
@@ -183,7 +183,7 @@ func TestBlockAPIService_BlockByIndex(t *testing.T) {
 			"round": round,
 		},
 	}
-	blockResponse, err := blockAPIService.Block(context.Background(), &types.BlockRequest{
+	blockResponse, err := service.Block(context.Background(), &types.BlockRequest{
 		NetworkIdentifier: nil,
 		BlockIdentifier: &types.PartialBlockIdentifier{
 			Index: &blockIndex,

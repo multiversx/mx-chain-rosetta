@@ -56,6 +56,9 @@ func startRosetta(ctx *cli.Context) error {
 		ObservedProjectedShardIsSet: cliFlags.observeProjectedShardIsSet,
 		ObserverUrl:                 cliFlags.observer,
 		ChainID:                     cliFlags.chainID,
+		GasPerDataByte:              cliFlags.gasPerDataByte,
+		MinGasPrice:                 cliFlags.minGasPrice,
+		MinGasLimit:                 cliFlags.minGasLimit,
 		NativeCurrencySymbol:        cliFlags.nativeCurrencySymbol,
 		GenesisBlockHash:            cliFlags.genesisBlock,
 	})

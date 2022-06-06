@@ -8,21 +8,21 @@ import (
 	"github.com/coinbase/rosetta-sdk-go/types"
 )
 
-type blockAPIService struct {
+type blockService struct {
 	provider  NetworkProvider
 	txsParser *transactionsParser
 }
 
-// NewBlockAPIService will create a new instance of blockAPIService
-func NewBlockAPIService(provider NetworkProvider) server.BlockAPIServicer {
-	return &blockAPIService{
+// NewBlockService will create a new instance of blockService
+func NewBlockService(provider NetworkProvider) server.BlockAPIServicer {
+	return &blockService{
 		provider:  provider,
 		txsParser: newTransactionParser(provider),
 	}
 }
 
 // Block implements the /block endpoint.
-func (service *blockAPIService) Block(
+func (service *blockService) Block(
 	_ context.Context,
 	request *types.BlockRequest,
 ) (*types.BlockResponse, *types.Error) {
@@ -37,7 +37,7 @@ func (service *blockAPIService) Block(
 	return nil, ErrMustQueryByIndexOrByHash
 }
 
-func (service *blockAPIService) getBlockByNonce(nonce int64) (*types.BlockResponse, *types.Error) {
+func (service *blockService) getBlockByNonce(nonce int64) (*types.BlockResponse, *types.Error) {
 	block, err := service.provider.GetBlockByNonce(uint64(nonce))
 	if err != nil {
 		return nil, wrapErr(ErrUnableToGetBlock, err)
@@ -51,7 +51,7 @@ func (service *blockAPIService) getBlockByNonce(nonce int64) (*types.BlockRespon
 	return rosettaBlock, nil
 }
 
-func (service *blockAPIService) getBlockByHash(hash string) (*types.BlockResponse, *types.Error) {
+func (service *blockService) getBlockByHash(hash string) (*types.BlockResponse, *types.Error) {
 	block, err := service.provider.GetBlockByHash(hash)
 	if err != nil {
 		return nil, wrapErr(ErrUnableToGetBlock, err)
@@ -65,7 +65,7 @@ func (service *blockAPIService) getBlockByHash(hash string) (*types.BlockRespons
 	return rosettaBlock, nil
 }
 
-func (service *blockAPIService) parseBlock(block *data.Block) (*types.BlockResponse, error) {
+func (service *blockService) parseBlock(block *data.Block) (*types.BlockResponse, error) {
 	var parentBlockIdentifier *types.BlockIdentifier
 	if block.Nonce != 0 {
 		parentBlockIdentifier = &types.BlockIdentifier{
@@ -98,7 +98,7 @@ func (service *blockAPIService) parseBlock(block *data.Block) (*types.BlockRespo
 
 // BlockTransaction - not implemented
 // We dont need this method because all transactions are returned by method Block
-func (service *blockAPIService) BlockTransaction(
+func (service *blockService) BlockTransaction(
 	_ context.Context,
 	_ *types.BlockTransactionRequest,
 ) (*types.BlockTransactionResponse, *types.Error) {

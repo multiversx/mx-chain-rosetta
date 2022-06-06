@@ -8,20 +8,20 @@ import (
 	"github.com/coinbase/rosetta-sdk-go/types"
 )
 
-type accountAPIService struct {
+type accountService struct {
 	provider NetworkProvider
 	config   *configuration.Configuration
 }
 
-// NewAccountAPIService will create a new instance of accountAPIService
-func NewAccountAPIService(provider NetworkProvider) server.AccountAPIServicer {
-	return &accountAPIService{
+// NewAccountService will create a new instance of accountService
+func NewAccountService(provider NetworkProvider) server.AccountAPIServicer {
+	return &accountService{
 		provider: provider,
 	}
 }
 
 // AccountBalance implements the /account/balance endpoint.
-func (service *accountAPIService) AccountBalance(
+func (service *accountService) AccountBalance(
 	_ context.Context,
 	request *types.AccountBalanceRequest,
 ) (*types.AccountBalanceResponse, *types.Error) {
@@ -61,6 +61,6 @@ func (service *accountAPIService) AccountBalance(
 }
 
 // AccountCoins implements the /account/coins endpoint.
-func (service *accountAPIService) AccountCoins(_ context.Context, _ *types.AccountCoinsRequest) (*types.AccountCoinsResponse, *types.Error) {
+func (service *accountService) AccountCoins(_ context.Context, _ *types.AccountCoinsRequest) (*types.AccountCoinsResponse, *types.Error) {
 	return nil, ErrNotImplemented
 }

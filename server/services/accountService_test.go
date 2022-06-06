@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestAccountAPIService_AccountBalance(t *testing.T) {
+func TestAccountService_AccountBalance(t *testing.T) {
 	t.Parallel()
 
 	address := "erd13lx7zldumunqvf74g5z407gwl5r35jha06rjzc32qcujamknzdgsnt2yvn"
@@ -36,10 +36,10 @@ func TestAccountAPIService_AccountBalance(t *testing.T) {
 	}
 	cfg := &configuration.Configuration{}
 
-	accountAPIService := NewAccountAPIService(elrondProviderMock, cfg)
-	assert.NotNil(t, accountAPIService)
+	service := NewAccountService(elrondProviderMock)
+	assert.NotNil(t, service)
 
-	_, err := accountAPIService.AccountBalance(context.Background(), &types.AccountBalanceRequest{
+	_, err := service.AccountBalance(context.Background(), &types.AccountBalanceRequest{
 		AccountIdentifier: &types.AccountIdentifier{
 			Address: "",
 		},
@@ -47,7 +47,7 @@ func TestAccountAPIService_AccountBalance(t *testing.T) {
 	assert.Equal(t, ErrInvalidAccountAddress, err)
 
 	// Get account balance should work
-	accountBalanceResponse, err := accountAPIService.AccountBalance(context.Background(), &types.AccountBalanceRequest{
+	accountBalanceResponse, err := service.AccountBalance(context.Background(), &types.AccountBalanceRequest{
 		AccountIdentifier: &types.AccountIdentifier{
 			Address: address,
 		},
