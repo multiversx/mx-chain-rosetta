@@ -12,22 +12,22 @@ import (
 	"github.com/coinbase/rosetta-sdk-go/types"
 )
 
-type constructionAPIService struct {
+type constructionService struct {
 	provider  NetworkProvider
 	txsParser *transactionsParser
 }
 
-// NewConstructionAPIService creates a new instance of an constructionAPIService.
-func NewConstructionAPIService(
+// NewConstructionService creates a new instance of an constructionAPIService.
+func NewConstructionService(
 	networkProvider NetworkProvider,
 ) server.ConstructionAPIServicer {
-	return &constructionAPIService{
+	return &constructionService{
 		provider:  networkProvider,
 		txsParser: newTransactionParser(networkProvider),
 	}
 }
 
-func (service *constructionAPIService) getNativeCurrency() *types.Currency {
+func (service *constructionService) getNativeCurrency() *types.Currency {
 	currency := service.provider.GetNativeCurrency()
 
 	return &types.Currency{
@@ -37,7 +37,7 @@ func (service *constructionAPIService) getNativeCurrency() *types.Currency {
 }
 
 // ConstructionPreprocess will preprocess data that in provided in request
-func (service *constructionAPIService) ConstructionPreprocess(
+func (service *constructionService) ConstructionPreprocess(
 	_ context.Context,
 	request *types.ConstructionPreprocessRequest,
 ) (*types.ConstructionPreprocessResponse, *types.Error) {
@@ -78,7 +78,7 @@ func (service *constructionAPIService) ConstructionPreprocess(
 	}, nil
 }
 
-func (service *constructionAPIService) checkOperationsAndMeta(ops []*types.Operation, meta map[string]interface{}) *types.Error {
+func (service *constructionService) checkOperationsAndMeta(ops []*types.Operation, meta map[string]interface{}) *types.Error {
 	if len(ops) == 0 {
 		return wrapErr(ErrConstructionCheck, errors.New("invalid number of operations"))
 	}
@@ -139,7 +139,7 @@ func getOptionsFromOperations(ops []*types.Operation) (objectsMap, *types.Error)
 }
 
 // ConstructionMetadata construct metadata for a transaction
-func (service *constructionAPIService) ConstructionMetadata(
+func (service *constructionService) ConstructionMetadata(
 	_ context.Context,
 	request *types.ConstructionMetadataRequest,
 ) (*types.ConstructionMetadataResponse, *types.Error) {
@@ -176,7 +176,7 @@ func (service *constructionAPIService) ConstructionMetadata(
 	}, nil
 }
 
-func (service *constructionAPIService) computeMetadata(options objectsMap) (objectsMap, *types.Error) {
+func (service *constructionService) computeMetadata(options objectsMap) (objectsMap, *types.Error) {
 	metadata := make(objectsMap)
 	if dataField, ok := options["data"]; ok {
 		// convert string to byte array
@@ -217,7 +217,7 @@ func (service *constructionAPIService) computeMetadata(options objectsMap) (obje
 }
 
 // ConstructionPayloads will prepare a transaction for signing
-func (service *constructionAPIService) ConstructionPayloads(
+func (service *constructionService) ConstructionPayloads(
 	_ context.Context,
 	request *types.ConstructionPayloadsRequest,
 ) (*types.ConstructionPayloadsResponse, *types.Error) {
@@ -252,7 +252,7 @@ func (service *constructionAPIService) ConstructionPayloads(
 }
 
 // ConstructionParse will check if a transaction is correctly formatted
-func (service *constructionAPIService) ConstructionParse(
+func (service *constructionService) ConstructionParse(
 	_ context.Context,
 	request *types.ConstructionParseRequest,
 ) (*types.ConstructionParseResponse, *types.Error) {
@@ -308,7 +308,7 @@ func getTxFromRequest(txString string) (*data.Transaction, error) {
 }
 
 // ConstructionCombine will create a signed transaction for transaction bytes and signature
-func (service *constructionAPIService) ConstructionCombine(
+func (service *constructionService) ConstructionCombine(
 	_ context.Context,
 	request *types.ConstructionCombineRequest,
 ) (*types.ConstructionCombineResponse, *types.Error) {
@@ -337,7 +337,7 @@ func (service *constructionAPIService) ConstructionCombine(
 }
 
 // ConstructionDerive returns a bech32 address from public key bytes
-func (service *constructionAPIService) ConstructionDerive(
+func (service *constructionService) ConstructionDerive(
 	_ context.Context,
 	request *types.ConstructionDeriveRequest,
 ) (*types.ConstructionDeriveResponse, *types.Error) {
@@ -357,7 +357,7 @@ func (service *constructionAPIService) ConstructionDerive(
 }
 
 // ConstructionHash will calculate transaction hash
-func (service *constructionAPIService) ConstructionHash(
+func (service *constructionService) ConstructionHash(
 	_ context.Context,
 	request *types.ConstructionHashRequest,
 ) (*types.TransactionIdentifierResponse, *types.Error) {
@@ -379,7 +379,7 @@ func (service *constructionAPIService) ConstructionHash(
 }
 
 // ConstructionSubmit will submit transaction and return hash
-func (service *constructionAPIService) ConstructionSubmit(
+func (service *constructionService) ConstructionSubmit(
 	_ context.Context,
 	request *types.ConstructionSubmitRequest,
 ) (*types.TransactionIdentifierResponse, *types.Error) {

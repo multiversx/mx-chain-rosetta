@@ -7,30 +7,30 @@ import (
 	"github.com/coinbase/rosetta-sdk-go/types"
 )
 
-type mempoolAPIService struct {
+type mempoolService struct {
 	provider  NetworkProvider
 	txsParser *transactionsParser
 }
 
-// NewMempoolApiService will create a new instance of mempoolAPIService
-func NewMempoolApiService(provider NetworkProvider) server.MempoolAPIServicer {
-	return &mempoolAPIService{
+// NewMempoolService will create a new instance of mempoolAPIService
+func NewMempoolService(provider NetworkProvider) server.MempoolAPIServicer {
+	return &mempoolService{
 		provider:  provider,
 		txsParser: newTransactionParser(provider),
 	}
 }
 
 // Mempool is not implemented yet
-func (mas *mempoolAPIService) Mempool(context.Context, *types.NetworkRequest) (*types.MempoolResponse, *types.Error) {
+func (service *mempoolService) Mempool(context.Context, *types.NetworkRequest) (*types.MempoolResponse, *types.Error) {
 	return nil, ErrNotImplemented
 }
 
 // MempoolTransaction will return operations for a transaction that is in pool
-func (mas *mempoolAPIService) MempoolTransaction(
+func (service *mempoolService) MempoolTransaction(
 	_ context.Context,
 	request *types.MempoolTransactionRequest,
 ) (*types.MempoolTransactionResponse, *types.Error) {
-	tx, err := mas.provider.GetTransactionByHashFromPool(request.TransactionIdentifier.Hash)
+	tx, err := service.provider.GetTransactionByHashFromPool(request.TransactionIdentifier.Hash)
 	if err != nil {
 		return nil, wrapErr(ErrCannotParsePoolTransaction, err)
 	}
@@ -38,7 +38,7 @@ func (mas *mempoolAPIService) MempoolTransaction(
 		return nil, ErrTransactionIsNotInPool
 	}
 
-	rosettaTx, err := mas.txsParser.parseTx(tx, true)
+	rosettaTx, err := service.txsParser.parseTx(tx, true)
 	if err != nil {
 		return nil, ErrCannotParsePoolTransaction
 	}

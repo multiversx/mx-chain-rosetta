@@ -1,8 +1,6 @@
 package services
 
 import (
-	"math"
-
 	"github.com/coinbase/rosetta-sdk-go/types"
 )
 
@@ -120,12 +118,6 @@ var (
 		Retriable: false,
 	}
 
-	ErrUnexpectedError = &types.Error{
-		Code:      math.MaxInt32,
-		Message:   "unexpected error",
-		Retriable: false,
-	}
-
 	Errors = []*types.Error{
 		ErrUnableToGetChainID,
 		ErrUnableToGetAccount,
@@ -146,7 +138,6 @@ var (
 		ErrCannotParsePoolTransaction,
 		ErrInvalidInputParam,
 		ErrOfflineMode,
-		ErrUnexpectedError,
 	}
 )
 

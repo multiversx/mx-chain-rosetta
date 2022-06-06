@@ -23,7 +23,7 @@ func TestNetworkAPIService_NetworkList(t *testing.T) {
 		},
 	}
 
-	networkAPIService := NewNetworkAPIService(elrondProviderMock, cfg, false)
+	networkAPIService := NewNetworkService(elrondProviderMock, cfg, false)
 
 	networkListResponse, err := networkAPIService.NetworkList(context.Background(), nil)
 	assert.Nil(t, err)
@@ -43,9 +43,9 @@ func TestNetworkAPIService_NetworkOptions(t *testing.T) {
 			Network:    "local_network",
 		},
 	}
-	networkAPIService := NewNetworkAPIService(elrondProviderMock, cfg, false)
+	service := NewNetworkService(elrondProviderMock, cfg, false)
 
-	networkOptions, err := networkAPIService.NetworkOptions(context.Background(), nil)
+	networkOptions, err := service.NetworkOptions(context.Background(), nil)
 	assert.Nil(t, err)
 	assert.Equal(t, &types.NetworkOptionsResponse{
 		Version: &types.Version{
@@ -90,20 +90,9 @@ func TestNetworkAPIService_NetworkStatus(t *testing.T) {
 			}, nil
 		},
 	}
-	cfg := &configuration.Configuration{
-		GenesisBlockIdentifier: &types.BlockIdentifier{
-			Index: 1,
-			Hash:  configuration.GenesisBlockHashMainnet,
-		},
-		Peers: []*types.Peer{
-			{
-				PeerID: "bla-bla-bla",
-			},
-		},
-	}
-	networkAPIService := NewNetworkAPIService(elrondProviderMock, cfg, false)
+	service := NewNetworkService(elrondProviderMock)
 
-	networkStatusResponse, err := networkAPIService.NetworkStatus(context.Background(), nil)
+	networkStatusResponse, err := service.NetworkStatus(context.Background(), nil)
 	assert.Nil(t, err)
 	assert.Equal(t, &types.NetworkStatusResponse{
 		CurrentBlockIdentifier: &types.BlockIdentifier{

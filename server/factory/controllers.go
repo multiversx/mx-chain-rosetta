@@ -29,14 +29,14 @@ func createOfflineControllers(networkProvider services.NetworkProvider) ([]serve
 
 	offlineService := offline.NewOfflineService()
 
-	networkService := services.NewNetworkAPIService(networkProvider)
+	networkService := services.NewNetworkService(networkProvider)
 	networkController := server.NewNetworkAPIController(networkService, asserter)
 
 	accountController := server.NewAccountAPIController(offlineService, asserter)
 	blockController := server.NewBlockAPIController(offlineService, asserter)
 	mempoolController := server.NewMempoolAPIController(offlineService, asserter)
 
-	constructionService := services.NewConstructionAPIService(networkProvider)
+	constructionService := services.NewConstructionService(networkProvider)
 	constructionController := server.NewConstructionAPIController(constructionService, asserter)
 
 	return []server.Router{
@@ -56,7 +56,7 @@ func createOnlineControllers(networkProvider services.NetworkProvider) ([]server
 		return nil, err
 	}
 
-	networkService := services.NewNetworkAPIService(networkProvider)
+	networkService := services.NewNetworkService(networkProvider)
 	networkController := server.NewNetworkAPIController(networkService, asserter)
 
 	accountService := services.NewAccountService(networkProvider)
@@ -65,10 +65,10 @@ func createOnlineControllers(networkProvider services.NetworkProvider) ([]server
 	blockService := services.NewBlockService(networkProvider)
 	blockController := server.NewBlockAPIController(blockService, asserter)
 
-	mempoolService := services.NewMempoolApiService(networkProvider)
+	mempoolService := services.NewMempoolService(networkProvider)
 	mempoolController := server.NewMempoolAPIController(mempoolService, asserter)
 
-	constructionService := services.NewConstructionAPIService(networkProvider)
+	constructionService := services.NewConstructionService(networkProvider)
 	constructionController := server.NewConstructionAPIController(constructionService, asserter)
 
 	return []server.Router{

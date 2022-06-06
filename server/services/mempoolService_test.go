@@ -6,9 +6,7 @@ import (
 
 	"github.com/ElrondNetwork/elrond-go/data/transaction"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
-	"github.com/ElrondNetwork/elrond-proxy-go/rosetta/configuration"
 	"github.com/ElrondNetwork/elrond-proxy-go/rosetta/mocks"
-	"github.com/ElrondNetwork/elrond-proxy-go/rosetta/provider"
 	"github.com/coinbase/rosetta-sdk-go/types"
 	"github.com/stretchr/testify/require"
 )
@@ -22,17 +20,10 @@ func TestMempoolAPIService_MempoolTransactionCannotFindTxInPool(t *testing.T) {
 		},
 	}
 
-	networkCfg := &provider.NetworkConfig{
-		GasPerDataByte: 1,
-		ClientVersion:  "",
-		MinGasPrice:    10,
-		MinGasLimit:    100,
-	}
-	cfg := &configuration.Configuration{}
-	mempoolApiService := NewMempoolApiService(elrondProviderMock, cfg, networkCfg)
+	service := NewMempoolService(elrondProviderMock)
 
 	txHash := "hash-hash-hash"
-	txResponse, err := mempoolApiService.MempoolTransaction(context.Background(), &types.MempoolTransactionRequest{
+	txResponse, err := service.MempoolTransaction(context.Background(), &types.MempoolTransactionRequest{
 		NetworkIdentifier:     nil,
 		TransactionIdentifier: &types.TransactionIdentifier{Hash: txHash},
 	})
@@ -58,14 +49,8 @@ func TestMempoolAPIService_MempoolTransaction(t *testing.T) {
 			return fullTx, true
 		},
 	}
-	networkCfg := &provider.NetworkConfig{
-		GasPerDataByte: 1,
-		ClientVersion:  "",
-		MinGasPrice:    10,
-		MinGasLimit:    100,
-	}
-	cfg := &configuration.Configuration{}
-	mempoolApiService := NewMempoolApiService(elrondProviderMock, cfg, networkCfg)
+
+	service := NewMempoolService(elrondProviderMock)
 
 	expectedRosettaTx := &types.Transaction{
 		TransactionIdentifier: &types.TransactionIdentifier{Hash: txHash},
@@ -104,7 +89,7 @@ func TestMempoolAPIService_MempoolTransaction(t *testing.T) {
 		},
 	}
 
-	txResponse, err := mempoolApiService.MempoolTransaction(context.Background(), &types.MempoolTransactionRequest{
+	txResponse, err := service.MempoolTransaction(context.Background(), &types.MempoolTransactionRequest{
 		NetworkIdentifier:     nil,
 		TransactionIdentifier: &types.TransactionIdentifier{Hash: txHash},
 	})
