@@ -36,6 +36,7 @@ type NodeStatusApiResponsePayload struct {
 
 // NodeStatus is an API resource
 type NodeStatus struct {
+	HighestNonce      uint64 `json:"erd_nonce"`
 	HighestFinalNonce uint64 `json:"erd_highest_final_nonce"`
 }
 

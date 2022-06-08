@@ -20,12 +20,3 @@ func (extension *networkProviderExtension) getNativeCurrency() *types.Currency {
 		Decimals: currency.Decimals,
 	}
 }
-
-func (extension *networkProviderExtension) getGenesisBlockIdentifier() *types.BlockIdentifier {
-	blockSummary := extension.provider.GetGenesisBlockSummary()
-
-	return &types.BlockIdentifier{
-		Index: int64(blockSummary.Nonce),
-		Hash:  blockSummary.Hash,
-	}
-}

@@ -46,6 +46,7 @@ type ArgsNewNetworkProvider struct {
 	NativeCurrencySymbol        string
 	GenesisBlockHash            string
 	GenesisTimestamp            int64
+	OnlyFinalBlocks             bool
 }
 
 type networkProvider struct {
@@ -66,6 +67,7 @@ type networkProvider struct {
 	nativeCurrencySymbol        string
 	genesisBlockHash            string
 	genesisTimestamp            int64
+	onlyFinalBlocks             bool
 
 	networkConfig *resources.NetworkConfig
 }
@@ -171,6 +173,7 @@ func NewNetworkProvider(args ArgsNewNetworkProvider) (*networkProvider, error) {
 		nativeCurrencySymbol:        args.NativeCurrencySymbol,
 		genesisBlockHash:            args.GenesisBlockHash,
 		genesisTimestamp:            args.GenesisTimestamp,
+		onlyFinalBlocks:             args.OnlyFinalBlocks,
 
 		networkConfig: &resources.NetworkConfig{
 			ChainID:        args.ChainID,
@@ -251,7 +254,7 @@ func (provider *networkProvider) GetLatestBlockSummary() (*resources.BlockSummar
 		return nil, errIsOffline
 	}
 
-	nodeStatus, err := provider.getNodeStatus()
+	latestBlockNonce, err := provider.getLatestBlockNonce()
 	if err != nil {
 		return nil, err
 	}
@@ -263,11 +266,11 @@ func (provider *networkProvider) GetLatestBlockSummary() (*resources.BlockSummar
 
 	blockResponse, err := provider.blockProcessor.GetBlockByNonce(
 		provider.observedActualShard,
-		nodeStatus.HighestFinalNonce,
+		latestBlockNonce,
 		queryOptions,
 	)
 	if err != nil {
-		return nil, newErrCannotGetBlockByNonce(nodeStatus.HighestFinalNonce, err)
+		return nil, newErrCannotGetBlockByNonce(latestBlockNonce, err)
 	}
 
 	return &resources.BlockSummary{
@@ -276,6 +279,19 @@ func (provider *networkProvider) GetLatestBlockSummary() (*resources.BlockSummar
 		PreviousBlockHash: blockResponse.Data.Block.PrevBlockHash,
 		Timestamp:         int64(blockResponse.Data.Block.Timestamp),
 	}, nil
+}
+
+func (provider *networkProvider) getLatestBlockNonce() (uint64, error) {
+	nodeStatus, err := provider.getNodeStatus()
+	if err != nil {
+		return 0, err
+	}
+
+	if provider.onlyFinalBlocks {
+		return nodeStatus.HighestFinalNonce, nil
+	}
+
+	return nodeStatus.HighestNonce, nil
 }
 
 func (provider *networkProvider) getNodeStatus() (*resources.NodeStatus, error) {
@@ -346,7 +362,10 @@ func (provider *networkProvider) GetAccount(address string) (*data.AccountModel,
 		return nil, errIsOffline
 	}
 
-	options := common.AccountQueryOptions{OnFinalBlock: true}
+	options := common.AccountQueryOptions{
+		OnFinalBlock: provider.onlyFinalBlocks,
+	}
+
 	account, err := provider.accountProcessor.GetAccount(address, options)
 	if err != nil {
 		return nil, newErrCannotGetAccount(address, err)

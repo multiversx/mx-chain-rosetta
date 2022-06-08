@@ -119,6 +119,11 @@ VERSION:
 		Usage: "Specifies the symbol of the native currency (must be EGLD for mainnet, XeGLD for testnet and devnet).",
 		Value: "XeGLD",
 	}
+
+	cliFlagOnlyFinalBlocks = cli.BoolFlag{
+		Name:  "only-final-blocks",
+		Usage: "Return only final blocks (and accounts only on final root hashes)",
+	}
 )
 
 func getAllCliFlags() []cli.Flag {
@@ -139,6 +144,7 @@ func getAllCliFlags() []cli.Flag {
 		cliFlagMinGasLimit,
 		cliFlagGasPerDataByte,
 		cliFlagNativeCurrencySymbol,
+		cliFlagOnlyFinalBlocks,
 	}
 }
 
@@ -160,6 +166,7 @@ type parsedCliFlags struct {
 	minGasLimit                 uint64
 	gasPerDataByte              uint64
 	nativeCurrencySymbol        string
+	onlyFinalBlocks             bool
 }
 
 func getParsedCliFlags(ctx *cli.Context) parsedCliFlags {
@@ -181,5 +188,6 @@ func getParsedCliFlags(ctx *cli.Context) parsedCliFlags {
 		minGasLimit:                 ctx.GlobalUint64(cliFlagMinGasLimit.Name),
 		gasPerDataByte:              ctx.GlobalUint64(cliFlagGasPerDataByte.Name),
 		nativeCurrencySymbol:        ctx.GlobalString(cliFlagNativeCurrencySymbol.Name),
+		onlyFinalBlocks:             ctx.GlobalBool(cliFlagOnlyFinalBlocks.Name),
 	}
 }

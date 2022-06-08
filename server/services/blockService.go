@@ -18,7 +18,7 @@ type blockService struct {
 // NewBlockService will create a new instance of blockService
 func NewBlockService(provider NetworkProvider) server.BlockAPIServicer {
 	extension := newNetworkProviderExtension(provider)
-	genesisIdentifier := extension.getGenesisBlockIdentifier()
+	genesisIdentifier := blockSummaryToIdentifier(provider.GetGenesisBlockSummary())
 
 	return &blockService{
 		provider:          provider,
@@ -72,7 +72,7 @@ func (service *blockService) getBlockByNonce(nonce int64) (*types.BlockResponse,
 		return nil, wrapErr(ErrUnableToGetBlock, err)
 	}
 
-	rosettaBlock, err := service.parseBlock(block)
+	rosettaBlock, err := service.convertToRosettaBlock(block)
 	if err != nil {
 		return nil, wrapErr(ErrUnableToGetBlock, err)
 	}
@@ -86,7 +86,7 @@ func (service *blockService) getBlockByHash(hash string) (*types.BlockResponse, 
 		return nil, wrapErr(ErrUnableToGetBlock, err)
 	}
 
-	rosettaBlock, err := service.parseBlock(block)
+	rosettaBlock, err := service.convertToRosettaBlock(block)
 	if err != nil {
 		return nil, wrapErr(ErrUnableToGetBlock, err)
 	}
@@ -94,13 +94,11 @@ func (service *blockService) getBlockByHash(hash string) (*types.BlockResponse, 
 	return rosettaBlock, nil
 }
 
-func (service *blockService) parseBlock(block *data.Block) (*types.BlockResponse, error) {
-	var parentBlockIdentifier *types.BlockIdentifier
-	if block.Nonce != 0 {
-		parentBlockIdentifier = &types.BlockIdentifier{
-			Index: int64(block.Nonce - 1),
-			Hash:  block.PrevBlockHash,
-		}
+func (service *blockService) convertToRosettaBlock(block *data.Block) (*types.BlockResponse, error) {
+	// Genesis block is handled separately, in Block()
+	parentBlockIdentifier := &types.BlockIdentifier{
+		Index: int64(block.Nonce - 1),
+		Hash:  block.PrevBlockHash,
 	}
 
 	transactions, err := service.txsParser.parseTxsFromBlock(block)
@@ -110,16 +108,15 @@ func (service *blockService) parseBlock(block *data.Block) (*types.BlockResponse
 
 	return &types.BlockResponse{
 		Block: &types.Block{
-			BlockIdentifier: &types.BlockIdentifier{
-				Index: int64(block.Nonce),
-				Hash:  block.Hash,
-			},
+			BlockIdentifier:       blockToIdentifier(block),
 			ParentBlockIdentifier: parentBlockIdentifier,
 			Timestamp:             timestampInMilliseconds(int64(block.Timestamp)),
 			Transactions:          transactions,
 			Metadata: objectsMap{
-				"epoch": block.Epoch,
-				"round": block.Round,
+				"shard":  block.Shard,
+				"epoch":  block.Epoch,
+				"round":  block.Round,
+				"status": block.Status,
 			},
 		},
 	}, nil
