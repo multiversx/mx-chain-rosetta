@@ -332,12 +332,13 @@ func (provider *networkProvider) GetBlockByHash(hash string) (*data.Block, error
 }
 
 // GetAccount gets an account by address
-func (provider *networkProvider) GetAccount(address string) (*data.Account, error) {
+func (provider *networkProvider) GetAccount(address string) (*data.AccountModel, error) {
 	if provider.isOffline {
 		return nil, errIsOffline
 	}
 
-	account, err := provider.accountProcessor.GetAccount(address)
+	options := common.AccountQueryOptions{OnFinalBlock: true}
+	account, err := provider.accountProcessor.GetAccount(address, options)
 	if err != nil {
 		return nil, newErrCannotGetAccount(address, err)
 	}

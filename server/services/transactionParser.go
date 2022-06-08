@@ -10,21 +10,14 @@ import (
 )
 
 type transactionsParser struct {
-	provider NetworkProvider
+	provider  NetworkProvider
+	extension networkProviderExtension
 }
 
 func newTransactionParser(provider NetworkProvider) *transactionsParser {
 	return &transactionsParser{
-		provider: provider,
-	}
-}
-
-func (parser *transactionsParser) getNativeCurrency() *types.Currency {
-	currency := parser.provider.GetNativeCurrency()
-
-	return &types.Currency{
-		Symbol:   currency.Symbol,
-		Decimals: currency.Decimals,
+		provider:  provider,
+		extension: *newNetworkProviderExtension(provider),
 	}
 }
 
@@ -96,7 +89,7 @@ func (parser *transactionsParser) createRosettaTxWithGasRefund(eTx *data.FullTra
 				},
 				Amount: &types.Amount{
 					Value:    eTx.Value,
-					Currency: parser.getNativeCurrency(),
+					Currency: parser.extension.getNativeCurrency(),
 				},
 			},
 		},
@@ -122,7 +115,7 @@ func (parser *transactionsParser) createRosettaTxUnsignedTxSendFunds(eTx *data.F
 			},
 			Amount: &types.Amount{
 				Value:    "-" + eTx.Value,
-				Currency: parser.getNativeCurrency(),
+				Currency: parser.extension.getNativeCurrency(),
 			},
 		})
 
@@ -141,7 +134,7 @@ func (parser *transactionsParser) createRosettaTxUnsignedTxSendFunds(eTx *data.F
 			},
 			Amount: &types.Amount{
 				Value:    eTx.Value,
-				Currency: parser.getNativeCurrency(),
+				Currency: parser.extension.getNativeCurrency(),
 			},
 		})
 
@@ -175,7 +168,7 @@ func (parser *transactionsParser) createRosettaTxFromReward(eTx *data.FullTransa
 				},
 				Amount: &types.Amount{
 					Value:    eTx.Value,
-					Currency: parser.getNativeCurrency(),
+					Currency: parser.extension.getNativeCurrency(),
 				},
 			},
 		},
@@ -203,7 +196,7 @@ func (parser *transactionsParser) createRosettaTxFromMoveBalance(eTx *data.FullT
 				},
 				Amount: &types.Amount{
 					Value:    "-" + eTx.Value,
-					Currency: parser.getNativeCurrency(),
+					Currency: parser.extension.getNativeCurrency(),
 				},
 			})
 
@@ -225,7 +218,7 @@ func (parser *transactionsParser) createRosettaTxFromMoveBalance(eTx *data.FullT
 				},
 				Amount: &types.Amount{
 					Value:    eTx.Value,
-					Currency: parser.getNativeCurrency(),
+					Currency: parser.extension.getNativeCurrency(),
 				},
 			})
 
@@ -248,7 +241,7 @@ func (parser *transactionsParser) createRosettaTxFromMoveBalance(eTx *data.FullT
 			},
 			Amount: &types.Amount{
 				Value:    "-" + eTx.InitiallyPaidFee,
-				Currency: parser.getNativeCurrency(),
+				Currency: parser.extension.getNativeCurrency(),
 			},
 		})
 	}
@@ -276,7 +269,7 @@ func (parser *transactionsParser) createOperationsFromPreparedTx(tx *data.Transa
 		},
 		Amount: &types.Amount{
 			Value:    "-" + tx.Value,
-			Currency: parser.getNativeCurrency(),
+			Currency: parser.extension.getNativeCurrency(),
 		},
 	})
 
@@ -293,7 +286,7 @@ func (parser *transactionsParser) createOperationsFromPreparedTx(tx *data.Transa
 		},
 		Amount: &types.Amount{
 			Value:    tx.Value,
-			Currency: parser.getNativeCurrency(),
+			Currency: parser.extension.getNativeCurrency(),
 		},
 	})
 
@@ -318,7 +311,7 @@ func (parser *transactionsParser) createRosettaTxFromInvalidTx(eTx *data.FullTra
 				},
 				Amount: &types.Amount{
 					Value:    "-" + eTx.InitiallyPaidFee,
-					Currency: parser.getNativeCurrency(),
+					Currency: parser.extension.getNativeCurrency(),
 				},
 			},
 		},

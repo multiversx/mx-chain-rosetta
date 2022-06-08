@@ -211,7 +211,7 @@ func (service *constructionService) computeMetadata(options objectsMap) (objects
 		return nil, wrapErr(ErrUnableToGetAccount, err)
 	}
 
-	metadata["nonce"] = account.Nonce
+	metadata["nonce"] = account.Account.Nonce
 
 	return metadata, nil
 }
