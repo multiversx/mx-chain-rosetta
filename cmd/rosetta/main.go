@@ -51,10 +51,10 @@ func startRosetta(ctx *cli.Context) error {
 	networkProvider, err := provider.NewNetworkProvider(provider.ArgsNewNetworkProvider{
 		IsOffline:                   cliFlags.offline,
 		NumShards:                   cliFlags.numShards,
-		ObservedActualShard:         cliFlags.observeActualShard,
-		ObservedProjectedShard:      cliFlags.observeProjectedShard,
-		ObservedProjectedShardIsSet: cliFlags.observeProjectedShardIsSet,
-		ObserverUrl:                 cliFlags.observer,
+		ObservedActualShard:         cliFlags.observerActualShard,
+		ObservedProjectedShard:      cliFlags.observerProjectedShard,
+		ObservedProjectedShardIsSet: cliFlags.observerProjectedShardIsSet,
+		ObserverUrl:                 cliFlags.observerHttpUrl,
 		ChainID:                     cliFlags.chainID,
 		GasPerDataByte:              cliFlags.gasPerDataByte,
 		MinGasPrice:                 cliFlags.minGasPrice,
@@ -65,6 +65,8 @@ func startRosetta(ctx *cli.Context) error {
 	if err != nil {
 		return err
 	}
+
+	networkProvider.LogDescription()
 
 	controllers, err := factory.CreateControllers(networkProvider)
 	if err != nil {
@@ -77,8 +79,7 @@ func startRosetta(ctx *cli.Context) error {
 	}
 
 	go func() {
-		log.Info("Starting HTTP server...")
-
+		log.Info("Starting HTTP server...", "address", httpServer.Addr)
 		err := httpServer.ListenAndServe()
 		if err == http.ErrServerClosed {
 			log.Info("HTTP server stopped")

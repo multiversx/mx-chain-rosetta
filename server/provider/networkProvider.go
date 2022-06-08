@@ -392,3 +392,13 @@ func (provider *networkProvider) GetTransactionByHashFromPool(hash string) (*dat
 
 	return nil, nil
 }
+
+func (provider *networkProvider) LogDescription() {
+	log.Info("Description of network provider",
+		"isOffline", provider.isOffline,
+		"observerUrl", provider.observerUrl,
+		"observedActualShard", provider.observedActualShard,
+		"observedProjectedShard", provider.observedProjectedShard,
+		"observedProjectedShardIsSet", provider.observedProjectedShardIsSet,
+	)
+}
