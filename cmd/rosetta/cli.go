@@ -25,7 +25,7 @@ VERSION:
 	cliFlagPort = cli.IntFlag{
 		Name:  "port",
 		Usage: "Specifies the TCP port used by Rosetta endpoints.",
-		Value: 9090,
+		Value: 8091,
 	}
 
 	cliFlagOffline = cli.BoolFlag{
@@ -39,7 +39,7 @@ VERSION:
 			", if set to *:INFO the logs for all packages will have the INFO level. However, if set to *:INFO,api:DEBUG" +
 			" the logs for all packages will have the INFO level, excepting the api package which will receive a DEBUG" +
 			" log level.",
-		Value: "*:" + logger.LogInfo.String(),
+		Value: "*:" + logger.LogDebug.String(),
 	}
 
 	cliFlagLogsFolder = cli.StringFlag{
@@ -75,7 +75,7 @@ VERSION:
 	cliFlagChainID = cli.StringFlag{
 		Name:  "chain-id",
 		Usage: "Specifies the Chain ID.",
-		Value: "local-testnet",
+		Value: "localnet",
 	}
 
 	cliFlagNumShards = cli.UintFlag{
@@ -86,8 +86,14 @@ VERSION:
 
 	cliFlagGenesisBlock = cli.StringFlag{
 		Name:  "genesis-block",
-		Usage: "Specifies the hash of the genesis block, to be returned by network/status. For mainnet, it must be 0xcd229e4ad2753708e4bab01d7f249affe29441829524c9529e84d51b6d12f2a7.",
+		Usage: "Specifies the hash of the genesis block, to be returned by network/status. For mainnet, it must be cd229e4ad2753708e4bab01d7f249affe29441829524c9529e84d51b6d12f2a7.",
 		Value: "0000000000000000000000000000000000000000000000000000000000000000",
+	}
+
+	cliFlagGenesisTimestamp = cli.Int64Flag{
+		Name:  "genesis-timestamp",
+		Usage: "Specifies the timestamp of the genesis block. For mainnet, it must be 1596117600.",
+		Value: 1596117600,
 	}
 
 	cliFlagMinGasPrice = cli.Uint64Flag{
@@ -128,6 +134,7 @@ func getAllCliFlags() []cli.Flag {
 		cliFlagChainID,
 		cliFlagNumShards,
 		cliFlagGenesisBlock,
+		cliFlagGenesisTimestamp,
 		cliFlagMinGasPrice,
 		cliFlagMinGasLimit,
 		cliFlagGasPerDataByte,
@@ -148,6 +155,7 @@ type parsedCliFlags struct {
 	chainID                     string
 	numShards                   uint32
 	genesisBlock                string
+	genesisTimestamp            int64
 	minGasPrice                 uint64
 	minGasLimit                 uint64
 	gasPerDataByte              uint64
@@ -168,6 +176,7 @@ func getParsedCliFlags(ctx *cli.Context) parsedCliFlags {
 		chainID:                     ctx.GlobalString(cliFlagChainID.Name),
 		numShards:                   uint32(ctx.GlobalUint(cliFlagNumShards.Name)),
 		genesisBlock:                ctx.GlobalString(cliFlagGenesisBlock.Name),
+		genesisTimestamp:            ctx.GlobalInt64(cliFlagGenesisTimestamp.Name),
 		minGasPrice:                 ctx.GlobalUint64(cliFlagMinGasPrice.Name),
 		minGasLimit:                 ctx.GlobalUint64(cliFlagMinGasLimit.Name),
 		gasPerDataByte:              ctx.GlobalUint64(cliFlagGasPerDataByte.Name),

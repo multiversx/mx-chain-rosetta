@@ -14,7 +14,8 @@ type NetworkProvider interface {
 	GetObserverPubkey() string
 
 	GetNetworkConfig() *resources.NetworkConfig
-	GetGenesisBlockSummary() (*resources.BlockSummary, error)
+	GetGenesisBlockSummary() *resources.BlockSummary
+	GetGenesisTimestamp() int64
 	GetLatestBlockSummary() (*resources.BlockSummary, error)
 	GetBlockByNonce(nonce uint64) (*data.Block, error)
 	GetBlockByHash(hash string) (*data.Block, error)

@@ -45,6 +45,7 @@ type ArgsNewNetworkProvider struct {
 	MinGasLimit                 uint64
 	NativeCurrencySymbol        string
 	GenesisBlockHash            string
+	GenesisTimestamp            int64
 }
 
 type networkProvider struct {
@@ -64,6 +65,7 @@ type networkProvider struct {
 	observerPubkey              string
 	nativeCurrencySymbol        string
 	genesisBlockHash            string
+	genesisTimestamp            int64
 
 	networkConfig *resources.NetworkConfig
 }
@@ -168,6 +170,7 @@ func NewNetworkProvider(args ArgsNewNetworkProvider) (*networkProvider, error) {
 		observerPubkey:              args.ObserverPubkey,
 		nativeCurrencySymbol:        args.NativeCurrencySymbol,
 		genesisBlockHash:            args.GenesisBlockHash,
+		genesisTimestamp:            args.GenesisTimestamp,
 
 		networkConfig: &resources.NetworkConfig{
 			ChainID:        args.ChainID,
@@ -229,11 +232,17 @@ func (provider *networkProvider) FetchNetworkConfig() (*resources.NetworkConfig,
 }
 
 // GetGenesisBlockSummary gets a summary of the genesis block
-func (provider *networkProvider) GetGenesisBlockSummary() (*resources.BlockSummary, error) {
+func (provider *networkProvider) GetGenesisBlockSummary() *resources.BlockSummary {
 	return &resources.BlockSummary{
-		Nonce: uint64(genesisBlockNonce),
-		Hash:  provider.genesisBlockHash,
-	}, nil
+		Nonce:     uint64(genesisBlockNonce),
+		Hash:      provider.genesisBlockHash,
+		Timestamp: provider.genesisTimestamp,
+	}
+}
+
+// GetGenesisTimestamp gets the timestamp of the genesis block
+func (provider *networkProvider) GetGenesisTimestamp() int64 {
+	return provider.genesisTimestamp
 }
 
 // GetLatestBlockSummary gets a summary of the latest block

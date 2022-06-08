@@ -44,11 +44,7 @@ func (service *networkService) NetworkStatus(
 		return nil, ErrOfflineMode
 	}
 
-	genesisBlockSummary, err := service.provider.GetGenesisBlockSummary()
-	if err != nil {
-		return nil, wrapErr(ErrUnableToGetBlock, err)
-	}
-
+	genesisBlockSummary := service.provider.GetGenesisBlockSummary()
 	latestBlockSummary, err := service.provider.GetLatestBlockSummary()
 	if err != nil {
 		return nil, wrapErr(ErrUnableToGetBlock, err)
@@ -59,13 +55,13 @@ func (service *networkService) NetworkStatus(
 			Index: int64(latestBlockSummary.Nonce),
 			Hash:  latestBlockSummary.Hash,
 		},
-		CurrentBlockTimestamp: latestBlockSummary.Timestamp,
+		CurrentBlockTimestamp: timestampInMilliseconds(latestBlockSummary.Timestamp),
 		GenesisBlockIdentifier: &types.BlockIdentifier{
 			Index: int64(genesisBlockSummary.Nonce),
 			Hash:  genesisBlockSummary.Hash,
 		},
 		Peers: []*types.Peer{
-			&types.Peer{
+			{
 				PeerID: service.provider.GetObserverPubkey(),
 			},
 		},

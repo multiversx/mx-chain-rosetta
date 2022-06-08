@@ -31,7 +31,7 @@ type NodeStatusApiResponse struct {
 
 // NodeStatusApiResponsePayload is an API resource
 type NodeStatusApiResponsePayload struct {
-	Status NodeStatus `json:"status"`
+	Status NodeStatus `json:"metrics"`
 }
 
 // NodeStatus is an API resource

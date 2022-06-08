@@ -12,11 +12,20 @@ func newNetworkProviderExtension(provider NetworkProvider) *networkProviderExten
 	}
 }
 
-func (mapper *networkProviderExtension) getNativeCurrency() *types.Currency {
-	currency := mapper.provider.GetNativeCurrency()
+func (extension *networkProviderExtension) getNativeCurrency() *types.Currency {
+	currency := extension.provider.GetNativeCurrency()
 
 	return &types.Currency{
 		Symbol:   currency.Symbol,
 		Decimals: currency.Decimals,
+	}
+}
+
+func (extension *networkProviderExtension) getGenesisBlockIdentifier() *types.BlockIdentifier {
+	blockSummary := extension.provider.GetGenesisBlockSummary()
+
+	return &types.BlockIdentifier{
+		Index: int64(blockSummary.Nonce),
+		Hash:  blockSummary.Hash,
 	}
 }

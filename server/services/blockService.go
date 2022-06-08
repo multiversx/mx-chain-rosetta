@@ -9,15 +9,22 @@ import (
 )
 
 type blockService struct {
-	provider  NetworkProvider
-	txsParser *transactionsParser
+	provider          NetworkProvider
+	extension         *networkProviderExtension
+	txsParser         *transactionsParser
+	genesisIdentifier *types.BlockIdentifier
 }
 
 // NewBlockService will create a new instance of blockService
 func NewBlockService(provider NetworkProvider) server.BlockAPIServicer {
+	extension := newNetworkProviderExtension(provider)
+	genesisIdentifier := extension.getGenesisBlockIdentifier()
+
 	return &blockService{
-		provider:  provider,
-		txsParser: newTransactionParser(provider),
+		provider:          provider,
+		extension:         extension,
+		txsParser:         newTransactionParser(provider),
+		genesisIdentifier: genesisIdentifier,
 	}
 }
 
@@ -26,12 +33,34 @@ func (service *blockService) Block(
 	_ context.Context,
 	request *types.BlockRequest,
 ) (*types.BlockResponse, *types.Error) {
-	if request.BlockIdentifier.Index != nil {
-		return service.getBlockByNonce(*request.BlockIdentifier.Index)
+	index := request.BlockIdentifier.Index
+	hasIndex := index != nil
+	hasGenesisIndex := hasIndex && *index == service.genesisIdentifier.Index
+
+	hash := request.BlockIdentifier.Hash
+	hasHash := hash != nil
+	hasGenesisHash := hasHash && *hash == service.genesisIdentifier.Hash
+
+	isGenesis := hasGenesisIndex || hasGenesisHash
+
+	if isGenesis {
+		return &types.BlockResponse{
+			Block: &types.Block{
+				BlockIdentifier:       service.genesisIdentifier,
+				ParentBlockIdentifier: service.genesisIdentifier,
+				Timestamp:             timestampInMilliseconds(service.provider.GetGenesisTimestamp()),
+			},
+		}, nil
 	}
 
-	if request.BlockIdentifier.Hash != nil {
-		return service.getBlockByHash(*request.BlockIdentifier.Hash)
+	if hasIndex {
+		log.Debug("blockService.Block()", "index", *index)
+		return service.getBlockByNonce(*index)
+	}
+
+	if hasHash {
+		log.Debug("blockService.Block()", "hash", *hash)
+		return service.getBlockByHash(*hash)
 	}
 
 	return nil, ErrMustQueryByIndexOrByHash
@@ -86,7 +115,7 @@ func (service *blockService) parseBlock(block *data.Block) (*types.BlockResponse
 				Hash:  block.Hash,
 			},
 			ParentBlockIdentifier: parentBlockIdentifier,
-			Timestamp:             int64(block.Timestamp),
+			Timestamp:             timestampInMilliseconds(int64(block.Timestamp)),
 			Transactions:          transactions,
 			Metadata: objectsMap{
 				"epoch": block.Epoch,
@@ -96,8 +125,7 @@ func (service *blockService) parseBlock(block *data.Block) (*types.BlockResponse
 	}, nil
 }
 
-// BlockTransaction - not implemented
-// We dont need this method because all transactions are returned by method Block
+// BlockTransaction is not implemented, since all transactions are returned by /block
 func (service *blockService) BlockTransaction(
 	_ context.Context,
 	_ *types.BlockTransactionRequest,

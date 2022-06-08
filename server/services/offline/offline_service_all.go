@@ -3,7 +3,7 @@ package offline
 import (
 	"context"
 
-	"github.com/ElrondNetwork/elrond-proxy-go/rosetta/services"
+	"github.com/ElrondNetwork/rosetta/server/services"
 	"github.com/coinbase/rosetta-sdk-go/types"
 )
 
