@@ -2,29 +2,31 @@ package services
 
 import (
 	"context"
+	"sync"
 
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
+	"github.com/ElrondNetwork/rosetta/server/resources"
 	"github.com/coinbase/rosetta-sdk-go/server"
 	"github.com/coinbase/rosetta-sdk-go/types"
 )
 
 type blockService struct {
-	provider          NetworkProvider
-	extension         *networkProviderExtension
-	txsParser         *transactionsParser
-	genesisIdentifier *types.BlockIdentifier
+	provider  NetworkProvider
+	extension *networkProviderExtension
+	txsParser *transactionsParser
+
+	genesisBlock      *types.BlockResponse
+	genesisBlockMutex sync.RWMutex
 }
 
 // NewBlockService will create a new instance of blockService
 func NewBlockService(provider NetworkProvider) server.BlockAPIServicer {
 	extension := newNetworkProviderExtension(provider)
-	genesisIdentifier := blockSummaryToIdentifier(provider.GetGenesisBlockSummary())
 
 	return &blockService{
-		provider:          provider,
-		extension:         extension,
-		txsParser:         newTransactionParser(provider),
-		genesisIdentifier: genesisIdentifier,
+		provider:  provider,
+		extension: extension,
+		txsParser: newTransactionParser(provider),
 	}
 }
 
@@ -33,24 +35,19 @@ func (service *blockService) Block(
 	_ context.Context,
 	request *types.BlockRequest,
 ) (*types.BlockResponse, *types.Error) {
+	genesisBlockIdentifier := service.extension.getGenesisBlockIdentifier()
+
 	index := request.BlockIdentifier.Index
 	hasIndex := index != nil
-	hasGenesisIndex := hasIndex && *index == service.genesisIdentifier.Index
+	hasGenesisIndex := hasIndex && *index == genesisBlockIdentifier.Index
 
 	hash := request.BlockIdentifier.Hash
 	hasHash := hash != nil
-	hasGenesisHash := hasHash && *hash == service.genesisIdentifier.Hash
+	hasGenesisHash := hasHash && *hash == genesisBlockIdentifier.Hash
 
 	isGenesis := hasGenesisIndex || hasGenesisHash
-
 	if isGenesis {
-		return &types.BlockResponse{
-			Block: &types.Block{
-				BlockIdentifier:       service.genesisIdentifier,
-				ParentBlockIdentifier: service.genesisIdentifier,
-				Timestamp:             timestampInMilliseconds(service.provider.GetGenesisTimestamp()),
-			},
-		}, nil
+		return service.getGenesisBlock()
 	}
 
 	if hasIndex {
@@ -64,6 +61,80 @@ func (service *blockService) Block(
 	}
 
 	return nil, ErrMustQueryByIndexOrByHash
+}
+
+// getGenesisBlock returns or lazily fetches the genesis block (using "double-checked locking" pattern)
+func (service *blockService) getGenesisBlock() (*types.BlockResponse, *types.Error) {
+	log.Debug("blockService.getGenesisBlock()")
+
+	service.genesisBlockMutex.RLock()
+	block := service.genesisBlock
+	service.genesisBlockMutex.RUnlock()
+
+	if block != nil {
+		return block, nil
+	}
+
+	service.genesisBlockMutex.Lock()
+	defer service.genesisBlockMutex.Unlock()
+
+	if service.genesisBlock != nil {
+		return service.genesisBlock, nil
+	}
+
+	fetchedBlock, err := service.doGetGenesisBlock()
+	if err != nil {
+		return nil, err
+	}
+
+	service.genesisBlock = fetchedBlock
+	return fetchedBlock, nil
+}
+
+func (service *blockService) doGetGenesisBlock() (*types.BlockResponse, *types.Error) {
+	log.Debug("blockService.doGetGenesisBlock()")
+
+	genesisBlockIdentifier := service.extension.getGenesisBlockIdentifier()
+	genesisBalances, err := service.provider.GetGenesisBalances()
+	if err != nil {
+		return nil, wrapErr(ErrUnableToGetGenesisBlock, err)
+	}
+
+	operations, err := service.createGenesisOperations(genesisBalances)
+	if err != nil {
+		return nil, wrapErr(ErrUnableToGetGenesisBlock, err)
+	}
+
+	genesisTransaction := &types.Transaction{
+		TransactionIdentifier: service.extension.getTransactionIdentifier(emptyHash),
+		Operations:            operations,
+	}
+
+	return &types.BlockResponse{
+		Block: &types.Block{
+			BlockIdentifier:       genesisBlockIdentifier,
+			ParentBlockIdentifier: genesisBlockIdentifier,
+			Timestamp:             timestampInMilliseconds(service.provider.GetGenesisTimestamp()),
+			Transactions:          []*types.Transaction{genesisTransaction},
+		},
+	}, nil
+}
+
+func (service *blockService) createGenesisOperations(balances []*resources.GenesisBalance) ([]*types.Operation, error) {
+	operations := make([]*types.Operation, 0, len(balances))
+
+	for _, balance := range balances {
+		operation := &types.Operation{
+			Type:    opGenesisBalanceMovement,
+			Status:  &OpStatusSuccess,
+			Account: service.extension.getAccountIdentifier(balance.Address),
+			Amount:  service.extension.getNativeAmount(balance.Balance),
+		}
+
+		operations = append(operations, operation)
+	}
+
+	return service.extension.filterObservedOperations(operations)
 }
 
 func (service *blockService) getBlockByNonce(nonce int64) (*types.BlockResponse, *types.Error) {
@@ -99,6 +170,11 @@ func (service *blockService) convertToRosettaBlock(block *data.Block) (*types.Bl
 	parentBlockIdentifier := &types.BlockIdentifier{
 		Index: int64(block.Nonce - 1),
 		Hash:  block.PrevBlockHash,
+	}
+
+	// Link the second block to genesis
+	if block.Nonce == 1 {
+		parentBlockIdentifier = service.extension.getGenesisBlockIdentifier()
 	}
 
 	transactions, err := service.txsParser.parseTxsFromBlock(block)

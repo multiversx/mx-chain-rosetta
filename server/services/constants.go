@@ -3,11 +3,12 @@ package services
 const (
 	transactionVersion = 1
 
-	opTransfer = "Transfer"
-	opFee      = "Fee"
-	opReward   = "Reward"
-	opScResult = "SmartContractResult"
-	opInvalid  = "Invalid"
+	opGenesisBalanceMovement = "GenesisBalanceMovement"
+	opTransfer               = "Transfer"
+	opFee                    = "Fee"
+	opReward                 = "Reward"
+	opScResult               = "SmartContractResult"
+	opInvalid                = "Invalid"
 )
 
 var (
@@ -20,3 +21,5 @@ var (
 const (
 	TransactionProcessingTypeRelayed = "RelayedTx"
 )
+
+const emptyHash = "0000000000000000000000000000000000000000000000000000000000000000"

@@ -19,7 +19,7 @@
   "coin_supported": false,
   "construction": null,
   "data": {
-    "start_index": 1,
+    "start_index": 0,
     "active_reconciliation_concurrency": 16,
     "inactive_reconciliation_concurrency": 4,
     "inactive_reconciliation_frequency": 250,

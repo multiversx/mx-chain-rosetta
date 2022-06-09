@@ -4,9 +4,10 @@ import (
 	"github.com/coinbase/rosetta-sdk-go/types"
 )
 
+// TODO: find a better way to assign error codes, perhaps using module init(), and iterate over Errors array?
 var (
 	ErrUnableToGetChainID = &types.Error{
-		Code:      1,
+		Code:      0,
 		Message:   "unable to get chain ID",
 		Retriable: true,
 	}
@@ -118,6 +119,12 @@ var (
 		Retriable: false,
 	}
 
+	ErrUnableToGetGenesisBlock = &types.Error{
+		Code:      20,
+		Message:   "unable to get genesis block",
+		Retriable: true,
+	}
+
 	Errors = []*types.Error{
 		ErrUnableToGetChainID,
 		ErrUnableToGetAccount,
@@ -138,6 +145,7 @@ var (
 		ErrCannotParsePoolTransaction,
 		ErrInvalidInputParam,
 		ErrOfflineMode,
+		ErrUnableToGetGenesisBlock,
 	}
 )
 

@@ -8,7 +8,7 @@
   "http_timeout": 10,
   "tip_delay": 300,
   "data": {
-    "start_index": 919289,
+    "start_index": 0,
     "historical_balance_disabled": true,
     "reconciliation_disabled": true,
     "inactive_discrepancy_search_disabled": true,

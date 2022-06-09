@@ -1,10 +1,10 @@
-@proxyUrl = http://localhost:8090
+@proxyUrl = http://localhost:7950
 @rosettaUrl = http://localhost:8091
 @baseNetwork = localnet
 
 ###
 
-GET {{proxyUrl}}/hyperblock/by-nonce/308
+GET {{proxyUrl}}/block/by-nonce/42
 
 ###
 
@@ -17,6 +17,6 @@ Content-Type: application/json
     "network": "{{baseNetwork}}"
   },
   "block_identifier": {
-    "index": 9
+    "index": 0
   }
 }

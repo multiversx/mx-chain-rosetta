@@ -25,8 +25,9 @@ var (
 	notApplicableFullHistoryNodesMessage = "not applicable"
 	notApplicableMaxGasLimitPerBlock     = "0"
 
-	urlPathGetNetworkConfig = "/network/config"
-	urlPathGetNodeStatus    = "/node/status"
+	urlPathGetNetworkConfig   = "/network/config"
+	urlPathGetNodeStatus      = "/node/status"
+	urlPathGetGenesisBalances = "/network/genesis-balances"
 )
 
 var log = logger.GetOrCreate("server/provider")
@@ -196,10 +197,6 @@ func (provider *networkProvider) GetChainID() string {
 	return provider.networkConfig.ChainID
 }
 
-func (provider *networkProvider) GetObservedActualShard() uint32 {
-	return provider.observedActualShard
-}
-
 func (provider *networkProvider) GetNativeCurrency() resources.NativeCurrency {
 	return resources.NativeCurrency{
 		Symbol:   provider.nativeCurrencySymbol,
@@ -246,6 +243,24 @@ func (provider *networkProvider) GetGenesisBlockSummary() *resources.BlockSummar
 // GetGenesisTimestamp gets the timestamp of the genesis block
 func (provider *networkProvider) GetGenesisTimestamp() int64 {
 	return provider.genesisTimestamp
+}
+
+func (provider *networkProvider) GetGenesisBalances() ([]*resources.GenesisBalance, error) {
+	if provider.isOffline {
+		return nil, errIsOffline
+	}
+
+	response := &resources.GenesisBalancesApiResponse{}
+
+	_, err := provider.baseProcessor.CallGetRestEndPoint(provider.observerUrl, urlPathGetGenesisBalances, &response)
+	if err != nil {
+		return nil, err
+	}
+	if response.Error != "" {
+		return nil, errors.New(response.Error)
+	}
+
+	return response.Data.Balances, nil
 }
 
 // GetLatestBlockSummary gets a summary of the latest block
@@ -372,6 +387,27 @@ func (provider *networkProvider) GetAccount(address string) (*data.AccountModel,
 	}
 
 	return account, nil
+}
+
+func (provider *networkProvider) IsAddressObserved(address string) (bool, error) {
+	pubKey, err := provider.ConvertAddressToPubKey(address)
+	if err != nil {
+		return false, err
+	}
+
+	shard, err := provider.baseProcessor.ComputeShardId(pubKey)
+	if err != nil {
+		return false, err
+	}
+
+	isObservedActualShard := shard == provider.observedActualShard
+	isObservedProjectedShard := pubKey[len(pubKey)-1] == byte(provider.observedProjectedShard)
+
+	if provider.observedProjectedShardIsSet {
+		return isObservedProjectedShard, nil
+	}
+
+	return isObservedActualShard, nil
 }
 
 // ConvertPubKeyToAddress converts a public key to an address
