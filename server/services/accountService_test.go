@@ -5,55 +5,44 @@ import (
 	"testing"
 
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
-	"github.com/ElrondNetwork/elrond-proxy-go/rosetta/configuration"
-	"github.com/ElrondNetwork/elrond-proxy-go/rosetta/mocks"
-	"github.com/ElrondNetwork/elrond-proxy-go/rosetta/provider"
+	"github.com/ElrondNetwork/rosetta/testscommon"
+	"github.com/coinbase/rosetta-sdk-go/server"
 	"github.com/coinbase/rosetta-sdk-go/types"
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestAccountService_AccountBalance(t *testing.T) {
-	t.Parallel()
+	networkProvider := testscommon.NewNetworkProviderMock()
+	networkProvider.MockNetworkConfig.ChainID = "T"
 
-	address := "erd13lx7zldumunqvf74g5z407gwl5r35jha06rjzc32qcujamknzdgsnt2yvn"
-	accountBalance := "1234"
-	latestBlockNonce := uint64(1)
-	lastestBlockHash := "hash-hash-hash"
-	elrondProviderMock := &mocks.ElrondProviderMock{
-		GetAccountCalled: func(address string) (*data.Account, error) {
-			return &data.Account{
-				Address: "erd13lx7zldumunqvf74g5z407gwl5r35jha06rjzc32qcujamknzdgsnt2yvn",
-				Nonce:   1,
-				Balance: "1234",
-			}, nil
-		},
-		GetLatestBlockDataCalled: func() (*provider.BlockData, error) {
-			return &provider.BlockData{
-				Nonce: latestBlockNonce,
-				Hash:  lastestBlockHash,
-			}, nil
-		},
+	service := NewAccountService(networkProvider)
+
+	// With bad input address
+	_, err := getAccount(service, "")
+	require.Equal(t, ErrInvalidAccountAddress, err)
+
+	// When account does not exist
+	response, err := getAccount(service, testscommon.TestAddressAlice)
+	require.Equal(t, err.Code, ErrUnableToGetAccount.Code)
+	require.Nil(t, response)
+
+	// When account exists
+	networkProvider.MockAccountsByAddress[testscommon.TestAddressAlice] = &data.Account{
+		Address: testscommon.TestAddressAlice,
+		Balance: "100",
 	}
-	cfg := &configuration.Configuration{}
+	networkProvider.MockLatestBlockSummary.Nonce = 42
+	networkProvider.MockLatestBlockSummary.Hash = "abba"
 
-	service := NewAccountService(elrondProviderMock)
-	assert.NotNil(t, service)
+	response, err = getAccount(service, testscommon.TestAddressAlice)
+	require.Nil(t, err)
+	require.Equal(t, "100", response.Balances[0].Value)
+	require.Equal(t, int64(42), response.BlockIdentifier.Index)
+	require.Equal(t, "abba", response.BlockIdentifier.Hash)
+}
 
-	_, err := service.AccountBalance(context.Background(), &types.AccountBalanceRequest{
-		AccountIdentifier: &types.AccountIdentifier{
-			Address: "",
-		},
+func getAccount(service server.AccountAPIServicer, address string) (*types.AccountBalanceResponse, *types.Error) {
+	return service.AccountBalance(context.Background(), &types.AccountBalanceRequest{
+		AccountIdentifier: &types.AccountIdentifier{Address: address},
 	})
-	assert.Equal(t, ErrInvalidAccountAddress, err)
-
-	// Get account balance should work
-	accountBalanceResponse, err := service.AccountBalance(context.Background(), &types.AccountBalanceRequest{
-		AccountIdentifier: &types.AccountIdentifier{
-			Address: address,
-		},
-	})
-	assert.Nil(t, err)
-	assert.Equal(t, accountBalance, accountBalanceResponse.Balances[0].Value)
-	assert.Equal(t, lastestBlockHash, accountBalanceResponse.BlockIdentifier.Hash)
-	assert.Equal(t, int64(latestBlockNonce), accountBalanceResponse.BlockIdentifier.Index)
 }
