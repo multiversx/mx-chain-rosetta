@@ -9,14 +9,14 @@ import (
 
 type accountService struct {
 	provider  NetworkProvider
-	extension networkProviderExtension
+	extension *networkProviderExtension
 }
 
 // NewAccountService will create a new instance of accountService
 func NewAccountService(provider NetworkProvider) server.AccountAPIServicer {
 	return &accountService{
 		provider:  provider,
-		extension: *newNetworkProviderExtension(provider),
+		extension: newNetworkProviderExtension(provider),
 	}
 }
 
@@ -35,18 +35,13 @@ func (service *accountService) AccountBalance(
 	}
 
 	response := &types.AccountBalanceResponse{
-		BlockIdentifier: &types.BlockIdentifier{
-			Index: int64(accountModel.BlockInfo.Nonce),
-			Hash:  accountModel.BlockInfo.Hash,
-		},
+		BlockIdentifier: blockInfoToIdentifier(accountModel.BlockInfo),
 		Balances: []*types.Amount{
-			{
-				Value:    accountModel.Account.Balance,
-				Currency: service.extension.getNativeCurrency(),
-			},
+			service.extension.getNativeAmount(accountModel.Account.Balance),
 		},
 		Metadata: map[string]interface{}{
-			"nonce": accountModel.Account.Nonce,
+			"nonce":    accountModel.Account.Nonce,
+			"username": accountModel.Account.Username,
 		},
 	}
 

@@ -13,6 +13,13 @@ func blockToIdentifier(block *data.Block) *types.BlockIdentifier {
 	}
 }
 
+func blockInfoToIdentifier(block data.BlockInfo) *types.BlockIdentifier {
+	return &types.BlockIdentifier{
+		Index: int64(block.Nonce),
+		Hash:  block.Hash,
+	}
+}
+
 func blockSummaryToIdentifier(blockSummary *resources.BlockSummary) *types.BlockIdentifier {
 	return &types.BlockIdentifier{
 		Index: int64(blockSummary.Nonce),

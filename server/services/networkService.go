@@ -9,13 +9,15 @@ import (
 )
 
 type networkService struct {
-	provider NetworkProvider
+	provider  NetworkProvider
+	extension *networkProviderExtension
 }
 
 // NewNetworkService creates a new instance of a networkService
 func NewNetworkService(networkProvider NetworkProvider) server.NetworkAPIServicer {
 	return &networkService{
-		provider: networkProvider,
+		provider:  networkProvider,
+		extension: newNetworkProviderExtension(networkProvider),
 	}
 }
 
@@ -45,22 +47,15 @@ func (service *networkService) NetworkStatus(
 		return nil, ErrOfflineMode
 	}
 
-	genesisBlockSummary := service.provider.GetGenesisBlockSummary()
 	latestBlockSummary, err := service.provider.GetLatestBlockSummary()
 	if err != nil {
 		return nil, wrapErr(ErrUnableToGetBlock, err)
 	}
 
 	networkStatusResponse := &types.NetworkStatusResponse{
-		CurrentBlockIdentifier: &types.BlockIdentifier{
-			Index: int64(latestBlockSummary.Nonce),
-			Hash:  latestBlockSummary.Hash,
-		},
-		CurrentBlockTimestamp: timestampInMilliseconds(latestBlockSummary.Timestamp),
-		GenesisBlockIdentifier: &types.BlockIdentifier{
-			Index: int64(genesisBlockSummary.Nonce),
-			Hash:  genesisBlockSummary.Hash,
-		},
+		CurrentBlockIdentifier: blockSummaryToIdentifier(latestBlockSummary),
+		CurrentBlockTimestamp:  timestampInMilliseconds(latestBlockSummary.Timestamp),
+		GenesisBlockIdentifier: service.extension.getGenesisBlockIdentifier(),
 		Peers: []*types.Peer{
 			{
 				PeerID: service.provider.GetObserverPubkey(),
@@ -91,6 +86,7 @@ func (service *networkService) NetworkOptions(
 					Status:     OpStatusFailed,
 					Successful: false,
 				},
+				// TODO: Should we add anything else here?
 			},
 			OperationTypes: SupportedOperationTypes,
 			Errors:         Errors,
