@@ -4,16 +4,14 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/ElrondNetwork/elrond-proxy-go/rosetta/provider"
-	"github.com/stretchr/testify/assert"
+	"github.com/ElrondNetwork/rosetta/server/resources"
+	"github.com/stretchr/testify/require"
 )
 
 func TestEstimateGasLimit(t *testing.T) {
-	t.Parallel()
-
 	minGasLimit := uint64(1000)
 	gasPerDataByte := uint64(100)
-	networkConfig := &provider.NetworkConfig{
+	networkConfig := &resources.NetworkConfig{
 		GasPerDataByte: gasPerDataByte,
 		MinGasLimit:    minGasLimit,
 	}
@@ -26,18 +24,17 @@ func TestEstimateGasLimit(t *testing.T) {
 	expectedGasLimit := minGasLimit + uint64(len(dataField))*gasPerDataByte
 
 	gasLimit, err := estimateGasLimit(opTransfer, networkConfig, options)
-	assert.Nil(t, err)
-	assert.Equal(t, expectedGasLimit, gasLimit)
+	require.Nil(t, err)
+	require.Equal(t, expectedGasLimit, gasLimit)
 
 	gasLimit, err = estimateGasLimit(opTransfer, networkConfig, nil)
-	assert.Nil(t, err)
-	assert.Equal(t, minGasLimit, gasLimit)
+	require.Nil(t, err)
+	require.Equal(t, minGasLimit, gasLimit)
 
-	// unsupported operation type you cannot estimate gasLimit for a reward operation
-	// reward operation can be generated only by the network not by a user
+	// Unsupported operation type (you cannot estimate gasLimit for e.g. a reward operation)
 	gasLimit, err = estimateGasLimit(opReward, networkConfig, nil)
-	assert.Equal(t, ErrNotImplemented, err)
-	assert.Equal(t, uint64(0), gasLimit)
+	require.Equal(t, ErrNotImplemented, err)
+	require.Equal(t, uint64(0), gasLimit)
 }
 
 func TestProvidedGasLimit(t *testing.T) {
@@ -45,7 +42,7 @@ func TestProvidedGasLimit(t *testing.T) {
 
 	minGasLimit := uint64(1000)
 	gasPerDataByte := uint64(100)
-	networkConfig := &provider.NetworkConfig{
+	networkConfig := &resources.NetworkConfig{
 		GasPerDataByte: gasPerDataByte,
 		MinGasLimit:    minGasLimit,
 	}
@@ -56,13 +53,13 @@ func TestProvidedGasLimit(t *testing.T) {
 	}
 
 	err := checkProvidedGasLimit(uint64(900), opTransfer, options, networkConfig)
-	assert.Equal(t, ErrInsufficientGasLimit, err)
+	require.Equal(t, ErrInsufficientGasLimit, err)
 
 	err = checkProvidedGasLimit(uint64(900), opReward, options, networkConfig)
-	assert.Equal(t, ErrNotImplemented, err)
+	require.Equal(t, ErrNotImplemented, err)
 
 	err = checkProvidedGasLimit(uint64(9000), opTransfer, options, networkConfig)
-	assert.Nil(t, err)
+	require.Nil(t, err)
 }
 
 func TestAdjustTxFeeWithFeeMultiplier(t *testing.T) {
@@ -77,14 +74,14 @@ func TestAdjustTxFeeWithFeeMultiplier(t *testing.T) {
 	suggestedFee := big.NewInt(1000)
 
 	suggestedFeeResult, gasPriceResult := adjustTxFeeWithFeeMultiplier(suggestedFee, 1000, options, 1000)
-	assert.Equal(t, expectedFee, suggestedFeeResult.String())
-	assert.Equal(t, expectedGasPrice, gasPriceResult)
+	require.Equal(t, expectedFee, suggestedFeeResult.String())
+	require.Equal(t, expectedGasPrice, gasPriceResult)
 
 	expectedGasPrice = uint64(1000)
 	expectedFee = "1000"
 	suggestedFeeResult, gasPriceResult = adjustTxFeeWithFeeMultiplier(suggestedFee, 1000, make(objectsMap), 1000)
-	assert.Equal(t, expectedFee, suggestedFeeResult.String())
-	assert.Equal(t, expectedGasPrice, gasPriceResult)
+	require.Equal(t, expectedFee, suggestedFeeResult.String())
+	require.Equal(t, expectedGasPrice, gasPriceResult)
 }
 
 func TestComputeSuggestedFeeAndGas(t *testing.T) {
@@ -93,7 +90,7 @@ func TestComputeSuggestedFeeAndGas(t *testing.T) {
 	minGasLimit := uint64(1000)
 	minGasPrice := uint64(10)
 	gasPerDataByte := uint64(100)
-	networkConfig := &provider.NetworkConfig{
+	networkConfig := &resources.NetworkConfig{
 		GasPerDataByte: gasPerDataByte,
 		MinGasLimit:    minGasLimit,
 		MinGasPrice:    minGasPrice,
@@ -105,26 +102,26 @@ func TestComputeSuggestedFeeAndGas(t *testing.T) {
 	}
 
 	suggestedFee, gasPrice, gasLimit, err := computeSuggestedFeeAndGas(opTransfer, options, networkConfig)
-	assert.Nil(t, err)
-	assert.Equal(t, minGasLimit, gasLimit)
-	assert.Equal(t, big.NewInt(10000), suggestedFee)
-	assert.Equal(t, providedGasPrice, gasPrice)
+	require.Nil(t, err)
+	require.Equal(t, minGasLimit, gasLimit)
+	require.Equal(t, big.NewInt(10000), suggestedFee)
+	require.Equal(t, providedGasPrice, gasPrice)
 
 	// err provided gas price is too low
 	options["gasPrice"] = 1
 	_, _, _, err = computeSuggestedFeeAndGas(opTransfer, options, networkConfig)
-	assert.Equal(t, ErrGasPriceTooLow, err)
+	require.Equal(t, ErrGasPriceTooLow, err)
 
 	// err provided gas limit is too low
 	options["gasPrice"] = minGasPrice
 	options["gasLimit"] = 1
 	_, _, _, err = computeSuggestedFeeAndGas(opTransfer, options, networkConfig)
-	assert.Equal(t, ErrInsufficientGasLimit, err)
+	require.Equal(t, ErrInsufficientGasLimit, err)
 
 	delete(options, "gasLimit")
 	options["gasPrice"] = minGasPrice
 	_, _, _, err = computeSuggestedFeeAndGas(opReward, options, networkConfig)
-	assert.Equal(t, ErrNotImplemented, err)
+	require.Equal(t, ErrNotImplemented, err)
 
 	//check with fee multiplier
 	delete(options, "gasPrice")
@@ -133,10 +130,10 @@ func TestComputeSuggestedFeeAndGas(t *testing.T) {
 	expectedSuggestedFee := big.NewInt(11000)
 	expectedGasPrice := uint64(11)
 	suggestedFee, gasPrice, gasLimit, err = computeSuggestedFeeAndGas(opTransfer, options, networkConfig)
-	assert.Nil(t, err)
-	assert.Equal(t, minGasLimit, gasLimit)
-	assert.Equal(t, expectedSuggestedFee, suggestedFee)
-	assert.Equal(t, expectedGasPrice, gasPrice)
+	require.Nil(t, err)
+	require.Equal(t, minGasLimit, gasLimit)
+	require.Equal(t, expectedSuggestedFee, suggestedFee)
+	require.Equal(t, expectedGasPrice, gasPrice)
 }
 
 func TestAdjustTxFeeWithFeeMultiplier_FeeMultiplierLessThanOne(t *testing.T) {
@@ -152,7 +149,7 @@ func TestAdjustTxFeeWithFeeMultiplier_FeeMultiplierLessThanOne(t *testing.T) {
 	minGasPrice := uint64(900)
 
 	suggestedFeeResult, gasPriceResult := adjustTxFeeWithFeeMultiplier(suggestedFee, gasPrice, options, minGasPrice)
-	assert.Equal(t, expectedFee, suggestedFeeResult.String())
-	assert.Equal(t, minGasPrice, gasPriceResult)
+	require.Equal(t, expectedFee, suggestedFeeResult.String())
+	require.Equal(t, minGasPrice, gasPriceResult)
 
 }

@@ -157,7 +157,8 @@ func (service *constructionService) ConstructionMetadata(
 		return nil, errS
 	}
 
-	suggestedFee, gasPrice, gasLimit, errS := computeSuggestedFeeAndGas(txType, request.Options, service.provider)
+	networkConfig := service.provider.GetNetworkConfig()
+	suggestedFee, gasPrice, gasLimit, errS := computeSuggestedFeeAndGas(txType, request.Options, networkConfig)
 	if errS != nil {
 		return nil, errS
 	}

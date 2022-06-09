@@ -8,9 +8,7 @@ import (
 	"github.com/coinbase/rosetta-sdk-go/types"
 )
 
-func computeSuggestedFeeAndGas(txType string, options objectsMap, provider NetworkProvider) (*big.Int, uint64, uint64, *types.Error) {
-	networkConfig := provider.GetNetworkConfig()
-
+func computeSuggestedFeeAndGas(txType string, options objectsMap, networkConfig *resources.NetworkConfig) (*big.Int, uint64, uint64, *types.Error) {
 	var gasLimit, gasPrice uint64
 
 	if gasLimitI, ok := options["gasLimit"]; ok {
