@@ -30,7 +30,7 @@ func (service *mempoolService) MempoolTransaction(
 	_ context.Context,
 	request *types.MempoolTransactionRequest,
 ) (*types.MempoolTransactionResponse, *types.Error) {
-	tx, err := service.provider.GetTransactionByHashFromPool(request.TransactionIdentifier.Hash)
+	tx, err := service.provider.GetMempoolTransactionByHash(request.TransactionIdentifier.Hash)
 	if err != nil {
 		return nil, wrapErr(ErrCannotParsePoolTransaction, err)
 	}
@@ -46,5 +46,4 @@ func (service *mempoolService) MempoolTransaction(
 	return &types.MempoolTransactionResponse{
 		Transaction: rosettaTx,
 	}, nil
-
 }

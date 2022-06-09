@@ -422,8 +422,8 @@ func (provider *networkProvider) SendTransaction(tx *data.Transaction) (string, 
 	return hash, nil
 }
 
-// GetTransactionByHashFromPool gets a transaction from the pool
-func (provider *networkProvider) GetTransactionByHashFromPool(hash string) (*data.FullTransaction, error) {
+// GetMempoolTransactionByHash gets a transaction from the pool
+func (provider *networkProvider) GetMempoolTransactionByHash(hash string) (*data.FullTransaction, error) {
 	if provider.isOffline {
 		return nil, errIsOffline
 	}

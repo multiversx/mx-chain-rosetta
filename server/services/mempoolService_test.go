@@ -6,93 +6,62 @@ import (
 
 	"github.com/ElrondNetwork/elrond-go/data/transaction"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
-	"github.com/ElrondNetwork/elrond-proxy-go/rosetta/mocks"
+	"github.com/ElrondNetwork/rosetta/testscommon"
+	"github.com/coinbase/rosetta-sdk-go/server"
 	"github.com/coinbase/rosetta-sdk-go/types"
 	"github.com/stretchr/testify/require"
 )
 
-func TestMempoolAPIService_MempoolTransactionCannotFindTxInPool(t *testing.T) {
-	t.Parallel()
+func TestMempoolService_MempoolTransactionCannotFindTxInPool(t *testing.T) {
+	networkProvider := testscommon.NewNetworkProviderMock()
+	service := NewMempoolService(networkProvider)
 
-	elrondProviderMock := &mocks.ElrondProviderMock{
-		GetTransactionByHashFromPoolCalled: func(txHash string) (*data.FullTransaction, bool) {
-			return nil, false
-		},
-	}
-
-	service := NewMempoolService(elrondProviderMock)
-
-	txHash := "hash-hash-hash"
-	txResponse, err := service.MempoolTransaction(context.Background(), &types.MempoolTransactionRequest{
-		NetworkIdentifier:     nil,
-		TransactionIdentifier: &types.TransactionIdentifier{Hash: txHash},
-	})
-	require.Equal(t, ErrTransactionIsNotInPool, err)
+	txResponse, err := getMempoolTransactionByHash(service, "aaaa")
+	require.Equal(t, ErrTransactionIsNotInPool.Code, err.Code)
 	require.Nil(t, txResponse)
 }
 
-func TestMempoolAPIService_MempoolTransaction(t *testing.T) {
-	t.Parallel()
+func TestMempoolService_MempoolTransaction(t *testing.T) {
+	networkProvider := testscommon.NewNetworkProviderMock()
+	extension := newNetworkProviderExtension(networkProvider)
+	service := NewMempoolService(networkProvider)
 
-	txHash := "hash-hash-hash"
-	fullTx := &data.FullTransaction{
-		Hash:     txHash,
+	networkProvider.MockMempoolTransactionsByHash["aaaa"] = &data.FullTransaction{
+		Hash:     "aaaa",
 		Type:     string(transaction.TxTypeNormal),
-		Receiver: "erd1uml89f3lqqfxan67dnnlytd0r3mz3v684zxdhqq60gs5u7qa9yjqa5dgqp",
-		Sender:   "erd18f33a94auxr4v8v23wu8gwv7mzf408jsskktvj4lcmcrv4v5jmqs5x3kdn",
+		Receiver: testscommon.TestAddressBob,
+		Sender:   testscommon.TestAddressAlice,
 		Value:    "1234",
-		GasLimit: 100,
-		GasPrice: 10,
+		GasLimit: 50000,
+		GasPrice: 1000000000,
 	}
-	elrondProviderMock := &mocks.ElrondProviderMock{
-		GetTransactionByHashFromPoolCalled: func(txHash string) (*data.FullTransaction, bool) {
-			return fullTx, true
-		},
-	}
-
-	service := NewMempoolService(elrondProviderMock)
 
 	expectedRosettaTx := &types.Transaction{
-		TransactionIdentifier: &types.TransactionIdentifier{Hash: txHash},
+		TransactionIdentifier: extension.hashToTransactionIdentifier("aaaa"),
 		Operations: []*types.Operation{
 			{
-				OperationIdentifier: &types.OperationIdentifier{
-					Index: 0,
-				},
-				Type:   opTransfer,
-				Status: &OpStatusSuccess,
-				Account: &types.AccountIdentifier{
-					Address: fullTx.Sender,
-				},
-				Amount: &types.Amount{
-					Value:    "-" + fullTx.Value,
-					Currency: nil,
-				},
+				OperationIdentifier: extension.indexToOperationIdentifier(0),
+				Type:                opTransfer,
+				Account:             extension.addressToAccountIdentifier(testscommon.TestAddressAlice),
+				Amount:              extension.valueToNativeAmount("-1234"),
 			},
 			{
-				OperationIdentifier: &types.OperationIdentifier{
-					Index: 1,
-				},
-				RelatedOperations: []*types.OperationIdentifier{
-					{Index: 0},
-				},
-				Type:   opTransfer,
-				Status: &OpStatusSuccess,
-				Account: &types.AccountIdentifier{
-					Address: fullTx.Receiver,
-				},
-				Amount: &types.Amount{
-					Value:    fullTx.Value,
-					Currency: nil,
-				},
+				OperationIdentifier: extension.indexToOperationIdentifier(1),
+				Type:                opTransfer,
+				Account:             extension.addressToAccountIdentifier(testscommon.TestAddressBob),
+				Amount:              extension.valueToNativeAmount("1234"),
 			},
 		},
 	}
 
-	txResponse, err := service.MempoolTransaction(context.Background(), &types.MempoolTransactionRequest{
-		NetworkIdentifier:     nil,
-		TransactionIdentifier: &types.TransactionIdentifier{Hash: txHash},
-	})
+	txResponse, err := getMempoolTransactionByHash(service, "aaaa")
 	require.Nil(t, err)
 	require.Equal(t, expectedRosettaTx, txResponse.Transaction)
+}
+
+func getMempoolTransactionByHash(service server.MempoolAPIServicer, hash string) (*types.MempoolTransactionResponse, *types.Error) {
+	return service.MempoolTransaction(context.Background(), &types.MempoolTransactionRequest{
+		NetworkIdentifier:     nil,
+		TransactionIdentifier: &types.TransactionIdentifier{Hash: hash},
+	})
 }

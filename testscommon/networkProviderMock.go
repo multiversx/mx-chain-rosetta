@@ -209,12 +209,12 @@ func (mock *networkProviderMock) SendTransaction(tx *data.Transaction) (string, 
 	return emptyHash, mock.MockNextError
 }
 
-// GetTransactionByHashFromPool -
-func (mock *networkProviderMock) GetTransactionByHashFromPool(hash string) (*data.FullTransaction, error) {
+// GetMempoolTransactionByHash -
+func (mock *networkProviderMock) GetMempoolTransactionByHash(hash string) (*data.FullTransaction, error) {
 	transaction, ok := mock.MockMempoolTransactionsByHash[hash]
 	if ok {
 		return transaction, mock.MockNextError
 	}
 
-	return nil, fmt.Errorf("transaction %s not found", hash)
+	return nil, mock.MockNextError
 }

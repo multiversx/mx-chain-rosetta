@@ -82,8 +82,7 @@ func (parser *transactionsParser) createRosettaTxWithGasRefund(eTx *data.FullTra
 				OperationIdentifier: &types.OperationIdentifier{
 					Index: 0,
 				},
-				Type:   opScResult,
-				Status: &OpStatusSuccess,
+				Type: opScResult,
 				Account: &types.AccountIdentifier{
 					Address: eTx.Receiver,
 				},
@@ -108,8 +107,7 @@ func (parser *transactionsParser) createRosettaTxUnsignedTxSendFunds(eTx *data.F
 			OperationIdentifier: &types.OperationIdentifier{
 				Index: operationIndex,
 			},
-			Type:   opScResult,
-			Status: &OpStatusSuccess,
+			Type: opScResult,
 			Account: &types.AccountIdentifier{
 				Address: eTx.Sender,
 			},
@@ -127,8 +125,7 @@ func (parser *transactionsParser) createRosettaTxUnsignedTxSendFunds(eTx *data.F
 			OperationIdentifier: &types.OperationIdentifier{
 				Index: operationIndex,
 			},
-			Type:   opScResult,
-			Status: &OpStatusSuccess,
+			Type: opScResult,
 			Account: &types.AccountIdentifier{
 				Address: eTx.Receiver,
 			},
@@ -161,8 +158,7 @@ func (parser *transactionsParser) createRosettaTxFromReward(eTx *data.FullTransa
 				OperationIdentifier: &types.OperationIdentifier{
 					Index: 0,
 				},
-				Type:   opReward,
-				Status: &OpStatusSuccess,
+				Type: opReward,
 				Account: &types.AccountIdentifier{
 					Address: eTx.Receiver,
 				},
@@ -189,8 +185,7 @@ func (parser *transactionsParser) createRosettaTxFromMoveBalance(eTx *data.FullT
 				OperationIdentifier: &types.OperationIdentifier{
 					Index: 0,
 				},
-				Type:   opTransfer,
-				Status: &OpStatusSuccess,
+				Type: opTransfer,
 				Account: &types.AccountIdentifier{
 					Address: eTx.Sender,
 				},
@@ -208,8 +203,7 @@ func (parser *transactionsParser) createRosettaTxFromMoveBalance(eTx *data.FullT
 				OperationIdentifier: &types.OperationIdentifier{
 					Index: operationIndex,
 				},
-				Type:   opTransfer,
-				Status: &OpStatusSuccess,
+				Type: opTransfer,
 				Account: &types.AccountIdentifier{
 					Address: eTx.Receiver,
 				},
@@ -231,8 +225,7 @@ func (parser *transactionsParser) createRosettaTxFromMoveBalance(eTx *data.FullT
 			OperationIdentifier: &types.OperationIdentifier{
 				Index: operationIndex,
 			},
-			Type:   opFee,
-			Status: &OpStatusSuccess,
+			Type: opFee,
 			Account: &types.AccountIdentifier{
 				Address: eTx.Sender,
 			},
@@ -298,8 +291,8 @@ func (parser *transactionsParser) createRosettaTxFromInvalidTx(eTx *data.FullTra
 					Index: 0,
 				},
 				// TODO: how to handle this? Also specify types in NetworkOptionsResponse.
-				Type:   opInvalid,
-				Status: &OpStatusSuccess,
+				// TODO: perhaps "opFeeOfInvalidTx"?
+				Type: opInvalid,
 				Account: &types.AccountIdentifier{
 					Address: eTx.Sender,
 				},

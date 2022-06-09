@@ -11,14 +11,6 @@ const (
 	opInvalid                = "Invalid"
 )
 
-var (
-	// OpStatusSuccess is the operation status for successful operations.
-	OpStatusSuccess = "Success"
-	// OpStatusFailed is the operation status for failed operations.
-	// TODO: remove this or use it for invalid transactions
-	OpStatusFailed = "Failed"
-)
-
 const (
 	TransactionProcessingTypeRelayed = "RelayedTx"
 )

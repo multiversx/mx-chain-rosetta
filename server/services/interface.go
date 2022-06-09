@@ -24,5 +24,5 @@ type NetworkProvider interface {
 	ConvertAddressToPubKey(address string) ([]byte, error)
 	SendTransaction(tx *data.Transaction) (string, error)
 	ComputeTransactionHash(tx *data.Transaction) (string, error)
-	GetTransactionByHashFromPool(hash string) (*data.FullTransaction, error)
+	GetMempoolTransactionByHash(hash string) (*data.FullTransaction, error)
 }

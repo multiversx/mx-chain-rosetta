@@ -77,20 +77,9 @@ func (service *networkService) NetworkOptions(
 			NodeVersion:    version.NodeVersion,
 		},
 		Allow: &types.Allow{
-			OperationStatuses: []*types.OperationStatus{
-				{
-					Status:     OpStatusSuccess,
-					Successful: true,
-				},
-				// TODO: Possibly remove this?
-				{
-					Status:     OpStatusFailed,
-					Successful: false,
-				},
-				// TODO: Should we add anything else here?
-			},
-			OperationTypes: SupportedOperationTypes,
-			Errors:         Errors,
+			OperationStatuses: []*types.OperationStatus{},
+			OperationTypes:    SupportedOperationTypes,
+			Errors:            Errors,
 		},
 	}, nil
 }

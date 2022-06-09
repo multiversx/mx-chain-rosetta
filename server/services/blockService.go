@@ -126,7 +126,6 @@ func (service *blockService) createGenesisOperations(balances []*resources.Genes
 	for _, balance := range balances {
 		operation := &types.Operation{
 			Type:    opGenesisBalanceMovement,
-			Status:  &OpStatusSuccess,
 			Account: service.extension.addressToAccountIdentifier(balance.Address),
 			Amount:  service.extension.valueToNativeAmount(balance.Balance),
 		}
