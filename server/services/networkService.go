@@ -77,7 +77,7 @@ func (service *networkService) NetworkOptions(
 			NodeVersion:    version.NodeVersion,
 		},
 		Allow: &types.Allow{
-			OperationStatuses: []*types.OperationStatus{},
+			OperationStatuses: supportedOperationStatuses,
 			OperationTypes:    SupportedOperationTypes,
 			Errors:            Errors,
 		},

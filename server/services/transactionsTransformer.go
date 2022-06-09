@@ -45,6 +45,7 @@ func (transformer *transactionsTransformer) transformTxsFromBlock(block *data.Bl
 			return nil, err
 		}
 
+		populateStatusOfOperations(rosettaTx.Operations)
 		rosettaTxs = append(rosettaTxs, rosettaTx)
 	}
 

@@ -133,7 +133,14 @@ func (service *blockService) createGenesisOperations(balances []*resources.Genes
 		operations = append(operations, operation)
 	}
 
-	return service.extension.filterObservedOperations(operations)
+	operations, err := service.extension.filterObservedOperations(operations)
+	if err != nil {
+		return nil, err
+	}
+
+	populateStatusOfOperations(operations)
+
+	return operations, nil
 }
 
 func (service *blockService) getBlockByNonce(nonce int64) (*types.BlockResponse, *types.Error) {
