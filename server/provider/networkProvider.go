@@ -3,12 +3,12 @@ package provider
 import (
 	"errors"
 
+	"github.com/ElrondNetwork/elrond-go-core/core"
+	"github.com/ElrondNetwork/elrond-go-core/core/pubkeyConverter"
+	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
+	hasherFactory "github.com/ElrondNetwork/elrond-go-core/hashing/factory"
+	marshalFactory "github.com/ElrondNetwork/elrond-go-core/marshal/factory"
 	logger "github.com/ElrondNetwork/elrond-go-logger"
-	"github.com/ElrondNetwork/elrond-go/core"
-	"github.com/ElrondNetwork/elrond-go/core/pubkeyConverter"
-	"github.com/ElrondNetwork/elrond-go/data/transaction"
-	hasherFactory "github.com/ElrondNetwork/elrond-go/hashing/factory"
-	marshalFactory "github.com/ElrondNetwork/elrond-go/marshal/factory"
 	"github.com/ElrondNetwork/elrond-go/sharding"
 	"github.com/ElrondNetwork/elrond-proxy-go/common"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
@@ -23,7 +23,6 @@ import (
 var (
 	notApplicableConfigurationFilePath   = "not applicable"
 	notApplicableFullHistoryNodesMessage = "not applicable"
-	notApplicableMaxGasLimitPerBlock     = "0"
 
 	urlPathGetNetworkConfig   = "/network/config"
 	urlPathGetNodeStatus      = "/node/status"
@@ -80,7 +79,7 @@ func NewNetworkProvider(args ArgsNewNetworkProvider) (*networkProvider, error) {
 		return nil, err
 	}
 
-	pubKeyConverter, err := pubkeyConverter.NewBech32PubkeyConverter(pubKeyLength)
+	pubKeyConverter, err := pubkeyConverter.NewBech32PubkeyConverter(pubKeyLength, log)
 	if err != nil {
 		return nil, err
 	}
@@ -138,8 +137,6 @@ func NewNetworkProvider(args ArgsNewNetworkProvider) (*networkProvider, error) {
 		pubKeyConverter,
 		transactionHasher,
 		transactionMarshalizer,
-		notApplicableMaxGasLimitPerBlock,
-		notApplicableMaxGasLimitPerBlock,
 	)
 	if err != nil {
 		return nil, err

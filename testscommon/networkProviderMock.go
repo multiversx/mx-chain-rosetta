@@ -3,8 +3,8 @@ package testscommon
 import (
 	"fmt"
 
-	"github.com/ElrondNetwork/elrond-go/core"
-	"github.com/ElrondNetwork/elrond-go/core/pubkeyConverter"
+	"github.com/ElrondNetwork/elrond-go-core/core"
+	"github.com/ElrondNetwork/elrond-go-core/core/pubkeyConverter"
 	"github.com/ElrondNetwork/elrond-go/sharding"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/ElrondNetwork/rosetta/server/resources"
@@ -37,7 +37,7 @@ type networkProviderMock struct {
 
 // NewNetworkProviderMock -
 func NewNetworkProviderMock() *networkProviderMock {
-	pubKeyConverter, _ := pubkeyConverter.NewBech32PubkeyConverter(32)
+	pubKeyConverter, _ := pubkeyConverter.NewBech32PubkeyConverter(32, log)
 
 	return &networkProviderMock{
 		pubKeyConverter:                 pubKeyConverter,

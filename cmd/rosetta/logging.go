@@ -7,13 +7,14 @@ import (
 	"time"
 
 	logger "github.com/ElrondNetwork/elrond-go-logger"
-	"github.com/ElrondNetwork/elrond-go/core/logging"
+	"github.com/ElrondNetwork/elrond-go/common/logging"
 )
 
 const (
 	defaultLogsPath      = "logs"
 	logFilePrefix        = "rosetta"
 	logFileLifeSpanInSec = 86400
+	logMaxSizeInMB       = 1024
 )
 
 var log = logger.GetOrCreate("main")
@@ -37,12 +38,16 @@ func initializeLogger(logsFolder string, logLevel string) (io.Closer, error) {
 	if len(logsFolder) == 0 {
 	}
 
-	fileLogging, err := logging.NewFileLogging(logsFolder, defaultLogsPath, logFilePrefix)
+	fileLogging, err := logging.NewFileLogging(logging.ArgsFileLogging{
+		WorkingDir:      logsFolder,
+		DefaultLogsPath: defaultLogsPath,
+		LogFilePrefix:   logFilePrefix,
+	})
 	if err != nil {
 		return nil, fmt.Errorf("%w creating a log file", err)
 	}
 
-	err = fileLogging.ChangeFileLifeSpan(time.Second * time.Duration(logFileLifeSpanInSec))
+	err = fileLogging.ChangeFileLifeSpan(time.Second*time.Duration(logFileLifeSpanInSec), logMaxSizeInMB)
 	if err != nil {
 		return nil, err
 	}
