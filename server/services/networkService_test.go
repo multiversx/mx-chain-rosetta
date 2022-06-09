@@ -4,53 +4,37 @@ import (
 	"context"
 	"testing"
 
-	"github.com/ElrondNetwork/elrond-proxy-go/data"
-	"github.com/ElrondNetwork/elrond-proxy-go/rosetta/configuration"
-	"github.com/ElrondNetwork/elrond-proxy-go/rosetta/mocks"
-	"github.com/ElrondNetwork/elrond-proxy-go/rosetta/provider"
+	"github.com/ElrondNetwork/rosetta/testscommon"
+	"github.com/ElrondNetwork/rosetta/version"
 	"github.com/coinbase/rosetta-sdk-go/types"
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
-func TestNetworkAPIService_NetworkList(t *testing.T) {
-	t.Parallel()
+func TestNetworkService_NetworkList(t *testing.T) {
+	networkProvider := testscommon.NewNetworkProviderMock()
+	networkProvider.MockNetworkConfig.ChainID = "T"
+	service := NewNetworkService(networkProvider)
 
-	elrondProviderMock := &mocks.ElrondProviderMock{}
-	cfg := &configuration.Configuration{
-		Network: &types.NetworkIdentifier{
-			Blockchain: configuration.BlockchainName,
-			Network:    "local_network",
-		},
-	}
+	response, err := service.NetworkList(context.Background(), nil)
 
-	networkAPIService := NewNetworkService(elrondProviderMock, cfg, false)
-
-	networkListResponse, err := networkAPIService.NetworkList(context.Background(), nil)
-	assert.Nil(t, err)
-	assert.Equal(t, []*types.NetworkIdentifier{{
-		Blockchain: configuration.BlockchainName,
-		Network:    "local_network",
-	}}, networkListResponse.NetworkIdentifiers)
+	require.Nil(t, err)
+	require.Equal(t, []*types.NetworkIdentifier{{
+		Blockchain: "Elrond",
+		Network:    "T",
+	}}, response.NetworkIdentifiers)
 }
 
-func TestNetworkAPIService_NetworkOptions(t *testing.T) {
-	t.Parallel()
-
-	elrondProviderMock := &mocks.ElrondProviderMock{}
-	cfg := &configuration.Configuration{
-		Network: &types.NetworkIdentifier{
-			Blockchain: configuration.BlockchainName,
-			Network:    "local_network",
-		},
-	}
-	service := NewNetworkService(elrondProviderMock, cfg, false)
+func TestNetworkService_NetworkOptions(t *testing.T) {
+	networkProvider := testscommon.NewNetworkProviderMock()
+	networkProvider.MockNetworkConfig.ChainID = "T"
+	service := NewNetworkService(networkProvider)
 
 	networkOptions, err := service.NetworkOptions(context.Background(), nil)
-	assert.Nil(t, err)
-	assert.Equal(t, &types.NetworkOptionsResponse{
+	require.Nil(t, err)
+	require.Equal(t, &types.NetworkOptionsResponse{
 		Version: &types.Version{
-			RosettaVersion: RosettaVersion,
-			NodeVersion:    NodeVersion,
+			RosettaVersion: version.RosettaVersion,
+			NodeVersion:    version.NodeVersion,
 		},
 		Allow: &types.Allow{
 			OperationStatuses: []*types.OperationStatus{
@@ -69,43 +53,34 @@ func TestNetworkAPIService_NetworkOptions(t *testing.T) {
 	}, networkOptions)
 }
 
-func TestNetworkAPIService_NetworkStatus(t *testing.T) {
-	t.Parallel()
+func TestNetworkService_NetworkStatus(t *testing.T) {
+	networkProvider := testscommon.NewNetworkProviderMock()
+	networkProvider.MockNetworkConfig.ChainID = "T"
+	networkProvider.MockObserverPubkey = "my-computer"
+	networkProvider.MockGenesisBlockHash = "genesisHash"
+	networkProvider.MockLatestBlockSummary.Nonce = 42
+	networkProvider.MockLatestBlockSummary.Hash = "latestHash"
+	networkProvider.MockLatestBlockSummary.Timestamp = 123456789
 
-	latestBlockNonce := int64(1000)
-	latestBlockHash := "hash"
-	oldestBlockNonce := int64(800)
-	oldestBlockHash := "old"
-	elrondProviderMock := &mocks.ElrondProviderMock{
-		GetLatestBlockDataCalled: func() (*provider.BlockData, error) {
-			return &provider.BlockData{
-				Hash:  latestBlockHash,
-				Nonce: uint64(latestBlockNonce),
-			}, nil
-		},
-		GetBlockByNonceCalled: func(nonce int64) (*data.Hyperblock, error) {
-			return &data.Hyperblock{
-				Hash:  oldestBlockHash,
-				Nonce: uint64(oldestBlockNonce),
-			}, nil
-		},
-	}
-	service := NewNetworkService(elrondProviderMock)
+	service := NewNetworkService(networkProvider)
 
 	networkStatusResponse, err := service.NetworkStatus(context.Background(), nil)
-	assert.Nil(t, err)
-	assert.Equal(t, &types.NetworkStatusResponse{
+
+	require.Nil(t, err)
+	require.Equal(t, &types.NetworkStatusResponse{
 		CurrentBlockIdentifier: &types.BlockIdentifier{
-			Index: latestBlockNonce,
-			Hash:  latestBlockHash,
+			Index: 42,
+			Hash:  "latestHash",
 		},
-		CurrentBlockTimestamp:  0,
-		GenesisBlockIdentifier: cfg.GenesisBlockIdentifier,
-		OldestBlockIdentifier: &types.BlockIdentifier{
-			Index: oldestBlockNonce,
-			Hash:  oldestBlockHash,
+		CurrentBlockTimestamp: 123456789000,
+		GenesisBlockIdentifier: &types.BlockIdentifier{
+			Index: 0,
+			Hash:  "genesisHash",
 		},
-		SyncStatus: nil,
-		Peers:      cfg.Peers,
+		Peers: []*types.Peer{
+			{
+				PeerID: "my-computer",
+			},
+		},
 	}, networkStatusResponse)
 }

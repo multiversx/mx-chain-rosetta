@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 
+	"github.com/ElrondNetwork/rosetta/version"
 	"github.com/coinbase/rosetta-sdk-go/server"
 	"github.com/coinbase/rosetta-sdk-go/types"
 )
@@ -77,8 +78,8 @@ func (service *networkService) NetworkOptions(
 ) (*types.NetworkOptionsResponse, *types.Error) {
 	return &types.NetworkOptionsResponse{
 		Version: &types.Version{
-			RosettaVersion: "TBD/TODO",
-			NodeVersion:    "TBD/TODO",
+			RosettaVersion: version.RosettaVersion,
+			NodeVersion:    version.NodeVersion,
 		},
 		Allow: &types.Allow{
 			OperationStatuses: []*types.OperationStatus{

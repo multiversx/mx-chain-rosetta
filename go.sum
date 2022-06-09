@@ -99,8 +99,8 @@ github.com/ElrondNetwork/elrond-go v1.2.4-0.20210702131210-721bd99ea5bd/go.mod h
 github.com/ElrondNetwork/elrond-go-logger v1.0.2/go.mod h1:e5D+c97lKUfFdAzFX7rrI2Igl/z4Y0RkKYKWyzprTGk=
 github.com/ElrondNetwork/elrond-go-logger v1.0.4 h1:i5Yu4qyjTZDwvBY/ykbNpp2SP9jxwk/QTivRwSZSTAQ=
 github.com/ElrondNetwork/elrond-go-logger v1.0.4/go.mod h1:e5D+c97lKUfFdAzFX7rrI2Igl/z4Y0RkKYKWyzprTGk=
-github.com/ElrondNetwork/elrond-proxy-go v1.1.20-0.20220608155147-3a50d8df1d04 h1:A6YXBuGHc/hV8LZnSqdpOLIjzmqJs92JoV3f6p5ZhAo=
-github.com/ElrondNetwork/elrond-proxy-go v1.1.20-0.20220608155147-3a50d8df1d04/go.mod h1:uebv6qe0S06y8YgQf324j0bxU7J/zqb+wYhbA+M4oSw=
+github.com/ElrondNetwork/elrond-proxy-go v1.1.20-0.20220609134827-bb6f12e86a86 h1:b4DlHKbjtJ7952IckI3+ZEMOs015Y9kAyNlZqEz1uZg=
+github.com/ElrondNetwork/elrond-proxy-go v1.1.20-0.20220609134827-bb6f12e86a86/go.mod h1:uebv6qe0S06y8YgQf324j0bxU7J/zqb+wYhbA+M4oSw=
 github.com/ElrondNetwork/elrond-vm-common v0.1.23/go.mod h1:ZakxPST/Wt8umnRtA9gobcy3Dw2bywxwkC54P5VhO9g=
 github.com/ElrondNetwork/elrond-vm-common v0.3.3/go.mod h1:ZakxPST/Wt8umnRtA9gobcy3Dw2bywxwkC54P5VhO9g=
 github.com/ElrondNetwork/elrond-vm-common v0.3.4-0.20210625102705-01a81e6a1fa4/go.mod h1:Knh5+i+BvTcn/QMT+COzeb76ZqMHGeijS6gbac25RPc=

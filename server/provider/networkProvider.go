@@ -213,24 +213,6 @@ func (provider *networkProvider) GetNetworkConfig() *resources.NetworkConfig {
 	return provider.networkConfig
 }
 
-func (provider *networkProvider) FetchNetworkConfig() (*resources.NetworkConfig, error) {
-	if provider.isOffline {
-		return nil, errIsOffline
-	}
-
-	response := &resources.NetworkConfigApiResponse{}
-
-	_, err := provider.baseProcessor.CallGetRestEndPoint(provider.observerUrl, urlPathGetNetworkConfig, &response)
-	if err != nil {
-		return nil, err
-	}
-	if response.Error != "" {
-		return nil, errors.New(response.Error)
-	}
-
-	return &response.Data.Config, nil
-}
-
 // GetGenesisBlockSummary gets a summary of the genesis block
 func (provider *networkProvider) GetGenesisBlockSummary() *resources.BlockSummary {
 	return &resources.BlockSummary{

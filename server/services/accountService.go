@@ -2,7 +2,6 @@ package services
 
 import (
 	"context"
-	"encoding/hex"
 
 	"github.com/coinbase/rosetta-sdk-go/server"
 	"github.com/coinbase/rosetta-sdk-go/types"
@@ -38,7 +37,7 @@ func (service *accountService) AccountBalance(
 	response := &types.AccountBalanceResponse{
 		BlockIdentifier: &types.BlockIdentifier{
 			Index: int64(accountModel.BlockInfo.Nonce),
-			Hash:  hex.EncodeToString(accountModel.BlockInfo.Hash),
+			Hash:  accountModel.BlockInfo.Hash,
 		},
 		Balances: []*types.Amount{
 			{
