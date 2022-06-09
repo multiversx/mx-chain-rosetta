@@ -12,7 +12,7 @@ func newNetworkProviderExtension(provider NetworkProvider) *networkProviderExten
 	}
 }
 
-func (extension *networkProviderExtension) getNativeAmount(value string) *types.Amount {
+func (extension *networkProviderExtension) valueToNativeAmount(value string) *types.Amount {
 	return &types.Amount{
 		Value:    value,
 		Currency: extension.getNativeCurrency(),
@@ -28,13 +28,13 @@ func (extension *networkProviderExtension) getNativeCurrency() *types.Currency {
 	}
 }
 
-func (extension *networkProviderExtension) getAccountIdentifier(address string) *types.AccountIdentifier {
+func (extension *networkProviderExtension) addressToAccountIdentifier(address string) *types.AccountIdentifier {
 	return &types.AccountIdentifier{
 		Address: address,
 	}
 }
 
-func (extension *networkProviderExtension) getTransactionIdentifier(hash string) *types.TransactionIdentifier {
+func (extension *networkProviderExtension) hashToTransactionIdentifier(hash string) *types.TransactionIdentifier {
 	return &types.TransactionIdentifier{
 		Hash: hash,
 	}
@@ -66,8 +66,12 @@ func (extension *networkProviderExtension) filterObservedOperations(operations [
 
 func (extension *networkProviderExtension) indexOperations(operations []*types.Operation) []*types.Operation {
 	for index, operation := range operations {
-		operation.OperationIdentifier = &types.OperationIdentifier{Index: int64(index)}
+		operation.OperationIdentifier = extension.indexToOperationIdentifier(index)
 	}
 
 	return operations
+}
+
+func (extension *networkProviderExtension) indexToOperationIdentifier(index int) *types.OperationIdentifier {
+	return &types.OperationIdentifier{Index: int64(index)}
 }

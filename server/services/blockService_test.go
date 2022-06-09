@@ -6,190 +6,117 @@ import (
 
 	"github.com/ElrondNetwork/elrond-go/data/transaction"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
-	"github.com/ElrondNetwork/elrond-proxy-go/rosetta/configuration"
-	"github.com/ElrondNetwork/elrond-proxy-go/rosetta/mocks"
-	"github.com/ElrondNetwork/elrond-proxy-go/rosetta/provider"
+	"github.com/ElrondNetwork/rosetta/testscommon"
+	"github.com/coinbase/rosetta-sdk-go/server"
 	"github.com/coinbase/rosetta-sdk-go/types"
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestBlockService_BlockByIndex(t *testing.T) {
-	t.Parallel()
+	networkProvider := testscommon.NewNetworkProviderMock()
+	networkProvider.MockNetworkConfig.ChainID = "T"
+	extension := newNetworkProviderExtension(networkProvider)
 
-	blockIndex := int64(10)
-	round := uint64(12)
-	blockHash := "hash-hash-hash"
-	prevBlockHash := "prev-hash-hash-hash"
-
-	txHash := "txHash"
-	fullTxNormal := &data.FullTransaction{
-		Hash:     txHash,
-		Type:     string(transaction.TxTypeNormal),
-		Receiver: "erd1uml89f3lqqfxan67dnnlytd0r3mz3v684zxdhqq60gs5u7qa9yjqa5dgqp",
-		Sender:   "erd18f33a94auxr4v8v23wu8gwv7mzf408jsskktvj4lcmcrv4v5jmqs5x3kdn",
-		Value:    "1234",
-		GasLimit: 100,
-		GasPrice: 10,
-	}
-
-	rewardHash := "rewardHash"
-	rewardTx := &data.FullTransaction{
-		Hash:     rewardHash,
-		Receiver: "erd1uml89f3lqqfxan67dnnlytd0r3mz3v684zxdhqq60gs5u7qa9yjqa5dgqp",
-		Value:    "1111",
-		Type:     string(transaction.TxTypeReward),
-	}
-
-	invalidTxHash := "invalidTx"
-	invalidTx := &data.FullTransaction{
-		Hash:     invalidTxHash,
-		Sender:   "erd1uml89f3lqqfxan67dnnlytd0r3mz3v684zxdhqq60gs5u7qa9yjqa5dgqp",
-		GasLimit: 100,
-		GasPrice: 10,
-		Type:     string(transaction.TxTypeInvalid),
-	}
-
-	elrondProviderMock := &mocks.ElrondProviderMock{
-		GetBlockByNonceCalled: func(nonce int64) (*data.Hyperblock, error) {
-			return &data.Hyperblock{
-				Nonce:         uint64(blockIndex),
-				Hash:          blockHash,
-				Round:         round,
-				PrevBlockHash: prevBlockHash,
+	networkProvider.MockBlocksByNonce[7] = &data.Block{
+		Hash:          "0007",
+		Nonce:         7,
+		Timestamp:     1,
+		PrevBlockHash: "0006",
+		Epoch:         1,
+		Round:         42,
+		Status:        "on-chain",
+		MiniBlocks: []*data.MiniBlock{
+			{
 				Transactions: []*data.FullTransaction{
-					fullTxNormal, rewardTx, invalidTx,
+					{
+						Hash:     "aaaa",
+						Type:     string(transaction.TxTypeNormal),
+						Sender:   testscommon.TestAddressAlice,
+						Receiver: testscommon.TestAddressBob,
+						Value:    "1",
+					},
 				},
-			}, nil
+			},
 		},
 	}
 
-	networkCfg := &provider.NetworkConfig{
-		GasPerDataByte: 1,
-		ClientVersion:  "",
-		MinGasPrice:    10,
-		MinGasLimit:    100,
+	networkProvider.MockBlocksByNonce[8] = &data.Block{
+		Hash:          "0008",
+		Nonce:         8,
+		Timestamp:     2,
+		PrevBlockHash: "0007",
+		Epoch:         1,
+		Round:         43,
+		Status:        "on-chain",
+		MiniBlocks:    []*data.MiniBlock{{Transactions: []*data.FullTransaction{}}},
 	}
-	cfg := &configuration.Configuration{}
-	service := NewBlockService(elrondProviderMock, cfg, networkCfg)
-	tp := newTransactionParser(elrondProviderMock, cfg, networkCfg)
 
-	expectedBlock := &types.Block{
-		BlockIdentifier: &types.BlockIdentifier{
-			Index: blockIndex,
-			Hash:  blockHash,
-		},
-		ParentBlockIdentifier: &types.BlockIdentifier{
-			Index: blockIndex - 1,
-			Hash:  prevBlockHash,
-		},
-		Timestamp: 0,
+	service := NewBlockService(networkProvider)
+
+	blockSeven := &types.Block{
+		BlockIdentifier:       &types.BlockIdentifier{Index: 7, Hash: "0007"},
+		ParentBlockIdentifier: &types.BlockIdentifier{Index: 6, Hash: "0006"},
+		Timestamp:             1000,
 		Transactions: []*types.Transaction{
 			{
-				TransactionIdentifier: &types.TransactionIdentifier{Hash: txHash},
+				TransactionIdentifier: extension.hashToTransactionIdentifier("aaaa"),
 				Operations: []*types.Operation{
 					{
-						OperationIdentifier: &types.OperationIdentifier{
-							Index: 0,
-						},
-						Type:   opTransfer,
-						Status: &OpStatusSuccess,
-						Account: &types.AccountIdentifier{
-							Address: fullTxNormal.Sender,
-						},
-						Amount: &types.Amount{
-							Value:    "-" + fullTxNormal.Value,
-							Currency: nil,
-						},
+						OperationIdentifier: extension.indexToOperationIdentifier(0),
+						Type:                opTransfer,
+						Account:             extension.addressToAccountIdentifier(testscommon.TestAddressAlice),
+						Amount:              extension.valueToNativeAmount("-1"),
+						Status:              &OpStatusSuccess,
 					},
 					{
-						OperationIdentifier: &types.OperationIdentifier{
-							Index: 1,
-						},
-						RelatedOperations: []*types.OperationIdentifier{
-							{Index: 0},
-						},
-						Type:   opTransfer,
-						Status: &OpStatusSuccess,
-						Account: &types.AccountIdentifier{
-							Address: fullTxNormal.Receiver,
-						},
-						Amount: &types.Amount{
-							Value:    fullTxNormal.Value,
-							Currency: nil,
-						},
-					},
-					{
-						OperationIdentifier: &types.OperationIdentifier{
-							Index: 2,
-						},
-						Type:   opFee,
-						Status: &OpStatusSuccess,
-						Account: &types.AccountIdentifier{
-							Address: fullTxNormal.Sender,
-						},
-						Amount: &types.Amount{
-							Value:    "-" + fullTxNormal.InitiallyPaidFee,
-							Currency: nil,
-						},
-					},
-				},
-			},
-			{
-
-				TransactionIdentifier: &types.TransactionIdentifier{
-					Hash: rewardTx.Hash,
-				},
-				Operations: []*types.Operation{
-					{
-						OperationIdentifier: &types.OperationIdentifier{
-							Index: 0,
-						},
-						Type:   opReward,
-						Status: &OpStatusSuccess,
-						Account: &types.AccountIdentifier{
-							Address: rewardTx.Receiver,
-						},
-						Amount: &types.Amount{
-							Value:    rewardTx.Value,
-							Currency: tp.config.Currency,
-						},
-					},
-				},
-			},
-			{
-				TransactionIdentifier: &types.TransactionIdentifier{
-					Hash: invalidTx.Hash,
-				},
-				Operations: []*types.Operation{
-					{
-						OperationIdentifier: &types.OperationIdentifier{
-							Index: 0,
-						},
-						Type:   opInvalid,
-						Status: &OpStatusSuccess,
-						Account: &types.AccountIdentifier{
-							Address: invalidTx.Sender,
-						},
-						Amount: &types.Amount{
-							Value:    "-" + invalidTx.InitiallyPaidFee,
-							Currency: tp.config.Currency,
-						},
+						OperationIdentifier: extension.indexToOperationIdentifier(1),
+						Type:                opTransfer,
+						Account:             extension.addressToAccountIdentifier(testscommon.TestAddressBob),
+						Amount:              extension.valueToNativeAmount("1"),
+						Status:              &OpStatusSuccess,
 					},
 				},
 			},
 		},
 		Metadata: objectsMap{
-			"epoch": uint32(0),
-			"round": round,
+			"epoch":  uint32(1),
+			"round":  uint64(42),
+			"shard":  uint32(0),
+			"status": "on-chain",
 		},
 	}
-	blockResponse, err := service.Block(context.Background(), &types.BlockRequest{
+
+	blockEight := &types.Block{
+		BlockIdentifier:       &types.BlockIdentifier{Index: 8, Hash: "0008"},
+		ParentBlockIdentifier: &types.BlockIdentifier{Index: 7, Hash: "0007"},
+		Timestamp:             2000,
+		Transactions:          []*types.Transaction{},
+		Metadata: objectsMap{
+			"epoch":  uint32(1),
+			"round":  uint64(43),
+			"shard":  uint32(0),
+			"status": "on-chain",
+		},
+	}
+
+	_, err := getBlockByIndex(service, 6)
+	require.Equal(t, ErrUnableToGetBlock.Code, err.Code)
+
+	blockResponse, err := getBlockByIndex(service, 7)
+	require.Nil(t, err)
+	require.Equal(t, blockSeven, blockResponse.Block)
+
+	blockResponse, err = getBlockByIndex(service, 8)
+	require.Nil(t, err)
+	require.Equal(t, blockEight, blockResponse.Block)
+}
+
+func getBlockByIndex(service server.BlockAPIServicer, index int64) (*types.BlockResponse, *types.Error) {
+	return service.Block(context.Background(), &types.BlockRequest{
 		NetworkIdentifier: nil,
 		BlockIdentifier: &types.PartialBlockIdentifier{
-			Index: &blockIndex,
+			Index: &index,
 			Hash:  nil,
 		},
 	})
-	assert.Nil(t, err)
-	assert.Equal(t, expectedBlock, blockResponse.Block)
 }

@@ -11,7 +11,6 @@ type NetworkProvider interface {
 	GetChainID() string
 	GetNativeCurrency() resources.NativeCurrency
 	GetObserverPubkey() string
-
 	GetNetworkConfig() *resources.NetworkConfig
 	GetGenesisBlockSummary() *resources.BlockSummary
 	GetGenesisTimestamp() int64

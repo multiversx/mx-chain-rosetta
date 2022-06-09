@@ -204,6 +204,7 @@ func (provider *networkProvider) GetNativeCurrency() resources.NativeCurrency {
 	}
 }
 
+// GetObserverPubkey gets the pubkey of the connected observer
 func (provider *networkProvider) GetObserverPubkey() string {
 	return provider.observerPubkey
 }

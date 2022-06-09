@@ -82,6 +82,7 @@ func (service *networkService) NetworkOptions(
 					Status:     OpStatusSuccess,
 					Successful: true,
 				},
+				// TODO: Possibly remove this?
 				{
 					Status:     OpStatusFailed,
 					Successful: false,

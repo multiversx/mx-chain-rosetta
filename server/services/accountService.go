@@ -37,7 +37,7 @@ func (service *accountService) AccountBalance(
 	response := &types.AccountBalanceResponse{
 		BlockIdentifier: blockInfoToIdentifier(accountModel.BlockInfo),
 		Balances: []*types.Amount{
-			service.extension.getNativeAmount(accountModel.Account.Balance),
+			service.extension.valueToNativeAmount(accountModel.Account.Balance),
 		},
 		Metadata: map[string]interface{}{
 			"nonce":    accountModel.Account.Nonce,

@@ -41,10 +41,10 @@ func (parser *transactionsParser) parseTxsFromBlock(block *data.Block) ([]*types
 			return nil, err
 		}
 
-		// TODO: Should we populate related transactions?
-		// populateRelatedTransactions(tx, eTx)
 		rosettaTxs = append(rosettaTxs, rosettaTx)
 	}
+
+	// TODO filter operations!
 
 	return rosettaTxs, nil
 }
@@ -208,9 +208,6 @@ func (parser *transactionsParser) createRosettaTxFromMoveBalance(eTx *data.FullT
 				OperationIdentifier: &types.OperationIdentifier{
 					Index: operationIndex,
 				},
-				RelatedOperations: []*types.OperationIdentifier{
-					{Index: 0},
-				},
 				Type:   opTransfer,
 				Status: &OpStatusSuccess,
 				Account: &types.AccountIdentifier{
@@ -277,9 +274,6 @@ func (parser *transactionsParser) createOperationsFromPreparedTx(tx *data.Transa
 		OperationIdentifier: &types.OperationIdentifier{
 			Index: 1,
 		},
-		RelatedOperations: []*types.OperationIdentifier{
-			{Index: 0},
-		},
 		Type: opTransfer,
 		Account: &types.AccountIdentifier{
 			Address: tx.Receiver,
@@ -315,25 +309,5 @@ func (parser *transactionsParser) createRosettaTxFromInvalidTx(eTx *data.FullTra
 				},
 			},
 		},
-	}
-}
-
-func populateRelatedTransactions(rosettaTx *types.Transaction, nodeTx *data.FullTransaction) {
-	if nodeTx.OriginalTransactionHash != "" {
-		rosettaTx.RelatedTransactions = append(rosettaTx.RelatedTransactions, &types.RelatedTransaction{
-			TransactionIdentifier: &types.TransactionIdentifier{
-				Hash: nodeTx.OriginalTransactionHash,
-			},
-			Direction: types.Backward,
-		})
-	}
-
-	if nodeTx.PreviousTransactionHash != "" && nodeTx.PreviousTransactionHash != nodeTx.OriginalTransactionHash {
-		rosettaTx.RelatedTransactions = append(rosettaTx.RelatedTransactions, &types.RelatedTransaction{
-			TransactionIdentifier: &types.TransactionIdentifier{
-				Hash: nodeTx.PreviousTransactionHash,
-			},
-			Direction: types.Backward,
-		})
 	}
 }
