@@ -14,6 +14,7 @@ import (
 
 type constructionService struct {
 	provider  NetworkProvider
+	extension *networkProviderExtension
 	txsParser *transactionsParser
 }
 
@@ -23,20 +24,12 @@ func NewConstructionService(
 ) server.ConstructionAPIServicer {
 	return &constructionService{
 		provider:  networkProvider,
+		extension: newNetworkProviderExtension(networkProvider),
 		txsParser: newTransactionParser(networkProvider),
 	}
 }
 
-func (service *constructionService) getNativeCurrency() *types.Currency {
-	currency := service.provider.GetNativeCurrency()
-
-	return &types.Currency{
-		Symbol:   currency.Symbol,
-		Decimals: currency.Decimals,
-	}
-}
-
-// ConstructionPreprocess will preprocess data that in provided in request
+// ConstructionPreprocess determines which metadata is needed for construction
 func (service *constructionService) ConstructionPreprocess(
 	_ context.Context,
 	request *types.ConstructionPreprocessRequest,
@@ -52,7 +45,7 @@ func (service *constructionService) ConstructionPreprocess(
 
 	if len(request.MaxFee) > 0 {
 		maxFee := request.MaxFee[0]
-		if maxFee.Currency != service.getNativeCurrency() {
+		if !service.extension.isNativeCurrency(maxFee.Currency) {
 			return nil, wrapErr(ErrConstructionCheck, errors.New("invalid currency"))
 		}
 
@@ -87,7 +80,7 @@ func (service *constructionService) checkOperationsAndMeta(ops []*types.Operatio
 		if !checkOperationsType(op) {
 			return wrapErr(ErrConstructionCheck, errors.New("unsupported operation type"))
 		}
-		if op.Amount.Currency.Symbol != service.getNativeCurrency().Symbol {
+		if op.Amount.Currency.Symbol != service.extension.getNativeCurrency().Symbol {
 			return wrapErr(ErrConstructionCheck, errors.New("unsupported currency symbol"))
 		}
 	}
@@ -138,7 +131,7 @@ func getOptionsFromOperations(ops []*types.Operation) (objectsMap, *types.Error)
 	return options, nil
 }
 
-// ConstructionMetadata construct metadata for a transaction
+// ConstructionMetadata gets any information required to construct a transaction for a specific network (e.g. the account nonce)
 func (service *constructionService) ConstructionMetadata(
 	_ context.Context,
 	request *types.ConstructionMetadataRequest,
@@ -169,10 +162,7 @@ func (service *constructionService) ConstructionMetadata(
 	return &types.ConstructionMetadataResponse{
 		Metadata: metadata,
 		SuggestedFee: []*types.Amount{
-			{
-				Value:    suggestedFee.String(),
-				Currency: service.getNativeCurrency(),
-			},
+			service.extension.valueToNativeAmount(suggestedFee.String()),
 		},
 	}, nil
 }
@@ -217,7 +207,7 @@ func (service *constructionService) computeMetadata(options objectsMap) (objects
 	return metadata, nil
 }
 
-// ConstructionPayloads will prepare a transaction for signing
+// ConstructionPayloads returns an unsigned transaction blob and a collection of payloads that must be signed
 func (service *constructionService) ConstructionPayloads(
 	_ context.Context,
 	request *types.ConstructionPayloadsRequest,
@@ -226,33 +216,32 @@ func (service *constructionService) ConstructionPayloads(
 		return nil, err
 	}
 
-	erdTx, err := createTransaction(request)
+	tx, err := createTransaction(request)
 	if err != nil {
 		return nil, wrapErr(ErrMalformedValue, err)
 	}
 
-	mtx, err := json.Marshal(erdTx)
+	txJson, err := json.Marshal(tx)
 	if err != nil {
 		return nil, wrapErr(ErrMalformedValue, err)
 	}
 
-	unsignedTx := hex.EncodeToString(mtx)
+	signer := request.Operations[0].Account.Address
 
 	return &types.ConstructionPayloadsResponse{
-		UnsignedTransaction: unsignedTx,
+		UnsignedTransaction: string(txJson),
 		Payloads: []*types.SigningPayload{
 			{
-				AccountIdentifier: &types.AccountIdentifier{
-					Address: request.Operations[0].Account.Address,
-				},
-				SignatureType: types.Ed25519,
-				Bytes:         mtx,
+				AccountIdentifier: addressToAccountIdentifier(signer),
+				SignatureType:     types.Ed25519,
+				Bytes:             txJson,
 			},
 		},
 	}, nil
 }
 
-// ConstructionParse will check if a transaction is correctly formatted
+// ConstructionParse is called on both unsigned and signed transactions to understand the intent of the formulated transaction.
+// This is run as a sanity check before signing (after /payloads) and before broadcast (after /combine).
 func (service *constructionService) ConstructionParse(
 	_ context.Context,
 	request *types.ConstructionParseRequest,
@@ -294,26 +283,23 @@ func createTransaction(request *types.ConstructionPayloadsRequest) (*data.Transa
 }
 
 func getTxFromRequest(txString string) (*data.Transaction, error) {
-	txBytes, err := hex.DecodeString(txString)
+	txBytes := []byte(txString)
+
+	var tx data.Transaction
+	err := json.Unmarshal(txBytes, &tx)
 	if err != nil {
 		return nil, err
 	}
 
-	var elrondTx data.Transaction
-	err = json.Unmarshal(txBytes, &elrondTx)
-	if err != nil {
-		return nil, err
-	}
-
-	return &elrondTx, nil
+	return &tx, nil
 }
 
-// ConstructionCombine will create a signed transaction for transaction bytes and signature
+// ConstructionCombine creates a ready-to-broadcast transaction from an unsigned transaction and an array of provided signatures.
 func (service *constructionService) ConstructionCombine(
 	_ context.Context,
 	request *types.ConstructionCombineRequest,
 ) (*types.ConstructionCombineResponse, *types.Error) {
-	elrondTx, err := getTxFromRequest(request.UnsignedTransaction)
+	tx, err := getTxFromRequest(request.UnsignedTransaction)
 	if err != nil {
 		return nil, wrapErr(ErrMalformedValue, err)
 	}
@@ -322,18 +308,15 @@ func (service *constructionService) ConstructionCombine(
 		return nil, ErrInvalidInputParam
 	}
 
-	txSignature := hex.EncodeToString(request.Signatures[0].Bytes)
-	elrondTx.Signature = txSignature
+	tx.Signature = hex.EncodeToString(request.Signatures[0].Bytes)
 
-	signedTxBytes, err := json.Marshal(elrondTx)
+	signedTxBytes, err := json.Marshal(tx)
 	if err != nil {
 		return nil, wrapErr(ErrMalformedValue, err)
 	}
 
-	signedTx := hex.EncodeToString(signedTxBytes)
-
 	return &types.ConstructionCombineResponse{
-		SignedTransaction: signedTx,
+		SignedTransaction: string(signedTxBytes),
 	}, nil
 }
 
@@ -350,10 +333,8 @@ func (service *constructionService) ConstructionDerive(
 	address := service.provider.ConvertPubKeyToAddress(pubKey)
 
 	return &types.ConstructionDeriveResponse{
-		AccountIdentifier: &types.AccountIdentifier{
-			Address: address,
-		},
-		Metadata: nil,
+		AccountIdentifier: addressToAccountIdentifier(address),
+		Metadata:          nil,
 	}, nil
 }
 

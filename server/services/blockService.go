@@ -106,7 +106,7 @@ func (service *blockService) doGetGenesisBlock() (*types.BlockResponse, *types.E
 	}
 
 	genesisTransaction := &types.Transaction{
-		TransactionIdentifier: service.extension.hashToTransactionIdentifier(emptyHash),
+		TransactionIdentifier: hashToTransactionIdentifier(emptyHash),
 		Operations:            operations,
 	}
 
@@ -126,7 +126,7 @@ func (service *blockService) createGenesisOperations(balances []*resources.Genes
 	for _, balance := range balances {
 		operation := &types.Operation{
 			Type:    opGenesisBalanceMovement,
-			Account: service.extension.addressToAccountIdentifier(balance.Address),
+			Account: addressToAccountIdentifier(balance.Address),
 			Amount:  service.extension.valueToNativeAmount(balance.Balance),
 		}
 

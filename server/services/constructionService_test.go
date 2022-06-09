@@ -2,148 +2,83 @@ package services
 
 import (
 	"context"
-	"fmt"
 	"testing"
 
-	"github.com/ElrondNetwork/elrond-proxy-go/config"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
-	"github.com/ElrondNetwork/elrond-proxy-go/rosetta/configuration"
-	"github.com/ElrondNetwork/elrond-proxy-go/rosetta/mocks"
-	"github.com/ElrondNetwork/elrond-proxy-go/rosetta/provider"
+	"github.com/ElrondNetwork/rosetta/testscommon"
 	"github.com/coinbase/rosetta-sdk-go/types"
 	"github.com/stretchr/testify/require"
 )
 
-func Testservice_ConstructionPreprocess(t *testing.T) {
-	t.Parallel()
-
-	networkCfg := &provider.NetworkConfig{
-		GasPerDataByte: 1,
-		ClientVersion:  "",
-		MinGasPrice:    10,
-		MinGasLimit:    100,
-		ChainID:        "local-testnet",
-	}
-	cfg := configuration.LoadConfiguration(networkCfg, &config.Config{})
-	elrondProvider := &mocks.ElrondProviderMock{}
-
-	service := NewConstructionService(elrondProvider, cfg, networkCfg, false)
-
-	senderAddr := "senderAddr"
-	receiverAddr := "receiverAddr"
-	value := "123456"
+func TestConstructionService_ConstructionPreprocess(t *testing.T) {
+	networkProvider := testscommon.NewNetworkProviderMock()
+	extension := newNetworkProviderExtension(networkProvider)
+	service := NewConstructionService(networkProvider)
 
 	operations := []*types.Operation{
 		{
-			OperationIdentifier: &types.OperationIdentifier{
-				Index: 0,
-			},
-			Type: opTransfer,
-			Account: &types.AccountIdentifier{
-				Address: senderAddr,
-			},
-			Amount: &types.Amount{
-				Value:    "-" + value,
-				Currency: cfg.Currency,
-			},
+			OperationIdentifier: indexToOperationIdentifier(0),
+			Type:                opTransfer,
+			Account:             addressToAccountIdentifier(testscommon.TestAddressAlice),
+			Amount:              extension.valueToNativeAmount("-1234"),
 		},
 		{
-			OperationIdentifier: &types.OperationIdentifier{
-				Index: 1,
-			},
-			RelatedOperations: []*types.OperationIdentifier{
-				{Index: 0},
-			},
-			Type: opTransfer,
-			Account: &types.AccountIdentifier{
-				Address: receiverAddr,
-			},
-			Amount: &types.Amount{
-				Value:    value,
-				Currency: cfg.Currency,
-			},
+			OperationIdentifier: indexToOperationIdentifier(1),
+			Type:                opTransfer,
+			Account:             addressToAccountIdentifier(testscommon.TestAddressBob),
+			Amount:              extension.valueToNativeAmount("1234"),
 		},
 	}
 
 	feeMultiplier := 1.1
-	maxFee := "1234567"
-
-	gasPrice := 100
-	gasLimit := 10000
-	dataField := "data"
 
 	response, err := service.ConstructionPreprocess(context.Background(),
 		&types.ConstructionPreprocessRequest{
 			Operations: operations,
 			MaxFee: []*types.Amount{
-				{
-					Value:    maxFee,
-					Currency: cfg.Currency,
-				},
+				extension.valueToNativeAmount("123"),
 			},
 			SuggestedFeeMultiplier: &feeMultiplier,
 			Metadata: objectsMap{
-				"gasPrice": gasPrice,
-				"gasLimit": gasLimit,
-				"data":     dataField,
+				"gasPrice": 1000000000,
+				"gasLimit": 50000,
+				"data":     "hello",
 			},
 		},
 	)
 	require.Nil(t, err)
 	require.Equal(t, map[string]interface{}{
-		"receiver":      receiverAddr,
-		"sender":        senderAddr,
-		"gasPrice":      gasPrice,
-		"gasLimit":      gasLimit,
+		"receiver":      testscommon.TestAddressBob,
+		"sender":        testscommon.TestAddressAlice,
+		"gasPrice":      1000000000,
+		"gasLimit":      50000,
 		"feeMultiplier": feeMultiplier,
-		"data":          dataField,
-		"value":         value,
-		"maxFee":        maxFee,
+		"data":          "hello",
+		"value":         "1234",
+		"maxFee":        "123",
 		"type":          opTransfer,
 	}, response.Options)
 }
 
-func Testservice_ConstructionMetadata(t *testing.T) {
-	t.Parallel()
-
-	senderAddr := "senderAddr"
-	receiverAddr := "receiverAddr"
-	value := "123456"
-	feeMultiplier := 1.1
-	maxFee := "1234567"
-	gasPrice := uint64(100)
-	gasLimit := uint64(10000)
-	dataField := "data"
-	networkCfg := &provider.NetworkConfig{
-		GasPerDataByte: 1,
-		ClientVersion:  "",
-		MinGasPrice:    10,
-		MinGasLimit:    100,
-		ChainID:        "local-testnet",
-		MinTxVersion:   1,
-	}
-	nonce := uint64(5)
-	cfg := configuration.LoadConfiguration(networkCfg, &config.Config{})
-	elrondProvider := &mocks.ElrondProviderMock{
-		GetAccountCalled: func(address string) (*data.Account, error) {
-			return &data.Account{
-				Address: senderAddr,
-				Nonce:   nonce,
-			}, nil
-		},
+func TestConstructionService_ConstructionMetadata(t *testing.T) {
+	networkProvider := testscommon.NewNetworkProviderMock()
+	networkProvider.MockNetworkConfig.ChainID = "T"
+	networkProvider.MockAccountsByAddress[testscommon.TestAddressAlice] = &data.Account{
+		Address: testscommon.TestAddressAlice,
+		Nonce:   42,
 	}
 
-	service := NewConstructionService(elrondProvider, cfg, networkCfg, false)
+	service := NewConstructionService(networkProvider)
 
 	options := map[string]interface{}{
-		"receiver":      receiverAddr,
-		"sender":        senderAddr,
-		"gasPrice":      gasPrice,
-		"gasLimit":      gasLimit,
-		"feeMultiplier": feeMultiplier,
-		"data":          dataField,
-		"value":         value,
-		"maxFee":        maxFee,
+		"receiver":      testscommon.TestAddressBob,
+		"sender":        testscommon.TestAddressAlice,
+		"gasPrice":      uint64(1000000000),
+		"gasLimit":      uint64(57500),
+		"feeMultiplier": 1.1,
+		"data":          "hello",
+		"value":         "1234",
+		"maxFee":        "1",
 		"type":          opTransfer,
 	}
 	response, err := service.ConstructionMetadata(context.Background(),
@@ -152,88 +87,61 @@ func Testservice_ConstructionMetadata(t *testing.T) {
 		},
 	)
 
-	expectedSuggestedFee := "1100000"
 	require.Nil(t, err)
-	require.Equal(t, expectedSuggestedFee, response.SuggestedFee[0].Value)
-	require.Equal(t, cfg.Currency, response.SuggestedFee[0].Currency)
+	require.Equal(t, "63250000000000", response.SuggestedFee[0].Value)
 
-	delete(options, "feeMultiplier")
-	delete(options, "maxFee")
-	delete(options, "type")
-	options["chainID"] = networkCfg.ChainID
-	options["version"] = networkCfg.MinTxVersion
-	options["data"] = []byte(fmt.Sprintf("%v", dataField))
-	options["nonce"] = nonce
-	options["gasLimit"] = uint64(10000)
-	options["gasPrice"] = uint64(110)
-	require.Equal(t, options, response.Metadata)
+	expectedMetadata := map[string]interface{}{
+		"receiver": testscommon.TestAddressBob,
+		"sender":   testscommon.TestAddressAlice,
+		"chainID":  "T",
+		"version":  1,
+		"data":     []byte("hello"),
+		"value":    "1234",
+		"nonce":    uint64(42),
+		"gasPrice": uint64(1100000000),
+		"gasLimit": uint64(57500),
+	}
+
+	require.Equal(t, expectedMetadata, response.Metadata)
 }
 
-func Testservice_ConstructionPayloads(t *testing.T) {
-	t.Parallel()
-
-	networkCfg := &provider.NetworkConfig{
-		GasPerDataByte: 1,
-		ClientVersion:  "",
-		MinGasPrice:    10,
-		MinGasLimit:    100,
-		ChainID:        "local-testnet",
-		MinTxVersion:   1,
+func TestConstructionService_ConstructionPayloads(t *testing.T) {
+	networkProvider := testscommon.NewNetworkProviderMock()
+	networkProvider.MockNetworkConfig.ChainID = "T"
+	networkProvider.MockAccountsByAddress[testscommon.TestAddressAlice] = &data.Account{
+		Address: testscommon.TestAddressAlice,
+		Nonce:   42,
 	}
-	cfg := configuration.LoadConfiguration(networkCfg, &config.Config{})
 
-	nonce := uint64(5)
-	senderAddr := "senderAddr"
-	receiverAddr := "receiverAddr"
-	value := "123456"
-	gasPrice := 100
-	gasLimit := 10000
-	dataField := "data"
+	extension := newNetworkProviderExtension(networkProvider)
+	service := NewConstructionService(networkProvider)
+
 	metadata := map[string]interface{}{
-		"nonce":    nonce,
-		"receiver": receiverAddr,
-		"sender":   senderAddr,
-		"gasPrice": gasPrice,
-		"gasLimit": gasLimit,
-		"data":     []byte(fmt.Sprintf("%v", dataField)),
-		"value":    value,
-		"chainID":  networkCfg.ChainID,
-		"version":  networkCfg.MinTxVersion,
+		"receiver": testscommon.TestAddressBob,
+		"sender":   testscommon.TestAddressAlice,
+		"chainID":  "T",
+		"version":  1,
+		"data":     []byte("hello"),
+		"value":    "1234",
+		"nonce":    uint64(42),
+		"gasPrice": uint64(1100000000),
+		"gasLimit": uint64(57500),
 	}
 
 	operations := []*types.Operation{
 		{
-			OperationIdentifier: &types.OperationIdentifier{
-				Index: 0,
-			},
-			Type: opTransfer,
-			Account: &types.AccountIdentifier{
-				Address: senderAddr,
-			},
-			Amount: &types.Amount{
-				Value:    "-" + value,
-				Currency: cfg.Currency,
-			},
+			OperationIdentifier: indexToOperationIdentifier(0),
+			Type:                opTransfer,
+			Account:             addressToAccountIdentifier(testscommon.TestAddressAlice),
+			Amount:              extension.valueToNativeAmount("-1234"),
 		},
 		{
-			OperationIdentifier: &types.OperationIdentifier{
-				Index: 1,
-			},
-			RelatedOperations: []*types.OperationIdentifier{
-				{Index: 0},
-			},
-			Type: opTransfer,
-			Account: &types.AccountIdentifier{
-				Address: receiverAddr,
-			},
-			Amount: &types.Amount{
-				Value:    value,
-				Currency: cfg.Currency,
-			},
+			OperationIdentifier: indexToOperationIdentifier(1),
+			Type:                opTransfer,
+			Account:             addressToAccountIdentifier(testscommon.TestAddressBob),
+			Amount:              extension.valueToNativeAmount("1234"),
 		},
 	}
-
-	service := NewConstructionService(&mocks.ElrondProviderMock{}, cfg, networkCfg, false)
 
 	response, err := service.ConstructionPayloads(context.Background(),
 		&types.ConstructionPayloadsRequest{
@@ -242,63 +150,38 @@ func Testservice_ConstructionPayloads(t *testing.T) {
 		},
 	)
 
-	marshalizedTx := []byte("{\"nonce\":5,\"value\":\"123456\",\"receiver\":\"receiverAddr\",\"sender\":\"senderAddr\",\"gasPrice\":100,\"gasLimit\":10000,\"data\":\"ZGF0YQ==\",\"chainID\":\"local-testnet\",\"version\":1}")
-	unsignedTx := "7b226e6f6e6365223a352c2276616c7565223a22313233343536222c227265636569766572223a22726563656976657241646472222c2273656e646572223a2273656e64657241646472222c226761735072696365223a3130302c226761734c696d6974223a31303030302c2264617461223a225a47463059513d3d222c22636861696e4944223a226c6f63616c2d746573746e6574222c2276657273696f6e223a317d"
+	unsignedTx := "{\"nonce\":42,\"value\":\"1234\",\"receiver\":\"erd1spyavw0956vq68xj8y4tenjpq2wd5a9p2c6j8gsz7ztyrnpxrruqzu66jx\",\"sender\":\"erd1qyu5wthldzr8wx5c9ucg8kjagg0jfs53s8nr3zpz3hypefsdd8ssycr6th\",\"gasPrice\":1100000000,\"gasLimit\":57500,\"data\":\"aGVsbG8=\",\"chainID\":\"T\",\"version\":1}"
+	unsignedTxBytes := []byte(unsignedTx)
 
 	require.Nil(t, err)
+	firstPayload := response.Payloads[0]
 	require.Equal(t, unsignedTx, response.UnsignedTransaction)
-	require.Equal(t, marshalizedTx, response.Payloads[0].Bytes)
-	require.Equal(t, senderAddr, response.Payloads[0].AccountIdentifier.Address)
-	require.Equal(t, types.Ed25519, response.Payloads[0].SignatureType)
+	require.Equal(t, unsignedTxBytes, firstPayload.Bytes)
+	require.Equal(t, testscommon.TestAddressAlice, firstPayload.AccountIdentifier.Address)
+	require.Equal(t, types.Ed25519, firstPayload.SignatureType)
 }
 
-func Testservice_ConstructionParse(t *testing.T) {
-	t.Parallel()
+func TestConstructionService_ConstructionParse(t *testing.T) {
+	networkProvider := testscommon.NewNetworkProviderMock()
+	networkProvider.MockNetworkConfig.ChainID = "T"
 
-	networkCfg := &provider.NetworkConfig{
-		GasPerDataByte: 1,
-		ClientVersion:  "",
-		MinGasPrice:    10,
-		MinGasLimit:    100,
-		ChainID:        "local-testnet",
-		MinTxVersion:   1,
-	}
-	cfg := configuration.LoadConfiguration(networkCfg, &config.Config{})
-	service := NewConstructionService(&mocks.ElrondProviderMock{})
-	unsignedTx := "7b226e6f6e6365223a352c2276616c7565223a22313233343536222c227265636569766572223a22726563656976657241646472222c2273656e646572223a2273656e64657241646472222c226761735072696365223a3130302c226761734c696d6974223a31303030302c2264617461223a225a47463059513d3d222c22636861696e4944223a226c6f63616c2d746573746e6574222c2276657273696f6e223a317d"
+	extension := newNetworkProviderExtension(networkProvider)
+	service := NewConstructionService(networkProvider)
 
-	senderAddr := "senderAddr"
-	receiverAddr := "receiverAddr"
-	value := "123456"
+	unsignedTx := "{\"nonce\":42,\"value\":\"1234\",\"receiver\":\"erd1spyavw0956vq68xj8y4tenjpq2wd5a9p2c6j8gsz7ztyrnpxrruqzu66jx\",\"sender\":\"erd1qyu5wthldzr8wx5c9ucg8kjagg0jfs53s8nr3zpz3hypefsdd8ssycr6th\",\"gasPrice\":1100000000,\"gasLimit\":57500,\"data\":\"aGVsbG8=\",\"chainID\":\"T\",\"version\":1}"
+
 	operations := []*types.Operation{
 		{
-			OperationIdentifier: &types.OperationIdentifier{
-				Index: 0,
-			},
-			Type: opTransfer,
-			Account: &types.AccountIdentifier{
-				Address: senderAddr,
-			},
-			Amount: &types.Amount{
-				Value:    "-" + value,
-				Currency: cfg.Currency,
-			},
+			OperationIdentifier: indexToOperationIdentifier(0),
+			Type:                opTransfer,
+			Account:             addressToAccountIdentifier(testscommon.TestAddressAlice),
+			Amount:              extension.valueToNativeAmount("-1234"),
 		},
 		{
-			OperationIdentifier: &types.OperationIdentifier{
-				Index: 1,
-			},
-			RelatedOperations: []*types.OperationIdentifier{
-				{Index: 0},
-			},
-			Type: opTransfer,
-			Account: &types.AccountIdentifier{
-				Address: receiverAddr,
-			},
-			Amount: &types.Amount{
-				Value:    value,
-				Currency: cfg.Currency,
-			},
+			OperationIdentifier: indexToOperationIdentifier(1),
+			Type:                opTransfer,
+			Account:             addressToAccountIdentifier(testscommon.TestAddressBob),
+			Amount:              extension.valueToNativeAmount("1234"),
 		},
 	}
 
@@ -311,105 +194,55 @@ func Testservice_ConstructionParse(t *testing.T) {
 	require.Nil(t, err)
 	require.Equal(t, operations, response.Operations)
 	require.Nil(t, response.AccountIdentifierSigners)
-
-	response, err = service.ConstructionParse(context.Background(),
-		&types.ConstructionParseRequest{
-			Signed:      true,
-			Transaction: unsignedTx,
-		},
-	)
-	require.Nil(t, err)
-	require.Equal(t, operations, response.Operations)
-	require.NotNil(t, response.AccountIdentifierSigners)
 }
 
-func Testservice_ConstructionCombine(t *testing.T) {
-	t.Parallel()
+func TestConstructionService_ConstructionCombine(t *testing.T) {
+	networkProvider := testscommon.NewNetworkProviderMock()
+	networkProvider.MockNetworkConfig.ChainID = "T"
 
-	unsignedTx := "7b226e6f6e6365223a352c2276616c7565223a22313233343536222c227265636569766572223a22726563656976657241646472222c2273656e646572223a2273656e64657241646472222c226761735072696365223a3130302c226761734c696d6974223a31303030302c2264617461223a225a47463059513d3d222c22636861696e4944223a226c6f63616c2d746573746e6574222c2276657273696f6e223a317d"
-	signature := []byte("signature-signature-signature")
+	service := NewConstructionService(networkProvider)
 
-	networkCfg := &provider.NetworkConfig{
-		GasPerDataByte: 1,
-		ClientVersion:  "",
-		MinGasPrice:    10,
-		MinGasLimit:    100,
-		ChainID:        "local-testnet",
-		MinTxVersion:   1,
-	}
-	cfg := configuration.LoadConfiguration(networkCfg, &config.Config{})
-	service := NewConstructionService(&mocks.ElrondProviderMock{}, cfg, networkCfg, false)
+	unsignedTx := "{\"nonce\":42,\"value\":\"1234\",\"receiver\":\"erd1spyavw0956vq68xj8y4tenjpq2wd5a9p2c6j8gsz7ztyrnpxrruqzu66jx\",\"sender\":\"erd1qyu5wthldzr8wx5c9ucg8kjagg0jfs53s8nr3zpz3hypefsdd8ssycr6th\",\"gasPrice\":1100000000,\"gasLimit\":57500,\"data\":\"aGVsbG8=\",\"chainID\":\"T\",\"version\":1}"
 
 	response, err := service.ConstructionCombine(context.Background(),
 		&types.ConstructionCombineRequest{
 			UnsignedTransaction: unsignedTx,
 			Signatures: []*types.Signature{
 				{
-					Bytes: signature,
+					Bytes: []byte{0xaa, 0xbb},
 				},
 			},
 		},
 	)
 
-	signedTx := "7b226e6f6e6365223a352c2276616c7565223a22313233343536222c227265636569766572223a22726563656976657241646472222c2273656e646572223a2273656e64657241646472222c226761735072696365223a3130302c226761734c696d6974223a31303030302c2264617461223a225a47463059513d3d222c227369676e6174757265223a2237333639363736653631373437353732363532643733363936373665363137343735373236353264373336393637366536313734373537323635222c22636861696e4944223a226c6f63616c2d746573746e6574222c2276657273696f6e223a317d"
+	signedTx := "{\"nonce\":42,\"value\":\"1234\",\"receiver\":\"erd1spyavw0956vq68xj8y4tenjpq2wd5a9p2c6j8gsz7ztyrnpxrruqzu66jx\",\"sender\":\"erd1qyu5wthldzr8wx5c9ucg8kjagg0jfs53s8nr3zpz3hypefsdd8ssycr6th\",\"gasPrice\":1100000000,\"gasLimit\":57500,\"data\":\"aGVsbG8=\",\"signature\":\"aabb\",\"chainID\":\"T\",\"version\":1}"
 	require.Nil(t, err)
 	require.Equal(t, signedTx, response.SignedTransaction)
 }
 
-func Testservice_ConstructionDerive(t *testing.T) {
-	t.Parallel()
-
-	encodedAddress := "erd12312321321321123321321"
-	elrondProvider := &mocks.ElrondProviderMock{
-		EncodeAddressCalled: func(address []byte) (string, error) {
-			return encodedAddress, nil
-		},
-	}
-
-	networkCfg := &provider.NetworkConfig{
-		GasPerDataByte: 1,
-		ClientVersion:  "",
-		MinGasPrice:    10,
-		MinGasLimit:    100,
-		ChainID:        "local-testnet",
-		MinTxVersion:   1,
-	}
-	cfg := configuration.LoadConfiguration(networkCfg, &config.Config{})
-	service := NewConstructionService(elrondProvider, cfg, networkCfg, false)
+func TestConstructionService_ConstructionDerive(t *testing.T) {
+	networkProvider := testscommon.NewNetworkProviderMock()
+	service := NewConstructionService(networkProvider)
 
 	response, err := service.ConstructionDerive(context.Background(),
 		&types.ConstructionDeriveRequest{
 			PublicKey: &types.PublicKey{
-				Bytes:     []byte("blablabla"),
+				Bytes:     testscommon.TestPubKeyAlice,
 				CurveType: types.Edwards25519,
 			},
 		},
 	)
+
 	require.Nil(t, err)
-	require.Equal(t, encodedAddress, response.AccountIdentifier.Address)
+	require.Equal(t, testscommon.TestAddressAlice, response.AccountIdentifier.Address)
 }
 
-func Testservice_ConstructionHash(t *testing.T) {
-	t.Parallel()
+func TestConstructionService_ConstructionHash(t *testing.T) {
+	networkProvider := testscommon.NewNetworkProviderMock()
+	networkProvider.MockComputedTransactionHash = "aaaa"
+	service := NewConstructionService(networkProvider)
 
-	txHash := "hash-hash-hash"
-	signedTx := "7b226e6f6e6365223a352c2276616c7565223a22313233343536222c227265636569766572223a22726563656976657241646472222c2273656e646572223a2273656e64657241646472222c226761735072696365223a3130302c226761734c696d6974223a31303030302c2264617461223a225a47463059513d3d222c227369676e6174757265223a2237333639363736653631373437353732363532643733363936373665363137343735373236353264373336393637366536313734373537323635222c22636861696e4944223a226c6f63616c2d746573746e6574222c2276657273696f6e223a317d"
-	elrondProvider := &mocks.ElrondProviderMock{
-		ComputeTransactionHashCalled: func(tx *data.Transaction) (string, error) {
-			return txHash, nil
-		},
-	}
-
-	networkCfg := &provider.NetworkConfig{
-		GasPerDataByte: 1,
-		ClientVersion:  "",
-		MinGasPrice:    10,
-		MinGasLimit:    100,
-		ChainID:        "local-testnet",
-		MinTxVersion:   1,
-	}
-	cfg := configuration.LoadConfiguration(networkCfg, &config.Config{})
-	service := NewConstructionService(elrondProvider, cfg, networkCfg, false)
+	signedTx := "{\"nonce\":42,\"value\":\"1234\",\"receiver\":\"erd1spyavw0956vq68xj8y4tenjpq2wd5a9p2c6j8gsz7ztyrnpxrruqzu66jx\",\"sender\":\"erd1qyu5wthldzr8wx5c9ucg8kjagg0jfs53s8nr3zpz3hypefsdd8ssycr6th\",\"gasPrice\":1100000000,\"gasLimit\":57500,\"data\":\"aGVsbG8=\",\"signature\":\"aabb\",\"chainID\":\"T\",\"version\":1}"
 
 	response, err := service.ConstructionHash(context.Background(),
 		&types.ConstructionHashRequest{
@@ -417,30 +250,21 @@ func Testservice_ConstructionHash(t *testing.T) {
 		},
 	)
 	require.Nil(t, err)
-	require.Equal(t, txHash, response.TransactionIdentifier.Hash)
+	require.Equal(t, "aaaa", response.TransactionIdentifier.Hash)
 }
 
-func Testservice_ConstructionSubmit(t *testing.T) {
-	t.Parallel()
+func TestConstructionService_ConstructionSubmit(t *testing.T) {
+	networkProvider := testscommon.NewNetworkProviderMock()
 
-	txHash := "hash-hash-hash"
-	signedTx := "7b226e6f6e6365223a352c2276616c7565223a22313233343536222c227265636569766572223a22726563656976657241646472222c2273656e646572223a2273656e64657241646472222c226761735072696365223a3130302c226761734c696d6974223a31303030302c2264617461223a225a47463059513d3d222c227369676e6174757265223a2237333639363736653631373437353732363532643733363936373665363137343735373236353264373336393637366536313734373537323635222c22636861696e4944223a226c6f63616c2d746573746e6574222c2276657273696f6e223a317d"
-	elrondProvider := &mocks.ElrondProviderMock{
-		SendTxCalled: func(tx *data.Transaction) (string, error) {
-			return txHash, nil
-		},
+	var calledWithTransaction *data.Transaction
+	networkProvider.SendTransactionCalled = func(tx *data.Transaction) (string, error) {
+		calledWithTransaction = tx
+		return "aaaa", nil
 	}
 
-	networkCfg := &provider.NetworkConfig{
-		GasPerDataByte: 1,
-		ClientVersion:  "",
-		MinGasPrice:    10,
-		MinGasLimit:    100,
-		ChainID:        "local-testnet",
-		MinTxVersion:   1,
-	}
-	cfg := configuration.LoadConfiguration(networkCfg, &config.Config{})
-	service := NewConstructionService(elrondProvider, cfg, networkCfg, false)
+	service := NewConstructionService(networkProvider)
+
+	signedTx := "{\"nonce\":42,\"value\":\"1234\",\"receiver\":\"erd1spyavw0956vq68xj8y4tenjpq2wd5a9p2c6j8gsz7ztyrnpxrruqzu66jx\",\"sender\":\"erd1qyu5wthldzr8wx5c9ucg8kjagg0jfs53s8nr3zpz3hypefsdd8ssycr6th\",\"gasPrice\":1100000000,\"gasLimit\":57500,\"data\":\"aGVsbG8=\",\"signature\":\"aabb\",\"chainID\":\"T\",\"version\":1}"
 
 	response, err := service.ConstructionSubmit(context.Background(),
 		&types.ConstructionSubmitRequest{
@@ -448,5 +272,7 @@ func Testservice_ConstructionSubmit(t *testing.T) {
 		},
 	)
 	require.Nil(t, err)
-	require.Equal(t, txHash, response.TransactionIdentifier.Hash)
+	require.Equal(t, "aaaa", response.TransactionIdentifier.Hash)
+	require.Equal(t, "T", calledWithTransaction.ChainID)
+	require.Equal(t, uint64(42), calledWithTransaction.Nonce)
 }

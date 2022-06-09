@@ -32,7 +32,10 @@ type networkProviderMock struct {
 	MockBlocksByHash                map[string]*data.Block
 	MockAccountsByAddress           map[string]*data.Account
 	MockMempoolTransactionsByHash   map[string]*data.FullTransaction
+	MockComputedTransactionHash     string
 	MockNextError                   error
+
+	SendTransactionCalled func(tx *data.Transaction) (string, error)
 }
 
 // NewNetworkProviderMock -
@@ -67,6 +70,7 @@ func NewNetworkProviderMock() *networkProviderMock {
 		MockBlocksByHash:              make(map[string]*data.Block),
 		MockAccountsByAddress:         make(map[string]*data.Account),
 		MockMempoolTransactionsByHash: make(map[string]*data.FullTransaction),
+		MockComputedTransactionHash:   emptyHash,
 		MockNextError:                 nil,
 	}
 }
@@ -201,12 +205,16 @@ func (mock *networkProviderMock) ConvertAddressToPubKey(address string) ([]byte,
 
 // ComputeTransactionHash -
 func (mock *networkProviderMock) ComputeTransactionHash(tx *data.Transaction) (string, error) {
-	return emptyHash, mock.MockNextError
+	return mock.MockComputedTransactionHash, mock.MockNextError
 }
 
 // SendTransaction -
 func (mock *networkProviderMock) SendTransaction(tx *data.Transaction) (string, error) {
-	return emptyHash, mock.MockNextError
+	if mock.SendTransactionCalled != nil {
+		return mock.SendTransactionCalled(tx)
+	}
+
+	return mock.MockComputedTransactionHash, mock.MockNextError
 }
 
 // GetMempoolTransactionByHash -

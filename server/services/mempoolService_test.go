@@ -37,18 +37,18 @@ func TestMempoolService_MempoolTransaction(t *testing.T) {
 	}
 
 	expectedRosettaTx := &types.Transaction{
-		TransactionIdentifier: extension.hashToTransactionIdentifier("aaaa"),
+		TransactionIdentifier: hashToTransactionIdentifier("aaaa"),
 		Operations: []*types.Operation{
 			{
-				OperationIdentifier: extension.indexToOperationIdentifier(0),
+				OperationIdentifier: indexToOperationIdentifier(0),
 				Type:                opTransfer,
-				Account:             extension.addressToAccountIdentifier(testscommon.TestAddressAlice),
+				Account:             addressToAccountIdentifier(testscommon.TestAddressAlice),
 				Amount:              extension.valueToNativeAmount("-1234"),
 			},
 			{
-				OperationIdentifier: extension.indexToOperationIdentifier(1),
+				OperationIdentifier: indexToOperationIdentifier(1),
 				Type:                opTransfer,
-				Account:             extension.addressToAccountIdentifier(testscommon.TestAddressBob),
+				Account:             addressToAccountIdentifier(testscommon.TestAddressBob),
 				Amount:              extension.valueToNativeAmount("1234"),
 			},
 		},

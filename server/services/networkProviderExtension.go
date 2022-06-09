@@ -28,16 +28,9 @@ func (extension *networkProviderExtension) getNativeCurrency() *types.Currency {
 	}
 }
 
-func (extension *networkProviderExtension) addressToAccountIdentifier(address string) *types.AccountIdentifier {
-	return &types.AccountIdentifier{
-		Address: address,
-	}
-}
-
-func (extension *networkProviderExtension) hashToTransactionIdentifier(hash string) *types.TransactionIdentifier {
-	return &types.TransactionIdentifier{
-		Hash: hash,
-	}
+func (extension *networkProviderExtension) isNativeCurrency(currency *types.Currency) bool {
+	nativeCurrency := extension.provider.GetNativeCurrency()
+	return currency.Symbol == nativeCurrency.Symbol && currency.Decimals == nativeCurrency.Decimals
 }
 
 func (extension *networkProviderExtension) getGenesisBlockIdentifier() *types.BlockIdentifier {
@@ -66,12 +59,8 @@ func (extension *networkProviderExtension) filterObservedOperations(operations [
 
 func (extension *networkProviderExtension) indexOperations(operations []*types.Operation) []*types.Operation {
 	for index, operation := range operations {
-		operation.OperationIdentifier = extension.indexToOperationIdentifier(index)
+		operation.OperationIdentifier = indexToOperationIdentifier(index)
 	}
 
 	return operations
-}
-
-func (extension *networkProviderExtension) indexToOperationIdentifier(index int) *types.OperationIdentifier {
-	return &types.OperationIdentifier{Index: int64(index)}
 }
