@@ -41,8 +41,8 @@ func filterOutIntrashardRelayedTransactionAlreadyHeldInInvalidMiniblock(txs []*d
 
 	for _, tx := range txs {
 		isRelayedTransaction := (tx.Type == string(transaction.TxTypeNormal)) &&
-			(tx.ProcessingTypeOnSource == TransactionProcessingTypeRelayed) &&
-			(tx.ProcessingTypeOnDestination == TransactionProcessingTypeRelayed)
+			(tx.ProcessingTypeOnSource == transactionProcessingTypeRelayed) &&
+			(tx.ProcessingTypeOnDestination == transactionProcessingTypeRelayed)
 
 		_, alreadyHeldInInvalidMiniblock := invalidTxs[tx.Hash]
 

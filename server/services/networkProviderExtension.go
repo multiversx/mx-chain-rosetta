@@ -53,11 +53,11 @@ func (extension *networkProviderExtension) filterObservedOperations(operations [
 		}
 	}
 
-	extension.indexOperations(filtered)
+	indexOperations(filtered)
 	return filtered, nil
 }
 
-func (extension *networkProviderExtension) indexOperations(operations []*types.Operation) []*types.Operation {
+func indexOperations(operations []*types.Operation) []*types.Operation {
 	for index, operation := range operations {
 		operation.OperationIdentifier = indexToOperationIdentifier(index)
 	}

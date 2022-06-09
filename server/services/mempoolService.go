@@ -8,15 +8,15 @@ import (
 )
 
 type mempoolService struct {
-	provider  NetworkProvider
-	txsParser *transactionsParser
+	provider       NetworkProvider
+	txsTransformer *transactionsTransformer
 }
 
 // NewMempoolService will create a new instance of mempoolAPIService
 func NewMempoolService(provider NetworkProvider) server.MempoolAPIServicer {
 	return &mempoolService{
-		provider:  provider,
-		txsParser: newTransactionParser(provider),
+		provider:       provider,
+		txsTransformer: newTransactionsTransformer(provider),
 	}
 }
 
@@ -38,7 +38,7 @@ func (service *mempoolService) MempoolTransaction(
 		return nil, ErrTransactionIsNotInPool
 	}
 
-	rosettaTx, err := service.txsParser.parseTx(tx, true)
+	rosettaTx := service.txsTransformer.mempoolMoveBalanceTxToRosettaTx(tx)
 	if err != nil {
 		return nil, ErrCannotParsePoolTransaction
 	}

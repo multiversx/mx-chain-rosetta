@@ -15,6 +15,7 @@ import (
 func TestBlockService_BlockByIndex(t *testing.T) {
 	networkProvider := testscommon.NewNetworkProviderMock()
 	networkProvider.MockNetworkConfig.ChainID = "T"
+	networkProvider.MockNumShards = 1
 	extension := newNetworkProviderExtension(networkProvider)
 
 	networkProvider.MockBlocksByNonce[7] = &data.Block{
@@ -29,11 +30,12 @@ func TestBlockService_BlockByIndex(t *testing.T) {
 			{
 				Transactions: []*data.FullTransaction{
 					{
-						Hash:     "aaaa",
-						Type:     string(transaction.TxTypeNormal),
-						Sender:   testscommon.TestAddressAlice,
-						Receiver: testscommon.TestAddressBob,
-						Value:    "1",
+						Hash:             "aaaa",
+						Type:             string(transaction.TxTypeNormal),
+						Sender:           testscommon.TestAddressAlice,
+						Receiver:         testscommon.TestAddressBob,
+						Value:            "1",
+						InitiallyPaidFee: "50000000000000",
 					},
 				},
 			},
@@ -72,6 +74,12 @@ func TestBlockService_BlockByIndex(t *testing.T) {
 						Type:                opTransfer,
 						Account:             addressToAccountIdentifier(testscommon.TestAddressBob),
 						Amount:              extension.valueToNativeAmount("1"),
+					},
+					{
+						OperationIdentifier: indexToOperationIdentifier(2),
+						Type:                opFee,
+						Account:             addressToAccountIdentifier(testscommon.TestAddressAlice),
+						Amount:              extension.valueToNativeAmount("-50000000000000"),
 					},
 				},
 			},

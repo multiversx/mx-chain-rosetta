@@ -11,9 +11,9 @@ import (
 )
 
 type blockService struct {
-	provider  NetworkProvider
-	extension *networkProviderExtension
-	txsParser *transactionsParser
+	provider       NetworkProvider
+	extension      *networkProviderExtension
+	txsTransformer *transactionsTransformer
 
 	genesisBlock      *types.BlockResponse
 	genesisBlockMutex sync.RWMutex
@@ -24,9 +24,9 @@ func NewBlockService(provider NetworkProvider) server.BlockAPIServicer {
 	extension := newNetworkProviderExtension(provider)
 
 	return &blockService{
-		provider:  provider,
-		extension: extension,
-		txsParser: newTransactionParser(provider),
+		provider:       provider,
+		extension:      extension,
+		txsTransformer: newTransactionsTransformer(provider),
 	}
 }
 
@@ -176,7 +176,7 @@ func (service *blockService) convertToRosettaBlock(block *data.Block) (*types.Bl
 		parentBlockIdentifier = service.extension.getGenesisBlockIdentifier()
 	}
 
-	transactions, err := service.txsParser.parseTxsFromBlock(block)
+	transactions, err := service.txsTransformer.transformTxsFromBlock(block)
 	if err != nil {
 		return nil, err
 	}

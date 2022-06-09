@@ -15,17 +15,15 @@ import (
 type constructionService struct {
 	provider  NetworkProvider
 	extension *networkProviderExtension
-	txsParser *transactionsParser
 }
 
-// NewConstructionService creates a new instance of an constructionAPIService.
+// NewConstructionService creates a new instance of an constructionService
 func NewConstructionService(
 	networkProvider NetworkProvider,
 ) server.ConstructionAPIServicer {
 	return &constructionService{
 		provider:  networkProvider,
 		extension: newNetworkProviderExtension(networkProvider),
-		txsParser: newTransactionParser(networkProvider),
 	}
 }
 
@@ -261,9 +259,28 @@ func (service *constructionService) ConstructionParse(
 	}
 
 	return &types.ConstructionParseResponse{
-		Operations:               service.txsParser.createOperationsFromPreparedTx(elrondTx),
+		Operations:               service.createOperationsFromPreparedTx(elrondTx),
 		AccountIdentifierSigners: signers,
 	}, nil
+}
+
+func (service *constructionService) createOperationsFromPreparedTx(tx *data.Transaction) []*types.Operation {
+	operations := []*types.Operation{
+		{
+			Type:    opTransfer,
+			Account: addressToAccountIdentifier(tx.Sender),
+			Amount:  service.extension.valueToNativeAmount("-" + tx.Value),
+		},
+		{
+			Type:    opTransfer,
+			Account: addressToAccountIdentifier(tx.Receiver),
+			Amount:  service.extension.valueToNativeAmount(tx.Value),
+		},
+	}
+
+	indexOperations(operations)
+
+	return operations
 }
 
 func createTransaction(request *types.ConstructionPayloadsRequest) (*data.Transaction, error) {
