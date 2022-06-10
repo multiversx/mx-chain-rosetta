@@ -15,7 +15,7 @@ jobs:
       - name: Set up Go 1.x
         uses: actions/setup-go@v2
         with:
-          go-version: ^1.15.5
+          go-version: 1.17
         id: go
 
       - name: Check out code into the Go module directory
@@ -29,4 +29,4 @@ jobs:
               dep ensure
           fi
       - name: Build
-        run: cd cmd/proxy/ && go build -v .
+        run: cd cmd/rosetta/ && go build -v .
