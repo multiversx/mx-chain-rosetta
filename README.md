@@ -24,14 +24,12 @@ git clone https://github.com/ElrondNetwork/rosetta.git
 
 ### Build the images
 
-Below, we build all the images (including for _testnet_ and _devnet_).
+Below, we build all the images (including for  _devnet_).
 
 ```
 cd $HOME/rosetta
 
 docker image build . -t elrond-rosetta:latest -f ./docker/Rosetta.dockerfile
-
-docker image build . -t elrond-rosetta-observer-testnet:latest -f ./docker/ObserverTestnet.dockerfile
 docker image build . -t elrond-rosetta-observer-devnet:latest -f ./docker/ObserverDevnet.dockerfile
 docker image build . -t elrond-rosetta-observer-mainnet:latest -f ./docker/ObserverMainnet.dockerfile
 ```
@@ -41,9 +39,10 @@ docker image build . -t elrond-rosetta-observer-mainnet:latest -f ./docker/Obser
 The following script prepares the required folder structure on host:
 
 ```
-cd $HOME/rosetta
+cd $HOME/rosetta/scripts
 
-./prepare_host.sh ${HOME}/rosetta
+export OBSERVED_SHARD=0
+./prepare_host.sh ${HOME}/rosetta-workdir ${OBSERVED_SHARD}
 ```
 
 ### Generate keys for observers
@@ -51,35 +50,26 @@ cd $HOME/rosetta
 The following script generates the node keys, required by the observers (chosen shard, plus metachain):
 
 ```
-cd $HOME/rosetta
+cd $HOME/rosetta/scripts
 
-./generate_keys.sh ${HOME}/rosetta/keys
+export OBSERVED_SHARD=0
+./generate_keys.sh ${HOME}/rosetta-workdir/keys ${OBSERVED_SHARD}
 ```
+
+Note that the script above downloads [this docker image](https://hub.docker.com/r/elrondnetwork/elrond-go-keygenerator). In order to change the ownership of the generated keys (from _owned by Docker_ to _owned by the current user_), superuser access will be requested.
 
 ## Run rosetta
-
-### Run on testnet
-
-```
-cd $HOME/rosetta
-
-export ROSETTA_IMAGE=elrond-rosetta:latest
-export OBSERVER_IMAGE=elrond-rosetta-observer-testnet:latest
-export DATA_FOLDER=${HOME}/rosetta/testnet
-export KEYS_FOLDER=${HOME}/rosetta/keys
-
-docker compose --file ./docker-compose.yml up --detach
-```
 
 ### Run on devnet
 
 ```
-cd $HOME/rosetta
+cd $HOME/rosetta/docker
 
+export OBSERVED_SHARD=0
 export ROSETTA_IMAGE=elrond-rosetta:latest
 export OBSERVER_IMAGE=elrond-rosetta-observer-devnet:latest
-export DATA_FOLDER=${HOME}/rosetta/devnet
-export KEYS_FOLDER=${HOME}/rosetta/keys
+export DATA_FOLDER=${HOME}/rosetta-workdir/devnet
+export KEYS_FOLDER=${HOME}/rosetta-workdir/keys
 
 docker compose --file ./docker-compose.yml up --detach
 ```
@@ -87,12 +77,12 @@ docker compose --file ./docker-compose.yml up --detach
 ### Run on mainnet
 
 ```
-cd $HOME/rosetta
+cd $HOME/rosetta/docker
 
 export ROSETTA_IMAGE=elrond-rosetta:latest
 export OBSERVER_IMAGE=elrond-rosetta-observer-mainnet:latest
-export DATA_FOLDER=${HOME}/rosetta/mainnet
-export KEYS_FOLDER=${HOME}/rosetta/keys
+export DATA_FOLDER=${HOME}/rosetta-workdir/mainnet
+export KEYS_FOLDER=${HOME}/rosetta-workdir/keys
 
 docker compose --file ./docker-compose.yml up --detach
 ```
@@ -109,7 +99,7 @@ git pull origin
 Stop the running containers:
 
 ```
-docker stop rosetta-observer-0-1
+docker stop rosetta-observer-1
 docker stop rosetta-observer-metachain-1
 docker stop rosetta-rosetta-1
 docker stop rosetta-rosetta-offline-1

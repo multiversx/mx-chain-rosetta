@@ -12,22 +12,27 @@ const (
 	opFeeRefund              = "FeeRefund"
 )
 
-// SupportedOperationTypes is a list of the supported operations.
-var SupportedOperationTypes = []string{
-	opTransfer, opFee, opReward, opScResult, opFeeOfInvalidTx, opGenesisBalanceMovement, opFeeRefund,
-}
-
 var (
-	// opStatusSuccess is the operation status for successful operations.
-	opStatusSuccess = "Success"
-)
+	// SupportedOperationTypes is a list of the supported operations.
+	SupportedOperationTypes = []string{
+		opTransfer,
+		opFee,
+		opReward,
+		opScResult,
+		opFeeOfInvalidTx,
+		opGenesisBalanceMovement,
+		opFeeRefund,
+	}
 
-var supportedOperationStatuses = []*types.OperationStatus{
-	{
-		Status:     opStatusSuccess,
-		Successful: true,
-	},
-}
+	opStatusSuccess = "Success"
+
+	supportedOperationStatuses = []*types.OperationStatus{
+		{
+			Status:     opStatusSuccess,
+			Successful: true,
+		},
+	}
+)
 
 func indexOperations(operations []*types.Operation) {
 	for index, operation := range operations {
@@ -37,6 +42,7 @@ func indexOperations(operations []*types.Operation) {
 
 func populateStatusOfOperations(operations []*types.Operation) {
 	for _, operation := range operations {
+		// TODO: Improve this, perhaps use a clone?
 		operation.Status = &opStatusSuccess
 	}
 }

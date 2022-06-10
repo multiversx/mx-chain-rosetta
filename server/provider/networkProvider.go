@@ -182,18 +182,22 @@ func NewNetworkProvider(args ArgsNewNetworkProvider) (*networkProvider, error) {
 	}, nil
 }
 
+// IsOffline returns whether the network provider is in the "offline" mode (i.e. no connection to the observer)
 func (provider *networkProvider) IsOffline() bool {
 	return provider.isOffline
 }
 
+// GetBlockchainName returns the name of the network ("Elrond")
 func (provider *networkProvider) GetBlockchainName() string {
 	return resources.BlockchainName
 }
 
+// GetChainID gets the chain identifier ("1" for mainnet, "D" for devnet etc.)
 func (provider *networkProvider) GetChainID() string {
 	return provider.networkConfig.ChainID
 }
 
+// GetNativeCurrency gets the native currency (EGLD, 18 decimals)
 func (provider *networkProvider) GetNativeCurrency() resources.NativeCurrency {
 	return resources.NativeCurrency{
 		Symbol:   provider.nativeCurrencySymbol,
@@ -371,6 +375,7 @@ func (provider *networkProvider) GetAccount(address string) (*data.AccountModel,
 	return account, nil
 }
 
+// IsAddressObserved returns whether the address is observed (i.e. is located in an observed shard)
 func (provider *networkProvider) IsAddressObserved(address string) (bool, error) {
 	pubKey, err := provider.ConvertAddressToPubKey(address)
 	if err != nil {
@@ -439,6 +444,7 @@ func (provider *networkProvider) GetMempoolTransactionByHash(hash string) (*data
 	return nil, nil
 }
 
+// LogDescription writes a description of the network provider in the log output
 func (provider *networkProvider) LogDescription() {
 	log.Info("Description of network provider",
 		"isOffline", provider.isOffline,

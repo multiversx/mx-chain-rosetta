@@ -35,9 +35,6 @@ func initializeLogger(logsFolder string, logLevel string) (io.Closer, error) {
 		return nil, err
 	}
 
-	if len(logsFolder) == 0 {
-	}
-
 	fileLogging, err := logging.NewFileLogging(logging.ArgsFileLogging{
 		WorkingDir:      logsFolder,
 		DefaultLogsPath: defaultLogsPath,

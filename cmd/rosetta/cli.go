@@ -92,7 +92,7 @@ VERSION:
 
 	cliFlagGenesisTimestamp = cli.Int64Flag{
 		Name:  "genesis-timestamp",
-		Usage: "Specifies the timestamp of the genesis block. For mainnet, it must be 1596117600.",
+		Usage: "Specifies the timestamp of the genesis block. For mainnet, it must be 1596117600 (Thursday, July 30, 2020 14:00:00 UTC).",
 		Value: 1596117600,
 	}
 

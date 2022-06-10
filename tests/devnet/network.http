@@ -1,5 +1,5 @@
-@baseUrl = http://rosetta-testnet:8091
-@baseNetwork = T
+@baseUrl = http://rosetta-devnet:8091
+@baseNetwork = D
 
 ###
 

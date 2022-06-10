@@ -12,7 +12,6 @@ import (
 	"github.com/ElrondNetwork/rosetta/server/provider"
 	"github.com/ElrondNetwork/rosetta/version"
 	"github.com/coinbase/rosetta-sdk-go/server"
-
 	"github.com/urfave/cli"
 )
 
@@ -20,7 +19,7 @@ func main() {
 	app := cli.NewApp()
 	cli.AppHelpTemplate = helpTemplate
 	app.Name = "Elrond Rosetta CLI App"
-	app.Version = version.RosettaVersion
+	app.Version = version.RosettaMiddlewareVersion
 	app.Usage = "This is the entry point for starting a new Elrond Rosetta instance"
 	app.Flags = getAllCliFlags()
 	app.Authors = []cli.Author{

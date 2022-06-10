@@ -8,7 +8,7 @@ git clone git@github.com:ElrondNetwork/elrond-go.git --branch development
 git clone git@github.com:ElrondNetwork/elrond-proxy-go.git --branch rosetta-development
 ```
 
-Start the local testnet using `erdpy` (will also start the Rosetta API):
+Start the localnet using `erdpy` (will also start the Rosetta API):
 
 ```
 cd tests/localnet

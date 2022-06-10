@@ -3,4 +3,4 @@ elrond_go = "~/rosetta-localnet/elrond-go"
 elrond_proxy_go = "~/rosetta-localnet/elrond-proxy-go"
 
 [shards]
-count = 1
+count = 3

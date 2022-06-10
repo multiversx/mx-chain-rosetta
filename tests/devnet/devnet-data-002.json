@@ -1,9 +1,9 @@
 {
   "network": {
     "blockchain": "Elrond",
-    "network": "T"
+    "network": "D"
   },
-  "online_url": "http://rosetta-testnet:8091",
+  "online_url": "http://rosetta-devnet:8091",
   "data_directory": "",
   "http_timeout": 10,
   "max_retries": 5,

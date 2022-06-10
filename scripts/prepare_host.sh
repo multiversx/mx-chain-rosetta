@@ -1,6 +1,7 @@
 BASE_FOLDER=$1
-NETWORKS=("testnet" "devnet" "mainnet")
-SHARDS=("0")
+OBSERVED_SHARD=$2
+NETWORKS=("devnet" "mainnet")
+SHARDS=($OBSERVED_SHARD "metachain")
 
 mkdir -p ${BASE_FOLDER}/keys
 
