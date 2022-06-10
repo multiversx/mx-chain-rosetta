@@ -9,11 +9,12 @@ const (
 	opReward                 = "Reward"
 	opScResult               = "SmartContractResult"
 	opFeeOfInvalidTx         = "FeeOfInvalidTransaction"
+	opFeeRefund              = "FeeRefund"
 )
 
 // SupportedOperationTypes is a list of the supported operations.
 var SupportedOperationTypes = []string{
-	opTransfer, opFee, opReward, opScResult, opFeeOfInvalidTx, opGenesisBalanceMovement,
+	opTransfer, opFee, opReward, opScResult, opFeeOfInvalidTx, opGenesisBalanceMovement, opFeeRefund,
 }
 
 var (

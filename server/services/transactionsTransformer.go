@@ -22,10 +22,14 @@ func newTransactionsTransformer(provider NetworkProvider) *transactionsTransform
 
 func (transformer *transactionsTransformer) transformTxsFromBlock(block *data.Block) ([]*types.Transaction, error) {
 	txs := make([]*data.FullTransaction, 0)
+	receipts := make([]*transaction.ApiReceipt, 0)
 
 	for _, miniblock := range block.MiniBlocks {
 		for _, tx := range miniblock.Transactions {
 			txs = append(txs, tx)
+		}
+		for _, receipt := range miniblock.Receipts {
+			receipts = append(receipts, receipt)
 		}
 	}
 
@@ -40,13 +44,22 @@ func (transformer *transactionsTransformer) transformTxsFromBlock(block *data.Bl
 			return nil, err
 		}
 
-		rosettaTx.Operations, err = transformer.extension.filterObservedOperations(rosettaTx.Operations)
+		rosettaTxs = append(rosettaTxs, rosettaTx)
+	}
+
+	for _, receipt := range receipts {
+		rosettaTx := transformer.receiptToRosettaTx(receipt)
+		rosettaTxs = append(rosettaTxs, rosettaTx)
+	}
+
+	for _, rosettaTx := range rosettaTxs {
+		filteredOperations, err := transformer.extension.filterObservedOperations(rosettaTx.Operations)
 		if err != nil {
 			return nil, err
 		}
 
-		populateStatusOfOperations(rosettaTx.Operations)
-		rosettaTxs = append(rosettaTxs, rosettaTx)
+		populateStatusOfOperations(filteredOperations)
+		rosettaTx.Operations = filteredOperations
 	}
 
 	return rosettaTxs, nil
@@ -138,6 +151,19 @@ func (transformer *transactionsTransformer) moveBalanceTxToRosetta(tx *data.Full
 	return &types.Transaction{
 		TransactionIdentifier: hashToTransactionIdentifier(tx.Hash),
 		Operations:            operations,
+	}
+}
+
+func (transformer *transactionsTransformer) receiptToRosettaTx(receipt *transaction.ApiReceipt) *types.Transaction {
+	return &types.Transaction{
+		TransactionIdentifier: hashToTransactionIdentifier(receipt.Hash),
+		Operations: []*types.Operation{
+			{
+				Type:    opFeeRefund,
+				Account: addressToAccountIdentifier(receipt.SndAddr),
+				Amount:  transformer.extension.valueToNativeAmount(receipt.Value.String()),
+			},
+		},
 	}
 }
 
