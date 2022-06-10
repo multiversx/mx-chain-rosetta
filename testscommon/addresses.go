@@ -24,4 +24,11 @@ var (
 	TestPubKeyBob, _ = RealWorldBech32PubkeyConverter.Decode(TestAddressBob)
 	// TestPubKeyHexBob is a test pubkey
 	TestPubKeyHexBob = hex.EncodeToString(TestPubKeyBob)
+
+	// TestAddressOfContract is a test address
+	TestAddressOfContract = "erd1qqqqqqqqqqqqqpgqfejaxfh4ktp8mh8s77pl90dq0uzvh2vk396qlcwepw"
+	// TestPubkeyOfContract is a test pubkey
+	TestPubkeyOfContract, _ = RealWorldBech32PubkeyConverter.Decode(TestAddressOfContract)
+	// TestPubkeyHexOfContract is a test pubkey
+	TestPubkeyHexOfContract = hex.EncodeToString(TestPubkeyOfContract)
 )

@@ -318,6 +318,7 @@ func (provider *networkProvider) GetBlockByNonce(nonce uint64) (*data.Block, err
 		WithLogs:         true,
 	}
 
+	// TODO: check why the proxy library issues more requests (e.g. 4) instead of 1
 	response, err := provider.blockProcessor.GetBlockByNonce(provider.observedActualShard, nonce, queryOptions)
 	if err != nil {
 		return nil, newErrCannotGetBlockByNonce(nonce, err)
@@ -340,6 +341,7 @@ func (provider *networkProvider) GetBlockByHash(hash string) (*data.Block, error
 		WithLogs:         true,
 	}
 
+	// TODO: check why the proxy library issues more requests (e.g. 4) instead of 1
 	response, err := provider.blockProcessor.GetBlockByHash(provider.observedActualShard, hash, queryOptions)
 	if err != nil {
 		return nil, newErrCannotGetBlockByHash(hash, err)

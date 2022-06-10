@@ -276,3 +276,33 @@ func TestConstructionService_ConstructionSubmit(t *testing.T) {
 	require.Equal(t, "T", calledWithTransaction.ChainID)
 	require.Equal(t, uint64(42), calledWithTransaction.Nonce)
 }
+
+func TestConstructionService_CreateOperationsFromPreparedTx(t *testing.T) {
+	networkProvider := testscommon.NewNetworkProviderMock()
+	extension := newNetworkProviderExtension(networkProvider)
+	service := NewConstructionService(networkProvider).(*constructionService)
+
+	preparedTx := &data.Transaction{
+		Value:    "12345",
+		Receiver: testscommon.TestAddressBob,
+		Sender:   testscommon.TestAddressAlice,
+	}
+
+	expectedOperations := []*types.Operation{
+		{
+			OperationIdentifier: indexToOperationIdentifier(0),
+			Type:                opTransfer,
+			Account:             addressToAccountIdentifier(testscommon.TestAddressAlice),
+			Amount:              extension.valueToNativeAmount("-12345"),
+		},
+		{
+			OperationIdentifier: indexToOperationIdentifier(1),
+			Type:                opTransfer,
+			Account:             addressToAccountIdentifier(testscommon.TestAddressBob),
+			Amount:              extension.valueToNativeAmount("12345"),
+		},
+	}
+
+	operations := service.createOperationsFromPreparedTx(preparedTx)
+	require.Equal(t, expectedOperations, operations)
+}

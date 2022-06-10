@@ -244,7 +244,7 @@ func (service *constructionService) ConstructionParse(
 	_ context.Context,
 	request *types.ConstructionParseRequest,
 ) (*types.ConstructionParseResponse, *types.Error) {
-	elrondTx, err := getTxFromRequest(request.Transaction)
+	tx, err := getTxFromRequest(request.Transaction)
 	if err != nil {
 		return nil, wrapErr(ErrMalformedValue, err)
 	}
@@ -253,13 +253,13 @@ func (service *constructionService) ConstructionParse(
 	if request.Signed {
 		signers = []*types.AccountIdentifier{
 			{
-				Address: elrondTx.Sender,
+				Address: tx.Sender,
 			},
 		}
 	}
 
 	return &types.ConstructionParseResponse{
-		Operations:               service.createOperationsFromPreparedTx(elrondTx),
+		Operations:               service.createOperationsFromPreparedTx(tx),
 		AccountIdentifierSigners: signers,
 	}, nil
 }
