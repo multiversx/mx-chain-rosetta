@@ -32,7 +32,7 @@ services:
       - "8092:8080"
     volumes:
       - ${DATA_FOLDER}/rosetta-offline/logs:/data/logs
-    command: --port 8080 --offline --observer=http://nowhere.localhost.local  --chain-id=${CHAIN_ID} --num-shards=${NUM_SHARDS} --observer-actual-shard=${OBSERVED_SHARD} --genesis-block=${GENESIS_BLOCK} --genesis-timestamp=${GENESIS_TIMESTAMP} --native-currency=${NATIVE_CURRENCY}
+    command: --port 8080 --offline --observer-http-url=http://nowhere.localhost.local  --chain-id=${CHAIN_ID} --num-shards=${NUM_SHARDS} --observer-actual-shard=${OBSERVED_SHARD} --genesis-block=${GENESIS_BLOCK} --genesis-timestamp=${GENESIS_TIMESTAMP} --native-currency=${NATIVE_CURRENCY}
     networks:
       elrond-rosetta:
         ipv4_address: 10.0.0.22

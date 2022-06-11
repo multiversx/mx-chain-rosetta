@@ -22,6 +22,18 @@ cd $HOME
 git clone https://github.com/ElrondNetwork/rosetta.git
 ```
 
+### Give permissions to the current user
+
+Make sure you read [this article](https://docs.docker.com/engine/install/linux-postinstall/) carefully, before performing the step.
+
+The following command adds the current user to the group "docker":
+
+```
+sudo usermod -aG docker $USER
+```
+
+After running the command, you may need to log out from the user session and log back in.
+
 ### Build the images
 
 Below, we build all the images (including for  _devnet_).
@@ -100,6 +112,21 @@ export KEYS_FOLDER=${HOME}/rosetta-workdir/keys
 docker compose --file ./docker-compose.yml up --detach
 ```
 
+## View logs of the running containers
+
+Using `docker logs`:
+
+```
+docker logs docker-observer-1 -f
+docker logs docker-rosetta-1 -f
+```
+
+By inspecting the files in the `logs` folder:
+
+```
+~/rosetta-workdir/(devnet|mainnet)/node-0/logs
+```
+
 ## Update rosetta
 
 Update the repository (repositories):
@@ -112,10 +139,10 @@ git pull origin
 Stop the running containers:
 
 ```
-docker stop rosetta-observer-1
-docker stop rosetta-observer-metachain-1
-docker stop rosetta-rosetta-1
-docker stop rosetta-rosetta-offline-1
+docker stop docker-observer-1
+docker stop docker-observer-metachain-1
+docker stop docker-rosetta-1
+docker stop docker-rosetta-offline-1
 ```
 
 Re-build the images as described above, then run the containers again.
