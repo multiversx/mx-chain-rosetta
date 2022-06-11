@@ -58,8 +58,10 @@ func TestTransactionsTransformer_UnsignedTxToRosettaTx(t *testing.T) {
 		},
 	}
 
-	rosettaFefundTx := transformer.unsignedTxToRosettaTx(refundTx)
-	rosettaMoveBalanceTx := transformer.unsignedTxToRosettaTx(moveBalanceTx)
+	txsInBlock := []*data.FullTransaction{refundTx, moveBalanceTx}
+
+	rosettaFefundTx := transformer.unsignedTxToRosettaTx(refundTx, txsInBlock)
+	rosettaMoveBalanceTx := transformer.unsignedTxToRosettaTx(moveBalanceTx, txsInBlock)
 	require.Equal(t, expectedRefundTx, rosettaFefundTx)
 	require.Equal(t, expectedMoveBalanceTx, rosettaMoveBalanceTx)
 }

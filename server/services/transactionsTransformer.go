@@ -8,6 +8,10 @@ import (
 	"github.com/coinbase/rosetta-sdk-go/types"
 )
 
+// TODO: newTransactionsTransformer(provider, block)
+// .transform() -> calls extractFeatures() / classifies (retains invalid txs, built in calls etc.)
+//				-> calls doTransform() on each tx
+
 type transactionsTransformer struct {
 	provider  NetworkProvider
 	extension networkProviderExtension
@@ -39,7 +43,7 @@ func (transformer *transactionsTransformer) transformTxsFromBlock(block *data.Bl
 
 	rosettaTxs := make([]*types.Transaction, 0)
 	for _, tx := range txs {
-		rosettaTx, err := transformer.txToRosettaTx(tx)
+		rosettaTx, err := transformer.txToRosettaTx(tx, txs)
 		if err != nil {
 			return nil, err
 		}
@@ -65,14 +69,14 @@ func (transformer *transactionsTransformer) transformTxsFromBlock(block *data.Bl
 	return rosettaTxs, nil
 }
 
-func (transformer *transactionsTransformer) txToRosettaTx(tx *data.FullTransaction) (*types.Transaction, error) {
+func (transformer *transactionsTransformer) txToRosettaTx(tx *data.FullTransaction, txsInBlock []*data.FullTransaction) (*types.Transaction, error) {
 	switch tx.Type {
 	case string(transaction.TxTypeNormal):
 		return transformer.moveBalanceTxToRosetta(tx), nil
 	case string(transaction.TxTypeReward):
 		return transformer.rewardTxToRosettaTx(tx), nil
 	case string(transaction.TxTypeUnsigned):
-		return transformer.unsignedTxToRosettaTx(tx), nil
+		return transformer.unsignedTxToRosettaTx(tx, txsInBlock), nil
 	case string(transaction.TxTypeInvalid):
 		return transformer.invalidTxToRosettaTx(tx), nil
 	default:
@@ -80,7 +84,10 @@ func (transformer *transactionsTransformer) txToRosettaTx(tx *data.FullTransacti
 	}
 }
 
-func (transformer *transactionsTransformer) unsignedTxToRosettaTx(tx *data.FullTransaction) *types.Transaction {
+func (transformer *transactionsTransformer) unsignedTxToRosettaTx(
+	tx *data.FullTransaction,
+	txsInBlock []*data.FullTransaction,
+) *types.Transaction {
 	if tx.IsRefund {
 		return &types.Transaction{
 			TransactionIdentifier: hashToTransactionIdentifier(tx.Hash),
@@ -92,15 +99,12 @@ func (transformer *transactionsTransformer) unsignedTxToRosettaTx(tx *data.FullT
 				},
 			},
 		}
-	} else {
+	}
+
+	if doesContractResultHoldRewardsOfClaimDeveloperRewards(tx, txsInBlock) {
 		return &types.Transaction{
 			TransactionIdentifier: hashToTransactionIdentifier(tx.Hash),
 			Operations: []*types.Operation{
-				{
-					Type:    opScResult,
-					Account: addressToAccountIdentifier(tx.Sender),
-					Amount:  transformer.extension.valueToNativeAmount("-" + tx.Value),
-				},
 				{
 					Type:    opScResult,
 					Account: addressToAccountIdentifier(tx.Receiver),
@@ -108,6 +112,22 @@ func (transformer *transactionsTransformer) unsignedTxToRosettaTx(tx *data.FullT
 				},
 			},
 		}
+	}
+
+	return &types.Transaction{
+		TransactionIdentifier: hashToTransactionIdentifier(tx.Hash),
+		Operations: []*types.Operation{
+			{
+				Type:    opScResult,
+				Account: addressToAccountIdentifier(tx.Sender),
+				Amount:  transformer.extension.valueToNativeAmount("-" + tx.Value),
+			},
+			{
+				Type:    opScResult,
+				Account: addressToAccountIdentifier(tx.Receiver),
+				Amount:  transformer.extension.valueToNativeAmount(tx.Value),
+			},
+		},
 	}
 }
 
