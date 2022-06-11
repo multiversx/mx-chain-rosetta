@@ -23,7 +23,7 @@ request_funds(1){
   
   create_account(1){
     create{
-      network = {"network":"T", "blockchain":"Elrond"};
+      network = {"network":"D", "blockchain":"Elrond"};
       key = generate_key({"curve_type": "edwards25519"});
       account = derive({
         "network_identifier": {{network}},
@@ -40,7 +40,7 @@ request_funds(1){
   
   transfer(1){
     transfer{
-      transfer.network = {"network":"T", "blockchain":"Elrond"};
+      transfer.network = {"network":"D", "blockchain":"Elrond"};
       elrond_currency = {"symbol":"XeGLD", "decimals":18};
       sender = find_balance({
         "minimum_balance":{
