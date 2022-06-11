@@ -65,7 +65,13 @@ Note that the script above downloads [this docker image](https://hub.docker.com/
 ```
 cd $HOME/rosetta/docker
 
+export CHAIN_ID=D
+export NUM_SHARDS=3
+export OBSERVER_PUBKEY="... get public key from rosetta-workdir/keys ..."
 export OBSERVED_SHARD=0
+export GENESIS_BLOCK=0000000000000000000000000000000000000000000000000000000000000000
+export GENESIS_TIMESTAMP=1648551600
+export NATIVE_CURRENCY=XeGLD
 export ROSETTA_IMAGE=elrond-rosetta:latest
 export OBSERVER_IMAGE=elrond-rosetta-observer-devnet:latest
 export DATA_FOLDER=${HOME}/rosetta-workdir/devnet
@@ -79,6 +85,13 @@ docker compose --file ./docker-compose.yml up --detach
 ```
 cd $HOME/rosetta/docker
 
+export CHAIN_ID=1
+export NUM_SHARDS=3
+export OBSERVER_PUBKEY="... get public key from rosetta-workdir/keys ..."
+export OBSERVED_SHARD=0
+export GENESIS_BLOCK=cd229e4ad2753708e4bab01d7f249affe29441829524c9529e84d51b6d12f2a7
+export GENESIS_TIMESTAMP=1596117600
+export NATIVE_CURRENCY=EGLD
 export ROSETTA_IMAGE=elrond-rosetta:latest
 export OBSERVER_IMAGE=elrond-rosetta-observer-mainnet:latest
 export DATA_FOLDER=${HOME}/rosetta-workdir/mainnet
