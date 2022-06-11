@@ -1,7 +1,7 @@
 FROM golang:1.17.6 as builder
 
 # Clone repositories
-RUN git clone https://github.com/ElrondNetwork/elrond-config-devnet --branch=release-D1.3.27.0 --depth=1
+RUN git clone https://github.com/ElrondNetwork/elrond-config-devnet --branch=rc-2022-june --depth=1
 RUN git clone https://github.com/ElrondNetwork/elrond-go.git --branch=rosetta-hotfixes --depth=1
 
 # Build node

@@ -22,6 +22,18 @@ cd $HOME
 git clone https://github.com/ElrondNetwork/rosetta.git
 ```
 
+### Give permissions to the current user
+
+Make sure you read [this article](https://docs.docker.com/engine/install/linux-postinstall/) carefully, before performing the step.
+
+The following command adds the current user to the group "docker":
+
+```
+sudo usermod -aG docker $USER
+```
+
+After running the command, you may need to log out from the user session and log back in.
+
 ### Build the images
 
 Below, we build all the images (including for  _devnet_).
@@ -65,7 +77,13 @@ Note that the script above downloads [this docker image](https://hub.docker.com/
 ```
 cd $HOME/rosetta/docker
 
+export CHAIN_ID=D
+export NUM_SHARDS=3
+export OBSERVER_PUBKEY="PUBLIC_KEY_FROM_KEY_FILE"
 export OBSERVED_SHARD=0
+export GENESIS_BLOCK=0000000000000000000000000000000000000000000000000000000000000000
+export GENESIS_TIMESTAMP=1648551600
+export NATIVE_CURRENCY=XeGLD
 export ROSETTA_IMAGE=elrond-rosetta:latest
 export OBSERVER_IMAGE=elrond-rosetta-observer-devnet:latest
 export DATA_FOLDER=${HOME}/rosetta-workdir/devnet
@@ -79,12 +97,34 @@ docker compose --file ./docker-compose.yml up --detach
 ```
 cd $HOME/rosetta/docker
 
+export CHAIN_ID=1
+export NUM_SHARDS=3
+export OBSERVER_PUBKEY="PUBLIC_KEY_FROM_KEY_FILE"
+export OBSERVED_SHARD=0
+export GENESIS_BLOCK=cd229e4ad2753708e4bab01d7f249affe29441829524c9529e84d51b6d12f2a7
+export GENESIS_TIMESTAMP=1596117600
+export NATIVE_CURRENCY=EGLD
 export ROSETTA_IMAGE=elrond-rosetta:latest
 export OBSERVER_IMAGE=elrond-rosetta-observer-mainnet:latest
 export DATA_FOLDER=${HOME}/rosetta-workdir/mainnet
 export KEYS_FOLDER=${HOME}/rosetta-workdir/keys
 
 docker compose --file ./docker-compose.yml up --detach
+```
+
+## View logs of the running containers
+
+Using `docker logs`:
+
+```
+docker logs docker-observer-1 -f
+docker logs docker-rosetta-1 -f
+```
+
+By inspecting the files in the `logs` folder:
+
+```
+~/rosetta-workdir/(devnet|mainnet)/node-0/logs
 ```
 
 ## Update rosetta
@@ -99,10 +139,10 @@ git pull origin
 Stop the running containers:
 
 ```
-docker stop rosetta-observer-1
-docker stop rosetta-observer-metachain-1
-docker stop rosetta-rosetta-1
-docker stop rosetta-rosetta-offline-1
+docker stop docker-observer-1
+docker stop docker-observer-metachain-1
+docker stop docker-rosetta-1
+docker stop docker-rosetta-offline-1
 ```
 
 Re-build the images as described above, then run the containers again.
