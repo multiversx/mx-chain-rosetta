@@ -1,9 +1,13 @@
 package services
 
 import (
+	"github.com/ElrondNetwork/elrond-go-core/core"
+	"github.com/ElrondNetwork/elrond-go-core/core/pubkeyConverter"
 	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 )
+
+var bech32PubkeyConverter, _ = pubkeyConverter.NewBech32PubkeyConverter(32, log)
 
 func filterOutIntrashardContractResultsWhoseOriginalTransactionIsInInvalidMiniblock(txs []*data.FullTransaction) []*data.FullTransaction {
 	filteredTxs := make([]*data.FullTransaction, 0, len(txs))
@@ -75,20 +79,26 @@ func filterOutContractResultsWithNoValue(txs []*data.FullTransaction) []*data.Fu
 }
 
 // This will not filter out, for example, SCRs of ClaimDeveloperRewards (since they do not have a data field)
-func filterOutContractResultsWithDataHavingSenderSameAsReceiver(txs []*data.FullTransaction) []*data.FullTransaction {
+func filterOutContractResultsWithDataHavingContractSenderSameAsReceiver(txs []*data.FullTransaction) ([]*data.FullTransaction, error) {
 	filteredTxs := make([]*data.FullTransaction, 0, len(txs))
 
 	for _, tx := range txs {
 		isContractResult := tx.Type == string(transaction.TxTypeUnsigned)
 		hasData := len(tx.Data) > 0
+		senderPubkey, err := bech32PubkeyConverter.Decode(tx.Sender)
+		if err != nil {
+			return nil, err
+		}
+
+		isSenderContract := core.IsSmartContractAddress(senderPubkey)
 		isSenderSameAsReceiver := tx.Sender == tx.Receiver
 
-		if isContractResult && hasData && isSenderSameAsReceiver {
+		if isContractResult && hasData && isSenderContract && isSenderSameAsReceiver {
 			continue
 		}
 
 		filteredTxs = append(filteredTxs, tx)
 	}
 
-	return filteredTxs
+	return filteredTxs, nil
 }
