@@ -6,6 +6,7 @@ import (
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 )
 
+// Example SCRs can be found here: https://api.elrond.com/transactions?function=ClaimDeveloperRewards
 func doesContractResultHoldRewardsOfClaimDeveloperRewards(
 	contractResult *data.FullTransaction,
 	allTransactionsInBlock []*data.FullTransaction,

@@ -40,6 +40,7 @@ func (transformer *transactionsTransformer) transformTxsFromBlock(block *data.Bl
 	txs = filterOutIntrashardContractResultsWhoseOriginalTransactionIsInInvalidMiniblock(txs)
 	txs = filterOutIntrashardRelayedTransactionAlreadyHeldInInvalidMiniblock(txs)
 	txs = filterOutContractResultsWithNoValue(txs)
+	txs = filterOutContractResultsWithDataHavingSenderSameAsReceiver(txs)
 
 	rosettaTxs := make([]*types.Transaction, 0)
 	for _, tx := range txs {

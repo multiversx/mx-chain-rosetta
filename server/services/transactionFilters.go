@@ -73,3 +73,22 @@ func filterOutContractResultsWithNoValue(txs []*data.FullTransaction) []*data.Fu
 
 	return filteredTxs
 }
+
+// This will not filter out, for example, SCRs of ClaimDeveloperRewards (since they do not have a data field)
+func filterOutContractResultsWithDataHavingSenderSameAsReceiver(txs []*data.FullTransaction) []*data.FullTransaction {
+	filteredTxs := make([]*data.FullTransaction, 0, len(txs))
+
+	for _, tx := range txs {
+		isContractResult := tx.Type == string(transaction.TxTypeUnsigned)
+		hasData := len(tx.Data) > 0
+		isSenderSameAsReceiver := tx.Sender == tx.Receiver
+
+		if isContractResult && hasData && isSenderSameAsReceiver {
+			continue
+		}
+
+		filteredTxs = append(filteredTxs, tx)
+	}
+
+	return filteredTxs
+}
