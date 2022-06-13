@@ -52,8 +52,10 @@ func (transformer *transactionsTransformer) transformTxsFromBlock(block *data.Bl
 	}
 
 	for _, receipt := range receipts {
-		rosettaTx := transformer.receiptToRosettaTx(receipt)
-		rosettaTxs = append(rosettaTxs, rosettaTx)
+		if receipt.Data == refundGasMessage {
+			rosettaTx := transformer.receiptToRosettaTx(receipt)
+			rosettaTxs = append(rosettaTxs, rosettaTx)
+		}
 	}
 
 	for _, rosettaTx := range rosettaTxs {
