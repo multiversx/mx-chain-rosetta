@@ -5,5 +5,6 @@ var (
 	transactionProcessingTypeRelayed             = "RelayedTx"
 	transactionProcessingTypeBuiltInFunctionCall = "BuiltInFunctionCall"
 	builtInFunctionClaimDeveloperRewards         = "ClaimDeveloperRewards"
+	refundGasMessage                             = "refundedGas"
 	emptyHash                                    = "0000000000000000000000000000000000000000000000000000000000000000"
 )
