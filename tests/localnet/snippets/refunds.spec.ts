@@ -14,10 +14,12 @@ describe("refunds", async function () {
     // shard(bob) = 0
     // shard(carol) = 2
     // shard(dan) = 1
+    // shard(mike) = 0
     let alice: ITestUser;
     let bob: ITestUser;
     let carol: ITestUser;
     let dan: ITestUser;
+    let mike: ITestUser;
 
     this.beforeAll(async function () {
         session = await TestSession.load("localnet", __dirname);
@@ -32,6 +34,7 @@ describe("refunds", async function () {
         bob = session.users.getUser("bob");
         carol = session.users.getUser("carol");
         dan = session.users.getUser("dan");
+        mike = session.users.getUser("mike");
     });
 
     this.beforeEach(async function () {
@@ -41,23 +44,22 @@ describe("refunds", async function () {
     it("simple move balance with refund (intra-shard)", async function () {
         this.timeout(FiveMinutesInMilliseconds);
 
-        await session.syncUsers([alice]);
+        await session.syncUsers([bob]);
 
         const payment = TokenPayment.egldFromAmount(1);
 
-        // Cross-shard
         const transaction = transactionFactory.createEGLDTransfer({
-            nonce: alice.account.nonce,
+            nonce: bob.account.nonce,
             value: payment,
-            receiver: dan.address,
+            receiver: mike.address,
             gasLimit: 100000,
             chainID: networkConfig.ChainID
         });
 
-        await alice.signer.sign(transaction)
+        await bob.signer.sign(transaction)
 
         const transactionHash = await networkProvider.sendTransaction(transaction);
-        session.audit.onTransactionSent({ action: "alice to dan", transactionHash });
+        session.audit.onTransactionSent({ action: "bob to mike", transactionHash });
         
         const transactionOnNetwork = await transactionWatcher.awaitCompleted(transaction);
         session.audit.onTransactionCompleted({ transactionHash, transaction: transactionOnNetwork });
@@ -66,23 +68,22 @@ describe("refunds", async function () {
     it("simple move balance with refund (cross-shard)", async function () {
         this.timeout(FiveMinutesInMilliseconds);
 
-        await session.syncUsers([alice]);
+        await session.syncUsers([bob]);
 
         const payment = TokenPayment.egldFromAmount(1);
 
-        // Cross-shard
         const transaction = transactionFactory.createEGLDTransfer({
-            nonce: alice.account.nonce,
+            nonce: bob.account.nonce,
             value: payment,
-            receiver: bob.address,
+            receiver: alice.address,
             gasLimit: 100000,
             chainID: networkConfig.ChainID
         });
 
-        await alice.signer.sign(transaction)
+        await bob.signer.sign(transaction)
 
         const transactionHash = await networkProvider.sendTransaction(transaction);
-        session.audit.onTransactionSent({ action: "alice to bob", transactionHash });
+        session.audit.onTransactionSent({ action: "bob to alice", transactionHash });
         
         const transactionOnNetwork = await transactionWatcher.awaitCompleted(transaction);
         session.audit.onTransactionCompleted({ transactionHash, transaction: transactionOnNetwork });
@@ -110,6 +111,11 @@ describe("refunds", async function () {
     });
 
     it("invalid transactions (intra-shard)", async function () {
+        // 99899999900000000000000 (initial)
+        // 99899999849500000000000 (invalid miniblock)
+        //      -> the actual fee is 50500000000000
+        //      -> note that a receipt with data = "insufficient funds" is generated (its value field refers to the fee, thus is not relevant)
+
         this.timeout(FiveMinutesInMilliseconds);
 
         await session.syncUsers([alice, bob]);
@@ -135,6 +141,7 @@ describe("refunds", async function () {
         // 99898999950000000000000 (at first, at source: 1 EGLD + fee only for move balance)
         //      -> note that a receipt of 9500000000000 is generated here
         // 99899999950000000000000 (1 EGLD sent back)
+        // Note that this works a bit different for epoch < penalizeTooMuchGasEnableEpoch
         this.timeout(FiveMinutesInMilliseconds);
 
         await session.syncUsers([alice, bob, carol]);
@@ -157,6 +164,10 @@ describe("refunds", async function () {
     });
 
     it("sending value to non-payable (intra-shard)", async function () {
+        // 99899999950000000000000 (initial)
+        // 99899999900000000000000 (after execution at source, invalid miniblock)
+        //      -> note that a log is generated in this case, with event.data = "@hex('sending value to non payable contract')..."
+        //      -> fee is only for move balance: 50000000000000
         this.timeout(FiveMinutesInMilliseconds);
 
         await session.syncUsers([alice, bob, carol]);

@@ -30,6 +30,10 @@
             {
                 "name": "dan",
                 "pem": "~/elrondsdk/testwallets/latest/users/dan.pem"
+            },
+            {
+                "name": "mike",
+                "pem": "~/elrondsdk/testwallets/latest/users/mike.pem"
             }
         ],
         "groups": [

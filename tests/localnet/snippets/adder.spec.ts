@@ -1,5 +1,5 @@
 import { FiveMinutesInMilliseconds, INetworkConfig, INetworkProvider, ITestSession, ITestUser, TestSession } from "@elrondnetwork/erdjs-snippets";
-import { DefaultGasConfiguration, GasEstimator, TokenPayment, Transaction, TransactionFactory, TransactionPayload, TransactionWatcher } from "@elrondnetwork/erdjs";
+import { Address, DefaultGasConfiguration, GasEstimator, IAddress, TokenPayment, Transaction, TransactionFactory, TransactionPayload, TransactionWatcher } from "@elrondnetwork/erdjs";
 import { assert } from "chai";
 import { createInteractor } from "./adderInteractor";
 import BigNumber from "bignumber.js";
@@ -38,15 +38,21 @@ describe("adder snippet", async function () {
     it("setup", async function () {
         this.timeout(FiveMinutesInMilliseconds);
 
-        await session.syncUsers([bob]);
+        await session.syncUsers([alice, bob]);
 
-        let interactor = await createInteractor(session);
-        let { address, returnCode } = await interactor.deploy(bob, 42);
+        let addressInShard0 = await deploy(bob);
+        await session.saveAddress({ name: "adderInShard0", address: addressInShard0 });
 
-        assert.isTrue(returnCode.isSuccess());
-
-        await session.saveAddress({ name: "adder", address: address });
+        let addressInShard1 = await deploy(alice);
+        await session.saveAddress({ name: "adderInShard1", address: addressInShard1 });
     });
+
+    async function deploy(deployer: ITestUser): Promise<IAddress> {
+        let interactor = await createInteractor(session);
+        let { address, returnCode } = await interactor.deploy(deployer, 42);
+        assert.isTrue(returnCode.isSuccess());
+        return address;
+    }
 
     it("add", async function () {
         this.timeout(FiveMinutesInMilliseconds);
@@ -55,20 +61,15 @@ describe("adder snippet", async function () {
 
         await session.syncUsers([bob]);
 
-        const contractAddress = await session.loadAddress("adder");
-        const interactor = await createInteractor(session, contractAddress);
-
-        const sumBefore = await interactor.getSum();
-        const snapshotBefore = await session.audit.onSnapshot({ state: { sum: sumBefore } });
-
-        const returnCode = await interactor.add(bob, 3);
-        await session.audit.onContractOutcome({ returnCode });
-
-        const sumAfter = await interactor.getSum();
-        await session.audit.onSnapshot({ state: { sum: sumBefore }, comparableTo: snapshotBefore });
-
+        let contractAddress = await session.loadAddress("adderInShard0");
+        let interactor = await createInteractor(session, contractAddress);
+        let returnCode = await interactor.add(bob, 3);
         assert.isTrue(returnCode.isSuccess());
-        assert.equal(sumAfter, sumBefore + 3);
+
+        contractAddress = await session.loadAddress("adderInShard1");
+        interactor = await createInteractor(session, contractAddress);
+        returnCode = await interactor.add(bob, 3);
+        assert.isTrue(returnCode.isSuccess());
     });
 
     it("send value to non-payable (intra-shard)", async function () {
@@ -76,8 +77,10 @@ describe("adder snippet", async function () {
 
         await session.syncUsers([bob]);
 
-        const {transaction, transactionHash } = await sendToContract(bob, 1, "hello@aa.bb.cc", 10000000)
-        session.audit.onTransactionSent({ action: "bob to non-payable contract", transactionHash });
+        let contractAddress = await session.loadAddress("adderInShard0");
+
+        const { transaction, transactionHash } = await sendToContract(bob, contractAddress, 1, "hello@aa.bb.cc", 10000000)
+        console.log("Transaction:", transactionHash);
 
         const transactionOnNetwork = await transactionWatcher.awaitCompleted(transaction);
         session.audit.onTransactionCompleted({ transactionHash, transaction: transactionOnNetwork });
@@ -86,10 +89,12 @@ describe("adder snippet", async function () {
     it("send value to non-payable (cross-shard)", async function () {
         this.timeout(FiveMinutesInMilliseconds);
 
-        await session.syncUsers([alice]);
+        await session.syncUsers([bob]);
 
-        const {transaction, transactionHash } = await sendToContract(alice, 1, "hello@aa.bb.cc", 10000000)
-        session.audit.onTransactionSent({ action: "alice to non-payable contract", transactionHash });
+        let contractAddress = await session.loadAddress("adderInShard1");
+
+        const { transaction, transactionHash } = await sendToContract(bob, contractAddress, 1, "hello@aa.bb.cc", 10000000);
+        console.log("Transaction:", transactionHash);
 
         const transactionOnNetwork = await transactionWatcher.awaitCompleted(transaction);
         session.audit.onTransactionCompleted({ transactionHash, transaction: transactionOnNetwork });
@@ -100,8 +105,10 @@ describe("adder snippet", async function () {
 
         await session.syncUsers([bob]);
 
-        const {transaction, transactionHash } = await sendToContract(bob, 1, "hello", 10000000)
-        session.audit.onTransactionSent({ action: "bob, bad call", transactionHash });
+        let contractAddress = await session.loadAddress("adderInShard0");
+
+        const { transaction, transactionHash } = await sendToContract(bob, contractAddress, 1, "hello", 10000000)
+        console.log("Transaction:", transactionHash);
 
         const transactionOnNetwork = await transactionWatcher.awaitCompleted(transaction);
         session.audit.onTransactionCompleted({ transactionHash, transaction: transactionOnNetwork });
@@ -110,10 +117,12 @@ describe("adder snippet", async function () {
     it("call bad function (cross-shard)", async function () {
         this.timeout(FiveMinutesInMilliseconds);
 
-        await session.syncUsers([alice]);
+        await session.syncUsers([bob]);
 
-        const {transaction, transactionHash } = await sendToContract(alice, 1, "hello", 10000000)
-        session.audit.onTransactionSent({ action: "alice, bad call", transactionHash });
+        let contractAddress = await session.loadAddress("adderInShard1");
+
+        const { transaction, transactionHash } = await sendToContract(bob, contractAddress, 1, "hello", 10000000)
+        console.log("Transaction:", transactionHash);
 
         const transactionOnNetwork = await transactionWatcher.awaitCompleted(transaction);
         session.audit.onTransactionCompleted({ transactionHash, transaction: transactionOnNetwork });
@@ -124,8 +133,10 @@ describe("adder snippet", async function () {
 
         await session.syncUsers([bob]);
 
-        const {transaction, transactionHash } = await sendToContract(bob, 1, "add@01", 100000000)
-        session.audit.onTransactionSent({ action: "bob, too much gas", transactionHash });
+        let contractAddress = await session.loadAddress("adderInShard0");
+
+        const { transaction, transactionHash } = await sendToContract(bob, contractAddress, 1, "add@01", 100000000)
+        console.log("Transaction:", transactionHash);
 
         const transactionOnNetwork = await transactionWatcher.awaitCompleted(transaction);
         session.audit.onTransactionCompleted({ transactionHash, transaction: transactionOnNetwork });
@@ -134,17 +145,18 @@ describe("adder snippet", async function () {
     it("call, too much gas (cross-shard)", async function () {
         this.timeout(FiveMinutesInMilliseconds);
 
-        await session.syncUsers([alice]);
+        await session.syncUsers([bob]);
 
-        const {transaction, transactionHash } = await sendToContract(alice, 1, "add@01", 100000000)
-        session.audit.onTransactionSent({ action: "alice, too much gas", transactionHash });
+        let contractAddress = await session.loadAddress("adderInShard1");
+
+        const { transaction, transactionHash } = await sendToContract(bob, contractAddress, 1, "add@01", 100000000)
+        console.log("Transaction:", transactionHash);
 
         const transactionOnNetwork = await transactionWatcher.awaitCompleted(transaction);
         session.audit.onTransactionCompleted({ transactionHash, transaction: transactionOnNetwork });
     });
 
-    async function sendToContract(user: ITestUser, value: BigNumber.Value, data: string, gasLimit: number): Promise<{ transaction: Transaction, transactionHash: string }> {
-        const contractAddress = await session.loadAddress("adder");
+    async function sendToContract(user: ITestUser, contractAddress: IAddress, value: BigNumber.Value, data: string, gasLimit: number): Promise<{ transaction: Transaction, transactionHash: string }> {
         const payment = TokenPayment.egldFromAmount(value);
 
         const transaction = transactionFactory.createEGLDTransfer({
