@@ -10,7 +10,7 @@ def main(cli_args: List[str]):
     parser = ArgumentParser()
     parser.add_argument("--input", required=True)
     parser.add_argument("--output", required=True)
-    parser.add_argument("--currency", default="eGLD")
+    parser.add_argument("--currency", default="EGLD")
     args = parser.parse_args(cli_args)
 
     input_file = expanduser(args.input)
