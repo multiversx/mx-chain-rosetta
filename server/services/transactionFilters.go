@@ -85,12 +85,7 @@ func filterOutContractResultsWithDataHavingContractSenderSameAsReceiver(txs []*d
 	for _, tx := range txs {
 		isContractResult := tx.Type == string(transaction.TxTypeUnsigned)
 		hasData := len(tx.Data) > 0
-		senderPubkey, err := bech32PubkeyConverter.Decode(tx.Sender)
-		if err != nil {
-			return nil, err
-		}
-
-		isSenderContract := core.IsSmartContractAddress(senderPubkey)
+		isSenderContract := isSmartContractAddress(tx.Sender)
 		isSenderSameAsReceiver := tx.Sender == tx.Receiver
 
 		if isContractResult && hasData && isSenderContract && isSenderSameAsReceiver {
@@ -101,4 +96,14 @@ func filterOutContractResultsWithDataHavingContractSenderSameAsReceiver(txs []*d
 	}
 
 	return filteredTxs, nil
+}
+
+func isSmartContractAddress(address string) bool {
+	pubkey, err := bech32PubkeyConverter.Decode(address)
+	if err != nil {
+		// E.g., when address = "metachain"
+		return false
+	}
+
+	return core.IsSmartContractAddress(pubkey)
 }
