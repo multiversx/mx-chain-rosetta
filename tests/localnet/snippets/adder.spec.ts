@@ -174,13 +174,6 @@ describe("adder snippet", async function () {
         return { transaction, transactionHash };
     }
 
-    it("getSum", async function () {
-        let contractAddress = await session.loadAddress("adder");
-        let interactor = await createInteractor(session, contractAddress);
-        let result = await interactor.getSum();
-        assert.isTrue(result > 0);
-    });
-
     it("generate report", async function () {
         await session.generateReport();
     });

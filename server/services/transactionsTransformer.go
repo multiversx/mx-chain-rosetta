@@ -92,47 +92,47 @@ func (transformer *transactionsTransformer) txToRosettaTx(tx *data.FullTransacti
 }
 
 func (transformer *transactionsTransformer) unsignedTxToRosettaTx(
-	tx *data.FullTransaction,
+	scr *data.FullTransaction,
 	txsInBlock []*data.FullTransaction,
 ) *types.Transaction {
-	if tx.IsRefund {
+	if scr.IsRefund {
 		return &types.Transaction{
-			TransactionIdentifier: hashToTransactionIdentifier(tx.Hash),
+			TransactionIdentifier: hashToTransactionIdentifier(scr.Hash),
 			Operations: []*types.Operation{
 				{
 					Type:    opScResult,
-					Account: addressToAccountIdentifier(tx.Receiver),
-					Amount:  transformer.extension.valueToNativeAmount(tx.Value),
+					Account: addressToAccountIdentifier(scr.Receiver),
+					Amount:  transformer.extension.valueToNativeAmount(scr.Value),
 				},
 			},
 		}
 	}
 
-	if doesContractResultHoldRewardsOfClaimDeveloperRewards(tx, txsInBlock) {
+	if doesContractResultHoldRewardsOfClaimDeveloperRewards(scr, txsInBlock) {
 		return &types.Transaction{
-			TransactionIdentifier: hashToTransactionIdentifier(tx.Hash),
+			TransactionIdentifier: hashToTransactionIdentifier(scr.Hash),
 			Operations: []*types.Operation{
 				{
 					Type:    opScResult,
-					Account: addressToAccountIdentifier(tx.Receiver),
-					Amount:  transformer.extension.valueToNativeAmount(tx.Value),
+					Account: addressToAccountIdentifier(scr.Receiver),
+					Amount:  transformer.extension.valueToNativeAmount(scr.Value),
 				},
 			},
 		}
 	}
 
 	return &types.Transaction{
-		TransactionIdentifier: hashToTransactionIdentifier(tx.Hash),
+		TransactionIdentifier: hashToTransactionIdentifier(scr.Hash),
 		Operations: []*types.Operation{
 			{
 				Type:    opScResult,
-				Account: addressToAccountIdentifier(tx.Sender),
-				Amount:  transformer.extension.valueToNativeAmount("-" + tx.Value),
+				Account: addressToAccountIdentifier(scr.Sender),
+				Amount:  transformer.extension.valueToNativeAmount("-" + scr.Value),
 			},
 			{
 				Type:    opScResult,
-				Account: addressToAccountIdentifier(tx.Receiver),
-				Amount:  transformer.extension.valueToNativeAmount(tx.Value),
+				Account: addressToAccountIdentifier(scr.Receiver),
+				Amount:  transformer.extension.valueToNativeAmount(scr.Value),
 			},
 		},
 	}
@@ -195,13 +195,21 @@ func (transformer *transactionsTransformer) refundReceiptToRosettaTx(receipt *tr
 }
 
 func (transformer *transactionsTransformer) invalidTxToRosettaTx(tx *data.FullTransaction) *types.Transaction {
+	fee := tx.InitiallyPaidFee
+
+	if isInvalidTransactionOfSendingValueToNonPayableContract(tx) {
+		// For this type of transactions, the fee only has the "data movement" component
+		// (we ignore tx.InitiallyPaidFee, which is not correctly provided in this case).
+		fee = transformer.provider.ComputeTransactionFeeForMoveBalance(tx).String()
+	}
+
 	return &types.Transaction{
 		TransactionIdentifier: hashToTransactionIdentifier(tx.Hash),
 		Operations: []*types.Operation{
 			{
 				Type:    opFeeOfInvalidTx,
 				Account: addressToAccountIdentifier(tx.Sender),
-				Amount:  transformer.extension.valueToNativeAmount("-" + tx.InitiallyPaidFee),
+				Amount:  transformer.extension.valueToNativeAmount("-" + fee),
 			},
 		},
 	}

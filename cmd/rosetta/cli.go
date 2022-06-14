@@ -81,7 +81,7 @@ VERSION:
 	cliFlagNumShards = cli.UintFlag{
 		Name:  "num-shards",
 		Usage: "Specifies the total number of actual network shards (with the exception of the metachain). Must be 3 for mainnet.",
-		Value: 1,
+		Value: 3,
 	}
 
 	cliFlagGenesisBlock = cli.StringFlag{

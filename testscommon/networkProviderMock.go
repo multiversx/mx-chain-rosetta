@@ -2,6 +2,7 @@ package testscommon
 
 import (
 	"fmt"
+	"math/big"
 
 	"github.com/ElrondNetwork/elrond-go-core/core"
 	"github.com/ElrondNetwork/elrond-go-core/core/pubkeyConverter"
@@ -206,6 +207,16 @@ func (mock *networkProviderMock) ConvertAddressToPubKey(address string) ([]byte,
 // ComputeTransactionHash -
 func (mock *networkProviderMock) ComputeTransactionHash(tx *data.Transaction) (string, error) {
 	return mock.MockComputedTransactionHash, mock.MockNextError
+}
+
+// ComputeTransactionFeeForMoveBalance -
+func (mock *networkProviderMock) ComputeTransactionFeeForMoveBalance(tx *data.FullTransaction) *big.Int {
+	minGasLimit := mock.MockNetworkConfig.MinGasLimit
+	gasPerDataByte := mock.MockNetworkConfig.GasPerDataByte
+	gasLimit := minGasLimit + gasPerDataByte*uint64(len(tx.Data))
+
+	fee := core.SafeMul(gasLimit, tx.GasPrice)
+	return fee
 }
 
 // SendTransaction -

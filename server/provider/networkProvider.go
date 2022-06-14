@@ -2,6 +2,7 @@ package provider
 
 import (
 	"errors"
+	"math/big"
 
 	"github.com/ElrondNetwork/elrond-go-core/core"
 	"github.com/ElrondNetwork/elrond-go-core/core/pubkeyConverter"
@@ -442,6 +443,15 @@ func (provider *networkProvider) GetMempoolTransactionByHash(hash string) (*data
 	}
 
 	return nil, nil
+}
+
+func (provider *networkProvider) ComputeTransactionFeeForMoveBalance(tx *data.FullTransaction) *big.Int {
+	minGasLimit := provider.networkConfig.MinGasLimit
+	gasPerDataByte := provider.networkConfig.GasPerDataByte
+	gasLimit := minGasLimit + gasPerDataByte*uint64(len(tx.Data))
+
+	fee := core.SafeMul(gasLimit, tx.GasPrice)
+	return fee
 }
 
 // LogDescription writes a description of the network provider in the log output
