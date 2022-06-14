@@ -48,7 +48,10 @@ func (extension *networkProviderExtension) filterObservedOperations(operations [
 		if err != nil {
 			return nil, err
 		}
-		if isObserved {
+
+		isUserAddress := isUserAddress(address)
+
+		if isObserved && isUserAddress {
 			filtered = append(filtered, operation)
 		}
 	}

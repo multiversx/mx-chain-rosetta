@@ -73,6 +73,8 @@ func (transformer *transactionsTransformer) transformTxsFromBlock(block *data.Bl
 		rosettaTx.Operations = filteredOperations
 	}
 
+	rosettaTxs = filterOutRosettaTransactionsWithNoOperations(rosettaTxs)
+
 	return rosettaTxs, nil
 }
 

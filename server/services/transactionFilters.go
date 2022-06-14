@@ -1,13 +1,10 @@
 package services
 
 import (
-	"github.com/ElrondNetwork/elrond-go-core/core"
-	"github.com/ElrondNetwork/elrond-go-core/core/pubkeyConverter"
 	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
+	"github.com/coinbase/rosetta-sdk-go/types"
 )
-
-var bech32PubkeyConverter, _ = pubkeyConverter.NewBech32PubkeyConverter(32, log)
 
 func filterOutIntrashardContractResultsWhoseOriginalTransactionIsInInvalidMiniblock(txs []*data.FullTransaction) []*data.FullTransaction {
 	filteredTxs := make([]*data.FullTransaction, 0, len(txs))
@@ -98,12 +95,14 @@ func filterOutContractResultsWithDataHavingContractSenderSameAsReceiver(txs []*d
 	return filteredTxs, nil
 }
 
-func isSmartContractAddress(address string) bool {
-	pubkey, err := bech32PubkeyConverter.Decode(address)
-	if err != nil {
-		// E.g., when address = "metachain"
-		return false
+func filterOutRosettaTransactionsWithNoOperations(rosettaTxs []*types.Transaction) []*types.Transaction {
+	filtered := make([]*types.Transaction, 0, len(rosettaTxs))
+
+	for _, rosettaTx := range rosettaTxs {
+		if len(rosettaTx.Operations) > 0 {
+			filtered = append(filtered, rosettaTx)
+		}
 	}
 
-	return core.IsSmartContractAddress(pubkey)
+	return filtered
 }
