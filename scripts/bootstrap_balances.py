@@ -5,6 +5,9 @@ from typing import Any, Dict, List
 
 from erdpy import utils
 
+"""
+python3 ./scripts/bootstrap_balances.py --input=balances_epoch_678_nonce_9761083.json --output=rosetta_balances_epoch_678_nonce_9761083.json --currency=EGLD
+"""
 
 def main(cli_args: List[str]):
     parser = ArgumentParser()
@@ -17,17 +20,12 @@ def main(cli_args: List[str]):
     output_file = expanduser(args.output)
     currency = args.currency
 
-    lines = utils.read_lines(input_file)
-    balances_data = []
+    input_balances_data: List[Dict[str, Any]] = utils.read_json_file(input_file)
+    output_balances_data = []
 
-    for line in lines:
-        parts = line.split(",")
-        
-        if len(parts) != 2:
-            continue
-
-        address: str = parts[0].strip()
-        balance: str = parts[1].strip()
+    for item in input_balances_data:
+        address: str = item["address"]
+        balance: str = item["balance"]
         balances_entry = {
             "account_identifier": {
                 "address": address
@@ -40,9 +38,9 @@ def main(cli_args: List[str]):
         }
 
         if balance and balance != "0":
-            balances_data.append(balances_entry)
+            output_balances_data.append(balances_entry)
 
-    utils.write_json_file(output_file, balances_data)
+    utils.write_json_file(output_file, output_balances_data)
 
 
 if __name__ == "__main__":
