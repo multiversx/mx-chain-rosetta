@@ -75,27 +75,6 @@ func filterOutContractResultsWithNoValue(txs []*data.FullTransaction) []*data.Fu
 	return filteredTxs
 }
 
-// Question for review: normally, we don't need this anymore, right?
-// This will not filter out, for example, SCRs of ClaimDeveloperRewards (since they do not have a data field)
-// func filterOutContractResultsWithDataHavingContractSenderSameAsReceiver(txs []*data.FullTransaction) ([]*data.FullTransaction, error) {
-// 	filteredTxs := make([]*data.FullTransaction, 0, len(txs))
-
-// 	for _, tx := range txs {
-// 		isContractResult := tx.Type == string(transaction.TxTypeUnsigned)
-// 		hasData := len(tx.Data) > 0
-// 		isSenderContract := isSmartContractAddress(tx.Sender)
-// 		isSenderSameAsReceiver := tx.Sender == tx.Receiver
-
-// 		if isContractResult && hasData && isSenderContract && isSenderSameAsReceiver {
-// 			continue
-// 		}
-
-// 		filteredTxs = append(filteredTxs, tx)
-// 	}
-
-// 	return filteredTxs, nil
-// }
-
 func filterOutRosettaTransactionsWithNoOperations(rosettaTxs []*types.Transaction) []*types.Transaction {
 	filtered := make([]*types.Transaction, 0, len(rosettaTxs))
 

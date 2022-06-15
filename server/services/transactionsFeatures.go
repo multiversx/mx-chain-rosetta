@@ -43,10 +43,11 @@ func isInvalidTransactionOfSendingValueToNonPayableContract(tx *data.FullTransac
 	}
 
 	for _, event := range tx.Logs.Events {
+		isSignalError := event.Identifier == signalErrorEventIdentifier
 		dataAsString := string(event.Data)
+		dataMatchesError := strings.HasPrefix(dataAsString, sendingValueToNonPayableContractDataPrefix)
 
-		// Question for review: is this check prone to false positives? (e.g. a smart contract developer emitting a custom event)?
-		if strings.HasPrefix(dataAsString, sendingValueToNonPayableContractDataPrefix) {
+		if isSignalError && dataMatchesError {
 			return true
 		}
 	}
