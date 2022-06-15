@@ -4,9 +4,9 @@ go 1.17
 
 require (
 	github.com/ElrondNetwork/elrond-go v1.3.27
-	github.com/ElrondNetwork/elrond-go-core v1.1.16-0.20220614181516-43997eff70d2
+	github.com/ElrondNetwork/elrond-go-core v1.1.16-0.20220615190959-4cc8f03763f2
 	github.com/ElrondNetwork/elrond-go-logger v1.0.7
-	github.com/ElrondNetwork/elrond-proxy-go v1.1.20-0.20220614182327-ce09a185b931
+	github.com/ElrondNetwork/elrond-proxy-go v1.1.20-0.20220615191930-ff5fae000fb4
 	github.com/coinbase/rosetta-sdk-go v0.7.9
 	github.com/stretchr/testify v1.7.0
 	github.com/urfave/cli v1.22.5

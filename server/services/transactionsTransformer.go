@@ -29,6 +29,10 @@ func (transformer *transactionsTransformer) transformTxsFromBlock(block *data.Bl
 	receipts := make([]*transaction.ApiReceipt, 0)
 
 	for _, miniblock := range block.MiniBlocks {
+		if miniblock.IsScheduled {
+			continue
+		}
+
 		for _, tx := range miniblock.Transactions {
 			txs = append(txs, tx)
 		}
@@ -40,12 +44,6 @@ func (transformer *transactionsTransformer) transformTxsFromBlock(block *data.Bl
 	txs = filterOutIntrashardContractResultsWhoseOriginalTransactionIsInInvalidMiniblock(txs)
 	txs = filterOutIntrashardRelayedTransactionAlreadyHeldInInvalidMiniblock(txs)
 	txs = filterOutContractResultsWithNoValue(txs)
-
-	// Question for review: normally, we don't need this anymore, right?
-	// txs, err = filterOutContractResultsWithDataHavingContractSenderSameAsReceiver(txs)
-	// if err != nil {
-	// 	return nil, err
-	// }
 
 	rosettaTxs := make([]*types.Transaction, 0)
 	for _, tx := range txs {
