@@ -47,7 +47,7 @@ type ArgsNewNetworkProvider struct {
 	NativeCurrencySymbol        string
 	GenesisBlockHash            string
 	GenesisTimestamp            int64
-	OnlyFinalBlocks             bool
+	ObserveNotFinalBlocks       bool
 }
 
 type networkProvider struct {
@@ -68,7 +68,7 @@ type networkProvider struct {
 	nativeCurrencySymbol        string
 	genesisBlockHash            string
 	genesisTimestamp            int64
-	onlyFinalBlocks             bool
+	observeNotFinalBlocks       bool
 
 	networkConfig *resources.NetworkConfig
 }
@@ -172,7 +172,7 @@ func NewNetworkProvider(args ArgsNewNetworkProvider) (*networkProvider, error) {
 		nativeCurrencySymbol:        args.NativeCurrencySymbol,
 		genesisBlockHash:            args.GenesisBlockHash,
 		genesisTimestamp:            args.GenesisTimestamp,
-		onlyFinalBlocks:             args.OnlyFinalBlocks,
+		observeNotFinalBlocks:       args.ObserveNotFinalBlocks,
 
 		networkConfig: &resources.NetworkConfig{
 			ChainID:        args.ChainID,
@@ -287,11 +287,11 @@ func (provider *networkProvider) getLatestBlockNonce() (uint64, error) {
 		return 0, err
 	}
 
-	if provider.onlyFinalBlocks {
-		return nodeStatus.HighestFinalNonce, nil
+	if provider.observeNotFinalBlocks {
+		return nodeStatus.HighestNonce, nil
 	}
 
-	return nodeStatus.HighestNonce, nil
+	return nodeStatus.HighestFinalNonce, nil
 }
 
 func (provider *networkProvider) getNodeStatus() (*resources.NodeStatus, error) {
@@ -316,6 +316,15 @@ func (provider *networkProvider) getNodeStatus() (*resources.NodeStatus, error) 
 func (provider *networkProvider) GetBlockByNonce(nonce uint64) (*data.Block, error) {
 	if provider.isOffline {
 		return nil, errIsOffline
+	}
+
+	latestNonce, err := provider.getLatestBlockNonce()
+	if err != nil {
+		return nil, err
+	}
+
+	if nonce > latestNonce {
+		return nil, errCannotGetBlock
 	}
 
 	queryOptions := common.BlockQueryOptions{
@@ -364,10 +373,8 @@ func (provider *networkProvider) GetAccount(address string) (*data.AccountModel,
 		return nil, errIsOffline
 	}
 
-	options := common.AccountQueryOptions{
-		OnFinalBlock: provider.onlyFinalBlocks,
-	}
-
+	onFinalBlock := !provider.observeNotFinalBlocks
+	options := common.AccountQueryOptions{OnFinalBlock: onFinalBlock}
 	account, err := provider.accountProcessor.GetAccount(address, options)
 	if err != nil {
 		return nil, newErrCannotGetAccount(address, err)
@@ -462,6 +469,7 @@ func (provider *networkProvider) LogDescription() {
 		"observedActualShard", provider.observedActualShard,
 		"observedProjectedShard", provider.observedProjectedShard,
 		"observedProjectedShardIsSet", provider.observedProjectedShardIsSet,
+		"observeNotFinalBlocks", provider.observeNotFinalBlocks,
 		"nativeCurrency", provider.nativeCurrencySymbol,
 	)
 }

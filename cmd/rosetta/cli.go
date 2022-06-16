@@ -63,7 +63,7 @@ VERSION:
 	cliFlagObserverHttpUrl = cli.StringFlag{
 		Name:  "observer-http-url",
 		Usage: "Specifies the URL of the observer.",
-		Value: "http://localhost:10100",
+		Value: "http://localhost:8080",
 	}
 
 	cliFlagObserverPubKey = cli.StringFlag{
@@ -75,7 +75,7 @@ VERSION:
 	cliFlagChainID = cli.StringFlag{
 		Name:  "chain-id",
 		Usage: "Specifies the Chain ID.",
-		Value: "localnet",
+		Value: "1",
 	}
 
 	cliFlagNumShards = cli.UintFlag{
@@ -87,7 +87,7 @@ VERSION:
 	cliFlagGenesisBlock = cli.StringFlag{
 		Name:  "genesis-block",
 		Usage: "Specifies the hash of the genesis block, to be returned by network/status. For mainnet, it must be cd229e4ad2753708e4bab01d7f249affe29441829524c9529e84d51b6d12f2a7.",
-		Value: "0000000000000000000000000000000000000000000000000000000000000000",
+		Value: "cd229e4ad2753708e4bab01d7f249affe29441829524c9529e84d51b6d12f2a7",
 	}
 
 	cliFlagGenesisTimestamp = cli.Int64Flag{
@@ -117,12 +117,12 @@ VERSION:
 	cliFlagNativeCurrencySymbol = cli.StringFlag{
 		Name:  "native-currency",
 		Usage: "Specifies the symbol of the native currency (must be EGLD for mainnet, XeGLD for testnet and devnet).",
-		Value: "XeGLD",
+		Value: "EGLD",
 	}
 
-	cliFlagOnlyFinalBlocks = cli.BoolFlag{
-		Name:  "only-final-blocks",
-		Usage: "Return only final blocks (and accounts only on final root hashes)",
+	cliObserveNotFinalBlocks = cli.BoolFlag{
+		Name:  "observe-not-final-blocks",
+		Usage: "Observe not final blocks, as well",
 	}
 )
 
@@ -144,7 +144,7 @@ func getAllCliFlags() []cli.Flag {
 		cliFlagMinGasLimit,
 		cliFlagGasPerDataByte,
 		cliFlagNativeCurrencySymbol,
-		cliFlagOnlyFinalBlocks,
+		cliObserveNotFinalBlocks,
 	}
 }
 
@@ -166,7 +166,7 @@ type parsedCliFlags struct {
 	minGasLimit                 uint64
 	gasPerDataByte              uint64
 	nativeCurrencySymbol        string
-	onlyFinalBlocks             bool
+	observeNotFinalBlocks       bool
 }
 
 func getParsedCliFlags(ctx *cli.Context) parsedCliFlags {
@@ -188,6 +188,6 @@ func getParsedCliFlags(ctx *cli.Context) parsedCliFlags {
 		minGasLimit:                 ctx.GlobalUint64(cliFlagMinGasLimit.Name),
 		gasPerDataByte:              ctx.GlobalUint64(cliFlagGasPerDataByte.Name),
 		nativeCurrencySymbol:        ctx.GlobalString(cliFlagNativeCurrencySymbol.Name),
-		onlyFinalBlocks:             ctx.GlobalBool(cliFlagOnlyFinalBlocks.Name),
+		observeNotFinalBlocks:       ctx.GlobalBool(cliObserveNotFinalBlocks.Name),
 	}
 }
