@@ -33,7 +33,9 @@ func filterOutProcessedMiniblocksOnceScheduled(block *data.Block) {
 	filteredMiniblocks := make([]*data.MiniBlock, 0, len(block.MiniBlocks))
 
 	for _, miniblock := range block.MiniBlocks {
-		if miniblock.ProcessingType != string(Processed) {
+		if miniblock.ProcessingType == string(Processed) {
+			log.Debug("filterOutProcessedMiniblocksOnceScheduled", "miniblock", miniblock.Hash)
+		} else {
 			filteredMiniblocks = append(filteredMiniblocks, miniblock)
 		}
 	}
@@ -59,6 +61,7 @@ func findInvalidTransactionsHashes(block *data.Block) map[string]struct{} {
 	for _, miniblock := range block.MiniBlocks {
 		if miniblock.Type == string(transaction.TxTypeInvalid) {
 			for _, tx := range miniblock.Transactions {
+				log.Debug("findInvalidTransactionsHashes", "tx", tx.Hash)
 				invalidTxs[tx.Hash] = struct{}{}
 			}
 		}
@@ -77,7 +80,9 @@ func filterOutTransactionsFromScheduledMiniblocks(block *data.Block, txsToFilter
 
 		for _, tx := range miniblock.Transactions {
 			_, shouldFilterOut := txsToFilterOut[tx.Hash]
-			if !shouldFilterOut {
+			if shouldFilterOut {
+				log.Debug("filterOutTransactionsFromScheduledMiniblocks", "miniblock", miniblock.Hash, "tx", tx.Hash)
+			} else {
 				filteredTxs = append(filteredTxs, tx)
 			}
 		}

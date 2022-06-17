@@ -2,6 +2,7 @@ package provider
 
 import (
 	"errors"
+	"fmt"
 	"math/big"
 
 	"github.com/ElrondNetwork/elrond-go-core/core"
@@ -385,6 +386,14 @@ func (provider *networkProvider) GetAccount(address string) (*data.AccountModel,
 	if err != nil {
 		return nil, newErrCannotGetAccount(address, err)
 	}
+
+	log.Debug(fmt.Sprintf("GetAccount(onFinal=%t)", onFinalBlock),
+		"address", account.Account.Address,
+		"balance", account.Account.Balance,
+		"block", account.BlockInfo.Nonce,
+		"blockHash", account.BlockInfo.Hash,
+		"blockRootHash", account.BlockInfo.RootHash,
+	)
 
 	return account, nil
 }
