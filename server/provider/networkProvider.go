@@ -341,7 +341,10 @@ func (provider *networkProvider) GetBlockByNonce(nonce uint64) (*data.Block, err
 		return nil, newErrCannotGetBlockByNonce(nonce, errors.New(response.Error))
 	}
 
-	return &response.Data.Block, nil
+	block := &response.Data.Block
+	provider.simplifyBlockWrtScheduledTransactions(block)
+
+	return block, nil
 }
 
 // GetBlockByHash gets a block by hash
@@ -364,7 +367,10 @@ func (provider *networkProvider) GetBlockByHash(hash string) (*data.Block, error
 		return nil, newErrCannotGetBlockByHash(hash, errors.New(response.Error))
 	}
 
-	return &response.Data.Block, nil
+	block := &response.Data.Block
+	provider.simplifyBlockWrtScheduledTransactions(block)
+
+	return block, nil
 }
 
 // GetAccount gets an account by address

@@ -29,10 +29,6 @@ func (transformer *transactionsTransformer) transformTxsFromBlock(block *data.Bl
 	receipts := make([]*transaction.ApiReceipt, 0)
 
 	for _, miniblock := range block.MiniBlocks {
-		if miniblock.IsScheduled {
-			continue
-		}
-
 		for _, tx := range miniblock.Transactions {
 			txs = append(txs, tx)
 		}
