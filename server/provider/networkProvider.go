@@ -260,6 +260,8 @@ func (provider *networkProvider) GetLatestBlockSummary() (*resources.BlockSummar
 		return nil, err
 	}
 
+	log.Debug("GetLatestBlockSummary()", "latestBlockNonce", latestBlockNonce)
+
 	queryOptions := common.BlockQueryOptions{
 		WithTransactions: false,
 		WithLogs:         false,
