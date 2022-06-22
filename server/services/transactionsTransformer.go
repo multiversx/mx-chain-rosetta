@@ -58,7 +58,11 @@ func (transformer *transactionsTransformer) transformTxsFromBlock(block *data.Bl
 
 	for _, receipt := range receipts {
 		if receipt.Data == refundGasMessage {
-			rosettaTx := transformer.refundReceiptToRosettaTx(receipt)
+			rosettaTx, err := transformer.refundReceiptToRosettaTx(receipt)
+			if err != nil {
+				return nil, err
+			}
+
 			rosettaTxs = append(rosettaTxs, rosettaTx)
 		}
 	}
@@ -196,9 +200,14 @@ func (transformer *transactionsTransformer) moveBalanceTxToRosetta(tx *data.Full
 	}
 }
 
-func (transformer *transactionsTransformer) refundReceiptToRosettaTx(receipt *transaction.ApiReceipt) *types.Transaction {
+func (transformer *transactionsTransformer) refundReceiptToRosettaTx(receipt *transaction.ApiReceipt) (*types.Transaction, error) {
+	receiptHash, err := transformer.provider.ComputeReceiptHash(receipt)
+	if err != nil {
+		return nil, err
+	}
+
 	return &types.Transaction{
-		TransactionIdentifier: hashToTransactionIdentifier(receipt.Hash),
+		TransactionIdentifier: hashToTransactionIdentifier(receiptHash),
 		Operations: []*types.Operation{
 			{
 				Type:    opFeeRefund,
@@ -206,7 +215,7 @@ func (transformer *transactionsTransformer) refundReceiptToRosettaTx(receipt *tr
 				Amount:  transformer.extension.valueToNativeAmount(receipt.Value.String()),
 			},
 		},
-	}
+	}, nil
 }
 
 func (transformer *transactionsTransformer) invalidTxToRosettaTx(tx *data.FullTransaction) *types.Transaction {

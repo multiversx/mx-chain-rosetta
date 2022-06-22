@@ -6,6 +6,7 @@ import (
 
 	"github.com/ElrondNetwork/elrond-go-core/core"
 	"github.com/ElrondNetwork/elrond-go-core/core/pubkeyConverter"
+	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
 	"github.com/ElrondNetwork/elrond-go/sharding"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/ElrondNetwork/rosetta/server/resources"
@@ -34,6 +35,7 @@ type networkProviderMock struct {
 	MockAccountsByAddress           map[string]*data.Account
 	MockMempoolTransactionsByHash   map[string]*data.FullTransaction
 	MockComputedTransactionHash     string
+	MockComputedReceiptHash         string
 	MockNextError                   error
 
 	SendTransactionCalled func(tx *data.Transaction) (string, error)
@@ -207,6 +209,11 @@ func (mock *networkProviderMock) ConvertAddressToPubKey(address string) ([]byte,
 // ComputeTransactionHash -
 func (mock *networkProviderMock) ComputeTransactionHash(tx *data.Transaction) (string, error) {
 	return mock.MockComputedTransactionHash, mock.MockNextError
+}
+
+// ComputeReceiptHash -
+func (mock *networkProviderMock) ComputeReceiptHash(apiReceipt *transaction.ApiReceipt) (string, error) {
+	return mock.MockComputedReceiptHash, mock.MockNextError
 }
 
 // ComputeTransactionFeeForMoveBalance -

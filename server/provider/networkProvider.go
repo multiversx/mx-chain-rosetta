@@ -1,14 +1,18 @@
 package provider
 
 import (
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"math/big"
 
 	"github.com/ElrondNetwork/elrond-go-core/core"
 	"github.com/ElrondNetwork/elrond-go-core/core/pubkeyConverter"
+	"github.com/ElrondNetwork/elrond-go-core/data/receipt"
 	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
+	"github.com/ElrondNetwork/elrond-go-core/hashing"
 	hasherFactory "github.com/ElrondNetwork/elrond-go-core/hashing/factory"
+	"github.com/ElrondNetwork/elrond-go-core/marshal"
 	marshalFactory "github.com/ElrondNetwork/elrond-go-core/marshal/factory"
 	logger "github.com/ElrondNetwork/elrond-go-logger"
 	"github.com/ElrondNetwork/elrond-go/sharding"
@@ -60,6 +64,9 @@ type networkProvider struct {
 	transactionProcessor facade.TransactionProcessor
 	blockProcessor       facade.BlockProcessor
 	nodeStatusProcessor  facade.NodeStatusProcessor
+
+	hasher                hashing.Hasher
+	marshalizerForHashing marshal.Marshalizer
 
 	observedActualShard         uint32
 	observedProjectedShard      uint32
@@ -124,12 +131,12 @@ func NewNetworkProvider(args ArgsNewNetworkProvider) (*networkProvider, error) {
 		return nil, err
 	}
 
-	transactionHasher, err := hasherFactory.NewHasher(transactionsHasherType)
+	hasher, err := hasherFactory.NewHasher(hasherType)
 	if err != nil {
 		return nil, err
 	}
 
-	transactionMarshalizer, err := marshalFactory.NewMarshalizer(transactionsMarshalizerType)
+	marshalizerForHashing, err := marshalFactory.NewMarshalizer(marshalizerForHashingType)
 	if err != nil {
 		return nil, err
 	}
@@ -137,8 +144,8 @@ func NewNetworkProvider(args ArgsNewNetworkProvider) (*networkProvider, error) {
 	transactionProcessor, err := processFactory.CreateTransactionProcessor(
 		baseProcessor,
 		pubKeyConverter,
-		transactionHasher,
-		transactionMarshalizer,
+		hasher,
+		marshalizerForHashing,
 	)
 	if err != nil {
 		return nil, err
@@ -164,6 +171,9 @@ func NewNetworkProvider(args ArgsNewNetworkProvider) (*networkProvider, error) {
 		transactionProcessor: transactionProcessor,
 		blockProcessor:       blockProcessor,
 		nodeStatusProcessor:  nodeStatusProcessor,
+
+		hasher:                hasher,
+		marshalizerForHashing: marshalizerForHashing,
 
 		observedActualShard:         args.ObservedActualShard,
 		observedProjectedShard:      args.ObservedProjectedShard,
@@ -435,6 +445,33 @@ func (provider *networkProvider) ConvertAddressToPubKey(address string) ([]byte,
 // ComputeTransactionHash computes the hash of a provided transaction
 func (provider *networkProvider) ComputeTransactionHash(tx *data.Transaction) (string, error) {
 	return provider.transactionProcessor.ComputeTransactionHash(tx)
+}
+
+func (provider *networkProvider) ComputeReceiptHash(apiReceipt *transaction.ApiReceipt) (string, error) {
+	txHash, err := hex.DecodeString(apiReceipt.TxHash)
+	if err != nil {
+		return "", err
+	}
+
+	senderPubkey, err := provider.ConvertAddressToPubKey(apiReceipt.SndAddr)
+	if err != nil {
+		return "", err
+	}
+
+	receipt := &receipt.Receipt{
+		TxHash:  txHash,
+		SndAddr: senderPubkey,
+		Value:   apiReceipt.Value,
+		Data:    []byte(apiReceipt.Data),
+	}
+
+	receiptHash, err := core.CalculateHash(provider.marshalizerForHashing, provider.hasher, receipt)
+	if err != nil {
+		return "", err
+	}
+
+	receiptHashHex := hex.EncodeToString(receiptHash)
+	return receiptHashHex, nil
 }
 
 // SendTransaction broadcasts an already-signed transaction

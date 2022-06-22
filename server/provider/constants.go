@@ -3,8 +3,8 @@ package provider
 import "time"
 
 // Defined by the Network:
-var transactionsHasherType = "blake2b"
-var transactionsMarshalizerType = "gogo protobuf"
+var hasherType = "blake2b"
+var marshalizerForHashingType = "gogo protobuf"
 var pubKeyLength = 32
 var nativeCurrencyNumDecimals = 18
 var genesisBlockNonce = 0
