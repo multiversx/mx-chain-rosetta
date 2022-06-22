@@ -2,14 +2,23 @@ package services
 
 import (
 	"bytes"
-	"strings"
 
 	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 )
 
+type transactionsFeaturesDetector struct {
+	eventsController *transactionEventsController
+}
+
+func newTransactionsFeaturesDetector(provider NetworkProvider) *transactionsFeaturesDetector {
+	return &transactionsFeaturesDetector{
+		eventsController: newTransactionEventsController(provider),
+	}
+}
+
 // Example SCRs can be found here: https://api.elrond.com/transactions?function=ClaimDeveloperRewards
-func doesContractResultHoldRewardsOfClaimDeveloperRewards(
+func (extractor *transactionsFeaturesDetector) doesContractResultHoldRewardsOfClaimDeveloperRewards(
 	contractResult *data.FullTransaction,
 	allTransactionsInBlock []*data.FullTransaction,
 ) bool {
@@ -34,23 +43,10 @@ func doesContractResultHoldRewardsOfClaimDeveloperRewards(
 
 // isInvalidTransactionOfSendingValueToNonPayableContract detects intra-shard transactions
 // bearing the error "sending value to non-payable contract", which are included in invalid mini-block.
-func isInvalidTransactionOfSendingValueToNonPayableContract(tx *data.FullTransaction) bool {
+func (extractor *transactionsFeaturesDetector) isInvalidTransactionOfSendingValueToNonPayableContract(tx *data.FullTransaction) bool {
 	if tx.Type != string(transaction.TxTypeInvalid) {
 		return false
 	}
-	if tx.Logs == nil || tx.Logs.Events == nil {
-		return false
-	}
 
-	for _, event := range tx.Logs.Events {
-		isSignalError := event.Identifier == signalErrorEventIdentifier
-		dataAsString := string(event.Data)
-		dataMatchesError := strings.HasPrefix(dataAsString, sendingValueToNonPayableContractDataPrefix)
-
-		if isSignalError && dataMatchesError {
-			return true
-		}
-	}
-
-	return false
+	return extractor.eventsController.hasSignalErrorOfSendingValueToNonPayableContract(tx)
 }

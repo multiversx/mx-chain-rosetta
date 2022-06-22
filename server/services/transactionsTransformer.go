@@ -1,6 +1,7 @@
 package services
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
@@ -13,14 +14,18 @@ import (
 //				-> calls doTransform() on each tx
 
 type transactionsTransformer struct {
-	provider  NetworkProvider
-	extension networkProviderExtension
+	provider         NetworkProvider
+	extension        *networkProviderExtension
+	featuresDetector *transactionsFeaturesDetector
+	eventsController *transactionEventsController
 }
 
 func newTransactionsTransformer(provider NetworkProvider) *transactionsTransformer {
 	return &transactionsTransformer{
-		provider:  provider,
-		extension: *newNetworkProviderExtension(provider),
+		provider:         provider,
+		extension:        newNetworkProviderExtension(provider),
+		featuresDetector: newTransactionsFeaturesDetector(provider),
+		eventsController: newTransactionEventsController(provider),
 	}
 }
 
@@ -74,18 +79,31 @@ func (transformer *transactionsTransformer) transformTxsFromBlock(block *data.Bl
 }
 
 func (transformer *transactionsTransformer) txToRosettaTx(tx *data.FullTransaction, txsInBlock []*data.FullTransaction) (*types.Transaction, error) {
+	var rosettaTx *types.Transaction
+
 	switch tx.Type {
 	case string(transaction.TxTypeNormal):
-		return transformer.moveBalanceTxToRosetta(tx), nil
+		rosettaTx = transformer.moveBalanceTxToRosetta(tx)
+		break
 	case string(transaction.TxTypeReward):
-		return transformer.rewardTxToRosettaTx(tx), nil
+		rosettaTx = transformer.rewardTxToRosettaTx(tx)
+		break
 	case string(transaction.TxTypeUnsigned):
-		return transformer.unsignedTxToRosettaTx(tx, txsInBlock), nil
+		rosettaTx = transformer.unsignedTxToRosettaTx(tx, txsInBlock)
+		break
 	case string(transaction.TxTypeInvalid):
-		return transformer.invalidTxToRosettaTx(tx), nil
+		rosettaTx = transformer.invalidTxToRosettaTx(tx)
+		break
 	default:
 		return nil, fmt.Errorf("unknown transaction type: %s", tx.Type)
 	}
+
+	err := transformer.addOperationsGivenTransactionEvents(tx, rosettaTx)
+	if err != nil {
+		return nil, err
+	}
+
+	return rosettaTx, nil
 }
 
 func (transformer *transactionsTransformer) unsignedTxToRosettaTx(
@@ -105,7 +123,7 @@ func (transformer *transactionsTransformer) unsignedTxToRosettaTx(
 		}
 	}
 
-	if doesContractResultHoldRewardsOfClaimDeveloperRewards(scr, txsInBlock) {
+	if transformer.featuresDetector.doesContractResultHoldRewardsOfClaimDeveloperRewards(scr, txsInBlock) {
 		return &types.Transaction{
 			TransactionIdentifier: hashToTransactionIdentifier(scr.Hash),
 			Operations: []*types.Operation{
@@ -194,7 +212,7 @@ func (transformer *transactionsTransformer) refundReceiptToRosettaTx(receipt *tr
 func (transformer *transactionsTransformer) invalidTxToRosettaTx(tx *data.FullTransaction) *types.Transaction {
 	fee := tx.InitiallyPaidFee
 
-	if isInvalidTransactionOfSendingValueToNonPayableContract(tx) {
+	if transformer.featuresDetector.isInvalidTransactionOfSendingValueToNonPayableContract(tx) {
 		// For this type of transactions, the fee only has the "data movement" component
 		// (we ignore tx.InitiallyPaidFee, which is not correctly provided in this case).
 		fee = transformer.provider.ComputeTransactionFeeForMoveBalance(tx).String()
@@ -235,5 +253,46 @@ func (transformer *transactionsTransformer) mempoolMoveBalanceTxToRosettaTx(tx *
 	return &types.Transaction{
 		TransactionIdentifier: hashToTransactionIdentifier(tx.Hash),
 		Operations:            operations,
+	}
+}
+
+func (transformer *transactionsTransformer) addOperationsGivenTransactionEvents(tx *data.FullTransaction, rosettaTx *types.Transaction) error {
+	// TBD: uncomment when applicable ("transferValueOnly" events duplicate the information of SCRs in most contexts)
+	// err := transformer.addOperationsGivenEventTransferValueOnly(tx, rosettaTx)
+	// if err != nil {
+	// 	return err
+	// }
+
+	return nil
+}
+
+func (transformer *transactionsTransformer) addOperationsGivenEventTransferValueOnly(tx *data.FullTransaction, rosettaTx *types.Transaction) error {
+	event, err := transformer.eventsController.extractEventTransferValueOnly(tx)
+	if err != nil {
+		if errors.Is(err, errEventNotFound) {
+			return nil
+		}
+		return err
+	}
+
+	log.Debug("addOperationsGivenEventTransferValueOnly(), event found", "tx", tx.Hash, "event", event.String())
+
+	operations := transformer.eventTransferValueOnlyToOperations(event)
+	rosettaTx.Operations = append(rosettaTx.Operations, operations...)
+	return nil
+}
+
+func (transformer *transactionsTransformer) eventTransferValueOnlyToOperations(event *eventTransferValueOnly) []*types.Operation {
+	return []*types.Operation{
+		{
+			Type:    opTransfer,
+			Account: addressToAccountIdentifier(event.sender),
+			Amount:  transformer.extension.valueToNativeAmount("-" + event.value),
+		},
+		{
+			Type:    opTransfer,
+			Account: addressToAccountIdentifier(event.receiver),
+			Amount:  transformer.extension.valueToNativeAmount(event.value),
+		},
 	}
 }

@@ -8,7 +8,11 @@ var (
 	transactionProcessingTypeBuiltInFunctionCall = "BuiltInFunctionCall"
 	builtInFunctionClaimDeveloperRewards         = "ClaimDeveloperRewards"
 	refundGasMessage                             = "refundedGas"
-	signalErrorEventIdentifier                   = "signalError"
 	sendingValueToNonPayableContractDataPrefix   = "@" + hex.EncodeToString([]byte("sending value to non payable contract"))
 	emptyHash                                    = "0000000000000000000000000000000000000000000000000000000000000000"
+)
+
+var (
+	transactionEventSignalError       = "signalError"
+	transactionEventTransferValueOnly = "transferValueOnly"
 )
