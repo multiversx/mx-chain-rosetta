@@ -389,7 +389,7 @@ func (provider *networkProvider) GetAccount(address string) (*data.AccountModel,
 		return nil, newErrCannotGetAccount(address, err)
 	}
 
-	log.Debug(fmt.Sprintf("GetAccount(onFinal=%t)", onFinalBlock),
+	log.Trace(fmt.Sprintf("GetAccount(onFinal=%t)", onFinalBlock),
 		"address", account.Account.Address,
 		"balance", account.Account.Balance,
 		"block", account.BlockInfo.Nonce,

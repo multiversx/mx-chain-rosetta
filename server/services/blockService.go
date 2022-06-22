@@ -61,12 +61,12 @@ func (service *blockService) doGetBlock(request *types.BlockRequest) (*types.Blo
 	}
 
 	if hasIndex {
-		log.Debug("blockService.Block()", "index", *index)
+		log.Trace("blockService.Block()", "index", *index)
 		return service.getBlockByNonce(*index)
 	}
 
 	if hasHash {
-		log.Debug("blockService.Block()", "hash", *hash)
+		log.Trace("blockService.Block()", "hash", *hash)
 		return service.getBlockByHash(*hash)
 	}
 
