@@ -5,7 +5,7 @@ import (
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 )
 
-func (provider *networkProvider) simplifyBlockWrtScheduledTransactions(block *data.Block) error {
+func (provider *networkProvider) simplifyBlockWithScheduledTransactions(block *data.Block) error {
 	// Simply ignore miniblocks with processing type "processed"
 	filterOutProcessedMiniblocksOnceScheduled(block)
 
@@ -81,7 +81,7 @@ func filterOutTransactionsFromScheduledMiniblocks(block *data.Block, txsToFilter
 		for _, tx := range miniblock.Transactions {
 			_, shouldFilterOut := txsToFilterOut[tx.Hash]
 			if shouldFilterOut {
-				log.Debug("filterOutTransactionsFromScheduledMiniblocks", "miniblock", miniblock.Hash, "tx", tx.Hash)
+				log.Debug("filterOutTransactionsFromScheduledMiniblocks()", "miniblock", miniblock.Hash, "tx", tx.Hash)
 			} else {
 				filteredTxs = append(filteredTxs, tx)
 			}

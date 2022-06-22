@@ -355,7 +355,7 @@ func (provider *networkProvider) GetBlockByNonce(nonce uint64) (*data.Block, err
 	}
 
 	block := &response.Data.Block
-	provider.simplifyBlockWrtScheduledTransactions(block)
+	provider.simplifyBlockWithScheduledTransactions(block)
 
 	return block, nil
 }
@@ -381,7 +381,7 @@ func (provider *networkProvider) GetBlockByHash(hash string) (*data.Block, error
 	}
 
 	block := &response.Data.Block
-	provider.simplifyBlockWrtScheduledTransactions(block)
+	provider.simplifyBlockWithScheduledTransactions(block)
 
 	return block, nil
 }
