@@ -1,7 +1,7 @@
 import { FiveMinutesInMilliseconds, INetworkConfig, INetworkProvider, ITestSession, ITestUser, TestSession } from "@elrondnetwork/erdjs-snippets";
 import { Address, DefaultGasConfiguration, GasEstimator, IAddress, TokenPayment, Transaction, TransactionFactory, TransactionPayload, TransactionWatcher } from "@elrondnetwork/erdjs";
 import { assert } from "chai";
-import { createInteractor } from "./adderInteractor";
+import { createAdderInteractor } from "./adderInteractor";
 import BigNumber from "bignumber.js";
 
 describe("adder snippet", async function () {
@@ -48,7 +48,7 @@ describe("adder snippet", async function () {
     });
 
     async function deploy(deployer: ITestUser): Promise<IAddress> {
-        let interactor = await createInteractor(session);
+        let interactor = await createAdderInteractor(session);
         let { address, returnCode } = await interactor.deploy(deployer, 42);
         assert.isTrue(returnCode.isSuccess());
         return address;
@@ -62,12 +62,12 @@ describe("adder snippet", async function () {
         await session.syncUsers([bob]);
 
         let contractAddress = await session.loadAddress("adderInShard0");
-        let interactor = await createInteractor(session, contractAddress);
+        let interactor = await createAdderInteractor(session, contractAddress);
         let returnCode = await interactor.add(bob, 3);
         assert.isTrue(returnCode.isSuccess());
 
         contractAddress = await session.loadAddress("adderInShard1");
-        interactor = await createInteractor(session, contractAddress);
+        interactor = await createAdderInteractor(session, contractAddress);
         returnCode = await interactor.add(bob, 3);
         assert.isTrue(returnCode.isSuccess());
     });

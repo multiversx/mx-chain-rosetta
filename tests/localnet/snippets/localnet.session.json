@@ -40,6 +40,18 @@
             {
                 "name": "friends",
                 "folder": "~/elrondsdk/testwallets/latest/users"
+            },
+            {
+                "name": "manyZero",
+                "pem": "~/test-wallets/manyZero.pem"
+            },
+            {
+                "name": "manyOne",
+                "pem": "~/test-wallets/manyOne.pem"
+            },
+            {
+                "name": "manyTwo",
+                "pem": "~/test-wallets/manyTwo.pem"
             }
         ]
     }

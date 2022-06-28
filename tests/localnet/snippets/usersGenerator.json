@@ -1,0 +1,21 @@
+{
+    "individuals": [
+    ],
+    "groups": [
+        {
+            "size": 500,
+            "shard": 0,
+            "pem": "~/test-wallets/manyZero.pem"
+        },
+        {
+            "size": 500,
+            "shard": 1,
+            "pem": "~/test-wallets/manyOne.pem"
+        },
+        {
+            "size": 500,
+            "shard": 2,
+            "pem": "~/test-wallets/manyTwo.pem"
+        }
+    ]
+}
