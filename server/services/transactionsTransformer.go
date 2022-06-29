@@ -88,16 +88,12 @@ func (transformer *transactionsTransformer) txToRosettaTx(tx *data.FullTransacti
 	switch tx.Type {
 	case string(transaction.TxTypeNormal):
 		rosettaTx = transformer.moveBalanceTxToRosetta(tx)
-		break
 	case string(transaction.TxTypeReward):
 		rosettaTx = transformer.rewardTxToRosettaTx(tx)
-		break
 	case string(transaction.TxTypeUnsigned):
 		rosettaTx = transformer.unsignedTxToRosettaTx(tx, txsInBlock)
-		break
 	case string(transaction.TxTypeInvalid):
 		rosettaTx = transformer.invalidTxToRosettaTx(tx)
-		break
 	default:
 		return nil, fmt.Errorf("unknown transaction type: %s", tx.Type)
 	}

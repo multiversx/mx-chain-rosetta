@@ -506,6 +506,8 @@ func (provider *networkProvider) GetMempoolTransactionByHash(hash string) (*data
 	return nil, nil
 }
 
+// ComputeTransactionFeeForMoveBalance computes the fee for a move-balance transaction.
+// TODO: when freeze account feature is merged, this will need to be adapted as well, as for guarded transactions we have an additional gas (limit).
 func (provider *networkProvider) ComputeTransactionFeeForMoveBalance(tx *data.FullTransaction) *big.Int {
 	minGasLimit := provider.networkConfig.MinGasLimit
 	gasPerDataByte := provider.networkConfig.GasPerDataByte
