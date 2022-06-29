@@ -35,6 +35,16 @@ func (service *blockService) Block(
 	_ context.Context,
 	request *types.BlockRequest,
 ) (*types.BlockResponse, *types.Error) {
+	response, err := service.doGetBlock(request)
+	if err != nil {
+		return nil, err
+	}
+
+	traceBlockResponse(response)
+	return response, nil
+}
+
+func (service *blockService) doGetBlock(request *types.BlockRequest) (*types.BlockResponse, *types.Error) {
 	genesisBlockIdentifier := service.extension.getGenesisBlockIdentifier()
 
 	index := request.BlockIdentifier.Index
@@ -51,12 +61,12 @@ func (service *blockService) Block(
 	}
 
 	if hasIndex {
-		log.Debug("blockService.Block()", "index", *index)
+		log.Trace("blockService.Block()", "index", *index)
 		return service.getBlockByNonce(*index)
 	}
 
 	if hasHash {
-		log.Debug("blockService.Block()", "hash", *hash)
+		log.Trace("blockService.Block()", "hash", *hash)
 		return service.getBlockByHash(*hash)
 	}
 
@@ -188,7 +198,7 @@ func (service *blockService) convertToRosettaBlock(block *data.Block) (*types.Bl
 		return nil, err
 	}
 
-	return &types.BlockResponse{
+	response := &types.BlockResponse{
 		Block: &types.Block{
 			BlockIdentifier:       blockToIdentifier(block),
 			ParentBlockIdentifier: parentBlockIdentifier,
@@ -201,7 +211,9 @@ func (service *blockService) convertToRosettaBlock(block *data.Block) (*types.Bl
 				"status": block.Status,
 			},
 		},
-	}, nil
+	}
+
+	return response, nil
 }
 
 // BlockTransaction is not implemented, since all transactions are returned by /block

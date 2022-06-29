@@ -1,6 +1,8 @@
 package services
 
 import (
+	"errors"
+
 	"github.com/coinbase/rosetta-sdk-go/types"
 )
 
@@ -166,3 +168,6 @@ func wrapErr(rErr *types.Error, err error) *types.Error {
 
 	return newErr
 }
+
+var errEventNotFound = errors.New("transaction event not found")
+var errCannotRecognizeEvent = errors.New("cannot recognize transaction event")

@@ -13,7 +13,7 @@ def get_node_api_genesis_balance(node_api_url: str, address: Address) -> int:
 
 
 def get_api_account_transfers(api_url: str, address: Address) -> List[Any]:
-    url = f"{api_url}/accounts/{address.bech32()}/transfers"
+    url = f"{api_url}/accounts/{address.bech32()}/transfers?size=500"
     transfers = do_get(url)
     transfers.sort(key=lambda item: item["timestamp"])
     return transfers

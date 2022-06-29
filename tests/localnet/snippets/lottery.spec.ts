@@ -10,15 +10,13 @@ describe("lottery snippet", async function () {
 
     let session: ITestSession;
     let provider: INetworkProvider;
-    let whale: ITestUser;
     let owner: ITestUser;
     let friends: ITestUser[];
 
     this.beforeAll(async function () {
         session = await TestSession.load("localnet", __dirname);
         provider = session.networkProvider;
-        whale = session.users.getUser("whale");
-        owner = session.users.getUser("whale");
+        owner = session.users.getUser("bob");
         friends = session.users.getGroup("friends");
         await session.syncNetworkConfig();
     });

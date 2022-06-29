@@ -3,6 +3,7 @@ package services
 import (
 	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
+	"github.com/coinbase/rosetta-sdk-go/types"
 )
 
 func filterOutIntrashardContractResultsWhoseOriginalTransactionIsInInvalidMiniblock(txs []*data.FullTransaction) []*data.FullTransaction {
@@ -72,4 +73,16 @@ func filterOutContractResultsWithNoValue(txs []*data.FullTransaction) []*data.Fu
 	}
 
 	return filteredTxs
+}
+
+func filterOutRosettaTransactionsWithNoOperations(rosettaTxs []*types.Transaction) []*types.Transaction {
+	filtered := make([]*types.Transaction, 0, len(rosettaTxs))
+
+	for _, rosettaTx := range rosettaTxs {
+		if len(rosettaTx.Operations) > 0 {
+			filtered = append(filtered, rosettaTx)
+		}
+	}
+
+	return filtered
 }

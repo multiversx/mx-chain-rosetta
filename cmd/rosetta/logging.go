@@ -30,6 +30,7 @@ func initializeLogger(logsFolder string, logLevel string) (io.Closer, error) {
 		logsFolder = currentDirectory
 	}
 
+	logLevel = makeProxyLessVerbose(logLevel)
 	err = logger.SetLogLevel(logLevel)
 	if err != nil {
 		return nil, err
@@ -50,4 +51,8 @@ func initializeLogger(logsFolder string, logLevel string) (io.Closer, error) {
 	}
 
 	return fileLogging, nil
+}
+
+func makeProxyLessVerbose(logLevel string) string {
+	return fmt.Sprintf("%s,process:WARN", logLevel)
 }

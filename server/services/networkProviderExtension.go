@@ -1,6 +1,9 @@
 package services
 
-import "github.com/coinbase/rosetta-sdk-go/types"
+import (
+	"github.com/ElrondNetwork/elrond-go-core/core"
+	"github.com/coinbase/rosetta-sdk-go/types"
+)
 
 type networkProviderExtension struct {
 	provider NetworkProvider
@@ -48,11 +51,24 @@ func (extension *networkProviderExtension) filterObservedOperations(operations [
 		if err != nil {
 			return nil, err
 		}
-		if isObserved {
+
+		isUserAddress := extension.isUserAddress(address)
+
+		if isObserved && isUserAddress {
 			filtered = append(filtered, operation)
 		}
 	}
 
 	indexOperations(filtered)
 	return filtered, nil
+}
+
+func (extension *networkProviderExtension) isUserAddress(address string) bool {
+	pubkey, err := extension.provider.ConvertAddressToPubKey(address)
+	if err != nil {
+		// E.g., when address = "metachain"
+		return false
+	}
+
+	return !core.IsSmartContractAddress(pubkey)
 }

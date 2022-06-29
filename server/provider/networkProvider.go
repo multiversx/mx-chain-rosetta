@@ -1,12 +1,18 @@
 package provider
 
 import (
+	"encoding/hex"
 	"errors"
+	"fmt"
+	"math/big"
 
 	"github.com/ElrondNetwork/elrond-go-core/core"
 	"github.com/ElrondNetwork/elrond-go-core/core/pubkeyConverter"
+	"github.com/ElrondNetwork/elrond-go-core/data/receipt"
 	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
+	"github.com/ElrondNetwork/elrond-go-core/hashing"
 	hasherFactory "github.com/ElrondNetwork/elrond-go-core/hashing/factory"
+	"github.com/ElrondNetwork/elrond-go-core/marshal"
 	marshalFactory "github.com/ElrondNetwork/elrond-go-core/marshal/factory"
 	logger "github.com/ElrondNetwork/elrond-go-logger"
 	"github.com/ElrondNetwork/elrond-go/sharding"
@@ -46,7 +52,7 @@ type ArgsNewNetworkProvider struct {
 	NativeCurrencySymbol        string
 	GenesisBlockHash            string
 	GenesisTimestamp            int64
-	OnlyFinalBlocks             bool
+	ObserveNotFinalBlocks       bool
 }
 
 type networkProvider struct {
@@ -59,6 +65,9 @@ type networkProvider struct {
 	blockProcessor       facade.BlockProcessor
 	nodeStatusProcessor  facade.NodeStatusProcessor
 
+	hasher                hashing.Hasher
+	marshalizerForHashing marshal.Marshalizer
+
 	observedActualShard         uint32
 	observedProjectedShard      uint32
 	observedProjectedShardIsSet bool
@@ -67,7 +76,7 @@ type networkProvider struct {
 	nativeCurrencySymbol        string
 	genesisBlockHash            string
 	genesisTimestamp            int64
-	onlyFinalBlocks             bool
+	observeNotFinalBlocks       bool
 
 	networkConfig *resources.NetworkConfig
 }
@@ -122,12 +131,12 @@ func NewNetworkProvider(args ArgsNewNetworkProvider) (*networkProvider, error) {
 		return nil, err
 	}
 
-	transactionHasher, err := hasherFactory.NewHasher(transactionsHasherType)
+	hasher, err := hasherFactory.NewHasher(hasherType)
 	if err != nil {
 		return nil, err
 	}
 
-	transactionMarshalizer, err := marshalFactory.NewMarshalizer(transactionsMarshalizerType)
+	marshalizerForHashing, err := marshalFactory.NewMarshalizer(marshalizerForHashingType)
 	if err != nil {
 		return nil, err
 	}
@@ -135,8 +144,8 @@ func NewNetworkProvider(args ArgsNewNetworkProvider) (*networkProvider, error) {
 	transactionProcessor, err := processFactory.CreateTransactionProcessor(
 		baseProcessor,
 		pubKeyConverter,
-		transactionHasher,
-		transactionMarshalizer,
+		hasher,
+		marshalizerForHashing,
 	)
 	if err != nil {
 		return nil, err
@@ -163,6 +172,9 @@ func NewNetworkProvider(args ArgsNewNetworkProvider) (*networkProvider, error) {
 		blockProcessor:       blockProcessor,
 		nodeStatusProcessor:  nodeStatusProcessor,
 
+		hasher:                hasher,
+		marshalizerForHashing: marshalizerForHashing,
+
 		observedActualShard:         args.ObservedActualShard,
 		observedProjectedShard:      args.ObservedProjectedShard,
 		observedProjectedShardIsSet: args.ObservedProjectedShardIsSet,
@@ -171,7 +183,7 @@ func NewNetworkProvider(args ArgsNewNetworkProvider) (*networkProvider, error) {
 		nativeCurrencySymbol:        args.NativeCurrencySymbol,
 		genesisBlockHash:            args.GenesisBlockHash,
 		genesisTimestamp:            args.GenesisTimestamp,
-		onlyFinalBlocks:             args.OnlyFinalBlocks,
+		observeNotFinalBlocks:       args.ObserveNotFinalBlocks,
 
 		networkConfig: &resources.NetworkConfig{
 			ChainID:        args.ChainID,
@@ -258,6 +270,8 @@ func (provider *networkProvider) GetLatestBlockSummary() (*resources.BlockSummar
 		return nil, err
 	}
 
+	log.Debug("GetLatestBlockSummary()", "latestBlockNonce", latestBlockNonce)
+
 	queryOptions := common.BlockQueryOptions{
 		WithTransactions: false,
 		WithLogs:         false,
@@ -286,11 +300,11 @@ func (provider *networkProvider) getLatestBlockNonce() (uint64, error) {
 		return 0, err
 	}
 
-	if provider.onlyFinalBlocks {
-		return nodeStatus.HighestFinalNonce, nil
+	if provider.observeNotFinalBlocks {
+		return nodeStatus.HighestNonce, nil
 	}
 
-	return nodeStatus.HighestNonce, nil
+	return nodeStatus.HighestFinalNonce, nil
 }
 
 func (provider *networkProvider) getNodeStatus() (*resources.NodeStatus, error) {
@@ -317,12 +331,30 @@ func (provider *networkProvider) GetBlockByNonce(nonce uint64) (*data.Block, err
 		return nil, errIsOffline
 	}
 
+	latestNonce, err := provider.getLatestBlockNonce()
+	if err != nil {
+		return nil, err
+	}
+
+	if nonce > latestNonce {
+		return nil, errCannotGetBlock
+	}
+
+	block, err := provider.doGetBlockByNonce(nonce)
+	if err != nil {
+		return nil, err
+	}
+
+	provider.simplifyBlockWithScheduledTransactions(block)
+	return block, nil
+}
+
+func (provider *networkProvider) doGetBlockByNonce(nonce uint64) (*data.Block, error) {
 	queryOptions := common.BlockQueryOptions{
 		WithTransactions: true,
 		WithLogs:         true,
 	}
 
-	// TODO: check why the proxy library issues more requests (e.g. 4) instead of 1
 	response, err := provider.blockProcessor.GetBlockByNonce(provider.observedActualShard, nonce, queryOptions)
 	if err != nil {
 		return nil, newErrCannotGetBlockByNonce(nonce, err)
@@ -340,12 +372,21 @@ func (provider *networkProvider) GetBlockByHash(hash string) (*data.Block, error
 		return nil, errIsOffline
 	}
 
+	block, err := provider.doGetBlockByHash(hash)
+	if err != nil {
+		return nil, err
+	}
+
+	provider.simplifyBlockWithScheduledTransactions(block)
+	return block, nil
+}
+
+func (provider *networkProvider) doGetBlockByHash(hash string) (*data.Block, error) {
 	queryOptions := common.BlockQueryOptions{
 		WithTransactions: true,
 		WithLogs:         true,
 	}
 
-	// TODO: check why the proxy library issues more requests (e.g. 4) instead of 1
 	response, err := provider.blockProcessor.GetBlockByHash(provider.observedActualShard, hash, queryOptions)
 	if err != nil {
 		return nil, newErrCannotGetBlockByHash(hash, err)
@@ -363,14 +404,20 @@ func (provider *networkProvider) GetAccount(address string) (*data.AccountModel,
 		return nil, errIsOffline
 	}
 
-	options := common.AccountQueryOptions{
-		OnFinalBlock: provider.onlyFinalBlocks,
-	}
-
+	onFinalBlock := !provider.observeNotFinalBlocks
+	options := common.AccountQueryOptions{OnFinalBlock: onFinalBlock}
 	account, err := provider.accountProcessor.GetAccount(address, options)
 	if err != nil {
 		return nil, newErrCannotGetAccount(address, err)
 	}
+
+	log.Trace(fmt.Sprintf("GetAccount(onFinal=%t)", onFinalBlock),
+		"address", account.Account.Address,
+		"balance", account.Account.Balance,
+		"block", account.BlockInfo.Nonce,
+		"blockHash", account.BlockInfo.Hash,
+		"blockRootHash", account.BlockInfo.RootHash,
+	)
 
 	return account, nil
 }
@@ -412,6 +459,33 @@ func (provider *networkProvider) ComputeTransactionHash(tx *data.Transaction) (s
 	return provider.transactionProcessor.ComputeTransactionHash(tx)
 }
 
+func (provider *networkProvider) ComputeReceiptHash(apiReceipt *transaction.ApiReceipt) (string, error) {
+	txHash, err := hex.DecodeString(apiReceipt.TxHash)
+	if err != nil {
+		return "", err
+	}
+
+	senderPubkey, err := provider.ConvertAddressToPubKey(apiReceipt.SndAddr)
+	if err != nil {
+		return "", err
+	}
+
+	receipt := &receipt.Receipt{
+		TxHash:  txHash,
+		SndAddr: senderPubkey,
+		Value:   apiReceipt.Value,
+		Data:    []byte(apiReceipt.Data),
+	}
+
+	receiptHash, err := core.CalculateHash(provider.marshalizerForHashing, provider.hasher, receipt)
+	if err != nil {
+		return "", err
+	}
+
+	receiptHashHex := hex.EncodeToString(receiptHash)
+	return receiptHashHex, nil
+}
+
 // SendTransaction broadcasts an already-signed transaction
 func (provider *networkProvider) SendTransaction(tx *data.Transaction) (string, error) {
 	if provider.isOffline {
@@ -444,6 +518,17 @@ func (provider *networkProvider) GetMempoolTransactionByHash(hash string) (*data
 	return nil, nil
 }
 
+// ComputeTransactionFeeForMoveBalance computes the fee for a move-balance transaction.
+// TODO: when freeze account feature is merged, this will need to be adapted as well, as for guarded transactions we have an additional gas (limit).
+func (provider *networkProvider) ComputeTransactionFeeForMoveBalance(tx *data.FullTransaction) *big.Int {
+	minGasLimit := provider.networkConfig.MinGasLimit
+	gasPerDataByte := provider.networkConfig.GasPerDataByte
+	gasLimit := minGasLimit + gasPerDataByte*uint64(len(tx.Data))
+
+	fee := core.SafeMul(gasLimit, tx.GasPrice)
+	return fee
+}
+
 // LogDescription writes a description of the network provider in the log output
 func (provider *networkProvider) LogDescription() {
 	log.Info("Description of network provider",
@@ -452,5 +537,7 @@ func (provider *networkProvider) LogDescription() {
 		"observedActualShard", provider.observedActualShard,
 		"observedProjectedShard", provider.observedProjectedShard,
 		"observedProjectedShardIsSet", provider.observedProjectedShardIsSet,
+		"observeNotFinalBlocks", provider.observeNotFinalBlocks,
+		"nativeCurrency", provider.nativeCurrencySymbol,
 	)
 }
