@@ -340,12 +340,21 @@ func (provider *networkProvider) GetBlockByNonce(nonce uint64) (*data.Block, err
 		return nil, errCannotGetBlock
 	}
 
+	block, err := provider.doGetBlockByNonce(nonce)
+	if err != nil {
+		return nil, err
+	}
+
+	provider.simplifyBlockWithScheduledTransactions(block)
+	return block, nil
+}
+
+func (provider *networkProvider) doGetBlockByNonce(nonce uint64) (*data.Block, error) {
 	queryOptions := common.BlockQueryOptions{
 		WithTransactions: true,
 		WithLogs:         true,
 	}
 
-	// TODO: check why the proxy library issues more requests (e.g. 4) instead of 1
 	response, err := provider.blockProcessor.GetBlockByNonce(provider.observedActualShard, nonce, queryOptions)
 	if err != nil {
 		return nil, newErrCannotGetBlockByNonce(nonce, err)
@@ -354,10 +363,7 @@ func (provider *networkProvider) GetBlockByNonce(nonce uint64) (*data.Block, err
 		return nil, newErrCannotGetBlockByNonce(nonce, errors.New(response.Error))
 	}
 
-	block := &response.Data.Block
-	provider.simplifyBlockWithScheduledTransactions(block)
-
-	return block, nil
+	return &response.Data.Block, nil
 }
 
 // GetBlockByHash gets a block by hash
@@ -366,12 +372,21 @@ func (provider *networkProvider) GetBlockByHash(hash string) (*data.Block, error
 		return nil, errIsOffline
 	}
 
+	block, err := provider.doGetBlockByHash(hash)
+	if err != nil {
+		return nil, err
+	}
+
+	provider.simplifyBlockWithScheduledTransactions(block)
+	return block, nil
+}
+
+func (provider *networkProvider) doGetBlockByHash(hash string) (*data.Block, error) {
 	queryOptions := common.BlockQueryOptions{
 		WithTransactions: true,
 		WithLogs:         true,
 	}
 
-	// TODO: check why the proxy library issues more requests (e.g. 4) instead of 1
 	response, err := provider.blockProcessor.GetBlockByHash(provider.observedActualShard, hash, queryOptions)
 	if err != nil {
 		return nil, newErrCannotGetBlockByHash(hash, err)
@@ -380,10 +395,7 @@ func (provider *networkProvider) GetBlockByHash(hash string) (*data.Block, error
 		return nil, newErrCannotGetBlockByHash(hash, errors.New(response.Error))
 	}
 
-	block := &response.Data.Block
-	provider.simplifyBlockWithScheduledTransactions(block)
-
-	return block, nil
+	return &response.Data.Block, nil
 }
 
 // GetAccount gets an account by address

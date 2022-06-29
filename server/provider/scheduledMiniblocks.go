@@ -5,11 +5,8 @@ import (
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 )
 
-// QUESTION FOR REVIEW: perhaps do not do any miniblock deduplication in the Node API, and simply do it here?
-// (and rename function to "simplifyBlock()")
-
 func (provider *networkProvider) simplifyBlockWithScheduledTransactions(block *data.Block) error {
-	previousBlock, err := provider.GetBlockByNonce(block.Nonce - 1)
+	previousBlock, err := provider.doGetBlockByNonce(block.Nonce - 1)
 	if err != nil {
 		return err
 	}
