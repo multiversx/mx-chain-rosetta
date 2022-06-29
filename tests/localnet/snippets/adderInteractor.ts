@@ -1,6 +1,7 @@
 import path from "path";
-import { BigUIntValue, CodeMetadata, IAddress, Interaction, ITransactionValue, ResultsParser, ReturnCode, SmartContract, SmartContractAbi, Transaction, TransactionWatcher } from "@elrondnetwork/erdjs";
+import { BigUIntValue, CodeMetadata, IAddress, Interaction, ITransactionValue, ResultsParser, ReturnCode, SmartContract, SmartContractAbi, TokenPayment, Transaction, TransactionWatcher } from "@elrondnetwork/erdjs";
 import { IAudit, INetworkConfig, INetworkProvider, ITestSession, ITestUser, ITokenPayment, loadAbiRegistry, loadCode } from "@elrondnetwork/erdjs-snippets";
+import BigNumber from "bignumber.js";
 
 const PathToWasm = path.resolve(__dirname, "adder.wasm");
 const PathToAbi = path.resolve(__dirname, "adder.abi.json");
@@ -70,8 +71,8 @@ export class AdderInteractor {
         return { address, returnCode };
     }
 
-    async add(caller: ITestUser, addValue: number, transferValue: ITransactionValue = 0): Promise<ReturnCode> {
-        const transaction = await this.buildTransactionAdd(caller, addValue, transferValue);
+    async add(caller: ITestUser, addValue: number): Promise<ReturnCode> {
+        const transaction = await this.buildTransactionAdd(caller, addValue, 15000000);
 
         // Let's broadcast the transaction and await its completion:
         const transactionHash = await this.networkProvider.sendTransaction(transaction);
@@ -87,12 +88,28 @@ export class AdderInteractor {
         return returnCode;
     }
 
-    async buildTransactionAdd(caller: ITestUser, addValue: number, transferValue: ITransactionValue = 0): Promise<Transaction> {
+    async buildTransactionAdd(caller: ITestUser, addValue: BigNumber.Value, gasLimit: number): Promise<Transaction> {
         // Prepare the interaction
         let interaction = <Interaction>this.contract.methods
             .add([addValue])
-            .withValue(transferValue)
-            .withGasLimit(15000000)
+            .withGasLimit(gasLimit)
+            .withNonce(caller.account.getNonceThenIncrement())
+            .withChainID(this.networkConfig.ChainID);
+
+        // Let's check the interaction, then build the transaction object.
+        let transaction = interaction.buildTransaction();
+
+        // Let's sign the transaction. For dApps, use a wallet provider instead.
+        await caller.signer.sign(transaction);
+        return transaction;
+    }
+
+    async buildTransactionTransferAdd(caller: ITestUser, addValue: number, gasLimit: number, payment: TokenPayment): Promise<Transaction> {
+        // Prepare the interaction
+        let interaction = <Interaction>this.contract.methods
+            .add([addValue])
+            .withGasLimit(gasLimit)
+            .withSingleESDTTransfer(payment)
             .withNonce(caller.account.getNonceThenIncrement())
             .withChainID(this.networkConfig.ChainID);
 

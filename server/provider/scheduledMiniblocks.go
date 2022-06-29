@@ -77,7 +77,7 @@ func whenThereAreTwoInvalidMiniblocksKeepTheOneFromReceiptsStorage(block *data.B
 	block.MiniBlocks = filteredMiniblocks
 }
 
-func deduplicateInvalidTransactions(block *data.Block, previousBlock *data.Block) map[string]struct{} {
+func deduplicateInvalidTransactions(block *data.Block, previousBlock *data.Block) {
 	invalidTxsInThisBlock := findInvalidTransactionsHashes(block)
 	invalidTxsInPreviousBlock := findInvalidTransactionsHashes(previousBlock)
 

@@ -3,17 +3,17 @@
     ],
     "groups": [
         {
-            "size": 500,
+            "size": 5,
             "shard": 0,
             "pem": "~/test-wallets/manyZero.pem"
         },
         {
-            "size": 500,
+            "size": 5,
             "shard": 1,
             "pem": "~/test-wallets/manyOne.pem"
         },
         {
-            "size": 500,
+            "size": 5,
             "shard": 2,
             "pem": "~/test-wallets/manyTwo.pem"
         }

@@ -1,15 +1,14 @@
-import { Address, DefaultGasConfiguration, GasEstimator, ReturnCode, TokenPayment, Transaction, TransactionFactory, TransactionWatcher } from "@elrondnetwork/erdjs";
-import { FiveMinutesInMilliseconds, IAddress, INetworkConfig, INetworkProvider, ITestSession, ITestUser, ITransaction, TestSession } from "@elrondnetwork/erdjs-snippets";
+import { DefaultGasConfiguration, GasEstimator, TokenPayment, Transaction, TransactionFactory, TransactionWatcher } from "@elrondnetwork/erdjs";
+import { ProxyNetworkProvider } from "@elrondnetwork/erdjs-network-providers/out";
+import { createAirdropService, createESDTInteractor, FiveMinutesInMilliseconds, IAddress, INetworkConfig, ITestSession, ITestUser, ITransaction, TestSession } from "@elrondnetwork/erdjs-snippets";
 import { assert } from "chai";
 import { createAdderInteractor } from "./adderInteractor";
-import { CustomNetworkProvider } from "./customNetworkProvider";
 
 describe("scheduled", async function () {
     this.bail(true);
 
     let session: ITestSession;
-    let networkProvider: INetworkProvider;
-    let customNetworkProvider: CustomNetworkProvider;
+    let networkProvider: ProxyNetworkProvider;
     let networkConfig: INetworkConfig;
     let transactionFactory: TransactionFactory;
     let transactionWatcher: TransactionWatcher;
@@ -19,11 +18,9 @@ describe("scheduled", async function () {
     // shard(carol) = 2
     // shard(dan) = 1
     // shard(mike) = 0
+    let whale: ITestUser;
     let alice: ITestUser;
     let bob: ITestUser;
-    let carol: ITestUser;
-    let dan: ITestUser;
-    let mike: ITestUser;
 
     let manyZero: ITestUser[];
     let manyOne: ITestUser[];
@@ -34,17 +31,14 @@ describe("scheduled", async function () {
         session = await TestSession.load("localnet", __dirname);
         await session.syncNetworkConfig();
 
-        networkProvider = session.networkProvider;
-        customNetworkProvider = new CustomNetworkProvider();
+        networkProvider = <ProxyNetworkProvider>session.networkProvider;
         networkConfig = session.getNetworkConfig();
         transactionFactory = new TransactionFactory(new GasEstimator(DefaultGasConfiguration));
         transactionWatcher = new TransactionWatcher(networkProvider);
 
+        whale = session.users.getUser("whale");
         alice = session.users.getUser("alice");
         bob = session.users.getUser("bob");
-        carol = session.users.getUser("carol");
-        dan = session.users.getUser("dan");
-        mike = session.users.getUser("mike");
         manyZero = session.users.getGroup("manyZero");
         manyOne = session.users.getGroup("manyOne");
         manyTwo = session.users.getGroup("manyTwo");
@@ -59,24 +53,24 @@ describe("scheduled", async function () {
         this.timeout(FiveMinutesInMilliseconds);
 
         const payment = TokenPayment.egldFromAmount(1);
-        await session.syncUsers([alice]);
+        await session.syncUsers([whale]);
         
         let transactions: Transaction[] = [];
 
         for (const receiver of manyUsers) {
             const transaction = transactionFactory.createEGLDTransfer({
-                nonce: alice.account.getNonceThenIncrement(),
-                sender: alice.address,
+                nonce: whale.account.getNonceThenIncrement(),
+                sender: whale.address,
                 receiver: receiver.address,
                 value: payment.toString(),
                 chainID: networkConfig.ChainID
             });
 
-            await alice.signer.sign(transaction);
+            await whale.signer.sign(transaction);
             transactions.push(transaction);
         }
 
-        await customNetworkProvider.sendTransactions(transactions);
+        await sendTransactions(transactions);
     });
 
     it("setup", async function () {
@@ -98,44 +92,73 @@ describe("scheduled", async function () {
         return address;
     }
 
-    it("send many contract transactions (some invalid) - intrashard", async function () {
+    it("invalid ESDT transfer and execute", async function () {
         this.timeout(FiveMinutesInMilliseconds);
 
         await session.syncUsers(manyZero);
-        await session.syncUsers(manyOne);
-        await session.syncUsers(manyTwo);
-
         const contractAddress = await session.loadAddress("adderInShard0");
         const interactor = await createAdderInteractor(session, contractAddress);
 
+        const payment = TokenPayment.fungibleFromAmount("ABBA-abba", "10", 0);
         const transactions: ITransaction[] = [];
 
-        for (const user of manyUsers) {
-            transactions.push(await interactor.buildTransactionAdd(user, 1));
+        for (const user of manyZero) {
+            transactions.push(await interactor.buildTransactionTransferAdd(user, 1, 400000000, payment));
         }
 
-        for (const sender of manyZero.slice(0, 5)) {
-            const transaction = transactionFactory.createESDTTransfer({
-                nonce: sender.account.getNonceThenIncrement(),
-                sender: sender.address,
-                receiver: bob.address,
-                payment: TokenPayment.fungibleFromAmount("ABBA-abba", 10000000, 5),
-                chainID: networkConfig.ChainID
-            });
-
-            await sender.signer.sign(transaction);
-            console.log("Transaction will be in miniblock of type Invalid:", transaction.getHash().hex());
-            transactions.push(transaction);
-        }
-        
-        await customNetworkProvider.sendTransactions(transactions);
+        await sendTransactions(transactions);
     });
 
-    it("generate report", async function () {
-        await session.generateReport();
+    it("issue token", async function () {
+        this.timeout(FiveMinutesInMilliseconds);
+
+        const interactor = await createESDTInteractor(session);
+        await session.syncUsers([whale]);
+
+        const token = await interactor.issueFungibleToken(whale, { name: "FOO", ticker: "FOO", decimals: 0, supply: "100000000" });
+        await session.saveToken({ name: "fooToken", token: token });
+    });
+
+    it("airdrop token", async function () {
+        this.timeout(FiveMinutesInMilliseconds);
+
+        const token = await session.loadToken("fooToken");
+        const payment = TokenPayment.fungibleFromAmount(token.identifier, "10", token.decimals);
+        await session.syncUsers([whale]);
+
+        await createAirdropService(session).sendToEachUser(whale, manyUsers, [payment]);
+    });
+
+    it("execute many", async function () {
+        this.timeout(FiveMinutesInMilliseconds);
+
+        await session.syncUsers(manyUsers);
+
+        const token = await session.loadToken("fooToken");
+        const adderInShard0 = await session.loadAddress("adderInShard0");
+        const adderInShard1 = await session.loadAddress("adderInShard1");
+        const interactor0 = await createAdderInteractor(session, adderInShard0);
+        const interactor1 = await createAdderInteractor(session, adderInShard1);
+
+        const payment = TokenPayment.fungibleFromAmount(token.identifier, 1, token.decimals);
+        const transactions: ITransaction[] = [];
+
+        for (const user of manyZero) {
+            transactions.push(await interactor0.buildTransactionTransferAdd(user, 1, 450000000, payment));
+            transactions.push(await interactor1.buildTransactionTransferAdd(user, 1, 450000000, payment));
+        }
+
+        await sendTransactions(transactions);
     });
 
     it("destroy session", async function () {
         await session.destroy();
     });
+
+    async function sendTransactions(transactions: ITransaction[]): Promise<void> {
+        const sendableTransactions = transactions.map(item => item.toSendable());
+        const response = await networkProvider.doPostGeneric("transaction/send-multiple", sendableTransactions);
+        console.log("Sent transactions:", response.numOfSentTxs);
+        console.log(response);
+    }
 });
