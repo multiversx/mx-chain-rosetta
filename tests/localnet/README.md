@@ -29,7 +29,7 @@ Run snippets steps from the Test Explorer.
 
 ```
 rosetta --observer-http-url=http://localhost:10100 --observer-actual-shard=0 --chain-id=localnet --native-currency=XeGLD --port=8091
-rosetta --observer-http-url=http://localhost:10100 --observer-actual-shard=0 --chain-id=localnet --native-currency=XeGLD --port=8092 --offline
+rosetta --observer-actual-shard=0 --chain-id=localnet --native-currency=XeGLD --port=8092 --offline
 ```
 
 ## Run the checks
