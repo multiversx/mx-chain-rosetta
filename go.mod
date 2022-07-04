@@ -1,14 +1,14 @@
 module github.com/ElrondNetwork/rosetta
 
-go 1.17
+go 1.18
 
 require (
 	github.com/ElrondNetwork/elrond-go v1.3.27
 	github.com/ElrondNetwork/elrond-go-core v1.1.16-0.20220628194555-427cd3a134a4
 	github.com/ElrondNetwork/elrond-go-logger v1.0.7
 	github.com/ElrondNetwork/elrond-proxy-go v1.1.21-0.20220628202443-2bad25dc45a3
-	github.com/coinbase/rosetta-sdk-go v0.7.9
-	github.com/stretchr/testify v1.7.0
+	github.com/coinbase/rosetta-sdk-go v0.7.10
+	github.com/stretchr/testify v1.7.2
 	github.com/urfave/cli v1.22.5
 )
 
@@ -45,7 +45,7 @@ require (
 	golang.org/x/sys v0.0.0-20220412211240-33da011f77ad // indirect
 	google.golang.org/protobuf v1.28.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
-	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
+	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
 replace github.com/ElrondNetwork/arwen-wasm-vm/v1_2 v1.2.35 => github.com/ElrondNetwork/arwen-wasm-vm v1.2.35

@@ -1,8 +1,8 @@
 FROM golang:1.17.6 as builder
 
 # Clone repositories
-RUN git clone https://github.com/ElrondNetwork/elrond-config-mainnet --branch=rc-2022-june-with-api-config --depth=1
-RUN git clone https://github.com/ElrondNetwork/elrond-go.git --branch=rosetta-hotfixes --depth=1
+RUN git clone https://github.com/ElrondNetwork/elrond-config-mainnet --branch=rc-2022-july --depth=1
+RUN git clone https://github.com/ElrondNetwork/elrond-go.git --branch=rc/2022-july --depth=1
 
 # Build node
 WORKDIR /go/elrond-go/cmd/node

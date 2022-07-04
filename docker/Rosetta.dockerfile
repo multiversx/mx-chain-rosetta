@@ -1,4 +1,4 @@
-FROM golang:1.17.6 as builder
+FROM golang:1.18 as builder
 
 # Clone repositories
 RUN git clone https://github.com/ElrondNetwork/rosetta.git --branch=main --depth=1

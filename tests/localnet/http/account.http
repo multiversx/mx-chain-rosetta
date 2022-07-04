@@ -13,7 +13,7 @@ Content-Type: application/json
     "network": "{{baseNetwork}}"
   },
   "account_identifier": {
-        "address": "erd1..."
+        "address": "erd1spyavw0956vq68xj8y4tenjpq2wd5a9p2c6j8gsz7ztyrnpxrruqzu66jx"
   },
   "currencies": [
       {

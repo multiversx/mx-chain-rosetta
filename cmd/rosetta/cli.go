@@ -63,7 +63,7 @@ VERSION:
 	cliFlagObserverHttpUrl = cli.StringFlag{
 		Name:  "observer-http-url",
 		Usage: "Specifies the URL of the observer.",
-		Value: "http://localhost:8080",
+		Value: "http://nowhere.localhost.local",
 	}
 
 	cliFlagObserverPubKey = cli.StringFlag{

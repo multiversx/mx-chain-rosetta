@@ -1,6 +1,6 @@
 transfer(1){
   transfer{
-    transfer.network = {"network":"D", "blockchain":"Elrond"};
+    transfer.network = {"network":"localnet", "blockchain":"Elrond"};
     elrond_currency = {"symbol":"XeGLD", "decimals":18};
     sender = {
       "account_identifier": {
