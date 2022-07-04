@@ -1,11 +1,11 @@
 cmd/rosetta/rosetta
 cmd/rosetta/logs/**
 
-tests/localnet/testnet/**
-tests/localnet/snippets/node_modules/**
-tests/localnet/snippets/package-lock.json
-tests/localnet/snippets/**/*.session.sqlite
-tests/localnet/snippets/out
+checks/localnet/testnet/**
+checks/localnet/snippets/node_modules/**
+checks/localnet/snippets/package-lock.json
+checks/localnet/snippets/**/*.session.sqlite
+checks/localnet/snippets/out
 
 **/check-data/**
 **/__pycache__/**

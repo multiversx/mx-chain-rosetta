@@ -1,4 +1,4 @@
 {
-    "mochaExplorer.cwd": "tests/localnet/snippets",
-    "mochaExplorer.mochaPath": "tests/localnet/snippets/node_modules/mocha"
+    "mochaExplorer.cwd": "checks/localnet/snippets",
+    "mochaExplorer.mochaPath": "checks/localnet/snippets/node_modules/mocha"
 }
