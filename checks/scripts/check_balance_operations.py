@@ -14,8 +14,8 @@ from tests.scripts import shared
 """
 export ADDRESS=erd1...
 
-python3 ./tests/scripts/check_balance_operations.py --address=${ADDRESS} \
---workspace=./tests/scripts/workspace \
+python3 ./checks/scripts/check_balance_operations.py --address=${ADDRESS} \
+--workspace=./checks/scripts/workspace \
 --api-url=https://api.elrond.com \
 --gateway-url=http://rosetta-mainnet:8079 \
 --rosetta-api-url=http://rosetta-mainnet:9090 \
