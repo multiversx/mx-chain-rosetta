@@ -47,18 +47,22 @@ go build .
 Then, start `rosetta` as follows:
 
 ```
-./rosetta --observer-http-url=http://localhost:8080 --observer-actual-shard=0 --chain-id=D --native-currency=XeGLD --port=9091
+./rosetta --observer-http-url=http://localhost:8080 --observer-actual-shard=0 \
+--chain-id=D --native-currency=XeGLD \
+--port=9091
 ```
 
 Or, in order to start using the `offline` mode:
 
 ```
-./rosetta --observer-actual-shard=0 --chain-id=D --native-currency=XeGLD --port=9092 --offline
+./rosetta --observer-actual-shard=0 \
+--chain-id=D --native-currency=XeGLD \
+--port=9092 --offline
 ```
 
 ## Docker setup
 
-The Docker setup Elrond takes the shape of two Docker images (Elrond Rosetta and Elrond Observer), plus a Docker Compose definition to orchestrate the `1 + 1 + 1 + 1 = 4` containers: 
+The Docker setup takes the shape of two Docker images (Elrond Rosetta and Elrond Observer), plus a Docker Compose definition to orchestrate the `1 + 1 + 1 + 1 = 4` containers: 
 
  - one Elrond Rosetta instance in **online mode**
  - one Elrond Rosetta instance in **offline mode**
@@ -101,7 +105,9 @@ export OBSERVED_SHARD=0
 ./generate_keys.sh ${HOME}/rosetta-workdir/keys ${OBSERVED_SHARD}
 ```
 
-Note that the script above downloads [this docker image](https://hub.docker.com/r/elrondnetwork/elrond-go-keygenerator). In order to change the ownership of the generated keys (from _owned by Docker_ to _owned by the current user_), superuser access will be requested.
+Note that the script above downloads [this docker image](https://hub.docker.com/r/elrondnetwork/elrond-go-keygenerator). 
+
+In order to change the ownership of the generated keys (from _owned by Docker_ to _owned by the current user_), superuser access will be requested.
 
 ### Build the images
 
