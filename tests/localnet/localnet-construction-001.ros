@@ -1,92 +1,58 @@
-request_funds(1){
-    find_account{
-      currency = {"symbol":"XeGLD", "decimals":18};
-      random_account = find_balance({
-        "minimum_balance":{
-          "value": "0",
-          "currency": {{currency}}
-        },
-        "create_limit":1
-      });
-    },
-  
-    request{
-      loaded_account = find_balance({
-        "account_identifier": {{random_account.account_identifier}},
-        "minimum_balance":{
-          "value": "1000000000000000000",
-          "currency": {{currency}}
+transfer(1){
+  transfer{
+    transfer.network = {"network":"localnet", "blockchain":"Elrond"};
+    elrond_currency = {"symbol":"XeGLD", "decimals":18};
+    sender = {
+      "account_identifier": {
+        "address": "erd1spyavw0956vq68xj8y4tenjpq2wd5a9p2c6j8gsz7ztyrnpxrruqzu66jx"
+      },
+      "privkey": "b8ca6f8203fb4b545a8e83c5384da033c415db155b53fb5b8eba7ff5a039d639",
+      "curve_type": "edwards25519",
+      "currency": {
+          "symbol": "XeGLD",
+          "decimals": 18
+      }
+    };
+
+    max_fee = "50000000000000";
+    max_transfer_amount = "10000000000000000";
+    recipient_amount = random_number({"minimum": "1", "maximum": {{max_transfer_amount}}});
+
+    print_message({"recipient_amount":{{recipient_amount}}});
+
+    sender_amount = 0-{{recipient_amount}};
+    recipient = {
+      "account_identifier": {
+        "address": "erd1ekrktkp7meytt8cvlhvavtzpz795056xpftw9lwxyc8gu4a7kw2qjfzpy9"
+      },
+      "privkey": "0b3b9eae3c6eacf29fc5424f9f0b29e64f00844d0e08d1cef1b68cedbfaaa769",
+      "curve_type": "edwards25519",
+      "currency": {
+          "symbol": "XeGLD",
+          "decimals": 18
+      }
+    };
+    transfer.confirmation_depth = "10";
+    transfer.operations = [
+      {
+        "operation_identifier":{"index":0},
+        "type":"Transfer",
+        "account":{{sender.account_identifier}},
+        "amount":{
+          "value":{{sender_amount}},
+          "currency":{{elrond_currency}}
         }
-      });
-    }
-  }
-  
-  create_account(1){
-    create{
-      network = {"network":"localnet", "blockchain":"Elrond"};
-      key = generate_key({"curve_type": "edwards25519"});
-      account = derive({
-        "network_identifier": {{network}},
-        "public_key": {{key.public_key}}
-      });
-  
-      // If the account is not saved, the key will be lost!
-      save_account({
-        "account_identifier": {{account.account_identifier}},
-        "keypair": {{key}}
-      });
-    }
-  }
-  
-  transfer(1){
-    transfer{
-      transfer.network = {"network":"localnet", "blockchain":"Elrond"};
-      elrond_currency = {"symbol":"XeGLD", "decimals":18};
-      sender = find_balance({
-        "minimum_balance":{
-          "value": "1000000000000000000",
-          "currency": {{elrond_currency}}
+      },
+      {
+        "operation_identifier":{"index":1},
+        "related_operations": [{"index": 0}],
+        "type":"Transfer",
+        "account":{{recipient.account_identifier}},
+        "amount":{
+          "value":{{recipient_amount}},
+          "currency":{{elrond_currency}}
         }
-      });
-  
-      max_fee = "50000000000000";
-      max_transfer_amount = "10000000000000000";
-      recipient_amount = random_number({"minimum": "1", "maximum": {{max_transfer_amount}}});
-  
-      print_message({"recipient_amount":{{recipient_amount}}});
-  
-      sender_amount = 0-{{recipient_amount}};
-      recipient = find_balance({
-        "not_account_identifier":[{{sender.account_identifier}}],
-        "minimum_balance":{
-          "value": "0",
-          "currency": {{elrond_currency}}
-        },
-        "create_limit": 100,
-        "create_probability": 50
-      });
-      transfer.confirmation_depth = "10";
-      transfer.operations = [
-        {
-          "operation_identifier":{"index":0},
-          "type":"Transfer",
-          "account":{{sender.account_identifier}},
-          "amount":{
-            "value":{{sender_amount}},
-            "currency":{{elrond_currency}}
-          }
-        },
-        {
-          "operation_identifier":{"index":1},
-          "related_operations": [{"index": 0}],
-          "type":"Transfer",
-          "account":{{recipient.account_identifier}},
-          "amount":{
-            "value":{{recipient_amount}},
-            "currency":{{elrond_currency}}
-          }
-        }
-      ];
-    }
+      }
+    ];
   }
-  
+}

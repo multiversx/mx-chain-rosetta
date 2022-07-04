@@ -19,7 +19,7 @@
   "coin_supported": false,
   "construction": {
     "offline_url": "http://localhost:8092",
-    "stale_depth": 5,
+    "stale_depth": 10,
     "broadcast_limit": 5,
     "constructor_dsl_file": "localnet-construction-001.ros",
     "prefunded_accounts": [

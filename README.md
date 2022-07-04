@@ -146,3 +146,19 @@ docker stop docker-rosetta-offline-1
 ```
 
 Re-build the images as described above, then run the containers again.
+
+
+## Implementation notes
+
+ - We do not support the `related_transactions` property, since it's not feasible to properly filter the related transactions of a given transaction by source / destination shard (with respect to the observed shard).
+ - The endpoint `/block/transaction` is not implemented, since all transactions are returned by the endpoint `/block`.
+ - We chose not to support the optional property `Operation.related_operations`. Although the smart contract results (also known as _unsigned transactions_) form a DAG (directed acyclic graph) at the protocol level, operations within a transaction are in a simple sequence.
+ - Only successful operations are listed in our Rosetta API implementation. For _invalid_ transactions, we only list the _fee_ operation.
+ - Balance-changing operations that affect Smart Contract accounts are not emitted by our Rosetta implementation (thus are not available on the Rosetta API).
+
+## Checking the implementation
+
+### Construction API
+
+ - Make sure to set a large enough `"stale_depth"`, since the implementation only returns _final_ blocks (notarized by the Metachain and built upon), by default. There is a delay between the broadcast of the transaction and the moment at which the container block is marked as _final_. For example, use `"stale_depth": 10`.
+ - In the construction DSL, `generate_account()` cannot be used, since it cannot be constrained to create accounts in the observed shard, at the moment. As a workaround, the accounts involved in a transfer (sender, recipient) should be explicitly specified in the `*.ros` file. 
