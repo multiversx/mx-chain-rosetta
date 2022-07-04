@@ -3,21 +3,18 @@
         "blockchain": "Elrond",
         "network": "D"
     },
-    "online_url": "http://rosetta-devnet:8091",
     "data_directory": "",
     "http_timeout": 200,
     "max_retries": 3,
-    "tip_delay": 1652796180000,
     "max_online_connections": 120,
     "max_sync_concurrency": 1,
     "construction": {
-        "offline_url": "http://rosetta-devnet:8092",
         "end_conditions": {
             "transfer": 2
         },
         "stale_depth": 10,
         "broadcast_limit": 5,
-        "constructor_dsl_file": "devnet-construction-001.ros",
+        "constructor_dsl_file": "devnet-construction.ros",
         "prefunded_accounts": [
             {
                 "account_identifier": {
@@ -33,7 +30,6 @@
         ]
     },
     "data": {
-        "start_index": 919419,
         "historical_balance_disabled": true,
         "reconciliation_disabled": true,
         "inactive_discrepancy_search_disabled": true,
