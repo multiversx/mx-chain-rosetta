@@ -25,8 +25,16 @@ npm install
 
 Run snippets steps from the Test Explorer.
 
+## Start rosetta
+
+```
+rosetta --observer-http-url=http://localhost:10100 --observer-actual-shard=0 --chain-id=localnet --port=8091
+rosetta --observer-http-url=http://localhost:10100 --observer-actual-shard=0 --chain-id=localnet --port=8092 --offline
+```
+
 ## Run the checks
 
 ```
+rosetta-cli check:spec --configuration-file localnet-spec.json
 rosetta-cli check:data --configuration-file localnet-data-001.json
 ```
