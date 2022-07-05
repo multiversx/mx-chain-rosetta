@@ -20,14 +20,14 @@ Set a starting point for the data API checks:
 export AFTER_BLOCK=1399025
 ```
 
-Check the data API:
+Restart checking the data API:
 
 ```
 rosetta-cli check:data --configuration-file devnet-data-start-after-${AFTER_BLOCK}.json \
 --online-url=${ROSETTA_ONLINE} --data-dir=devnet-${AFTER_BLOCK}
 ```
 
-Or, to continue checking the data API:
+Or continue checking the data API:
 
 ```
 rosetta-cli check:data --configuration-file devnet-data-continue.json \

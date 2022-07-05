@@ -1,0 +1,23 @@
+@baseUrl = http://rosetta-mainnet:9090
+@baseNetwork = 1
+
+###
+
+POST {{baseUrl}}/account/balance HTTP/1.1
+Content-Type: application/json
+
+{
+  "network_identifier": {
+    "blockchain": "Elrond",
+    "network": "{{baseNetwork}}"
+  },
+  "account_identifier": {
+        "address": "erd1spyavw0956vq68xj8y4tenjpq2wd5a9p2c6j8gsz7ztyrnpxrruqzu66jx"
+  },
+  "currencies": [
+      {
+          "symbol": "EGLD",
+          "decimals": 18
+      }
+  ]
+}
