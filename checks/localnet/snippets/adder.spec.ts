@@ -89,7 +89,7 @@ describe("adder snippet", async function () {
 
         let contractAddress = await session.loadAddress("adderInShard0");
 
-        const { transaction, transactionHash } = await sendValueToContract(bob, contractAddress, 1, "hello@aa.bb.cc", 10000000)
+        const { transaction, transactionHash } = await sendToContract(bob, contractAddress, 1, "hello@aa.bb.cc", 10000000)
         console.log("Transaction:", transactionHash);
 
         const transactionOnNetwork = await transactionWatcher.awaitCompleted(transaction);
@@ -103,7 +103,7 @@ describe("adder snippet", async function () {
 
         let contractAddress = await session.loadAddress("adderInShard0");
 
-        const { transaction, transactionHash } = await sendValueToContract(bob, contractAddress, 1, "", 10000000)
+        const { transaction, transactionHash } = await sendToContract(bob, contractAddress, 1, "", 10000000)
         console.log("Transaction:", transactionHash);
 
         const transactionOnNetwork = await transactionWatcher.awaitCompleted(transaction);
@@ -141,7 +141,7 @@ describe("adder snippet", async function () {
 
         let contractAddress = await session.loadAddress("adderInShard1");
 
-        const { transaction, transactionHash } = await sendValueToContract(bob, contractAddress, 1, "hello@aa.bb.cc", 10000000);
+        const { transaction, transactionHash } = await sendToContract(bob, contractAddress, 1, "hello@aa.bb.cc", 10000000);
         console.log("Transaction:", transactionHash);
 
         const transactionOnNetwork = await transactionWatcher.awaitCompleted(transaction);
@@ -155,7 +155,7 @@ describe("adder snippet", async function () {
 
         let contractAddress = await session.loadAddress("adderInShard0");
 
-        const { transaction, transactionHash } = await sendValueToContract(bob, contractAddress, 1, "hello", 10000000)
+        const { transaction, transactionHash } = await sendToContract(bob, contractAddress, 1, "hello", 10000000)
         console.log("Transaction:", transactionHash);
 
         const transactionOnNetwork = await transactionWatcher.awaitCompleted(transaction);
@@ -169,7 +169,7 @@ describe("adder snippet", async function () {
 
         let contractAddress = await session.loadAddress("adderInShard1");
 
-        const { transaction, transactionHash } = await sendValueToContract(bob, contractAddress, 1, "hello", 10000000)
+        const { transaction, transactionHash } = await sendToContract(bob, contractAddress, 1, "hello", 10000000)
         console.log("Transaction:", transactionHash);
 
         const transactionOnNetwork = await transactionWatcher.awaitCompleted(transaction);
@@ -183,7 +183,7 @@ describe("adder snippet", async function () {
 
         let contractAddress = await session.loadAddress("adderInShard0");
 
-        const { transaction, transactionHash } = await sendValueToContract(bob, contractAddress, 1, "add@01", 100000000)
+        const { transaction, transactionHash } = await sendToContract(bob, contractAddress, 1, "add@01", 100000000)
         console.log("Transaction:", transactionHash);
 
         const transactionOnNetwork = await transactionWatcher.awaitCompleted(transaction);
@@ -197,14 +197,14 @@ describe("adder snippet", async function () {
 
         let contractAddress = await session.loadAddress("adderInShard1");
 
-        const { transaction, transactionHash } = await sendValueToContract(bob, contractAddress, 1, "add@01", 100000000)
+        const { transaction, transactionHash } = await sendToContract(bob, contractAddress, 1, "add@01", 100000000)
         console.log("Transaction:", transactionHash);
 
         const transactionOnNetwork = await transactionWatcher.awaitCompleted(transaction);
         session.audit.onTransactionCompleted({ transactionHash, transaction: transactionOnNetwork });
     });
 
-    async function sendValueToContract(user: ITestUser, contractAddress: IAddress, value: BigNumber.Value, data: string, gasLimit: number): Promise<{ transaction: Transaction, transactionHash: string }> {
+    async function sendToContract(user: ITestUser, contractAddress: IAddress, value: BigNumber.Value, data: string, gasLimit: number): Promise<{ transaction: Transaction, transactionHash: string }> {
         const payment = TokenPayment.egldFromAmount(value);
 
         const transaction = transactionFactory.createEGLDTransfer({

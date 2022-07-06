@@ -46,7 +46,7 @@ export class AdderInteractor {
             gasLimit: 20000000,
             chainID: this.networkConfig.ChainID
         });
-        
+
         // Set the transaction nonce. The account nonce must be synchronized beforehand.
         // Also, locally increment the nonce of the deployer (optional).
         transaction.setNonce(deployer.account.getNonceThenIncrement());
