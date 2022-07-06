@@ -41,10 +41,13 @@ func (extractor *transactionsFeaturesDetector) doesContractResultHoldRewardsOfCl
 	return isResultOfClaimDeveloperRewards && hasNoData && hasZeroNonce
 }
 
-// isInvalidTransactionOfSendingValueToNonPayableContract detects intra-shard transactions
-// bearing the error "sending value to non-payable contract", which are included in invalid mini-block.
-func (extractor *transactionsFeaturesDetector) isInvalidTransactionOfSendingValueToNonPayableContract(tx *data.FullTransaction) bool {
-	if tx.Type != string(transaction.TxTypeInvalid) {
+// isInvalidTransactionOfSendingValueToNonPayableContractOfTypeMoveBalance detects intra-shard transactions
+// bearing the error "sending value to non-payable contract", which are included in invalid mini-block,
+func (extractor *transactionsFeaturesDetector) isInvalidTransactionOfSendingValueToNonPayableContractOfTypeMoveBalance(tx *data.FullTransaction) bool {
+	isInvalid := tx.Type == string(transaction.TxTypeInvalid)
+	isMoveBalance := tx.ProcessingTypeOnSource == transactionProcessingTypeMoveBalance && tx.ProcessingTypeOnDestination == transactionProcessingTypeMoveBalance
+
+	if !isInvalid || !isMoveBalance {
 		return false
 	}
 
