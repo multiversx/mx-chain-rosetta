@@ -21,7 +21,6 @@ import (
 	"github.com/ElrondNetwork/elrond-proxy-go/facade"
 	"github.com/ElrondNetwork/elrond-proxy-go/observer"
 	"github.com/ElrondNetwork/elrond-proxy-go/process"
-	"github.com/ElrondNetwork/elrond-proxy-go/process/cache"
 	processFactory "github.com/ElrondNetwork/elrond-proxy-go/process/factory"
 	"github.com/ElrondNetwork/rosetta/server/resources"
 )
@@ -63,7 +62,6 @@ type networkProvider struct {
 	accountProcessor     facade.AccountProcessor
 	transactionProcessor facade.TransactionProcessor
 	blockProcessor       facade.BlockProcessor
-	nodeStatusProcessor  facade.NodeStatusProcessor
 
 	hasher                hashing.Hasher
 	marshalizerForHashing marshal.Marshalizer
@@ -156,12 +154,6 @@ func NewNetworkProvider(args ArgsNewNetworkProvider) (*networkProvider, error) {
 		return nil, err
 	}
 
-	economicMetricsCacher := cache.NewGenericApiResponseMemoryCacher()
-	nodeStatusProcessor, err := process.NewNodeStatusProcessor(baseProcessor, economicMetricsCacher, nodeStatusCacheDuration)
-	if err != nil {
-		return nil, err
-	}
-
 	return &networkProvider{
 		isOffline: args.IsOffline,
 
@@ -170,7 +162,6 @@ func NewNetworkProvider(args ArgsNewNetworkProvider) (*networkProvider, error) {
 		accountProcessor:     accountProcessor,
 		transactionProcessor: transactionProcessor,
 		blockProcessor:       blockProcessor,
-		nodeStatusProcessor:  nodeStatusProcessor,
 
 		hasher:                hasher,
 		marshalizerForHashing: marshalizerForHashing,

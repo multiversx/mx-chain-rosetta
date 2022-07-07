@@ -1,4 +1,4 @@
-import { FiveMinutesInMilliseconds, INetworkConfig, INetworkProvider, ITestSession, ITestUser, TestSession } from "@elrondnetwork/erdjs-snippets";
+import { createESDTInteractor, FiveMinutesInMilliseconds, INetworkConfig, INetworkProvider, ITestSession, ITestUser, ITokenPayment, TestSession } from "@elrondnetwork/erdjs-snippets";
 import { Address, DefaultGasConfiguration, GasEstimator, IAddress, TokenPayment, Transaction, TransactionFactory, TransactionPayload, TransactionWatcher } from "@elrondnetwork/erdjs";
 import { assert } from "chai";
 import { createAdderInteractor } from "./adderInteractor";
@@ -33,6 +33,16 @@ describe("adder snippet", async function () {
 
     this.beforeEach(async function () {
         session.correlation.step = this.currentTest?.fullTitle() || "";
+    });
+
+    it("issue token", async function () {
+        this.timeout(FiveMinutesInMilliseconds);
+
+        const interactor = await createESDTInteractor(session);
+        await session.syncUsers([bob]);
+
+        const token = await interactor.issueFungibleToken(bob, { name: "FOO", ticker: "FOO", decimals: 0, supply: "100000000" });
+        await session.saveToken({ name: "fooToken", token: token });
     });
 
     it("setup", async function () {
@@ -72,7 +82,7 @@ describe("adder snippet", async function () {
         assert.isTrue(returnCode.isSuccess());
     });
 
-    it("send value to non-payable (intra-shard)", async function () {
+    it("send value to non-payable, badly formatted (intra-shard)", async function () {
         this.timeout(FiveMinutesInMilliseconds);
 
         await session.syncUsers([bob]);
@@ -84,6 +94,44 @@ describe("adder snippet", async function () {
 
         const transactionOnNetwork = await transactionWatcher.awaitCompleted(transaction);
         session.audit.onTransactionCompleted({ transactionHash, transaction: transactionOnNetwork });
+    });
+
+    it("send value to non-payable (intra-shard)", async function () {
+        this.timeout(FiveMinutesInMilliseconds);
+
+        await session.syncUsers([bob]);
+
+        let contractAddress = await session.loadAddress("adderInShard0");
+
+        const { transaction, transactionHash } = await sendToContract(bob, contractAddress, 1, "", 10000000)
+        console.log("Transaction:", transactionHash);
+
+        const transactionOnNetwork = await transactionWatcher.awaitCompleted(transaction);
+        session.audit.onTransactionCompleted({ transactionHash, transaction: transactionOnNetwork });
+    });
+
+    it("send ESDT (built-in function) to non-payable (intra-shard)", async function () {
+        this.timeout(FiveMinutesInMilliseconds);
+
+        await session.syncUsers([bob]);
+
+        const contractAddress = await session.loadAddress("adderInShard0");
+        const token = await session.loadToken("fooToken");
+        const payment = TokenPayment.fungibleFromAmount(token.identifier, 1, 0);    
+
+        const transaction = transactionFactory.createESDTTransfer({
+            payment: payment,
+            nonce: bob.account.getNonceThenIncrement(),
+            sender: bob.address,
+            receiver: contractAddress,
+            chainID: networkConfig.ChainID
+        });
+
+        await bob.signer.sign(transaction);
+        const transactionHash = await provider.sendTransaction(transaction);
+        console.log("Transaction:", transactionHash);
+
+        await transactionWatcher.awaitCompleted(transaction);
     });
 
     it("send value to non-payable (cross-shard)", async function () {
