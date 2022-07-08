@@ -22,7 +22,7 @@ type observerFacadeMock struct {
 	MockTransactionsByHash map[string]*data.FullTransaction
 	MockBlocks             []*data.Block
 
-	SendTransactionCalled func(tx *data.Transaction) (string, error)
+	SendTransactionCalled func(tx *data.Transaction) (int, string, error)
 }
 
 // NewObserverFacadeMock -
@@ -101,16 +101,16 @@ func (mock *observerFacadeMock) GetAccount(address string, options common.Accoun
 }
 
 // SendTransaction -
-func (mock *observerFacadeMock) SendTransaction(tx *data.Transaction) (string, error) {
+func (mock *observerFacadeMock) SendTransaction(tx *data.Transaction) (int, string, error) {
 	if mock.MockNextError != nil {
-		return "", mock.MockNextError
+		return 500, "", mock.MockNextError
 	}
 
 	if mock.SendTransactionCalled != nil {
 		return mock.SendTransactionCalled(tx)
 	}
 
-	return mock.MockComputedTransactionHash, nil
+	return 200, mock.MockComputedTransactionHash, nil
 }
 
 // ComputeTransactionHash -
