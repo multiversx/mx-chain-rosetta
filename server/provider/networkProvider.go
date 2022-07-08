@@ -7,28 +7,17 @@ import (
 	"math/big"
 
 	"github.com/ElrondNetwork/elrond-go-core/core"
-	"github.com/ElrondNetwork/elrond-go-core/core/pubkeyConverter"
 	"github.com/ElrondNetwork/elrond-go-core/data/receipt"
 	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
 	"github.com/ElrondNetwork/elrond-go-core/hashing"
-	hasherFactory "github.com/ElrondNetwork/elrond-go-core/hashing/factory"
 	"github.com/ElrondNetwork/elrond-go-core/marshal"
-	marshalFactory "github.com/ElrondNetwork/elrond-go-core/marshal/factory"
 	logger "github.com/ElrondNetwork/elrond-go-logger"
-	"github.com/ElrondNetwork/elrond-go/sharding"
 	"github.com/ElrondNetwork/elrond-proxy-go/common"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
-	"github.com/ElrondNetwork/elrond-proxy-go/facade"
-	"github.com/ElrondNetwork/elrond-proxy-go/observer"
-	"github.com/ElrondNetwork/elrond-proxy-go/process"
-	processFactory "github.com/ElrondNetwork/elrond-proxy-go/process/factory"
 	"github.com/ElrondNetwork/rosetta/server/resources"
 )
 
 var (
-	notApplicableConfigurationFilePath   = "not applicable"
-	notApplicableFullHistoryNodesMessage = "not applicable"
-
 	urlPathGetNetworkConfig   = "/network/config"
 	urlPathGetNodeStatus      = "/node/status"
 	urlPathGetGenesisBalances = "/network/genesis-balances"
@@ -38,7 +27,6 @@ var log = logger.GetOrCreate("server/provider")
 
 type ArgsNewNetworkProvider struct {
 	IsOffline                   bool
-	NumShards                   uint32
 	ObservedActualShard         uint32
 	ObservedProjectedShard      uint32
 	ObservedProjectedShardIsSet bool
@@ -52,20 +40,19 @@ type ArgsNewNetworkProvider struct {
 	GenesisBlockHash            string
 	GenesisTimestamp            int64
 	ObserveNotFinalBlocks       bool
+
+	BaseProcessor        baseProcessor
+	AccountProcessor     accountProcessor
+	TransactionProcessor transactionProcessor
+	BlockProcessor       blockProcessor
+
+	Hasher                hashing.Hasher
+	MarshalizerForHashing marshal.Marshalizer
+	PubKeyConverter       core.PubkeyConverter
 }
 
 type networkProvider struct {
-	isOffline bool
-
-	pubKeyConverter      core.PubkeyConverter
-	baseProcessor        process.Processor
-	accountProcessor     facade.AccountProcessor
-	transactionProcessor facade.TransactionProcessor
-	blockProcessor       facade.BlockProcessor
-
-	hasher                hashing.Hasher
-	marshalizerForHashing marshal.Marshalizer
-
+	isOffline                   bool
 	observedActualShard         uint32
 	observedProjectedShard      uint32
 	observedProjectedShardIsSet bool
@@ -76,95 +63,21 @@ type networkProvider struct {
 	genesisTimestamp            int64
 	observeNotFinalBlocks       bool
 
+	baseProcessor        baseProcessor
+	accountProcessor     accountProcessor
+	transactionProcessor transactionProcessor
+	blockProcessor       blockProcessor
+
+	hasher                hashing.Hasher
+	marshalizerForHashing marshal.Marshalizer
+	pubKeyConverter       core.PubkeyConverter
+
 	networkConfig *resources.NetworkConfig
 }
 
-// TODO: Move constructor calls to /factory. Receive dependencies in constructor.
 func NewNetworkProvider(args ArgsNewNetworkProvider) (*networkProvider, error) {
-	shardCoordinator, err := sharding.NewMultiShardCoordinator(args.NumShards, args.ObservedActualShard)
-	if err != nil {
-		return nil, err
-	}
-
-	pubKeyConverter, err := pubkeyConverter.NewBech32PubkeyConverter(pubKeyLength, log)
-	if err != nil {
-		return nil, err
-	}
-
-	observers := []*data.NodeData{
-		{
-			ShardId:  args.ObservedActualShard,
-			Address:  args.ObserverUrl,
-			IsSynced: true,
-		},
-	}
-
-	observersProvider, err := observer.NewSimpleNodesProvider(observers, notApplicableConfigurationFilePath)
-	if err != nil {
-		return nil, err
-	}
-
-	disabledObserversProvider := observer.NewDisabledNodesProvider(notApplicableFullHistoryNodesMessage)
-	if err != nil {
-		return nil, err
-	}
-
-	baseProcessor, err := process.NewBaseProcessor(
-		requestTimeoutInSeconds,
-		shardCoordinator,
-		observersProvider,
-		disabledObserversProvider,
-		pubKeyConverter,
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	accountProcessor, err := process.NewAccountProcessor(
-		baseProcessor,
-		pubKeyConverter,
-		&disabledExternalStorageConnector{},
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	hasher, err := hasherFactory.NewHasher(hasherType)
-	if err != nil {
-		return nil, err
-	}
-
-	marshalizerForHashing, err := marshalFactory.NewMarshalizer(marshalizerForHashingType)
-	if err != nil {
-		return nil, err
-	}
-
-	transactionProcessor, err := processFactory.CreateTransactionProcessor(
-		baseProcessor,
-		pubKeyConverter,
-		hasher,
-		marshalizerForHashing,
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	blockProcessor, err := process.NewBlockProcessor(&disabledExternalStorageConnector{}, baseProcessor)
-	if err != nil {
-		return nil, err
-	}
-
 	return &networkProvider{
 		isOffline: args.IsOffline,
-
-		pubKeyConverter:      pubKeyConverter,
-		baseProcessor:        baseProcessor,
-		accountProcessor:     accountProcessor,
-		transactionProcessor: transactionProcessor,
-		blockProcessor:       blockProcessor,
-
-		hasher:                hasher,
-		marshalizerForHashing: marshalizerForHashing,
 
 		observedActualShard:         args.ObservedActualShard,
 		observedProjectedShard:      args.ObservedProjectedShard,
@@ -175,6 +88,15 @@ func NewNetworkProvider(args ArgsNewNetworkProvider) (*networkProvider, error) {
 		genesisBlockHash:            args.GenesisBlockHash,
 		genesisTimestamp:            args.GenesisTimestamp,
 		observeNotFinalBlocks:       args.ObserveNotFinalBlocks,
+
+		baseProcessor:        args.BaseProcessor,
+		accountProcessor:     args.AccountProcessor,
+		transactionProcessor: args.TransactionProcessor,
+		blockProcessor:       args.BlockProcessor,
+
+		hasher:                args.Hasher,
+		marshalizerForHashing: args.MarshalizerForHashing,
+		pubKeyConverter:       args.PubKeyConverter,
 
 		networkConfig: &resources.NetworkConfig{
 			ChainID:        args.ChainID,

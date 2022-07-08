@@ -1,15 +1,12 @@
 package factory
 
 import (
-	logger "github.com/ElrondNetwork/elrond-go-logger"
 	"github.com/ElrondNetwork/rosetta/server/services"
 	"github.com/ElrondNetwork/rosetta/server/services/offline"
 	"github.com/coinbase/rosetta-sdk-go/asserter"
 	"github.com/coinbase/rosetta-sdk-go/server"
 	"github.com/coinbase/rosetta-sdk-go/types"
 )
-
-var log = logger.GetOrCreate("server/factory")
 
 func CreateControllers(networkProvider services.NetworkProvider) ([]server.Router, error) {
 	if networkProvider.IsOffline() {

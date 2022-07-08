@@ -1,4 +1,4 @@
-package provider
+package factory
 
 import (
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
