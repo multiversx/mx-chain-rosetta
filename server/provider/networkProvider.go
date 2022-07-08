@@ -41,10 +41,7 @@ type ArgsNewNetworkProvider struct {
 	GenesisTimestamp            int64
 	ObserveNotFinalBlocks       bool
 
-	BaseProcessor        baseProcessor
-	AccountProcessor     accountProcessor
-	TransactionProcessor transactionProcessor
-	BlockProcessor       blockProcessor
+	ObserverFacade observerFacade
 
 	Hasher                hashing.Hasher
 	MarshalizerForHashing marshal.Marshalizer
@@ -63,10 +60,7 @@ type networkProvider struct {
 	genesisTimestamp            int64
 	observeNotFinalBlocks       bool
 
-	baseProcessor        baseProcessor
-	accountProcessor     accountProcessor
-	transactionProcessor transactionProcessor
-	blockProcessor       blockProcessor
+	observerFacade observerFacade
 
 	hasher                hashing.Hasher
 	marshalizerForHashing marshal.Marshalizer
@@ -89,10 +83,7 @@ func NewNetworkProvider(args ArgsNewNetworkProvider) (*networkProvider, error) {
 		genesisTimestamp:            args.GenesisTimestamp,
 		observeNotFinalBlocks:       args.ObserveNotFinalBlocks,
 
-		baseProcessor:        args.BaseProcessor,
-		accountProcessor:     args.AccountProcessor,
-		transactionProcessor: args.TransactionProcessor,
-		blockProcessor:       args.BlockProcessor,
+		observerFacade: args.ObserverFacade,
 
 		hasher:                args.Hasher,
 		marshalizerForHashing: args.MarshalizerForHashing,
@@ -161,7 +152,7 @@ func (provider *networkProvider) GetGenesisBalances() ([]*resources.GenesisBalan
 
 	response := &resources.GenesisBalancesApiResponse{}
 
-	_, err := provider.baseProcessor.CallGetRestEndPoint(provider.observerUrl, urlPathGetGenesisBalances, &response)
+	_, err := provider.observerFacade.CallGetRestEndPoint(provider.observerUrl, urlPathGetGenesisBalances, &response)
 	if err != nil {
 		return nil, err
 	}
@@ -190,7 +181,7 @@ func (provider *networkProvider) GetLatestBlockSummary() (*resources.BlockSummar
 		WithLogs:         false,
 	}
 
-	blockResponse, err := provider.blockProcessor.GetBlockByNonce(
+	blockResponse, err := provider.observerFacade.GetBlockByNonce(
 		provider.observedActualShard,
 		latestBlockNonce,
 		queryOptions,
@@ -227,7 +218,7 @@ func (provider *networkProvider) getNodeStatus() (*resources.NodeStatus, error) 
 
 	response := &resources.NodeStatusApiResponse{}
 
-	_, err := provider.baseProcessor.CallGetRestEndPoint(provider.observerUrl, urlPathGetNodeStatus, &response)
+	_, err := provider.observerFacade.CallGetRestEndPoint(provider.observerUrl, urlPathGetNodeStatus, &response)
 	if err != nil {
 		return nil, err
 	}
@@ -268,7 +259,7 @@ func (provider *networkProvider) doGetBlockByNonce(nonce uint64) (*data.Block, e
 		WithLogs:         true,
 	}
 
-	response, err := provider.blockProcessor.GetBlockByNonce(provider.observedActualShard, nonce, queryOptions)
+	response, err := provider.observerFacade.GetBlockByNonce(provider.observedActualShard, nonce, queryOptions)
 	if err != nil {
 		return nil, newErrCannotGetBlockByNonce(nonce, err)
 	}
@@ -300,7 +291,7 @@ func (provider *networkProvider) doGetBlockByHash(hash string) (*data.Block, err
 		WithLogs:         true,
 	}
 
-	response, err := provider.blockProcessor.GetBlockByHash(provider.observedActualShard, hash, queryOptions)
+	response, err := provider.observerFacade.GetBlockByHash(provider.observedActualShard, hash, queryOptions)
 	if err != nil {
 		return nil, newErrCannotGetBlockByHash(hash, err)
 	}
@@ -319,7 +310,7 @@ func (provider *networkProvider) GetAccount(address string) (*data.AccountModel,
 
 	onFinalBlock := !provider.observeNotFinalBlocks
 	options := common.AccountQueryOptions{OnFinalBlock: onFinalBlock}
-	account, err := provider.accountProcessor.GetAccount(address, options)
+	account, err := provider.observerFacade.GetAccount(address, options)
 	if err != nil {
 		return nil, newErrCannotGetAccount(address, err)
 	}
@@ -342,7 +333,7 @@ func (provider *networkProvider) IsAddressObserved(address string) (bool, error)
 		return false, err
 	}
 
-	shard, err := provider.baseProcessor.ComputeShardId(pubKey)
+	shard, err := provider.observerFacade.ComputeShardId(pubKey)
 	if err != nil {
 		return false, err
 	}
@@ -369,7 +360,7 @@ func (provider *networkProvider) ConvertAddressToPubKey(address string) ([]byte,
 
 // ComputeTransactionHash computes the hash of a provided transaction
 func (provider *networkProvider) ComputeTransactionHash(tx *data.Transaction) (string, error) {
-	return provider.transactionProcessor.ComputeTransactionHash(tx)
+	return provider.observerFacade.ComputeTransactionHash(tx)
 }
 
 func (provider *networkProvider) ComputeReceiptHash(apiReceipt *transaction.ApiReceipt) (string, error) {
@@ -405,7 +396,7 @@ func (provider *networkProvider) SendTransaction(tx *data.Transaction) (string, 
 		return "", errIsOffline
 	}
 
-	_, hash, err := provider.transactionProcessor.SendTransaction(tx)
+	_, hash, err := provider.observerFacade.SendTransaction(tx)
 	if err != nil {
 		return "", err
 	}
@@ -419,7 +410,7 @@ func (provider *networkProvider) GetMempoolTransactionByHash(hash string) (*data
 		return nil, errIsOffline
 	}
 
-	tx, _, err := provider.transactionProcessor.GetTransactionByHashAndSenderAddress(hash, "", false)
+	tx, _, err := provider.observerFacade.GetTransactionByHashAndSenderAddress(hash, "", false)
 	if err != nil {
 		return nil, newErrCannotGetTransaction(hash, err)
 	}

@@ -11,6 +11,7 @@ import (
 	"github.com/ElrondNetwork/elrond-proxy-go/observer"
 	"github.com/ElrondNetwork/elrond-proxy-go/process"
 	processFactory "github.com/ElrondNetwork/elrond-proxy-go/process/factory"
+	"github.com/ElrondNetwork/rosetta/server/factory/components"
 	"github.com/ElrondNetwork/rosetta/server/provider"
 )
 
@@ -90,7 +91,7 @@ func CreateNetworkProvider(args ArgsCreateNetworkProvider) (networkProvider, err
 	accountProcessor, err := process.NewAccountProcessor(
 		baseProcessor,
 		pubKeyConverter,
-		&disabledExternalStorageConnector{},
+		&components.DisabledExternalStorageConnector{},
 	)
 	if err != nil {
 		return nil, err
@@ -116,7 +117,7 @@ func CreateNetworkProvider(args ArgsCreateNetworkProvider) (networkProvider, err
 		return nil, err
 	}
 
-	blockProcessor, err := process.NewBlockProcessor(&disabledExternalStorageConnector{}, baseProcessor)
+	blockProcessor, err := process.NewBlockProcessor(&components.DisabledExternalStorageConnector{}, baseProcessor)
 	if err != nil {
 		return nil, err
 	}
@@ -137,10 +138,12 @@ func CreateNetworkProvider(args ArgsCreateNetworkProvider) (networkProvider, err
 		GenesisTimestamp:            args.GenesisTimestamp,
 		ObserveNotFinalBlocks:       args.ObserveNotFinalBlocks,
 
-		BaseProcessor:        baseProcessor,
-		AccountProcessor:     accountProcessor,
-		TransactionProcessor: transactionProcessor,
-		BlockProcessor:       blockProcessor,
+		ObserverFacade: &components.ObserverFacade{
+			Processor:            baseProcessor,
+			AccountProcessor:     accountProcessor,
+			TransactionProcessor: transactionProcessor,
+			BlockProcessor:       blockProcessor,
+		},
 
 		Hasher:                hasher,
 		MarshalizerForHashing: marshalizerForHashing,
