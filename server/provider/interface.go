@@ -6,12 +6,12 @@ import (
 )
 
 type observerFacade interface {
-	CallGetRestEndPoint(address string, path string, value interface{}) (int, error)
-	ComputeShardId(addressBuff []byte) (uint32, error)
+	CallGetRestEndPoint(baseUrl string, path string, value interface{}) (int, error)
+	ComputeShardId(pubKey []byte) (uint32, error)
 	GetAccount(address string, options common.AccountQueryOptions) (*data.AccountModel, error)
 	SendTransaction(tx *data.Transaction) (int, string, error)
 	ComputeTransactionHash(tx *data.Transaction) (string, error)
-	GetTransactionByHashAndSenderAddress(txHash string, sndAddr string, withEvents bool) (*data.FullTransaction, int, error)
+	GetTransactionByHashAndSenderAddress(hash string, sender string, withEvents bool) (*data.FullTransaction, int, error)
 	GetBlockByHash(shardID uint32, hash string, options common.BlockQueryOptions) (*data.BlockApiResponse, error)
 	GetBlockByNonce(shardID uint32, nonce uint64, options common.BlockQueryOptions) (*data.BlockApiResponse, error)
 }
