@@ -221,12 +221,4 @@ describe("adder snippet", async function () {
         const transactionHash = await provider.sendTransaction(transaction);
         return { transaction, transactionHash };
     }
-
-    it("generate report", async function () {
-        await session.generateReport();
-    });
-
-    it("destroy session", async function () {
-        await session.destroy();
-    });
 });

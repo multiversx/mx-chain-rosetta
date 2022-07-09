@@ -188,12 +188,4 @@ describe("refunds", async function () {
         console.log("Bob to DNS:", transactionHash)
         await transactionWatcher.awaitCompleted(transactionBobToDNS);
     });
-
-    it("generate report", async function () {
-        await session.generateReport();
-    });
-
-    it("destroy session", async function () {
-        await session.destroy();
-    });
 });
