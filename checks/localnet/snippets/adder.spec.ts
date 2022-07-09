@@ -66,8 +66,6 @@ describe("adder snippet", async function () {
 
     it("add", async function () {
         this.timeout(FiveMinutesInMilliseconds);
-        // If the step fails, retry it (using a Mocha utility function).
-        this.retries(5);
 
         await session.syncUsers([bob]);
 
