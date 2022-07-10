@@ -2,7 +2,7 @@ package provider
 
 import "github.com/ElrondNetwork/elrond-proxy-go/data"
 
-func removeMiniblocks(block *data.Block, shouldRemove func(miniblock *data.MiniBlock) bool) {
+func removeMiniblocksFromBlock(block *data.Block, shouldRemove func(miniblock *data.MiniBlock) bool) {
 	miniblocksToKeep := make([]*data.MiniBlock, 0, len(block.MiniBlocks))
 
 	for _, miniblock := range block.MiniBlocks {

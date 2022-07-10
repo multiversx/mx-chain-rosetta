@@ -55,19 +55,19 @@ func hasOnlyNormalMiniblocks(block *data.Block) bool {
 }
 
 func removeProcessedMiniblocksOfBlock(block *data.Block) {
-	removeMiniblocks(block, func(miniblock *data.MiniBlock) bool {
+	removeMiniblocksFromBlock(block, func(miniblock *data.MiniBlock) bool {
 		return miniblock.ProcessingType == string(Processed)
 	})
 }
 
 func removeScheduledMiniblocks(block *data.Block) {
-	removeMiniblocks(block, func(miniblock *data.MiniBlock) bool {
+	removeMiniblocksFromBlock(block, func(miniblock *data.MiniBlock) bool {
 		return miniblock.ProcessingType == string(Scheduled)
 	})
 }
 
 func removeInvalidMiniblocks(block *data.Block) {
-	removeMiniblocks(block, func(miniblock *data.MiniBlock) bool {
+	removeMiniblocksFromBlock(block, func(miniblock *data.MiniBlock) bool {
 		return miniblock.Type == dataBlock.InvalidBlock.String()
 	})
 }
