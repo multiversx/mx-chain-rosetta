@@ -16,7 +16,7 @@
         },
         "stale_depth": 10,
         "broadcast_limit": 1,
-        "constructor_dsl_file": "localnet-construction-001.ros",
+        "constructor_dsl_file": "localnet-construction.ros",
         "prefunded_accounts": [
             {
                 "account_identifier": {
