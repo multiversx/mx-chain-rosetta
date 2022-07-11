@@ -3,7 +3,6 @@ package provider
 import (
 	"encoding/hex"
 	"errors"
-	"fmt"
 	"math/big"
 
 	"github.com/ElrondNetwork/elrond-go-core/core"
@@ -51,7 +50,6 @@ type ArgsNewNetworkProvider struct {
 	NativeCurrencySymbol        string
 	GenesisBlockHash            string
 	GenesisTimestamp            int64
-	ObserveNotFinalBlocks       bool
 }
 
 type networkProvider struct {
@@ -74,7 +72,6 @@ type networkProvider struct {
 	nativeCurrencySymbol        string
 	genesisBlockHash            string
 	genesisTimestamp            int64
-	observeNotFinalBlocks       bool
 
 	networkConfig *resources.NetworkConfig
 }
@@ -174,7 +171,6 @@ func NewNetworkProvider(args ArgsNewNetworkProvider) (*networkProvider, error) {
 		nativeCurrencySymbol:        args.NativeCurrencySymbol,
 		genesisBlockHash:            args.GenesisBlockHash,
 		genesisTimestamp:            args.GenesisTimestamp,
-		observeNotFinalBlocks:       args.ObserveNotFinalBlocks,
 
 		networkConfig: &resources.NetworkConfig{
 			ChainID:        args.ChainID,
@@ -291,10 +287,6 @@ func (provider *networkProvider) getLatestBlockNonce() (uint64, error) {
 		return 0, err
 	}
 
-	if provider.observeNotFinalBlocks {
-		return nodeStatus.HighestNonce, nil
-	}
-
 	return nodeStatus.HighestFinalNonce, nil
 }
 
@@ -395,14 +387,13 @@ func (provider *networkProvider) GetAccount(address string) (*data.AccountModel,
 		return nil, errIsOffline
 	}
 
-	onFinalBlock := !provider.observeNotFinalBlocks
-	options := common.AccountQueryOptions{OnFinalBlock: onFinalBlock}
+	options := common.AccountQueryOptions{OnFinalBlock: true}
 	account, err := provider.accountProcessor.GetAccount(address, options)
 	if err != nil {
 		return nil, newErrCannotGetAccount(address, err)
 	}
 
-	log.Trace(fmt.Sprintf("GetAccount(onFinal=%t)", onFinalBlock),
+	log.Trace("GetAccount()",
 		"address", account.Account.Address,
 		"balance", account.Account.Balance,
 		"block", account.BlockInfo.Nonce,
@@ -528,7 +519,6 @@ func (provider *networkProvider) LogDescription() {
 		"observedActualShard", provider.observedActualShard,
 		"observedProjectedShard", provider.observedProjectedShard,
 		"observedProjectedShardIsSet", provider.observedProjectedShardIsSet,
-		"observeNotFinalBlocks", provider.observeNotFinalBlocks,
 		"nativeCurrency", provider.nativeCurrencySymbol,
 	)
 }
