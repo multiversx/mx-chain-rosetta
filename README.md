@@ -116,9 +116,9 @@ Below, we build all the images (including for  _devnet_).
 ```
 cd $HOME/rosetta
 
-docker image build . -t elrond-rosetta:latest -f ./docker/Rosetta.dockerfile
-docker image build . -t elrond-rosetta-observer-devnet:latest -f ./docker/ObserverDevnet.dockerfile
-docker image build . -t elrond-rosetta-observer-mainnet:latest -f ./docker/ObserverMainnet.dockerfile
+docker image build --no-cache . -t elrond-rosetta:latest -f ./docker/Rosetta.dockerfile
+docker image build --no-cache . -t elrond-rosetta-observer-devnet:latest -f ./docker/ObserverDevnet.dockerfile
+docker image build --no-cache . -t elrond-rosetta-observer-mainnet:latest -f ./docker/ObserverMainnet.dockerfile
 ```
 
 ### Run rosetta
