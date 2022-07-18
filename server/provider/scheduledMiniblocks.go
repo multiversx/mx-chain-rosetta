@@ -62,7 +62,10 @@ func removeProcessedMiniblocksOfBlock(block *data.Block) {
 
 func removeScheduledMiniblocks(block *data.Block) {
 	removeMiniblocksFromBlock(block, func(miniblock *data.MiniBlock) bool {
-		return miniblock.ProcessingType == string(Scheduled)
+		hasProcessingTypeScheduled := miniblock.ProcessingType == string(Scheduled)
+		hasConstructionStateNotFinal := miniblock.ConstructionState != dataBlock.Final.String()
+
+		return hasProcessingTypeScheduled && hasConstructionStateNotFinal
 	})
 }
 
@@ -96,7 +99,10 @@ func findScheduledTransactionsHashes(block *data.Block) map[string]struct{} {
 	invalidTxs := make(map[string]struct{})
 
 	for _, miniblock := range block.MiniBlocks {
-		if miniblock.ProcessingType == string(Scheduled) {
+		hasProcessingTypeScheduled := miniblock.ProcessingType == string(Scheduled)
+		hasConstructionStateNotFinal := miniblock.ConstructionState != dataBlock.Final.String()
+
+		if hasProcessingTypeScheduled && hasConstructionStateNotFinal {
 			for _, tx := range miniblock.Transactions {
 				invalidTxs[tx.Hash] = struct{}{}
 			}
