@@ -13,6 +13,9 @@ RUN cp /go/pkg/mod/github.com/!elrond!network/arwen-wasm-vm@$(cat /go/elrond-go/
 # Enable DbLookupExtensions 
 RUN sed -i '/\[DbLookupExtensions\]/!b;n;c\\tEnabled = true' /go/elrond-config-devnet/config.toml
 
+# StartInEpochEnabled = false
+RUN sed -i 's/StartInEpochEnabled = true/StartInEpochEnabled = false/g' /go/elrond-config-devnet/config.toml
+
 # ===== SECOND STAGE ======
 FROM ubuntu:20.04
 
