@@ -1,7 +1,7 @@
 FROM golang:1.18 as builder
 
 # Clone repositories
-RUN git clone https://github.com/ElrondNetwork/rosetta.git --branch=development-07-18 --depth=1
+RUN git clone https://github.com/ElrondNetwork/rosetta.git --branch=main --depth=1
 
 # Build
 WORKDIR /go/rosetta/cmd/rosetta
