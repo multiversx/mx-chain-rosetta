@@ -25,7 +25,7 @@ func TestGatherInvalidTransactions(t *testing.T) {
 	block := &data.Block{
 		MiniBlocks: []*data.MiniBlock{
 			{
-				ProcessingType: string(Scheduled),
+				ProcessingType: dataBlock.Scheduled.String(),
 				Transactions: []*data.FullTransaction{
 					{Hash: "bbbb"},
 					{Hash: "cccc"},
@@ -44,7 +44,7 @@ func TestGatherInvalidTransactions(t *testing.T) {
 	nextBlock := &data.Block{
 		MiniBlocks: []*data.MiniBlock{
 			{
-				ProcessingType: string(Processed),
+				ProcessingType: dataBlock.Processed.String(),
 				Transactions: []*data.FullTransaction{
 					{Hash: "cccc"},
 				},
@@ -73,7 +73,7 @@ func TestGatherInvalidTransactions_WhenIntraShardIsMissingInPreviousBlock(t *tes
 	previousBlock := &data.Block{
 		MiniBlocks: []*data.MiniBlock{
 			{
-				ProcessingType: string(Scheduled),
+				ProcessingType: dataBlock.Scheduled.String(),
 				Transactions: []*data.FullTransaction{
 					{Hash: "aaaa"},
 				},
@@ -87,7 +87,7 @@ func TestGatherInvalidTransactions_WhenIntraShardIsMissingInPreviousBlock(t *tes
 	block := &data.Block{
 		MiniBlocks: []*data.MiniBlock{
 			{
-				ProcessingType: string(Scheduled),
+				ProcessingType: dataBlock.Scheduled.String(),
 				Transactions: []*data.FullTransaction{
 					{Hash: "abab"},
 					{Hash: "cccc"},
@@ -115,7 +115,7 @@ func TestGatherInvalidTransactions_WhenIntraShardIsMissingInPreviousBlock(t *tes
 	nextBlock := &data.Block{
 		MiniBlocks: []*data.MiniBlock{
 			{
-				ProcessingType: string(Processed),
+				ProcessingType: dataBlock.Processed.String(),
 				Transactions: []*data.FullTransaction{
 					{Hash: "cccc"},
 				},
@@ -133,4 +133,48 @@ func TestGatherInvalidTransactions_WhenIntraShardIsMissingInPreviousBlock(t *tes
 	invalidTxs := gatherInvalidTransactions(previousBlock, block, nextBlock)
 	require.Len(t, invalidTxs, 1)
 	require.Equal(t, "abab", invalidTxs[0].Hash)
+}
+
+func TestDoSimplifyBlockWithScheduledTransactions_WithRespectToConstructionState(t *testing.T) {
+	// Edge case on cross-shard miniblocks, both scheduled and final.
+
+	// Empty, trivial blocks at N-1 and N+1
+	previousBlock := &data.Block{MiniBlocks: []*data.MiniBlock{}}
+	nextBlock := &data.Block{MiniBlocks: []*data.MiniBlock{}}
+
+	// Scheduled & Final (won't be removed)
+	block := &data.Block{
+		MiniBlocks: []*data.MiniBlock{
+			{
+				ProcessingType:    dataBlock.Scheduled.String(),
+				ConstructionState: dataBlock.Final.String(),
+				Transactions: []*data.FullTransaction{
+					{Hash: "aaaa"},
+					{Hash: "bbbb"},
+				},
+			},
+		},
+	}
+
+	doSimplifyBlockWithScheduledTransactions(previousBlock, block, nextBlock)
+	require.Len(t, block.MiniBlocks, 1)
+	require.Len(t, block.MiniBlocks[0].Transactions, 2)
+	require.Equal(t, "aaaa", block.MiniBlocks[0].Transactions[0].Hash)
+	require.Equal(t, "bbbb", block.MiniBlocks[0].Transactions[1].Hash)
+
+	// Scheduled & !Final (will be removed)
+	block = &data.Block{
+		MiniBlocks: []*data.MiniBlock{
+			{
+				ProcessingType: dataBlock.Scheduled.String(),
+				Transactions: []*data.FullTransaction{
+					{Hash: "aaaa"},
+					{Hash: "bbbb"},
+				},
+			},
+		},
+	}
+
+	doSimplifyBlockWithScheduledTransactions(previousBlock, block, nextBlock)
+	require.Len(t, block.MiniBlocks, 0)
 }

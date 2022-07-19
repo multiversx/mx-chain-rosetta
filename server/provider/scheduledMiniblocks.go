@@ -20,6 +20,13 @@ func (provider *networkProvider) simplifyBlockWithScheduledTransactions(block *d
 		return err
 	}
 
+	doSimplifyBlockWithScheduledTransactions(previousBlock, block, nextBlock)
+
+	return nil
+}
+
+// TODO after review: Move below (diff is easier to follow as it is now)
+func doSimplifyBlockWithScheduledTransactions(previousBlock *data.Block, block *data.Block, nextBlock *data.Block) {
 	// Discard "processed" miniblocks in block N, since they already produced effects in N-1
 	removeProcessedMiniblocksOfBlock(block)
 
@@ -35,18 +42,19 @@ func (provider *networkProvider) simplifyBlockWithScheduledTransactions(block *d
 		Transactions: invalidTxs,
 	}
 	removeInvalidMiniblocks(block)
-	appendMiniblocksToBlock(block, []*data.MiniBlock{invalidMiniblock})
+
+	if len(invalidMiniblock.Transactions) > 0 {
+		appendMiniblocksToBlock(block, []*data.MiniBlock{invalidMiniblock})
+	}
 
 	// Discard "scheduled" miniblocks of N, since we've already brought the "processed" ones from N+1,
 	// and also handled the "invalid" ones.
 	removeScheduledMiniblocks(block)
-
-	return nil
 }
 
 func hasOnlyNormalMiniblocks(block *data.Block) bool {
 	for _, miniblock := range block.MiniBlocks {
-		if miniblock.ProcessingType != string(Normal) {
+		if miniblock.ProcessingType != dataBlock.Normal.String() {
 			return false
 		}
 	}
@@ -56,13 +64,13 @@ func hasOnlyNormalMiniblocks(block *data.Block) bool {
 
 func removeProcessedMiniblocksOfBlock(block *data.Block) {
 	removeMiniblocksFromBlock(block, func(miniblock *data.MiniBlock) bool {
-		return miniblock.ProcessingType == string(Processed)
+		return miniblock.ProcessingType == dataBlock.Processed.String()
 	})
 }
 
 func removeScheduledMiniblocks(block *data.Block) {
 	removeMiniblocksFromBlock(block, func(miniblock *data.MiniBlock) bool {
-		hasProcessingTypeScheduled := miniblock.ProcessingType == string(Scheduled)
+		hasProcessingTypeScheduled := miniblock.ProcessingType == dataBlock.Scheduled.String()
 		hasConstructionStateNotFinal := miniblock.ConstructionState != dataBlock.Final.String()
 
 		return hasProcessingTypeScheduled && hasConstructionStateNotFinal
@@ -99,7 +107,7 @@ func findScheduledTransactionsHashes(block *data.Block) map[string]struct{} {
 	invalidTxs := make(map[string]struct{})
 
 	for _, miniblock := range block.MiniBlocks {
-		hasProcessingTypeScheduled := miniblock.ProcessingType == string(Scheduled)
+		hasProcessingTypeScheduled := miniblock.ProcessingType == dataBlock.Scheduled.String()
 		hasConstructionStateNotFinal := miniblock.ConstructionState != dataBlock.Final.String()
 
 		if hasProcessingTypeScheduled && hasConstructionStateNotFinal {
@@ -116,7 +124,7 @@ func findProcessedMiniblocks(block *data.Block) []*data.MiniBlock {
 	foundMiniblocks := make([]*data.MiniBlock, 0, len(block.MiniBlocks))
 
 	for _, miniblock := range block.MiniBlocks {
-		if miniblock.ProcessingType == string(Processed) {
+		if miniblock.ProcessingType == dataBlock.Processed.String() {
 			foundMiniblocks = append(foundMiniblocks, miniblock)
 		}
 	}
