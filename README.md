@@ -4,7 +4,9 @@
 
 **Elrond Network runs on a sharded architecture** - transaction, data and network sharding are leveraged. 
 
-In the Rosetta implementation, we've decided to provide a single-shard perspective to the API consumer. That is, **one Rosetta instance** would observe **a single _regular_ shard** of the network (plus the _metachain_) - the shard is selected by the owner of the instance.
+In the Rosetta implementation, we've decided to provide a single-shard perspective to the API consumer. That is, **one Rosetta instance** would observe **a single _regular_ shard** of the network - the shard is selected by the owner of the instance.
+
+Currently, the Rosetta implementation only supports the native currency (EGLD), while custom currencies ([ESDTs](https://docs.elrond.com/developers/esdt-tokens)) will be supported in the near future. At that point, Rosetta would observe the _metachain_, as well.
 
 ## Standalone setup
 
@@ -62,14 +64,16 @@ Or, in order to start using the `offline` mode:
 
 ## Docker setup
 
-The Docker setup takes the shape of two Docker images (Elrond Rosetta and Elrond Observer), plus a Docker Compose definition to orchestrate the `1 + 1 + 1 + 1 = 4` containers: 
+The Docker setup takes the shape of two Docker images (Elrond Rosetta and Elrond Observer), plus a Docker Compose definition to orchestrate the `1 + 1 + 1 = 3` containers: 
 
  - one Elrond Rosetta instance in **online mode**
  - one Elrond Rosetta instance in **offline mode**
  - one Elrond observer for a chosen regular shard
- - one Elrond observer for the _metachain_ (necessary for some pieces of information such as [ESDT](https://docs.elrond.com/developers/esdt-tokens) properties)
- 
-This `1 + 1 + 1 + 1 = 4` setup is usually referred to as an **Elrond Rosetta Squad**.
+  
+This `1 + 1 + 1 = 3` setup is usually referred to as an **Elrond Rosetta Squad**.
+
+Currently, the Rosetta implementation only supports the native currency (EGLD), while custom currencies ([ESDTs](https://docs.elrond.com/developers/esdt-tokens)) will be supported in the near future. At that point, the Docker setup would contain `1 + 1 + 1 + 1 = 4` containers - the additional container being an Elrond observer for the _metachain_ (necessary for some pieces of information such as ESDT properties).
+
 
 ### Give permissions to the current user
 
@@ -191,7 +195,6 @@ Stop the running containers:
 
 ```
 docker stop docker-observer-1
-docker stop docker-observer-metachain-1
 docker stop docker-rosetta-1
 docker stop docker-rosetta-offline-1
 ```
