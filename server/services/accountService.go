@@ -8,15 +8,17 @@ import (
 )
 
 type accountService struct {
-	provider  NetworkProvider
-	extension *networkProviderExtension
+	provider   NetworkProvider
+	extension  *networkProviderExtension
+	errFactory *errFactory
 }
 
 // NewAccountService will create a new instance of accountService
 func NewAccountService(provider NetworkProvider) server.AccountAPIServicer {
 	return &accountService{
-		provider:  provider,
-		extension: newNetworkProviderExtension(provider),
+		provider:   provider,
+		extension:  newNetworkProviderExtension(provider),
+		errFactory: newErrFactory(),
 	}
 }
 
@@ -26,12 +28,12 @@ func (service *accountService) AccountBalance(
 	request *types.AccountBalanceRequest,
 ) (*types.AccountBalanceResponse, *types.Error) {
 	if request.AccountIdentifier.Address == "" {
-		return nil, ErrInvalidAccountAddress
+		return nil, service.errFactory.newErr(ErrInvalidAccountAddress)
 	}
 
 	accountModel, err := service.provider.GetAccount(request.AccountIdentifier.Address)
 	if err != nil {
-		return nil, wrapErr(ErrUnableToGetAccount, err)
+		return nil, service.errFactory.newErrWithOriginal(ErrUnableToGetAccount, err)
 	}
 
 	response := &types.AccountBalanceResponse{
@@ -50,5 +52,5 @@ func (service *accountService) AccountBalance(
 
 // AccountCoins implements the /account/coins endpoint.
 func (service *accountService) AccountCoins(_ context.Context, _ *types.AccountCoinsRequest) (*types.AccountCoinsResponse, *types.Error) {
-	return nil, ErrNotImplemented
+	return nil, service.errFactory.newErr(ErrNotImplemented)
 }

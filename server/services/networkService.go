@@ -9,15 +9,17 @@ import (
 )
 
 type networkService struct {
-	provider  NetworkProvider
-	extension *networkProviderExtension
+	provider   NetworkProvider
+	extension  *networkProviderExtension
+	errFactory *errFactory
 }
 
 // NewNetworkService creates a new instance of a networkService
 func NewNetworkService(networkProvider NetworkProvider) server.NetworkAPIServicer {
 	return &networkService{
-		provider:  networkProvider,
-		extension: newNetworkProviderExtension(networkProvider),
+		provider:   networkProvider,
+		extension:  newNetworkProviderExtension(networkProvider),
+		errFactory: newErrFactory(),
 	}
 }
 
@@ -44,12 +46,12 @@ func (service *networkService) NetworkStatus(
 	_ *types.NetworkRequest,
 ) (*types.NetworkStatusResponse, *types.Error) {
 	if service.provider.IsOffline() {
-		return nil, ErrOfflineMode
+		return nil, service.errFactory.newErr(ErrOfflineMode)
 	}
 
 	latestBlockSummary, err := service.provider.GetLatestBlockSummary()
 	if err != nil {
-		return nil, wrapErr(ErrUnableToGetBlock, err)
+		return nil, service.errFactory.newErrWithOriginal(ErrUnableToGetBlock, err)
 	}
 
 	networkStatusResponse := &types.NetworkStatusResponse{
@@ -79,7 +81,7 @@ func (service *networkService) NetworkOptions(
 		Allow: &types.Allow{
 			OperationStatuses: supportedOperationStatuses,
 			OperationTypes:    SupportedOperationTypes,
-			Errors:            Errors,
+			Errors:            service.errFactory.getPossibleErrors(),
 		},
 	}, nil
 }

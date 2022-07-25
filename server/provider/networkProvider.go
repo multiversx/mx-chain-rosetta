@@ -3,6 +3,7 @@ package provider
 import (
 	"encoding/hex"
 	"errors"
+	"fmt"
 	"math/big"
 
 	"github.com/ElrondNetwork/elrond-go-core/core"
@@ -31,6 +32,7 @@ var (
 	urlPathGetNetworkConfig   = "/network/config"
 	urlPathGetNodeStatus      = "/node/status"
 	urlPathGetGenesisBalances = "/network/genesis-balances"
+	urlPathGetAccount         = "/address/%s"
 )
 
 var log = logger.GetOrCreate("server/provider")
@@ -388,10 +390,18 @@ func (provider *networkProvider) GetAccount(address string) (*data.AccountModel,
 	}
 
 	options := common.AccountQueryOptions{OnFinalBlock: true}
-	account, err := provider.accountProcessor.GetAccount(address, options)
+	url := common.BuildUrlWithAccountQueryOptions(fmt.Sprintf(urlPathGetAccount, address), options)
+	response := &data.AccountApiResponse{}
+
+	_, err := provider.baseProcessor.CallGetRestEndPoint(provider.observerUrl, url, &response)
 	if err != nil {
 		return nil, newErrCannotGetAccount(address, err)
 	}
+	if response.Error != "" {
+		return nil, newErrCannotGetAccount(address, errors.New(response.Error))
+	}
+
+	account := response.Data
 
 	log.Trace("GetAccount()",
 		"address", account.Account.Address,
@@ -401,7 +411,7 @@ func (provider *networkProvider) GetAccount(address string) (*data.AccountModel,
 		"blockRootHash", account.BlockInfo.RootHash,
 	)
 
-	return account, nil
+	return &account, nil
 }
 
 // IsAddressObserved returns whether the address is observed (i.e. is located in an observed shard)
