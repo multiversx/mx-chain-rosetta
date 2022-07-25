@@ -10,11 +10,11 @@ RUN go build -i -v -ldflags="-X main.appVersion=$(git -C /go/elrond-config-devne
 
 RUN cp /go/pkg/mod/github.com/!elrond!network/arwen-wasm-vm@$(cat /go/elrond-go/go.mod | grep arwen-wasm-vm | sed 's/.* //' | tail -n 1)/wasmer/libwasmer_linux_amd64.so /lib/libwasmer_linux_amd64.so
 
-# Enable DbLookupExtensions 
-RUN sed -i '/\[DbLookupExtensions\]/!b;n;c\\tEnabled = true' /go/elrond-config-devnet/config.toml
-
-# StartInEpochEnabled = false
-RUN sed -i 's/StartInEpochEnabled = true/StartInEpochEnabled = false/g' /go/elrond-config-devnet/config.toml
+# Adjust configuration files
+RUN apt-get update && apt-get -y install python3-pip && pip3 install toml
+RUN wget -O adjust_config.py https://raw.githubusercontent.com/ElrondNetwork/rosetta/main/docker/adjust_config.py && \
+    python3 adjust_config.py --mode=main --file=/go/elrond-config-devnet/config.toml && \
+    python3 adjust_config.py --mode=prefs --file=/go/elrond-config-devnet/prefs.toml
 
 # ===== SECOND STAGE ======
 FROM ubuntu:20.04
