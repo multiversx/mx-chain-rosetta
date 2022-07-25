@@ -31,10 +31,9 @@ const (
 )
 
 type errPrototype struct {
-	code        errCode
-	message     string
-	retriable   bool
-	description string
+	code      errCode
+	message   string
+	retriable bool
 }
 
 type errFactory struct {
@@ -163,10 +162,9 @@ func (factory *errFactory) getPossibleErrors() []*types.Error {
 
 	for _, prototype := range factory.prototypes {
 		possibleErrors = append(possibleErrors, &types.Error{
-			Code:        int32(prototype.code),
-			Message:     prototype.message,
-			Retriable:   prototype.retriable,
-			Description: &prototype.description,
+			Code:      int32(prototype.code),
+			Message:   prototype.message,
+			Retriable: prototype.retriable,
 		})
 	}
 
@@ -186,10 +184,9 @@ func (factory *errFactory) newErr(code errCode) *types.Error {
 	prototype := factory.getPrototypeByCode(code)
 
 	return &types.Error{
-		Code:        int32(code),
-		Message:     prototype.message,
-		Retriable:   prototype.retriable,
-		Description: &prototype.description,
+		Code:      int32(code),
+		Message:   prototype.message,
+		Retriable: prototype.retriable,
 	}
 }
 
