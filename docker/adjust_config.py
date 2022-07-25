@@ -38,6 +38,8 @@ def main(cli_args: List[str]):
     with open(file, "w") as f:
         toml.dump(data, f)
 
+    print(f"Configuration adjusted: mode = {mode}, file = {file}")
+
 
 if __name__ == "__main__":
     main(sys.argv[1:])
