@@ -20,7 +20,7 @@
     "start_index": 1399026,
     "active_reconciliation_concurrency": 64,
     "inactive_reconciliation_concurrency": 32,
-    "inactive_reconciliation_frequency": 1,
+    "inactive_reconciliation_frequency": 16,
     "log_blocks": false,
     "log_transactions": true,
     "log_balance_changes": true,
