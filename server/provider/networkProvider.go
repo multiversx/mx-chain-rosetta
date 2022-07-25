@@ -239,7 +239,7 @@ func (provider *networkProvider) GetGenesisBalances() ([]*resources.GenesisBalan
 
 	_, err := provider.baseProcessor.CallGetRestEndPoint(provider.observerUrl, urlPathGetGenesisBalances, &response)
 	if err != nil {
-		return nil, err
+		return nil, convertStructuredApiErrToFlatErr(err)
 	}
 	if response.Error != "" {
 		return nil, errors.New(response.Error)
@@ -301,7 +301,7 @@ func (provider *networkProvider) getNodeStatus() (*resources.NodeStatus, error) 
 
 	_, err := provider.baseProcessor.CallGetRestEndPoint(provider.observerUrl, urlPathGetNodeStatus, &response)
 	if err != nil {
-		return nil, err
+		return nil, convertStructuredApiErrToFlatErr(err)
 	}
 	if response.Error != "" {
 		return nil, errors.New(response.Error)
@@ -327,6 +327,7 @@ func (provider *networkProvider) GetBlockByNonce(nonce uint64) (*data.Block, err
 
 	block, err := provider.doGetBlockByNonce(nonce)
 	if err != nil {
+		log.Warn("GetBlockByNonce()", "nonce", nonce, "err", err)
 		return nil, err
 	}
 
@@ -342,7 +343,7 @@ func (provider *networkProvider) doGetBlockByNonce(nonce uint64) (*data.Block, e
 
 	response, err := provider.blockProcessor.GetBlockByNonce(provider.observedActualShard, nonce, queryOptions)
 	if err != nil {
-		return nil, newErrCannotGetBlockByNonce(nonce, err)
+		return nil, newErrCannotGetBlockByNonce(nonce, convertStructuredApiErrToFlatErr(err))
 	}
 	if response.Error != "" {
 		return nil, newErrCannotGetBlockByNonce(nonce, errors.New(response.Error))
@@ -359,6 +360,7 @@ func (provider *networkProvider) GetBlockByHash(hash string) (*data.Block, error
 
 	block, err := provider.doGetBlockByHash(hash)
 	if err != nil {
+		log.Warn("GetBlockByHash()", "hash", hash, "err", err)
 		return nil, err
 	}
 
@@ -374,7 +376,7 @@ func (provider *networkProvider) doGetBlockByHash(hash string) (*data.Block, err
 
 	response, err := provider.blockProcessor.GetBlockByHash(provider.observedActualShard, hash, queryOptions)
 	if err != nil {
-		return nil, newErrCannotGetBlockByHash(hash, err)
+		return nil, newErrCannotGetBlockByHash(hash, convertStructuredApiErrToFlatErr(err))
 	}
 	if response.Error != "" {
 		return nil, newErrCannotGetBlockByHash(hash, errors.New(response.Error))
@@ -389,19 +391,11 @@ func (provider *networkProvider) GetAccount(address string) (*data.AccountModel,
 		return nil, errIsOffline
 	}
 
-	options := common.AccountQueryOptions{OnFinalBlock: true}
-	url := common.BuildUrlWithAccountQueryOptions(fmt.Sprintf(urlPathGetAccount, address), options)
-	response := &data.AccountApiResponse{}
-
-	_, err := provider.baseProcessor.CallGetRestEndPoint(provider.observerUrl, url, &response)
+	account, err := provider.doGetAccount(address)
 	if err != nil {
-		return nil, newErrCannotGetAccount(address, err)
+		log.Warn("GetAccount()", "address", address, "err", err)
+		return nil, err
 	}
-	if response.Error != "" {
-		return nil, newErrCannotGetAccount(address, errors.New(response.Error))
-	}
-
-	account := response.Data
 
 	log.Trace("GetAccount()",
 		"address", account.Account.Address,
@@ -411,7 +405,23 @@ func (provider *networkProvider) GetAccount(address string) (*data.AccountModel,
 		"blockRootHash", account.BlockInfo.RootHash,
 	)
 
-	return &account, nil
+	return account, nil
+}
+
+func (provider *networkProvider) doGetAccount(address string) (*data.AccountModel, error) {
+	options := common.AccountQueryOptions{OnFinalBlock: true}
+	url := common.BuildUrlWithAccountQueryOptions(fmt.Sprintf(urlPathGetAccount, address), options)
+	response := &data.AccountApiResponse{}
+
+	_, err := provider.baseProcessor.CallGetRestEndPoint(provider.observerUrl, url, &response)
+	if err != nil {
+		return nil, newErrCannotGetAccount(address, convertStructuredApiErrToFlatErr(err))
+	}
+	if response.Error != "" {
+		return nil, newErrCannotGetAccount(address, errors.New(response.Error))
+	}
+
+	return &response.Data, nil
 }
 
 // IsAddressObserved returns whether the address is observed (i.e. is located in an observed shard)
@@ -486,6 +496,7 @@ func (provider *networkProvider) SendTransaction(tx *data.Transaction) (string, 
 
 	_, hash, err := provider.transactionProcessor.SendTransaction(tx)
 	if err != nil {
+		log.Warn("SendTransaction()", "sender", tx.Sender, "nonce", tx.Nonce, "err", err)
 		return "", err
 	}
 
