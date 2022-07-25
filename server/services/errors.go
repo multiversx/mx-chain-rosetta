@@ -173,6 +173,15 @@ func (factory *errFactory) getPossibleErrors() []*types.Error {
 	return possibleErrors
 }
 
+func (factory *errFactory) newErrWithOriginal(code errCode, originalError error) *types.Error {
+	err := factory.newErr(code)
+	err.Details = map[string]interface{}{
+		"originalError": originalError.Error(),
+	}
+
+	return err
+}
+
 func (factory *errFactory) newErr(code errCode) *types.Error {
 	prototype := factory.getPrototypeByCode(code)
 
@@ -182,15 +191,6 @@ func (factory *errFactory) newErr(code errCode) *types.Error {
 		Retriable:   prototype.retriable,
 		Description: &prototype.description,
 	}
-}
-
-func (factory *errFactory) newErrWithOriginal(code errCode, originalError error) *types.Error {
-	err := factory.newErr(code)
-	err.Details = map[string]interface{}{
-		"originalError": originalError.Error(),
-	}
-
-	return err
 }
 
 func (factory *errFactory) getPrototypeByCode(code errCode) errPrototype {
