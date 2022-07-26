@@ -29,7 +29,6 @@ var (
 	notApplicableConfigurationFilePath   = "not applicable"
 	notApplicableFullHistoryNodesMessage = "not applicable"
 
-	urlPathGetNetworkConfig   = "/network/config"
 	urlPathGetNodeStatus      = "/node/status"
 	urlPathGetGenesisBalances = "/network/genesis-balances"
 	urlPathGetAccount         = "/address/%s"
@@ -331,7 +330,11 @@ func (provider *networkProvider) GetBlockByNonce(nonce uint64) (*data.Block, err
 		return nil, err
 	}
 
-	provider.simplifyBlockWithScheduledTransactions(block)
+	err = provider.simplifyBlockWithScheduledTransactions(block)
+	if err != nil {
+		return nil, err
+	}
+
 	return block, nil
 }
 
@@ -364,7 +367,11 @@ func (provider *networkProvider) GetBlockByHash(hash string) (*data.Block, error
 		return nil, err
 	}
 
-	provider.simplifyBlockWithScheduledTransactions(block)
+	err = provider.simplifyBlockWithScheduledTransactions(block)
+	if err != nil {
+		return nil, err
+	}
+
 	return block, nil
 }
 
