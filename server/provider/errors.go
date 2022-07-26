@@ -37,7 +37,7 @@ func convertStructuredApiErrToFlatErr(apiErr error) error {
 		return apiErr
 	}
 
-	flatErrString := fmt.Sprintf("%s; %s", structuredApiErr.Error, structuredApiErr.Code)
+	flatErrString := fmt.Sprintf("%s: %s", structuredApiErr.Error, structuredApiErr.Code)
 	flatErr := errors.New(flatErrString)
 	return flatErr
 }
