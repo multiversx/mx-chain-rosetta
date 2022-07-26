@@ -13,8 +13,9 @@ import (
 )
 
 type constructionService struct {
-	provider  NetworkProvider
-	extension *networkProviderExtension
+	provider   NetworkProvider
+	extension  *networkProviderExtension
+	errFactory *errFactory
 }
 
 // NewConstructionService creates a new instance of an constructionService
@@ -22,8 +23,9 @@ func NewConstructionService(
 	networkProvider NetworkProvider,
 ) server.ConstructionAPIServicer {
 	return &constructionService{
-		provider:  networkProvider,
-		extension: newNetworkProviderExtension(networkProvider),
+		provider:   networkProvider,
+		extension:  newNetworkProviderExtension(networkProvider),
+		errFactory: newErrFactory(),
 	}
 }
 
@@ -36,7 +38,7 @@ func (service *constructionService) ConstructionPreprocess(
 		return nil, err
 	}
 
-	options, err := getOptionsFromOperations(request.Operations)
+	options, err := service.getOptionsFromOperations(request.Operations)
 	if err != nil {
 		return nil, err
 	}
@@ -44,7 +46,7 @@ func (service *constructionService) ConstructionPreprocess(
 	if len(request.MaxFee) > 0 {
 		maxFee := request.MaxFee[0]
 		if !service.extension.isNativeCurrency(maxFee.Currency) {
-			return nil, wrapErr(ErrConstructionCheck, errors.New("invalid currency"))
+			return nil, service.errFactory.newErrWithOriginal(ErrConstructionCheck, errors.New("invalid currency"))
 		}
 
 		options["maxFee"] = maxFee.Value
@@ -71,26 +73,26 @@ func (service *constructionService) ConstructionPreprocess(
 
 func (service *constructionService) checkOperationsAndMeta(ops []*types.Operation, meta map[string]interface{}) *types.Error {
 	if len(ops) == 0 {
-		return wrapErr(ErrConstructionCheck, errors.New("invalid number of operations"))
+		return service.errFactory.newErrWithOriginal(ErrConstructionCheck, errors.New("invalid number of operations"))
 	}
 
 	for _, op := range ops {
 		if !checkOperationsType(op) {
-			return wrapErr(ErrConstructionCheck, errors.New("unsupported operation type"))
+			return service.errFactory.newErrWithOriginal(ErrConstructionCheck, errors.New("unsupported operation type"))
 		}
 		if op.Amount.Currency.Symbol != service.extension.getNativeCurrency().Symbol {
-			return wrapErr(ErrConstructionCheck, errors.New("unsupported currency symbol"))
+			return service.errFactory.newErrWithOriginal(ErrConstructionCheck, errors.New("unsupported currency symbol"))
 		}
 	}
 
 	if meta["gasLimit"] != nil {
 		if !checkValueIsOk(meta["gasLimit"]) {
-			return wrapErr(ErrConstructionCheck, errors.New("invalid metadata gas limit"))
+			return service.errFactory.newErrWithOriginal(ErrConstructionCheck, errors.New("invalid metadata gas limit"))
 		}
 	}
 	if meta["gasPrice"] != nil {
 		if !checkValueIsOk(meta["gasPrice"]) {
-			return wrapErr(ErrConstructionCheck, errors.New("invalid metadata gas price"))
+			return service.errFactory.newErrWithOriginal(ErrConstructionCheck, errors.New("invalid metadata gas price"))
 		}
 	}
 
@@ -116,9 +118,9 @@ func checkOperationsType(op *types.Operation) bool {
 	return false
 }
 
-func getOptionsFromOperations(ops []*types.Operation) (objectsMap, *types.Error) {
+func (service *constructionService) getOptionsFromOperations(ops []*types.Operation) (objectsMap, *types.Error) {
 	if len(ops) < 2 {
-		return nil, wrapErr(ErrConstructionCheck, errors.New("invalid number of operations"))
+		return nil, service.errFactory.newErrWithOriginal(ErrConstructionCheck, errors.New("invalid number of operations"))
 	}
 	options := make(objectsMap)
 	options["sender"] = ops[0].Account.Address
@@ -135,23 +137,23 @@ func (service *constructionService) ConstructionMetadata(
 	request *types.ConstructionMetadataRequest,
 ) (*types.ConstructionMetadataResponse, *types.Error) {
 	if service.provider.IsOffline() {
-		return nil, ErrOfflineMode
+		return nil, service.errFactory.newErr(ErrOfflineMode)
 	}
 
 	txType, ok := request.Options["type"].(string)
 	if !ok {
-		return nil, wrapErr(ErrInvalidInputParam, errors.New("invalid operation type"))
+		return nil, service.errFactory.newErrWithOriginal(ErrInvalidInputParam, errors.New("invalid operation type"))
 	}
 
-	metadata, errS := service.computeMetadata(request.Options)
-	if errS != nil {
-		return nil, errS
+	metadata, err := service.computeMetadata(request.Options)
+	if err != nil {
+		return nil, err
 	}
 
 	networkConfig := service.provider.GetNetworkConfig()
-	suggestedFee, gasPrice, gasLimit, errS := computeSuggestedFeeAndGas(txType, request.Options, networkConfig)
-	if errS != nil {
-		return nil, errS
+	suggestedFee, gasPrice, gasLimit, err := service.computeSuggestedFeeAndGas(txType, request.Options, networkConfig)
+	if err != nil {
+		return nil, err
 	}
 
 	metadata["gasLimit"] = gasLimit
@@ -174,13 +176,13 @@ func (service *constructionService) computeMetadata(options objectsMap) (objects
 
 	var ok bool
 	if metadata["sender"], ok = options["sender"]; !ok {
-		return nil, wrapErr(ErrMalformedValue, errors.New("sender address missing"))
+		return nil, service.errFactory.newErrWithOriginal(ErrMalformedValue, errors.New("sender address missing"))
 	}
 	if metadata["receiver"], ok = options["receiver"]; !ok {
-		return nil, wrapErr(ErrMalformedValue, errors.New("receiver address missing"))
+		return nil, service.errFactory.newErrWithOriginal(ErrMalformedValue, errors.New("receiver address missing"))
 	}
 	if metadata["value"], ok = options["value"]; !ok {
-		return nil, wrapErr(ErrMalformedValue, errors.New("value missing"))
+		return nil, service.errFactory.newErrWithOriginal(ErrMalformedValue, errors.New("value missing"))
 	}
 
 	metadata["chainID"] = service.provider.GetChainID()
@@ -188,16 +190,16 @@ func (service *constructionService) computeMetadata(options objectsMap) (objects
 
 	senderAddressI, ok := options["sender"]
 	if !ok {
-		return nil, wrapErr(ErrInvalidInputParam, errors.New("cannot find sender address"))
+		return nil, service.errFactory.newErrWithOriginal(ErrInvalidInputParam, errors.New("cannot find sender address"))
 	}
 	senderAddress, ok := senderAddressI.(string)
 	if !ok {
-		return nil, wrapErr(ErrMalformedValue, errors.New("sender address is invalid"))
+		return nil, service.errFactory.newErrWithOriginal(ErrMalformedValue, errors.New("sender address is invalid"))
 	}
 
 	account, err := service.provider.GetAccount(senderAddress)
 	if err != nil {
-		return nil, wrapErr(ErrUnableToGetAccount, err)
+		return nil, service.errFactory.newErrWithOriginal(ErrUnableToGetAccount, err)
 	}
 
 	metadata["nonce"] = account.Account.Nonce
@@ -216,12 +218,12 @@ func (service *constructionService) ConstructionPayloads(
 
 	tx, err := createTransaction(request)
 	if err != nil {
-		return nil, wrapErr(ErrMalformedValue, err)
+		return nil, service.errFactory.newErrWithOriginal(ErrMalformedValue, err)
 	}
 
 	txJson, err := json.Marshal(tx)
 	if err != nil {
-		return nil, wrapErr(ErrMalformedValue, err)
+		return nil, service.errFactory.newErrWithOriginal(ErrMalformedValue, err)
 	}
 
 	signer := request.Operations[0].Account.Address
@@ -246,7 +248,7 @@ func (service *constructionService) ConstructionParse(
 ) (*types.ConstructionParseResponse, *types.Error) {
 	tx, err := getTxFromRequest(request.Transaction)
 	if err != nil {
-		return nil, wrapErr(ErrMalformedValue, err)
+		return nil, service.errFactory.newErrWithOriginal(ErrMalformedValue, err)
 	}
 
 	var signers []*types.AccountIdentifier
@@ -318,18 +320,18 @@ func (service *constructionService) ConstructionCombine(
 ) (*types.ConstructionCombineResponse, *types.Error) {
 	tx, err := getTxFromRequest(request.UnsignedTransaction)
 	if err != nil {
-		return nil, wrapErr(ErrMalformedValue, err)
+		return nil, service.errFactory.newErrWithOriginal(ErrMalformedValue, err)
 	}
 
 	if len(request.Signatures) != 1 {
-		return nil, ErrInvalidInputParam
+		return nil, service.errFactory.newErr(ErrInvalidInputParam)
 	}
 
 	tx.Signature = hex.EncodeToString(request.Signatures[0].Bytes)
 
 	signedTxBytes, err := json.Marshal(tx)
 	if err != nil {
-		return nil, wrapErr(ErrMalformedValue, err)
+		return nil, service.errFactory.newErrWithOriginal(ErrMalformedValue, err)
 	}
 
 	return &types.ConstructionCombineResponse{
@@ -343,7 +345,7 @@ func (service *constructionService) ConstructionDerive(
 	request *types.ConstructionDeriveRequest,
 ) (*types.ConstructionDeriveResponse, *types.Error) {
 	if request.PublicKey.CurveType != types.Edwards25519 {
-		return nil, ErrUnsupportedCurveType
+		return nil, service.errFactory.newErr(ErrUnsupportedCurveType)
 	}
 
 	pubKey := request.PublicKey.Bytes
@@ -362,12 +364,12 @@ func (service *constructionService) ConstructionHash(
 ) (*types.TransactionIdentifierResponse, *types.Error) {
 	elrondTx, err := getTxFromRequest(request.SignedTransaction)
 	if err != nil {
-		return nil, wrapErr(ErrMalformedValue, err)
+		return nil, service.errFactory.newErrWithOriginal(ErrMalformedValue, err)
 	}
 
 	txHash, err := service.provider.ComputeTransactionHash(elrondTx)
 	if err != nil {
-		return nil, wrapErr(ErrMalformedValue, err)
+		return nil, service.errFactory.newErrWithOriginal(ErrMalformedValue, err)
 	}
 
 	return &types.TransactionIdentifierResponse{
@@ -383,17 +385,17 @@ func (service *constructionService) ConstructionSubmit(
 	request *types.ConstructionSubmitRequest,
 ) (*types.TransactionIdentifierResponse, *types.Error) {
 	if service.provider.IsOffline() {
-		return nil, ErrOfflineMode
+		return nil, service.errFactory.newErr(ErrOfflineMode)
 	}
 
 	elrondTx, err := getTxFromRequest(request.SignedTransaction)
 	if err != nil {
-		return nil, wrapErr(ErrMalformedValue, err)
+		return nil, service.errFactory.newErrWithOriginal(ErrMalformedValue, err)
 	}
 
 	txHash, err := service.provider.SendTransaction(elrondTx)
 	if err != nil {
-		return nil, wrapErr(ErrUnableToSubmitTransaction, err)
+		return nil, service.errFactory.newErrWithOriginal(ErrUnableToSubmitTransaction, err)
 	}
 
 	return &types.TransactionIdentifierResponse{

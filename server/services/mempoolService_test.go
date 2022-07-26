@@ -17,7 +17,7 @@ func TestMempoolService_MempoolTransactionCannotFindTxInPool(t *testing.T) {
 	service := NewMempoolService(networkProvider)
 
 	txResponse, err := getMempoolTransactionByHash(service, "aaaa")
-	require.Equal(t, ErrTransactionIsNotInPool.Code, err.Code)
+	require.Equal(t, ErrTransactionIsNotInPool, errCode(err.Code))
 	require.Nil(t, txResponse)
 }
 

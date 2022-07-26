@@ -9,6 +9,7 @@ import (
 
 type mempoolService struct {
 	provider       NetworkProvider
+	errFactory     *errFactory
 	txsTransformer *transactionsTransformer
 }
 
@@ -16,13 +17,14 @@ type mempoolService struct {
 func NewMempoolService(provider NetworkProvider) server.MempoolAPIServicer {
 	return &mempoolService{
 		provider:       provider,
+		errFactory:     newErrFactory(),
 		txsTransformer: newTransactionsTransformer(provider),
 	}
 }
 
 // Mempool is not implemented yet
 func (service *mempoolService) Mempool(context.Context, *types.NetworkRequest) (*types.MempoolResponse, *types.Error) {
-	return nil, ErrNotImplemented
+	return nil, newErrFactory().newErr(ErrNotImplemented)
 }
 
 // MempoolTransaction will return operations for a transaction that is in pool
@@ -32,15 +34,15 @@ func (service *mempoolService) MempoolTransaction(
 ) (*types.MempoolTransactionResponse, *types.Error) {
 	tx, err := service.provider.GetMempoolTransactionByHash(request.TransactionIdentifier.Hash)
 	if err != nil {
-		return nil, wrapErr(ErrCannotParsePoolTransaction, err)
+		return nil, service.errFactory.newErrWithOriginal(ErrCannotParsePoolTransaction, err)
 	}
 	if tx == nil {
-		return nil, ErrTransactionIsNotInPool
+		return nil, service.errFactory.newErr(ErrTransactionIsNotInPool)
 	}
 
 	rosettaTx := service.txsTransformer.mempoolMoveBalanceTxToRosettaTx(tx)
 	if err != nil {
-		return nil, ErrCannotParsePoolTransaction
+		return nil, service.errFactory.newErr(ErrCannotParsePoolTransaction)
 	}
 
 	return &types.MempoolTransactionResponse{

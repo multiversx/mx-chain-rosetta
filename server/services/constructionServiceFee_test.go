@@ -5,10 +5,16 @@ import (
 	"testing"
 
 	"github.com/ElrondNetwork/rosetta/server/resources"
+	"github.com/ElrondNetwork/rosetta/testscommon"
 	"github.com/stretchr/testify/require"
 )
 
 func TestEstimateGasLimit(t *testing.T) {
+	t.Parallel()
+
+	networkProvider := testscommon.NewNetworkProviderMock()
+	service := NewConstructionService(networkProvider).(*constructionService)
+
 	minGasLimit := uint64(1000)
 	gasPerDataByte := uint64(100)
 	networkConfig := &resources.NetworkConfig{
@@ -23,22 +29,25 @@ func TestEstimateGasLimit(t *testing.T) {
 
 	expectedGasLimit := minGasLimit + uint64(len(dataField))*gasPerDataByte
 
-	gasLimit, err := estimateGasLimit(opTransfer, networkConfig, options)
+	gasLimit, err := service.estimateGasLimit(opTransfer, networkConfig, options)
 	require.Nil(t, err)
 	require.Equal(t, expectedGasLimit, gasLimit)
 
-	gasLimit, err = estimateGasLimit(opTransfer, networkConfig, nil)
+	gasLimit, err = service.estimateGasLimit(opTransfer, networkConfig, nil)
 	require.Nil(t, err)
 	require.Equal(t, minGasLimit, gasLimit)
 
 	// Unsupported operation type (you cannot estimate gasLimit for e.g. a reward operation)
-	gasLimit, err = estimateGasLimit(opReward, networkConfig, nil)
-	require.Equal(t, ErrNotImplemented, err)
+	gasLimit, err = service.estimateGasLimit(opReward, networkConfig, nil)
+	require.Equal(t, ErrNotImplemented, errCode(err.Code))
 	require.Equal(t, uint64(0), gasLimit)
 }
 
 func TestProvidedGasLimit(t *testing.T) {
 	t.Parallel()
+
+	networkProvider := testscommon.NewNetworkProviderMock()
+	service := NewConstructionService(networkProvider).(*constructionService)
 
 	minGasLimit := uint64(1000)
 	gasPerDataByte := uint64(100)
@@ -52,18 +61,21 @@ func TestProvidedGasLimit(t *testing.T) {
 		"data": dataField,
 	}
 
-	err := checkProvidedGasLimit(uint64(900), opTransfer, options, networkConfig)
-	require.Equal(t, ErrInsufficientGasLimit, err)
+	err := service.checkProvidedGasLimit(uint64(900), opTransfer, options, networkConfig)
+	require.Equal(t, ErrInsufficientGasLimit, errCode(err.Code))
 
-	err = checkProvidedGasLimit(uint64(900), opReward, options, networkConfig)
-	require.Equal(t, ErrNotImplemented, err)
+	err = service.checkProvidedGasLimit(uint64(900), opReward, options, networkConfig)
+	require.Equal(t, ErrNotImplemented, errCode(err.Code))
 
-	err = checkProvidedGasLimit(uint64(9000), opTransfer, options, networkConfig)
+	err = service.checkProvidedGasLimit(uint64(9000), opTransfer, options, networkConfig)
 	require.Nil(t, err)
 }
 
 func TestAdjustTxFeeWithFeeMultiplier(t *testing.T) {
 	t.Parallel()
+
+	networkProvider := testscommon.NewNetworkProviderMock()
+	service := NewConstructionService(networkProvider).(*constructionService)
 
 	options := objectsMap{
 		"feeMultiplier": 1.1,
@@ -73,19 +85,22 @@ func TestAdjustTxFeeWithFeeMultiplier(t *testing.T) {
 	expectedFee := "1100"
 	suggestedFee := big.NewInt(1000)
 
-	suggestedFeeResult, gasPriceResult := adjustTxFeeWithFeeMultiplier(suggestedFee, 1000, options, 1000)
+	suggestedFeeResult, gasPriceResult := service.adjustTxFeeWithFeeMultiplier(suggestedFee, 1000, options, 1000)
 	require.Equal(t, expectedFee, suggestedFeeResult.String())
 	require.Equal(t, expectedGasPrice, gasPriceResult)
 
 	expectedGasPrice = uint64(1000)
 	expectedFee = "1000"
-	suggestedFeeResult, gasPriceResult = adjustTxFeeWithFeeMultiplier(suggestedFee, 1000, make(objectsMap), 1000)
+	suggestedFeeResult, gasPriceResult = service.adjustTxFeeWithFeeMultiplier(suggestedFee, 1000, make(objectsMap), 1000)
 	require.Equal(t, expectedFee, suggestedFeeResult.String())
 	require.Equal(t, expectedGasPrice, gasPriceResult)
 }
 
 func TestComputeSuggestedFeeAndGas(t *testing.T) {
 	t.Parallel()
+
+	networkProvider := testscommon.NewNetworkProviderMock()
+	service := NewConstructionService(networkProvider).(*constructionService)
 
 	minGasLimit := uint64(1000)
 	minGasPrice := uint64(10)
@@ -101,7 +116,7 @@ func TestComputeSuggestedFeeAndGas(t *testing.T) {
 		"gasPrice": providedGasPrice,
 	}
 
-	suggestedFee, gasPrice, gasLimit, err := computeSuggestedFeeAndGas(opTransfer, options, networkConfig)
+	suggestedFee, gasPrice, gasLimit, err := service.computeSuggestedFeeAndGas(opTransfer, options, networkConfig)
 	require.Nil(t, err)
 	require.Equal(t, minGasLimit, gasLimit)
 	require.Equal(t, big.NewInt(10000), suggestedFee)
@@ -109,19 +124,19 @@ func TestComputeSuggestedFeeAndGas(t *testing.T) {
 
 	// err provided gas price is too low
 	options["gasPrice"] = 1
-	_, _, _, err = computeSuggestedFeeAndGas(opTransfer, options, networkConfig)
-	require.Equal(t, ErrGasPriceTooLow, err)
+	_, _, _, err = service.computeSuggestedFeeAndGas(opTransfer, options, networkConfig)
+	require.Equal(t, ErrGasPriceTooLow, errCode(err.Code))
 
 	// err provided gas limit is too low
 	options["gasPrice"] = minGasPrice
 	options["gasLimit"] = 1
-	_, _, _, err = computeSuggestedFeeAndGas(opTransfer, options, networkConfig)
-	require.Equal(t, ErrInsufficientGasLimit, err)
+	_, _, _, err = service.computeSuggestedFeeAndGas(opTransfer, options, networkConfig)
+	require.Equal(t, ErrInsufficientGasLimit, errCode(err.Code))
 
 	delete(options, "gasLimit")
 	options["gasPrice"] = minGasPrice
-	_, _, _, err = computeSuggestedFeeAndGas(opReward, options, networkConfig)
-	require.Equal(t, ErrNotImplemented, err)
+	_, _, _, err = service.computeSuggestedFeeAndGas(opReward, options, networkConfig)
+	require.Equal(t, ErrNotImplemented, errCode(err.Code))
 
 	//check with fee multiplier
 	delete(options, "gasPrice")
@@ -129,7 +144,7 @@ func TestComputeSuggestedFeeAndGas(t *testing.T) {
 	options["feeMultiplier"] = 1.1
 	expectedSuggestedFee := big.NewInt(11000)
 	expectedGasPrice := uint64(11)
-	suggestedFee, gasPrice, gasLimit, err = computeSuggestedFeeAndGas(opTransfer, options, networkConfig)
+	suggestedFee, gasPrice, gasLimit, err = service.computeSuggestedFeeAndGas(opTransfer, options, networkConfig)
 	require.Nil(t, err)
 	require.Equal(t, minGasLimit, gasLimit)
 	require.Equal(t, expectedSuggestedFee, suggestedFee)
@@ -138,6 +153,9 @@ func TestComputeSuggestedFeeAndGas(t *testing.T) {
 
 func TestAdjustTxFeeWithFeeMultiplier_FeeMultiplierLessThanOne(t *testing.T) {
 	t.Parallel()
+
+	networkProvider := testscommon.NewNetworkProviderMock()
+	service := NewConstructionService(networkProvider).(*constructionService)
 
 	options := objectsMap{
 		"feeMultiplier": 0.5,
@@ -148,8 +166,7 @@ func TestAdjustTxFeeWithFeeMultiplier_FeeMultiplierLessThanOne(t *testing.T) {
 	gasPrice := uint64(1000)
 	minGasPrice := uint64(900)
 
-	suggestedFeeResult, gasPriceResult := adjustTxFeeWithFeeMultiplier(suggestedFee, gasPrice, options, minGasPrice)
+	suggestedFeeResult, gasPriceResult := service.adjustTxFeeWithFeeMultiplier(suggestedFee, gasPrice, options, minGasPrice)
 	require.Equal(t, expectedFee, suggestedFeeResult.String())
 	require.Equal(t, minGasPrice, gasPriceResult)
-
 }

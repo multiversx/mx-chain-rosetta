@@ -39,7 +39,7 @@ func TestNetworkService_NetworkOptions(t *testing.T) {
 		Allow: &types.Allow{
 			OperationStatuses: supportedOperationStatuses,
 			OperationTypes:    SupportedOperationTypes,
-			Errors:            Errors,
+			Errors:            newErrFactory().getPossibleErrors(),
 		},
 	}, networkOptions)
 }

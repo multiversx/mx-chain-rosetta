@@ -6,167 +6,197 @@ import (
 	"github.com/coinbase/rosetta-sdk-go/types"
 )
 
-// TODO: find a better way to assign error codes, perhaps using module init(), and iterate over Errors array?
-var (
-	ErrUnableToGetChainID = &types.Error{
-		Code:      0,
-		Message:   "unable to get chain ID",
-		Retriable: true,
-	}
+type errCode int32
 
-	ErrUnableToGetAccount = &types.Error{
-		Code:      2,
-		Message:   "unable to get account",
-		Retriable: true,
-	}
-
-	ErrInvalidAccountAddress = &types.Error{
-		Code:      3,
-		Message:   "invalid account address",
-		Retriable: false,
-	}
-
-	ErrUnableToGetBlock = &types.Error{
-		Code:      4,
-		Message:   "unable to get block",
-		Retriable: true,
-	}
-
-	ErrNotImplemented = &types.Error{
-		Code:      5,
-		Message:   "operation not implemented",
-		Retriable: false,
-	}
-
-	ErrUnableToSubmitTransaction = &types.Error{
-		Code:      6,
-		Message:   "unable to submit transaction",
-		Retriable: false,
-	}
-
-	ErrMalformedValue = &types.Error{
-		Code:      7,
-		Message:   "malformed value",
-		Retriable: false,
-	}
-
-	ErrUnableToGetNodeStatus = &types.Error{
-		Code:      8,
-		Message:   "unable to get node status",
-		Retriable: true,
-	}
-
-	ErrUnableToGetClientVersion = &types.Error{
-		Code:      9,
-		Message:   "unable to get client version",
-		Retriable: true,
-	}
-
-	ErrMustQueryByIndexOrByHash = &types.Error{
-		Code:      10,
-		Message:   "must query block by index or by hash",
-		Retriable: false,
-	}
-
-	ErrConstructionCheck = &types.Error{
-		Code:      11,
-		Message:   "operation construction check error",
-		Retriable: false,
-	}
-
-	ErrUnableToGetNetworkConfig = &types.Error{
-		Code:      12,
-		Message:   "unable to get network config",
-		Retriable: true,
-	}
-
-	ErrInvalidInputParam = &types.Error{
-		Code:      13,
-		Message:   "Invalid input param: ",
-		Retriable: false,
-	}
-
-	ErrUnsupportedCurveType = &types.Error{
-		Code:      14,
-		Message:   "unsupported curve type",
-		Retriable: false,
-	}
-
-	ErrInsufficientGasLimit = &types.Error{
-		Code:      15,
-		Message:   "insufficient gas limit",
-		Retriable: false,
-	}
-
-	ErrGasPriceTooLow = &types.Error{
-		Code:      16,
-		Message:   "gas price is to low",
-		Retriable: false,
-	}
-	ErrTransactionIsNotInPool = &types.Error{
-		Code:      17,
-		Message:   "transaction is not in pool",
-		Retriable: false,
-	}
-
-	ErrCannotParsePoolTransaction = &types.Error{
-		Code:      18,
-		Message:   "cannot parse pool transaction",
-		Retriable: false,
-	}
-
-	ErrOfflineMode = &types.Error{
-		Code:      19,
-		Message:   "rosetta server is in offline mode",
-		Retriable: false,
-	}
-
-	ErrUnableToGetGenesisBlock = &types.Error{
-		Code:      20,
-		Message:   "unable to get genesis block",
-		Retriable: true,
-	}
-
-	Errors = []*types.Error{
-		ErrUnableToGetChainID,
-		ErrUnableToGetAccount,
-		ErrInvalidAccountAddress,
-		ErrUnableToGetBlock,
-		ErrNotImplemented,
-		ErrUnableToSubmitTransaction,
-		ErrMalformedValue,
-		ErrUnableToGetNodeStatus,
-		ErrUnableToGetClientVersion,
-		ErrMustQueryByIndexOrByHash,
-		ErrConstructionCheck,
-		ErrUnableToGetNetworkConfig,
-		ErrUnsupportedCurveType,
-		ErrInsufficientGasLimit,
-		ErrGasPriceTooLow,
-		ErrTransactionIsNotInPool,
-		ErrCannotParsePoolTransaction,
-		ErrInvalidInputParam,
-		ErrOfflineMode,
-		ErrUnableToGetGenesisBlock,
-	}
+const (
+	ErrUnknown errCode = iota + 1
+	ErrUnableToGetAccount
+	ErrInvalidAccountAddress
+	ErrUnableToGetBlock
+	ErrNotImplemented
+	ErrUnableToSubmitTransaction
+	ErrMalformedValue
+	ErrUnableToGetNodeStatus
+	ErrMustQueryByIndexOrByHash
+	ErrConstructionCheck
+	ErrUnableToGetNetworkConfig
+	ErrUnsupportedCurveType
+	ErrInsufficientGasLimit
+	ErrGasPriceTooLow
+	ErrTransactionIsNotInPool
+	ErrCannotParsePoolTransaction
+	ErrInvalidInputParam
+	ErrOfflineMode
+	ErrUnableToGetGenesisBlock
 )
 
-// wrapErr adds details to the types.Error provided. We use a function
-// to do this so that we don't accidentally overwrite the standard
-// errors.
-func wrapErr(rErr *types.Error, err error) *types.Error {
-	newErr := &types.Error{
-		Code:      rErr.Code,
-		Message:   rErr.Message,
-		Retriable: rErr.Retriable,
+type errPrototype struct {
+	code      errCode
+	message   string
+	retriable bool
+}
+
+type errFactory struct {
+	prototypes    []errPrototype
+	prototypesMap map[errCode]errPrototype
+}
+
+func newErrFactory() *errFactory {
+	prototypes, prototypesMap := createErrPrototypes()
+	return &errFactory{
+		prototypes:    prototypes,
+		prototypesMap: prototypesMap,
 	}
-	if err != nil {
-		newErr.Details = map[string]interface{}{
-			"context": err.Error(),
-		}
+}
+
+func createErrPrototypes() ([]errPrototype, map[errCode]errPrototype) {
+	prototypes := []errPrototype{
+		{
+			code:      ErrUnknown,
+			message:   "unknown error",
+			retriable: false,
+		},
+		{
+			code:      ErrUnableToGetAccount,
+			message:   "unable to get account",
+			retriable: true,
+		},
+		{
+			code:      ErrInvalidAccountAddress,
+			message:   "invalid account address",
+			retriable: false,
+		},
+		{
+			code:      ErrUnableToGetBlock,
+			message:   "unable to get block",
+			retriable: true,
+		},
+		{
+			code:      ErrNotImplemented,
+			message:   "operation not implemented",
+			retriable: false,
+		},
+		{
+			code:      ErrUnableToSubmitTransaction,
+			message:   "unable to submit transaction",
+			retriable: true,
+		},
+		{
+			code:      ErrMalformedValue,
+			message:   "malformed value",
+			retriable: false,
+		},
+		{
+			code:      ErrUnableToGetNodeStatus,
+			message:   "unable to get node status",
+			retriable: true,
+		},
+		{
+			code:      ErrMustQueryByIndexOrByHash,
+			message:   "must query block by index or by hash",
+			retriable: false,
+		},
+		{
+			code:      ErrConstructionCheck,
+			message:   "operation construction check error",
+			retriable: false,
+		},
+		{
+			code:      ErrUnableToGetNetworkConfig,
+			message:   "unable to get network config",
+			retriable: true,
+		},
+		{
+			code:      ErrInvalidInputParam,
+			message:   "Invalid input param: ",
+			retriable: false,
+		},
+		{
+			code:      ErrUnsupportedCurveType,
+			message:   "unsupported curve type",
+			retriable: false,
+		},
+		{
+			code:      ErrInsufficientGasLimit,
+			message:   "insufficient gas limit",
+			retriable: false,
+		},
+		{
+			code:      ErrGasPriceTooLow,
+			message:   "gas price is to low",
+			retriable: false,
+		},
+		{
+			code:      ErrTransactionIsNotInPool,
+			message:   "transaction is not in pool",
+			retriable: true,
+		},
+		{
+			code:      ErrCannotParsePoolTransaction,
+			message:   "cannot parse pool transaction",
+			retriable: false,
+		},
+		{
+			code:      ErrOfflineMode,
+			message:   "rosetta server is in offline mode",
+			retriable: false,
+		},
+		{
+			code:      ErrUnableToGetGenesisBlock,
+			message:   "unable to get genesis block",
+			retriable: true,
+		},
 	}
 
-	return newErr
+	prototypesMap := make(map[errCode]errPrototype)
+
+	for _, prototype := range prototypes {
+		prototypesMap[prototype.code] = prototype
+	}
+
+	return prototypes, prototypesMap
+}
+
+func (factory *errFactory) getPossibleErrors() []*types.Error {
+	possibleErrors := make([]*types.Error, 0, len(factory.prototypes))
+
+	for _, prototype := range factory.prototypes {
+		possibleErrors = append(possibleErrors, &types.Error{
+			Code:      int32(prototype.code),
+			Message:   prototype.message,
+			Retriable: prototype.retriable,
+		})
+	}
+
+	return possibleErrors
+}
+
+func (factory *errFactory) newErrWithOriginal(code errCode, originalError error) *types.Error {
+	err := factory.newErr(code)
+	err.Details = map[string]interface{}{
+		"originalError": originalError.Error(),
+	}
+
+	return err
+}
+
+func (factory *errFactory) newErr(code errCode) *types.Error {
+	prototype := factory.getPrototypeByCode(code)
+
+	return &types.Error{
+		Code:      int32(code),
+		Message:   prototype.message,
+		Retriable: prototype.retriable,
+	}
+}
+
+func (factory *errFactory) getPrototypeByCode(code errCode) errPrototype {
+	prototype, ok := factory.prototypesMap[code]
+	if ok {
+		return prototype
+	}
+
+	return factory.prototypesMap[ErrUnknown]
 }
 
 var errEventNotFound = errors.New("transaction event not found")

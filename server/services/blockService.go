@@ -13,6 +13,7 @@ import (
 type blockService struct {
 	provider       NetworkProvider
 	extension      *networkProviderExtension
+	errFactory     *errFactory
 	txsTransformer *transactionsTransformer
 
 	genesisBlock      *types.BlockResponse
@@ -26,6 +27,7 @@ func NewBlockService(provider NetworkProvider) server.BlockAPIServicer {
 	return &blockService{
 		provider:       provider,
 		extension:      extension,
+		errFactory:     newErrFactory(),
 		txsTransformer: newTransactionsTransformer(provider),
 	}
 }
@@ -70,7 +72,7 @@ func (service *blockService) doGetBlock(request *types.BlockRequest) (*types.Blo
 		return service.getBlockByHash(*hash)
 	}
 
-	return nil, ErrMustQueryByIndexOrByHash
+	return nil, service.errFactory.newErr(ErrMustQueryByIndexOrByHash)
 }
 
 // getGenesisBlock returns or lazily fetches the genesis block (using "double-checked locking" pattern)
@@ -107,12 +109,12 @@ func (service *blockService) doGetGenesisBlock() (*types.BlockResponse, *types.E
 	genesisBlockIdentifier := service.extension.getGenesisBlockIdentifier()
 	genesisBalances, err := service.provider.GetGenesisBalances()
 	if err != nil {
-		return nil, wrapErr(ErrUnableToGetGenesisBlock, err)
+		return nil, service.errFactory.newErrWithOriginal(ErrUnableToGetGenesisBlock, err)
 	}
 
 	operations, err := service.createGenesisOperations(genesisBalances)
 	if err != nil {
-		return nil, wrapErr(ErrUnableToGetGenesisBlock, err)
+		return nil, service.errFactory.newErrWithOriginal(ErrUnableToGetGenesisBlock, err)
 	}
 
 	genesisTransaction := &types.Transaction{
@@ -156,12 +158,12 @@ func (service *blockService) createGenesisOperations(balances []*resources.Genes
 func (service *blockService) getBlockByNonce(nonce int64) (*types.BlockResponse, *types.Error) {
 	block, err := service.provider.GetBlockByNonce(uint64(nonce))
 	if err != nil {
-		return nil, wrapErr(ErrUnableToGetBlock, err)
+		return nil, service.errFactory.newErrWithOriginal(ErrUnableToGetBlock, err)
 	}
 
 	rosettaBlock, err := service.convertToRosettaBlock(block)
 	if err != nil {
-		return nil, wrapErr(ErrUnableToGetBlock, err)
+		return nil, service.errFactory.newErrWithOriginal(ErrUnableToGetBlock, err)
 	}
 
 	return rosettaBlock, nil
@@ -170,12 +172,12 @@ func (service *blockService) getBlockByNonce(nonce int64) (*types.BlockResponse,
 func (service *blockService) getBlockByHash(hash string) (*types.BlockResponse, *types.Error) {
 	block, err := service.provider.GetBlockByHash(hash)
 	if err != nil {
-		return nil, wrapErr(ErrUnableToGetBlock, err)
+		return nil, service.errFactory.newErrWithOriginal(ErrUnableToGetBlock, err)
 	}
 
 	rosettaBlock, err := service.convertToRosettaBlock(block)
 	if err != nil {
-		return nil, wrapErr(ErrUnableToGetBlock, err)
+		return nil, service.errFactory.newErrWithOriginal(ErrUnableToGetBlock, err)
 	}
 
 	return rosettaBlock, nil
@@ -221,5 +223,5 @@ func (service *blockService) BlockTransaction(
 	_ context.Context,
 	_ *types.BlockTransactionRequest,
 ) (*types.BlockTransactionResponse, *types.Error) {
-	return nil, ErrNotImplemented
+	return nil, service.errFactory.newErr(ErrNotImplemented)
 }

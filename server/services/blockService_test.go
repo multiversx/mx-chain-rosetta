@@ -109,7 +109,7 @@ func TestBlockService_BlockByIndex(t *testing.T) {
 	}
 
 	_, err := getBlockByIndex(service, 6)
-	require.Equal(t, ErrUnableToGetBlock.Code, err.Code)
+	require.Equal(t, ErrUnableToGetBlock, errCode(err.Code))
 
 	blockResponse, err := getBlockByIndex(service, 7)
 	require.Nil(t, err)
