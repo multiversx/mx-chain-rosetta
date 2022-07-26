@@ -288,7 +288,8 @@ func (provider *networkProvider) getLatestBlockNonce() (uint64, error) {
 		return 0, err
 	}
 
-	return nodeStatus.HighestFinalNonce, nil
+	// In the context of scheduled transactions, make sure the N+1 block is final, as well.
+	return nodeStatus.HighestFinalNonce - 1, nil
 }
 
 func (provider *networkProvider) getNodeStatus() (*resources.NodeStatus, error) {
