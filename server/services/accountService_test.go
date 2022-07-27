@@ -19,11 +19,11 @@ func TestAccountService_AccountBalance(t *testing.T) {
 
 	// With bad input address
 	_, err := getAccount(service, "")
-	require.Equal(t, ErrInvalidAccountAddress, err)
+	require.Equal(t, ErrInvalidAccountAddress, errCode(err.Code))
 
 	// When account does not exist
 	response, err := getAccount(service, testscommon.TestAddressAlice)
-	require.Equal(t, err.Code, ErrUnableToGetAccount.Code)
+	require.Equal(t, ErrUnableToGetAccount, errCode(err.Code))
 	require.Nil(t, response)
 
 	// When account exists

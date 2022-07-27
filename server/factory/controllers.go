@@ -2,7 +2,6 @@ package factory
 
 import (
 	"github.com/ElrondNetwork/rosetta/server/services"
-	"github.com/ElrondNetwork/rosetta/server/services/offline"
 	"github.com/coinbase/rosetta-sdk-go/asserter"
 	"github.com/coinbase/rosetta-sdk-go/server"
 	"github.com/coinbase/rosetta-sdk-go/types"
@@ -24,7 +23,7 @@ func createOfflineControllers(networkProvider services.NetworkProvider) ([]serve
 		return nil, err
 	}
 
-	offlineService := offline.NewOfflineService()
+	offlineService := services.NewOfflineService()
 
 	networkService := services.NewNetworkService(networkProvider)
 	networkController := server.NewNetworkAPIController(networkService, asserter)
