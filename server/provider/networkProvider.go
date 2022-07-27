@@ -29,7 +29,6 @@ var (
 	notApplicableConfigurationFilePath   = "not applicable"
 	notApplicableFullHistoryNodesMessage = "not applicable"
 
-	urlPathGetNetworkConfig   = "/network/config"
 	urlPathGetNodeStatus      = "/node/status"
 	urlPathGetGenesisBalances = "/network/genesis-balances"
 	urlPathGetAccount         = "/address/%s"
@@ -289,7 +288,8 @@ func (provider *networkProvider) getLatestBlockNonce() (uint64, error) {
 		return 0, err
 	}
 
-	return nodeStatus.HighestFinalNonce, nil
+	// In the context of scheduled transactions, make sure the N+1 block is final, as well.
+	return nodeStatus.HighestFinalNonce - 1, nil
 }
 
 func (provider *networkProvider) getNodeStatus() (*resources.NodeStatus, error) {
@@ -331,7 +331,11 @@ func (provider *networkProvider) GetBlockByNonce(nonce uint64) (*data.Block, err
 		return nil, err
 	}
 
-	provider.simplifyBlockWithScheduledTransactions(block)
+	err = provider.simplifyBlockWithScheduledTransactions(block)
+	if err != nil {
+		return nil, err
+	}
+
 	return block, nil
 }
 
@@ -364,7 +368,11 @@ func (provider *networkProvider) GetBlockByHash(hash string) (*data.Block, error
 		return nil, err
 	}
 
-	provider.simplifyBlockWithScheduledTransactions(block)
+	err = provider.simplifyBlockWithScheduledTransactions(block)
+	if err != nil {
+		return nil, err
+	}
+
 	return block, nil
 }
 
