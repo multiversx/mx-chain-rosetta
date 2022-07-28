@@ -25,7 +25,7 @@
     "log_transactions": true,
     "log_balance_changes": true,
     "log_reconciliations": true,
-    "ignore_reconciliation_error": true,
+    "ignore_reconciliation_error": false,
     "bootstrap_balances": "bootstrap/1_shard_0_epoch_703_nonce_10120628.rosetta.json",
     "reconciliation_disabled": false,
     "reconciliation_drain_disabled": false,
@@ -36,6 +36,11 @@
     "results_output_file": "",
     "pruning_disabled": true,
     "initial_balance_fetch_disabled": false,
-    "historical_balance_disabled": true
+    "historical_balance_disabled": true,
+    "end_conditions": {
+      "reconciliation_coverage": {
+        "coverage": 1
+      }
+    }
   }
 }
