@@ -45,7 +45,6 @@ type ArgsCreateNetworkProvider struct {
 	NativeCurrencySymbol        string
 	GenesisBlockHash            string
 	GenesisTimestamp            int64
-	ObserveNotFinalBlocks       bool
 }
 
 func CreateNetworkProvider(args ArgsCreateNetworkProvider) (networkProvider, error) {
@@ -136,7 +135,6 @@ func CreateNetworkProvider(args ArgsCreateNetworkProvider) (networkProvider, err
 		NativeCurrencySymbol:        args.NativeCurrencySymbol,
 		GenesisBlockHash:            args.GenesisBlockHash,
 		GenesisTimestamp:            args.GenesisTimestamp,
-		ObserveNotFinalBlocks:       args.ObserveNotFinalBlocks,
 
 		ObserverFacade: &components.ObserverFacade{
 			Processor:            baseProcessor,
