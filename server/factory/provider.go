@@ -47,6 +47,7 @@ type ArgsCreateNetworkProvider struct {
 	GenesisTimestamp            int64
 }
 
+// CreateNetworkProvider creates a network provider
 func CreateNetworkProvider(args ArgsCreateNetworkProvider) (networkProvider, error) {
 	shardCoordinator, err := sharding.NewMultiShardCoordinator(args.NumShards, args.ObservedActualShard)
 	if err != nil {
