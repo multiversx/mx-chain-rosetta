@@ -8,7 +8,6 @@ import (
 // ObserverFacade holds (embeds) several components implemented in elrond-proxy-go
 type ObserverFacade struct {
 	process.Processor
-	facade.AccountProcessor
 	facade.TransactionProcessor
 	facade.BlockProcessor
 }

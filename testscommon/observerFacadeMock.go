@@ -77,29 +77,6 @@ func (mock *observerFacadeMock) ComputeShardId(pubKey []byte) (uint32, error) {
 	return shard, nil
 }
 
-// GetAccount -
-func (mock *observerFacadeMock) GetAccount(address string, options common.AccountQueryOptions) (*data.AccountModel, error) {
-	if mock.MockNextError != nil {
-		return nil, mock.MockNextError
-	}
-
-	latestBlock := mock.MockBlocks[len(mock.MockBlocks)-1]
-
-	account, ok := mock.MockAccountsByAddress[address]
-	if ok {
-		return &data.AccountModel{
-			Account: *account,
-			BlockInfo: data.BlockInfo{
-				Nonce:    latestBlock.Nonce,
-				Hash:     latestBlock.Hash,
-				RootHash: emptyHash,
-			},
-		}, nil
-	}
-
-	return nil, fmt.Errorf("account %s not found", address)
-}
-
 // SendTransaction -
 func (mock *observerFacadeMock) SendTransaction(tx *data.Transaction) (int, string, error) {
 	if mock.MockNextError != nil {

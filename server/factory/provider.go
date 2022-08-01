@@ -87,15 +87,6 @@ func CreateNetworkProvider(args ArgsCreateNetworkProvider) (networkProvider, err
 		return nil, err
 	}
 
-	accountProcessor, err := process.NewAccountProcessor(
-		baseProcessor,
-		pubKeyConverter,
-		&components.DisabledExternalStorageConnector{},
-	)
-	if err != nil {
-		return nil, err
-	}
-
 	hasher, err := hasherFactory.NewHasher(hasherType)
 	if err != nil {
 		return nil, err
@@ -138,7 +129,6 @@ func CreateNetworkProvider(args ArgsCreateNetworkProvider) (networkProvider, err
 
 		ObserverFacade: &components.ObserverFacade{
 			Processor:            baseProcessor,
-			AccountProcessor:     accountProcessor,
 			TransactionProcessor: transactionProcessor,
 			BlockProcessor:       blockProcessor,
 		},
