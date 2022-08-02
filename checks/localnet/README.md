@@ -36,6 +36,6 @@ rosetta --observer-actual-shard=0 --chain-id=localnet --native-currency=XeGLD --
 
 ```
 rosetta-cli check:spec --configuration-file localnet-spec.json
-rosetta-cli check:data --configuration-file localnet-data-001.json
-rosetta-cli check:construction --configuration-file localnet-construction-001.json
+rosetta-cli check:data --configuration-file localnet-data.json
+rosetta-cli check:construction --configuration-file localnet-construction.json
 ```

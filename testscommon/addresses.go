@@ -2,13 +2,7 @@ package testscommon
 
 import (
 	"encoding/hex"
-
-	"github.com/ElrondNetwork/elrond-go-core/core/pubkeyConverter"
-	logger "github.com/ElrondNetwork/elrond-go-logger"
 )
-
-// RealWorldBech32PubkeyConverter is a bech32 converter, to be used in tests
-var RealWorldBech32PubkeyConverter, _ = pubkeyConverter.NewBech32PubkeyConverter(32, logger.GetOrCreate("testscommon"))
 
 var (
 	// TestAddressAlice is a test address

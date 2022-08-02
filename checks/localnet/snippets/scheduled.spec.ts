@@ -71,6 +71,8 @@ describe("scheduled", async function () {
         }
 
         await sendTransactions(transactions);
+
+        // TODO: Add some waits. E.g. for the last transaction.
     });
 
     it("setup", async function () {
@@ -149,10 +151,6 @@ describe("scheduled", async function () {
         }
 
         await sendTransactions(transactions);
-    });
-
-    it("destroy session", async function () {
-        await session.destroy();
     });
 
     async function sendTransactions(transactions: ITransaction[]): Promise<void> {

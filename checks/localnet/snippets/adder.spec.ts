@@ -66,8 +66,6 @@ describe("adder snippet", async function () {
 
     it("add", async function () {
         this.timeout(FiveMinutesInMilliseconds);
-        // If the step fails, retry it (using a Mocha utility function).
-        this.retries(5);
 
         await session.syncUsers([bob]);
 
@@ -221,12 +219,4 @@ describe("adder snippet", async function () {
         const transactionHash = await provider.sendTransaction(transaction);
         return { transaction, transactionHash };
     }
-
-    it("generate report", async function () {
-        await session.generateReport();
-    });
-
-    it("destroy session", async function () {
-        await session.destroy();
-    });
 });

@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/ElrondNetwork/rosetta/server/factory"
-	"github.com/ElrondNetwork/rosetta/server/provider"
 	"github.com/ElrondNetwork/rosetta/version"
 	"github.com/coinbase/rosetta-sdk-go/server"
 	"github.com/urfave/cli"
@@ -48,7 +47,7 @@ func startRosetta(ctx *cli.Context) error {
 
 	log.Info("Starting Rosetta...", "middleware", version.RosettaMiddlewareVersion, "specification", version.RosettaVersion, "node", version.NodeVersion)
 
-	networkProvider, err := provider.NewNetworkProvider(provider.ArgsNewNetworkProvider{
+	networkProvider, err := factory.CreateNetworkProvider(factory.ArgsCreateNetworkProvider{
 		IsOffline:                   cliFlags.offline,
 		NumShards:                   cliFlags.numShards,
 		ObservedActualShard:         cliFlags.observerActualShard,
