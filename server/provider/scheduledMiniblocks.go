@@ -6,10 +6,6 @@ import (
 )
 
 func (provider *networkProvider) simplifyBlockWithScheduledTransactions(block *data.Block) error {
-	if hasOnlyNormalMiniblocks(block) {
-		return nil
-	}
-
 	previousBlock, err := provider.doGetBlockByNonce(block.Nonce - 1)
 	if err != nil {
 		return err
