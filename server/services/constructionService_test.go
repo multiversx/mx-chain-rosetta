@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
+	"github.com/ElrondNetwork/rosetta/server/resources"
 	"github.com/ElrondNetwork/rosetta/testscommon"
 	"github.com/coinbase/rosetta-sdk-go/types"
 	"github.com/stretchr/testify/require"
@@ -63,7 +64,7 @@ func TestConstructionService_ConstructionPreprocess(t *testing.T) {
 func TestConstructionService_ConstructionMetadata(t *testing.T) {
 	networkProvider := testscommon.NewNetworkProviderMock()
 	networkProvider.MockNetworkConfig.ChainID = "T"
-	networkProvider.MockAccountsByAddress[testscommon.TestAddressAlice] = &data.Account{
+	networkProvider.MockAccountsByAddress[testscommon.TestAddressAlice] = &resources.Account{
 		Address: testscommon.TestAddressAlice,
 		Nonce:   42,
 	}
@@ -108,7 +109,7 @@ func TestConstructionService_ConstructionMetadata(t *testing.T) {
 func TestConstructionService_ConstructionPayloads(t *testing.T) {
 	networkProvider := testscommon.NewNetworkProviderMock()
 	networkProvider.MockNetworkConfig.ChainID = "T"
-	networkProvider.MockAccountsByAddress[testscommon.TestAddressAlice] = &data.Account{
+	networkProvider.MockAccountsByAddress[testscommon.TestAddressAlice] = &resources.Account{
 		Address: testscommon.TestAddressAlice,
 		Nonce:   42,
 	}

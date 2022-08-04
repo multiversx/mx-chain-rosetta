@@ -14,3 +14,7 @@ type observerFacade interface {
 	GetBlockByHash(shardID uint32, hash string, options common.BlockQueryOptions) (*data.BlockApiResponse, error)
 	GetBlockByNonce(shardID uint32, nonce uint64, options common.BlockQueryOptions) (*data.BlockApiResponse, error)
 }
+
+type resourceApiResponse interface {
+	GetErrorMessage() string
+}

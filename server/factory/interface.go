@@ -21,7 +21,7 @@ type networkProvider interface {
 	GetLatestBlockSummary() (*resources.BlockSummary, error)
 	GetBlockByNonce(nonce uint64) (*data.Block, error)
 	GetBlockByHash(hash string) (*data.Block, error)
-	GetAccount(address string) (*data.AccountModel, error)
+	GetAccount(address string) (*resources.AccountModel, error)
 	IsAddressObserved(address string) (bool, error)
 	ConvertPubKeyToAddress(pubkey []byte) string
 	ConvertAddressToPubKey(address string) ([]byte, error)
