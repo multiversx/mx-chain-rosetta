@@ -22,6 +22,15 @@ func (extension *networkProviderExtension) valueToNativeAmount(value string) *ty
 	}
 }
 
+func (extension *networkProviderExtension) valueToCustomAmount(value string, currencySymbol string) *types.Amount {
+	return &types.Amount{
+		Value: value,
+		Currency: &types.Currency{
+			Symbol: currencySymbol,
+		},
+	}
+}
+
 func (extension *networkProviderExtension) getNativeCurrency() *types.Currency {
 	currency := extension.provider.GetNativeCurrency()
 
