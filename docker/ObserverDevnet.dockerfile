@@ -25,4 +25,4 @@ COPY --from=builder "/lib/libwasmer_linux_amd64.so" "/lib/libwasmer_linux_amd64.
 
 EXPOSE 8080
 WORKDIR /elrond
-ENTRYPOINT ["/elrond/node", "--log-save", "--log-level=*:INFO,core/dblookupext:WARN", "--log-logger-name", "--rest-api-interface=0.0.0.0:8080", "--working-directory=/data"]
+ENTRYPOINT ["/elrond/node", "--log-save", "--log-level=*:DEBUG", "--log-logger-name", "--rest-api-interface=0.0.0.0:8080", "--working-directory=/data"]
