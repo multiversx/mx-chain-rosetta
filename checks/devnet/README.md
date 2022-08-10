@@ -3,8 +3,8 @@
 Set the Rosetta URLs:
 
 ```
-export ROSETTA_ONLINE=http://localhost:8191
-export ROSETTA_OFFLINE=http://localhost:8192
+export ROSETTA_ONLINE=http://localhost:7091
+export ROSETTA_OFFLINE=http://localhost:7092
 ```
 
 Check the construction API:
