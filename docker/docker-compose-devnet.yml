@@ -1,0 +1,47 @@
+version: '3'
+
+services:
+  elrond-rosetta-observer-devnet:
+    image: elrond-rosetta-observer-devnet:latest
+    container_name: elrond-rosetta-observer-devnet
+    ports:
+      - "${PORT_OBSERVER}:8080"
+      - "${PORT_P2P}:37373"
+    volumes:
+      - ${DATA_FOLDER}/node-${OBSERVED_SHARD}/logs:/data/logs
+      - ${DATA_FOLDER}/node-${OBSERVED_SHARD}/db:/data/db
+      - ${KEYS_FOLDER}:/keys
+    command: --destination-shard-as-observer=${OBSERVED_SHARD} --validator-key-pem-file=/keys/${OBSERVED_SHARD}.pem
+    networks:
+      elrond-rosetta-devnet:
+        ipv4_address: 11.0.0.10
+
+  elrond-rosetta-online-devnet:
+    image: elrond-rosetta:latest
+    container_name: elrond-rosetta-online-devnet
+    ports:
+      - "${PORT_ROSETTA_ONLINE}:8080"
+    volumes:
+      - ${DATA_FOLDER}/rosetta/logs:/data/logs
+    command: --port 8080 --observer-http-url=http://11.0.0.10:8080 --observer-pubkey=${OBSERVER_PUBKEY} --chain-id=D --num-shards=3 --observer-actual-shard=${OBSERVED_SHARD} --genesis-block=${GENESIS_BLOCK} --genesis-timestamp=${GENESIS_TIMESTAMP} --native-currency=XeGLD
+    networks:
+      elrond-rosetta-devnet:
+        ipv4_address: 11.0.0.21
+
+  elrond-rosetta-offline-devnet:
+    image: elrond-rosetta:latest
+    container_name: elrond-rosetta-offline-devnet
+    ports:
+      - "${PORT_ROSETTA_OFFLINE}:8080"
+    volumes:
+      - ${DATA_FOLDER}/rosetta-offline/logs:/data/logs
+    command: --port 8080 --offline --observer-http-url=http://nowhere.localhost.local --chain-id=D --num-shards=3 --observer-actual-shard=${OBSERVED_SHARD} --genesis-block=${GENESIS_BLOCK} --genesis-timestamp=${GENESIS_TIMESTAMP} --native-currency=XeGLD
+    networks:
+      elrond-rosetta-devnet:
+        ipv4_address: 11.0.0.22
+
+networks:
+  elrond-rosetta-devnet:
+    ipam:
+      config:
+        - subnet: 11.0.0.0/24

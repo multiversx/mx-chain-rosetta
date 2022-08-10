@@ -131,40 +131,14 @@ Run on **devnet**:
 
 ```
 cd $HOME/rosetta/docker
-
-export CHAIN_ID=D
-export NUM_SHARDS=3
-export OBSERVER_PUBKEY="PUBLIC_KEY_FROM_KEY_FILE"
-export OBSERVED_SHARD=0
-export GENESIS_BLOCK=0000000000000000000000000000000000000000000000000000000000000000
-export GENESIS_TIMESTAMP=1648551600
-export NATIVE_CURRENCY=XeGLD
-export ROSETTA_IMAGE=elrond-rosetta:latest
-export OBSERVER_IMAGE=elrond-rosetta-observer-devnet:latest
-export DATA_FOLDER=${HOME}/rosetta-workdir/devnet
-export KEYS_FOLDER=${HOME}/rosetta-workdir/keys
-
-docker compose --file ./docker-compose.yml up --detach
+docker compose --file ./docker-compose-devnet.yml --env-file ./devnet.env --project-name elrond-devnet up --detach
 ```
 
 Run on **mainnet**:
 
 ```
 cd $HOME/rosetta/docker
-
-export CHAIN_ID=1
-export NUM_SHARDS=3
-export OBSERVER_PUBKEY="PUBLIC_KEY_FROM_KEY_FILE"
-export OBSERVED_SHARD=0
-export GENESIS_BLOCK=cd229e4ad2753708e4bab01d7f249affe29441829524c9529e84d51b6d12f2a7
-export GENESIS_TIMESTAMP=1596117600
-export NATIVE_CURRENCY=EGLD
-export ROSETTA_IMAGE=elrond-rosetta:latest
-export OBSERVER_IMAGE=elrond-rosetta-observer-mainnet:latest
-export DATA_FOLDER=${HOME}/rosetta-workdir/mainnet
-export KEYS_FOLDER=${HOME}/rosetta-workdir/keys
-
-docker compose --file ./docker-compose.yml up --detach
+docker compose --file ./docker-compose-mainnet.yml --env-file ./mainnet.env --project-name elrond-mainnet up --detach
 ```
 
 ### Inspect logs of the running containers
@@ -172,8 +146,15 @@ docker compose --file ./docker-compose.yml up --detach
 Using `docker logs`:
 
 ```
-docker logs docker-observer-1 -f
-docker logs docker-rosetta-1 -f
+# For devnet
+docker logs elrond-rosetta-observer-devnet -f
+docker logs elrond-rosetta-online-devnet -f
+docker logs elrond-rosetta-offline-devnet -f
+
+# For mainnet
+docker logs elrond-rosetta-observer-mainnet -f
+docker logs elrond-rosetta-online-mainnet -f
+docker logs elrond-rosetta-offline-mainnet -f
 ```
 
 By inspecting the files in the `logs` folder:
@@ -194,9 +175,15 @@ git pull origin
 Stop the running containers:
 
 ```
-docker stop docker-observer-1
-docker stop docker-rosetta-1
-docker stop docker-rosetta-offline-1
+# For devnet:
+docker stop elrond-rosetta-observer-devnet
+docker stop elrond-rosetta-online-devnet
+docker stop elrond-rosetta-offline-devnet
+
+# For mainnet:
+docker stop elrond-rosetta-observer-mainnet
+docker stop elrond-rosetta-online-mainnet
+docker stop elrond-rosetta-offline-mainnet
 ```
 
 Re-build the images as described above, then run the containers again.
