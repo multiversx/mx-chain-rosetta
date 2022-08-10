@@ -179,11 +179,15 @@ Stop the running containers:
 docker stop elrond-rosetta-observer-devnet
 docker stop elrond-rosetta-online-devnet
 docker stop elrond-rosetta-offline-devnet
+# Or simply:
+docker compose --project-name elrond-devnet down
 
 # For mainnet:
 docker stop elrond-rosetta-observer-mainnet
 docker stop elrond-rosetta-online-mainnet
 docker stop elrond-rosetta-offline-mainnet
+# Or simply:
+docker compose --project-name elrond-mainnet down
 ```
 
 Re-build the images as described above, then run the containers again.
