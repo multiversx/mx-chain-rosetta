@@ -3,7 +3,6 @@ package provider
 import (
 	"encoding/hex"
 	"errors"
-	"fmt"
 	"math/big"
 
 	"github.com/ElrondNetwork/elrond-go-core/core"
@@ -15,12 +14,6 @@ import (
 	"github.com/ElrondNetwork/elrond-proxy-go/common"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/ElrondNetwork/rosetta/server/resources"
-)
-
-var (
-	urlPathGetNodeStatus      = "/node/status"
-	urlPathGetGenesisBalances = "/network/genesis-balances"
-	urlPathGetAccount         = "/address/%s"
 )
 
 var log = logger.GetOrCreate("server/provider")
@@ -148,13 +141,9 @@ func (provider *networkProvider) GetGenesisBalances() ([]*resources.GenesisBalan
 	}
 
 	response := &resources.GenesisBalancesApiResponse{}
-
-	_, err := provider.observerFacade.CallGetRestEndPoint(provider.observerUrl, urlPathGetGenesisBalances, &response)
+	err := provider.getResource(urlPathGetGenesisBalances, response)
 	if err != nil {
-		return nil, convertStructuredApiErrToFlatErr(err)
-	}
-	if response.Error != "" {
-		return nil, errors.New(response.Error)
+		return nil, err
 	}
 
 	return response.Data.Balances, nil
@@ -211,13 +200,9 @@ func (provider *networkProvider) getNodeStatus() (*resources.NodeStatus, error) 
 	}
 
 	response := &resources.NodeStatusApiResponse{}
-
-	_, err := provider.observerFacade.CallGetRestEndPoint(provider.observerUrl, urlPathGetNodeStatus, &response)
+	err := provider.getResource(urlPathGetNodeStatus, response)
 	if err != nil {
-		return nil, convertStructuredApiErrToFlatErr(err)
-	}
-	if response.Error != "" {
-		return nil, errors.New(response.Error)
+		return nil, err
 	}
 
 	return &response.Data.Status, nil
@@ -304,45 +289,6 @@ func (provider *networkProvider) doGetBlockByHash(hash string) (*data.Block, err
 	}
 
 	return &response.Data.Block, nil
-}
-
-// GetAccount gets an account by address
-func (provider *networkProvider) GetAccount(address string) (*data.AccountModel, error) {
-	if provider.isOffline {
-		return nil, errIsOffline
-	}
-
-	account, err := provider.doGetAccount(address)
-	if err != nil {
-		log.Warn("GetAccount()", "address", address, "err", err)
-		return nil, err
-	}
-
-	log.Trace("GetAccount()",
-		"address", account.Account.Address,
-		"balance", account.Account.Balance,
-		"block", account.BlockInfo.Nonce,
-		"blockHash", account.BlockInfo.Hash,
-		"blockRootHash", account.BlockInfo.RootHash,
-	)
-
-	return account, nil
-}
-
-func (provider *networkProvider) doGetAccount(address string) (*data.AccountModel, error) {
-	options := common.AccountQueryOptions{OnFinalBlock: true}
-	url := common.BuildUrlWithAccountQueryOptions(fmt.Sprintf(urlPathGetAccount, address), options)
-	response := &data.AccountApiResponse{}
-
-	_, err := provider.observerFacade.CallGetRestEndPoint(provider.observerUrl, url, &response)
-	if err != nil {
-		return nil, newErrCannotGetAccount(address, convertStructuredApiErrToFlatErr(err))
-	}
-	if response.Error != "" {
-		return nil, newErrCannotGetAccount(address, errors.New(response.Error))
-	}
-
-	return &response.Data, nil
 }
 
 // IsAddressObserved returns whether the address is observed (i.e. is located in an observed shard)

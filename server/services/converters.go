@@ -13,7 +13,7 @@ func blockToIdentifier(block *data.Block) *types.BlockIdentifier {
 	}
 }
 
-func blockInfoToIdentifier(block data.BlockInfo) *types.BlockIdentifier {
+func accountBlockCoordinatesToIdentifier(block resources.AccountBlockCoordinates) *types.BlockIdentifier {
 	return &types.BlockIdentifier{
 		Index: int64(block.Nonce),
 		Hash:  block.Hash,

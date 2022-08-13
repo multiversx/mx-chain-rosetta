@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/ElrondNetwork/elrond-proxy-go/data"
+	"github.com/ElrondNetwork/rosetta/server/resources"
 	"github.com/ElrondNetwork/rosetta/testscommon"
 	"github.com/coinbase/rosetta-sdk-go/server"
 	"github.com/coinbase/rosetta-sdk-go/types"
@@ -27,7 +27,7 @@ func TestAccountService_AccountBalance(t *testing.T) {
 	require.Nil(t, response)
 
 	// When account exists
-	networkProvider.MockAccountsByAddress[testscommon.TestAddressAlice] = &data.Account{
+	networkProvider.MockAccountsByAddress[testscommon.TestAddressAlice] = &resources.Account{
 		Address: testscommon.TestAddressAlice,
 		Balance: "100",
 	}
