@@ -107,8 +107,7 @@ func createHttpServer(port int, routers ...server.Router) (*http.Server, error) 
 		routers...,
 	)
 
-	loggedRouter := server.LoggerMiddleware(router)
-	corsRouter := server.CorsMiddleware(loggedRouter)
+	corsRouter := server.CorsMiddleware(router)
 
 	httpServer := &http.Server{
 		Addr:    fmt.Sprintf(":%d", port),
