@@ -49,9 +49,12 @@ func TestNetworkService_NetworkStatus(t *testing.T) {
 	networkProvider.MockNetworkConfig.ChainID = "T"
 	networkProvider.MockObserverPubkey = "my-computer"
 	networkProvider.MockGenesisBlockHash = "genesisHash"
-	networkProvider.MockLatestBlockSummary.Nonce = 42
-	networkProvider.MockLatestBlockSummary.Hash = "latestHash"
-	networkProvider.MockLatestBlockSummary.Timestamp = 123456789
+	networkProvider.MockNodeStatus.LatestBlock.Nonce = 42
+	networkProvider.MockNodeStatus.LatestBlock.Hash = "latestHash"
+	networkProvider.MockNodeStatus.LatestBlock.Timestamp = 123456789
+	networkProvider.MockNodeStatus.OldestBlockWithHistoricalState.Nonce = 7
+	networkProvider.MockNodeStatus.OldestBlockWithHistoricalState.Hash = "oldestHash"
+	networkProvider.MockNodeStatus.Synced = true
 
 	service := NewNetworkService(networkProvider)
 
@@ -67,6 +70,13 @@ func TestNetworkService_NetworkStatus(t *testing.T) {
 		GenesisBlockIdentifier: &types.BlockIdentifier{
 			Index: 0,
 			Hash:  "genesisHash",
+		},
+		OldestBlockIdentifier: &types.BlockIdentifier{
+			Index: 7,
+			Hash:  "oldestHash",
+		},
+		SyncStatus: &types.SyncStatus{
+			Synced: types.Bool(true),
 		},
 		Peers: []*types.Peer{
 			{

@@ -30,8 +30,8 @@ func TestAccountService_AccountBalance(t *testing.T) {
 	networkProvider.MockAccountsNativeBalances[testscommon.TestAddressAlice] = &resources.AccountNativeBalance{
 		Balance: "100",
 	}
-	networkProvider.MockLatestBlockSummary.Nonce = 42
-	networkProvider.MockLatestBlockSummary.Hash = "abba"
+	networkProvider.MockNextAccountBlockCoordinates.Nonce = 42
+	networkProvider.MockNextAccountBlockCoordinates.Hash = "abba"
 
 	response, err = getAccountBalance(service, testscommon.TestAddressAlice)
 	require.Nil(t, err)

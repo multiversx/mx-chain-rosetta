@@ -29,9 +29,10 @@ type networkProviderMock struct {
 	MockGenesisTimestamp            int64
 	MockNetworkConfig               *resources.NetworkConfig
 	MockGenesisBalances             []*resources.GenesisBalance
-	MockLatestBlockSummary          *resources.BlockSummary
+	MockNodeStatus                  *resources.AggregatedNodeStatus
 	MockBlocksByNonce               map[uint64]*data.Block
 	MockBlocksByHash                map[string]*data.Block
+	MockNextAccountBlockCoordinates *resources.AccountBlockCoordinates
 	MockAccountsByAddress           map[string]*resources.Account
 	MockAccountsNativeBalances      map[string]*resources.AccountNativeBalance
 	MockAccountsESDTBalances        map[string]*resources.AccountESDTBalance
@@ -65,14 +66,28 @@ func NewNetworkProviderMock() *networkProviderMock {
 			MinGasLimit:    50000,
 		},
 		MockGenesisBalances: make([]*resources.GenesisBalance, 0),
-		MockLatestBlockSummary: &resources.BlockSummary{
-			Nonce:             0,
-			Hash:              emptyHash,
-			PreviousBlockHash: emptyHash,
-			Timestamp:         genesisTimestamp,
+		MockNodeStatus: &resources.AggregatedNodeStatus{
+			Synced: true,
+			LatestBlock: resources.BlockSummary{
+				Nonce:             0,
+				Hash:              emptyHash,
+				PreviousBlockHash: emptyHash,
+				Timestamp:         genesisTimestamp,
+			},
+			OldestBlockWithHistoricalState: resources.BlockSummary{
+				Nonce:             0,
+				Hash:              emptyHash,
+				PreviousBlockHash: emptyHash,
+				Timestamp:         genesisTimestamp,
+			},
 		},
-		MockBlocksByNonce:             make(map[uint64]*data.Block),
-		MockBlocksByHash:              make(map[string]*data.Block),
+		MockBlocksByNonce: make(map[uint64]*data.Block),
+		MockBlocksByHash:  make(map[string]*data.Block),
+		MockNextAccountBlockCoordinates: &resources.AccountBlockCoordinates{
+			Nonce:    0,
+			Hash:     emptyHash,
+			RootHash: emptyHash,
+		},
 		MockAccountsByAddress:         make(map[string]*resources.Account),
 		MockAccountsNativeBalances:    make(map[string]*resources.AccountNativeBalance),
 		MockAccountsESDTBalances:      make(map[string]*resources.AccountESDTBalance),
@@ -138,13 +153,13 @@ func (mock *networkProviderMock) GetGenesisBalances() ([]*resources.GenesisBalan
 	return mock.MockGenesisBalances, nil
 }
 
-// GetLatestBlockSummary -
-func (mock *networkProviderMock) GetLatestBlockSummary() (*resources.BlockSummary, error) {
+// GetNodeStatus -
+func (mock *networkProviderMock) GetNodeStatus() (*resources.AggregatedNodeStatus, error) {
 	if mock.MockNextError != nil {
 		return nil, mock.MockNextError
 	}
 
-	return mock.MockLatestBlockSummary, nil
+	return mock.MockNodeStatus, nil
 }
 
 // GetBlockByNonce -
@@ -184,12 +199,8 @@ func (mock *networkProviderMock) GetAccount(address string) (*resources.AccountM
 	account, ok := mock.MockAccountsByAddress[address]
 	if ok {
 		return &resources.AccountModel{
-			Account: *account,
-			BlockCoordinates: resources.AccountBlockCoordinates{
-				Nonce:    mock.MockLatestBlockSummary.Nonce,
-				Hash:     mock.MockLatestBlockSummary.Hash,
-				RootHash: emptyHash,
-			},
+			Account:          *account,
+			BlockCoordinates: *mock.MockNextAccountBlockCoordinates,
 		}, nil
 	}
 
@@ -204,12 +215,8 @@ func (mock *networkProviderMock) GetAccountNativeBalance(address string, options
 	accountBalance, ok := mock.MockAccountsNativeBalances[address]
 	if ok {
 		return &resources.AccountNativeBalance{
-			Balance: accountBalance.Balance,
-			BlockCoordinates: resources.AccountBlockCoordinates{
-				Nonce:    mock.MockLatestBlockSummary.Nonce,
-				Hash:     mock.MockLatestBlockSummary.Hash,
-				RootHash: emptyHash,
-			},
+			Balance:          accountBalance.Balance,
+			BlockCoordinates: *mock.MockNextAccountBlockCoordinates,
 		}, nil
 	}
 
@@ -225,12 +232,8 @@ func (mock *networkProviderMock) GetAccountESDTBalance(address string, tokenIden
 	accountBalance, ok := mock.MockAccountsESDTBalances[key]
 	if ok {
 		return &resources.AccountESDTBalance{
-			Balance: accountBalance.Balance,
-			BlockCoordinates: resources.AccountBlockCoordinates{
-				Nonce:    mock.MockLatestBlockSummary.Nonce,
-				Hash:     mock.MockLatestBlockSummary.Hash,
-				RootHash: emptyHash,
-			},
+			Balance:          accountBalance.Balance,
+			BlockCoordinates: *mock.MockNextAccountBlockCoordinates,
 		}, nil
 	}
 

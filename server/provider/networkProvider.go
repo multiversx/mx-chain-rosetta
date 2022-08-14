@@ -149,18 +149,10 @@ func (provider *networkProvider) GetGenesisBalances() ([]*resources.GenesisBalan
 	return response.Data.Balances, nil
 }
 
-// GetLatestBlockSummary gets a summary of the latest block
-func (provider *networkProvider) GetLatestBlockSummary() (*resources.BlockSummary, error) {
+func (provider *networkProvider) getBlockSummaryByNonce(nonce uint64) (resources.BlockSummary, error) {
 	if provider.isOffline {
-		return nil, errIsOffline
+		return resources.BlockSummary{}, errIsOffline
 	}
-
-	latestBlockNonce, err := provider.getLatestBlockNonce()
-	if err != nil {
-		return nil, err
-	}
-
-	log.Debug("GetLatestBlockSummary()", "latestBlockNonce", latestBlockNonce)
 
 	queryOptions := common.BlockQueryOptions{
 		WithTransactions: false,
@@ -169,43 +161,19 @@ func (provider *networkProvider) GetLatestBlockSummary() (*resources.BlockSummar
 
 	blockResponse, err := provider.observerFacade.GetBlockByNonce(
 		provider.observedActualShard,
-		latestBlockNonce,
+		nonce,
 		queryOptions,
 	)
 	if err != nil {
-		return nil, newErrCannotGetBlockByNonce(latestBlockNonce, err)
+		return resources.BlockSummary{}, newErrCannotGetBlockByNonce(nonce, err)
 	}
 
-	return &resources.BlockSummary{
+	return resources.BlockSummary{
 		Nonce:             blockResponse.Data.Block.Nonce,
 		Hash:              blockResponse.Data.Block.Hash,
 		PreviousBlockHash: blockResponse.Data.Block.PrevBlockHash,
 		Timestamp:         int64(blockResponse.Data.Block.Timestamp),
 	}, nil
-}
-
-func (provider *networkProvider) getLatestBlockNonce() (uint64, error) {
-	nodeStatus, err := provider.getNodeStatus()
-	if err != nil {
-		return 0, err
-	}
-
-	// In the context of scheduled transactions, make sure the N+1 block is final, as well.
-	return nodeStatus.HighestFinalNonce - 1, nil
-}
-
-func (provider *networkProvider) getNodeStatus() (*resources.NodeStatus, error) {
-	if provider.isOffline {
-		return nil, errIsOffline
-	}
-
-	response := &resources.NodeStatusApiResponse{}
-	err := provider.getResource(urlPathGetNodeStatus, response)
-	if err != nil {
-		return nil, err
-	}
-
-	return &response.Data.Status, nil
 }
 
 // GetBlockByNonce gets a block by nonce

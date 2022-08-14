@@ -18,7 +18,7 @@ type NetworkProvider interface {
 	GetGenesisBlockSummary() *resources.BlockSummary
 	GetGenesisTimestamp() int64
 	GetGenesisBalances() ([]*resources.GenesisBalance, error)
-	GetLatestBlockSummary() (*resources.BlockSummary, error)
+	GetNodeStatus() (*resources.AggregatedNodeStatus, error)
 	GetBlockByNonce(nonce uint64) (*data.Block, error)
 	GetBlockByHash(hash string) (*data.Block, error)
 	GetAccount(address string) (*resources.AccountModel, error)
