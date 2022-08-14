@@ -21,7 +21,7 @@ type NodeStatusApiResponsePayload struct {
 
 // NodeStatus is an API resource
 type NodeStatus struct {
-	IsSyncing         bool   `json:"erd_is_syncing"`
+	IsSyncing         int    `json:"erd_is_syncing"`
 	HighestNonce      uint64 `json:"erd_nonce"`
 	HighestFinalNonce uint64 `json:"erd_highest_final_nonce"`
 	NonceAtEpochStart uint64 `json:"erd_nonce_at_epoch_start"`

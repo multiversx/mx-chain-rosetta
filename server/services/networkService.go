@@ -83,9 +83,10 @@ func (service *networkService) NetworkOptions(
 			NodeVersion:    version.NodeVersion,
 		},
 		Allow: &types.Allow{
-			OperationStatuses: supportedOperationStatuses,
-			OperationTypes:    SupportedOperationTypes,
-			Errors:            service.errFactory.getPossibleErrors(),
+			OperationStatuses:       supportedOperationStatuses,
+			OperationTypes:          SupportedOperationTypes,
+			Errors:                  service.errFactory.getPossibleErrors(),
+			HistoricalBalanceLookup: true,
 		},
 	}, nil
 }

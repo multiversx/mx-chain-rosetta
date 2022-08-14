@@ -80,7 +80,7 @@ func createAsserter(networkProvider services.NetworkProvider) (*asserter.Asserte
 	// The asserter automatically rejects incorrectly formatted requests.
 	asserterServer, err := asserter.NewServer(
 		services.SupportedOperationTypes,
-		false,
+		true,
 		[]*types.NetworkIdentifier{
 			{
 				Blockchain: networkProvider.GetBlockchainName(),

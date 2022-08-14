@@ -1,8 +1,9 @@
 package provider
 
 var (
-	nativeCurrencyNumDecimals = 18
-	genesisBlockNonce         = 0
+	nativeCurrencyNumDecimals              = 18
+	genesisBlockNonce                      = 0
+	oldestPossibleNonceWithHistoricalState = int64(1)
 )
 
 type MiniblockProcessingType string
