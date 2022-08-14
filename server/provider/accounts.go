@@ -26,8 +26,8 @@ func (provider *networkProvider) GetAccount(address string) (*resources.AccountM
 }
 
 // GetAccountNativeBalance gets the native balance by address
-func (provider *networkProvider) GetAccountNativeBalance(address string) (*resources.AccountNativeBalance, error) {
-	url := buildUrlGetAccountNativeBalance(address)
+func (provider *networkProvider) GetAccountNativeBalance(address string, options resources.AccountQueryOptions) (*resources.AccountNativeBalance, error) {
+	url := buildUrlGetAccountNativeBalance(address, options)
 	response := &resources.AccountNativeBalanceApiResponse{}
 
 	err := provider.getResource(url, response)
@@ -49,8 +49,8 @@ func (provider *networkProvider) GetAccountNativeBalance(address string) (*resou
 }
 
 // GetAccountESDTBalance gets the ESDT balance by address and tokenIdentifier
-func (provider *networkProvider) GetAccountESDTBalance(address string, tokenIdentifier string) (*resources.AccountESDTBalance, error) {
-	url := buildUrlGetAccountESDTBalance(address, tokenIdentifier)
+func (provider *networkProvider) GetAccountESDTBalance(address string, tokenIdentifier string, options resources.AccountQueryOptions) (*resources.AccountESDTBalance, error) {
+	url := buildUrlGetAccountESDTBalance(address, tokenIdentifier, options)
 	response := &resources.AccountESDTBalanceApiResponse{}
 
 	err := provider.getResource(url, response)

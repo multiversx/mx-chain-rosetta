@@ -196,7 +196,7 @@ func (mock *networkProviderMock) GetAccount(address string) (*resources.AccountM
 	return nil, fmt.Errorf("account %s not found", address)
 }
 
-func (mock *networkProviderMock) GetAccountNativeBalance(address string) (*resources.AccountNativeBalance, error) {
+func (mock *networkProviderMock) GetAccountNativeBalance(address string, options resources.AccountQueryOptions) (*resources.AccountNativeBalance, error) {
 	if mock.MockNextError != nil {
 		return nil, mock.MockNextError
 	}
@@ -216,7 +216,7 @@ func (mock *networkProviderMock) GetAccountNativeBalance(address string) (*resou
 	return nil, fmt.Errorf("account %s not found", address)
 }
 
-func (mock *networkProviderMock) GetAccountESDTBalance(address string, tokenIdentifier string) (*resources.AccountESDTBalance, error) {
+func (mock *networkProviderMock) GetAccountESDTBalance(address string, tokenIdentifier string, options resources.AccountQueryOptions) (*resources.AccountESDTBalance, error) {
 	if mock.MockNextError != nil {
 		return nil, mock.MockNextError
 	}

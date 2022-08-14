@@ -1,7 +1,10 @@
 package services
 
 import (
+	"encoding/hex"
+
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
+	"github.com/ElrondNetwork/rosetta/common"
 	"github.com/ElrondNetwork/rosetta/server/resources"
 	"github.com/coinbase/rosetta-sdk-go/types"
 )
@@ -25,6 +28,24 @@ func blockSummaryToIdentifier(blockSummary *resources.BlockSummary) *types.Block
 		Index: int64(blockSummary.Nonce),
 		Hash:  blockSummary.Hash,
 	}
+}
+
+func blockIdentifierToAccountQueryOptions(identifier *types.PartialBlockIdentifier) (resources.AccountQueryOptions, error) {
+	if identifier.Index != nil {
+		blockNonce := common.OptionalUint64{Value: uint64(*identifier.Index), HasValue: true}
+		return resources.AccountQueryOptions{BlockNonce: blockNonce}, nil
+	}
+
+	if identifier.Hash != nil {
+		decodedHash, err := hex.DecodeString(*identifier.Hash)
+		if err != nil {
+			return resources.AccountQueryOptions{}, err
+		}
+
+		return resources.AccountQueryOptions{BlockHash: decodedHash}, nil
+	}
+
+	return resources.AccountQueryOptions{OnFinalBlock: true}, nil
 }
 
 func addressToAccountIdentifier(address string) *types.AccountIdentifier {
