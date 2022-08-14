@@ -31,6 +31,10 @@ func blockSummaryToIdentifier(blockSummary *resources.BlockSummary) *types.Block
 }
 
 func blockIdentifierToAccountQueryOptions(identifier *types.PartialBlockIdentifier) (resources.AccountQueryOptions, error) {
+	if identifier == nil {
+		return resources.AccountQueryOptions{OnFinalBlock: true}, nil
+	}
+
 	if identifier.Index != nil {
 		blockNonce := common.OptionalUint64{Value: uint64(*identifier.Index), HasValue: true}
 		return resources.AccountQueryOptions{BlockNonce: blockNonce}, nil
