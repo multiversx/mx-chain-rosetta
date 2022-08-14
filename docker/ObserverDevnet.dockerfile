@@ -4,6 +4,8 @@ FROM golang:1.17.6 as builder
 RUN git clone https://github.com/ElrondNetwork/elrond-config-devnet --branch=rc-2022-july --depth=1
 RUN git clone https://github.com/ElrondNetwork/elrond-go.git --branch=rc/2022-july --depth=1
 
+# TODO: Clone mainnet config, as well
+
 # Build node
 WORKDIR /go/elrond-go/cmd/node
 RUN go build -i -v -ldflags="-X main.appVersion=$(git -C /go/elrond-config-devnet describe --tags --long --dirty)"
@@ -16,6 +18,8 @@ RUN wget -O adjust_config.py https://raw.githubusercontent.com/ElrondNetwork/ros
     python3 adjust_config.py --mode=main --file=/go/elrond-config-devnet/config.toml && \
     python3 adjust_config.py --mode=prefs --file=/go/elrond-config-devnet/prefs.toml
 
+# TODO: build key generator
+
 # ===== SECOND STAGE ======
 FROM ubuntu:20.04
 
@@ -25,4 +29,5 @@ COPY --from=builder "/lib/libwasmer_linux_amd64.so" "/lib/libwasmer_linux_amd64.
 
 EXPOSE 8080
 WORKDIR /elrond
+# TODO: generate observer keys, prepare folders, switch config (mainnet, devnet)
 ENTRYPOINT ["/elrond/node", "--log-save", "--log-level=*:DEBUG", "--log-logger-name", "--rest-api-interface=0.0.0.0:8080", "--working-directory=/data"]

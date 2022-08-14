@@ -87,32 +87,6 @@ sudo usermod -aG docker $USER
 
 After running the command, you may need to log out from the user session and log back in.
 
-#### Prepare folders on host
-
-The following script prepares the required folder structure on host:
-
-```
-cd $HOME/rosetta/scripts
-
-export OBSERVED_SHARD=0
-./prepare_host.sh ${HOME}/rosetta-workdir ${OBSERVED_SHARD}
-```
-
-#### Generate keys for observers
-
-The following script generates the node keys, required by the observers (chosen shard, plus metachain):
-
-```
-cd $HOME/rosetta/scripts
-
-export OBSERVED_SHARD=0
-./generate_keys.sh ${HOME}/rosetta-workdir/keys ${OBSERVED_SHARD}
-```
-
-Note that the script above downloads [this docker image](https://hub.docker.com/r/elrondnetwork/elrond-go-keygenerator). 
-
-In order to change the ownership of the generated keys (from _owned by Docker_ to _owned by the current user_), superuser access will be requested.
-
 ### Build the images
 
 Below, we build all the images (including for  _devnet_).
