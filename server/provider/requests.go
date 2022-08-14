@@ -10,6 +10,7 @@ func (provider *networkProvider) getResource(url string, response resourceApiRes
 	err := provider.getResourceWithErrConversion(url, response)
 	if err != nil {
 		log.Warn("getResource()", "url", url, "err", err)
+		return err
 	}
 
 	return nil
