@@ -27,8 +27,7 @@ func TestAccountService_AccountBalance(t *testing.T) {
 	require.Nil(t, response)
 
 	// When account exists
-	networkProvider.MockAccountsByAddress[testscommon.TestAddressAlice] = &resources.Account{
-		Address: testscommon.TestAddressAlice,
+	networkProvider.MockAccountsNativeBalances[testscommon.TestAddressAlice] = &resources.AccountNativeBalance{
 		Balance: "100",
 	}
 	networkProvider.MockLatestBlockSummary.Nonce = 42
