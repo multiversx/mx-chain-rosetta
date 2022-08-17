@@ -23,6 +23,9 @@ type observerFacadeMock struct {
 	MockBlocks             []*data.Block
 
 	SendTransactionCalled func(tx *data.Transaction) (int, string, error)
+
+	RecordedBaseUrl string
+	RecordedPath    string
 }
 
 // NewObserverFacadeMock -
@@ -45,6 +48,9 @@ func NewObserverFacadeMock() *observerFacadeMock {
 
 // CallGetRestEndPoint -
 func (mock *observerFacadeMock) CallGetRestEndPoint(baseUrl string, path string, value interface{}) (int, error) {
+	mock.RecordedBaseUrl = baseUrl
+	mock.RecordedPath = path
+
 	if mock.MockNextError != nil {
 		return 0, mock.MockNextError
 	}
