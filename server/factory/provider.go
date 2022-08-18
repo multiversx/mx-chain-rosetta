@@ -1,8 +1,6 @@
 package factory
 
 import (
-	"time"
-
 	"github.com/ElrondNetwork/elrond-go-core/core/pubkeyConverter"
 	hasherFactory "github.com/ElrondNetwork/elrond-go-core/hashing/factory"
 	marshalFactory "github.com/ElrondNetwork/elrond-go-core/marshal/factory"
@@ -24,10 +22,6 @@ const (
 	notApplicableFullHistoryNodesMessage = "not applicable"
 
 	requestTimeoutInSeconds = 60
-)
-
-var (
-	nodeStatusCacheDuration = time.Duration(1 * time.Second)
 )
 
 type ArgsCreateNetworkProvider struct {
