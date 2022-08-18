@@ -62,6 +62,8 @@ func TestNetworkProvider_GetAccountNativeBalance(t *testing.T) {
 	require.Nil(t, err)
 	require.NotNil(t, provider)
 
+	optionsOnFinal := resources.AccountQueryOptions{OnFinalBlock: true}
+
 	t.Run("with success", func(t *testing.T) {
 		observerFacade.MockNextError = nil
 		observerFacade.MockGetResponse = resources.AccountNativeBalanceApiResponse{
@@ -73,7 +75,7 @@ func TestNetworkProvider_GetAccountNativeBalance(t *testing.T) {
 			},
 		}
 
-		accountBalance, err := provider.GetAccountNativeBalance(testscommon.TestAddressAlice)
+		accountBalance, err := provider.GetAccountNativeBalance(testscommon.TestAddressAlice, optionsOnFinal)
 		require.Nil(t, err)
 		require.Equal(t, "1", accountBalance.Balance)
 		require.Equal(t, uint64(1000), accountBalance.BlockCoordinates.Nonce)
@@ -85,7 +87,7 @@ func TestNetworkProvider_GetAccountNativeBalance(t *testing.T) {
 		observerFacade.MockNextError = errors.New("arbitrary error")
 		observerFacade.MockGetResponse = nil
 
-		accountBalance, err := provider.GetAccountNativeBalance(testscommon.TestAddressAlice)
+		accountBalance, err := provider.GetAccountNativeBalance(testscommon.TestAddressAlice, optionsOnFinal)
 		require.ErrorIs(t, err, errCannotGetAccount)
 		require.Nil(t, accountBalance)
 		require.Equal(t, args.ObserverUrl, observerFacade.RecordedBaseUrl)
@@ -102,6 +104,8 @@ func TestNetworkProvider_GetAccountESDTBalance(t *testing.T) {
 	require.Nil(t, err)
 	require.NotNil(t, provider)
 
+	optionsOnFinal := resources.AccountQueryOptions{OnFinalBlock: true}
+
 	t.Run("with success", func(t *testing.T) {
 		observerFacade.MockNextError = nil
 		observerFacade.MockGetResponse = resources.AccountESDTBalanceApiResponse{
@@ -113,7 +117,7 @@ func TestNetworkProvider_GetAccountESDTBalance(t *testing.T) {
 			},
 		}
 
-		accountBalance, err := provider.GetAccountESDTBalance(testscommon.TestAddressAlice, "ABC-abcdef")
+		accountBalance, err := provider.GetAccountESDTBalance(testscommon.TestAddressAlice, "ABC-abcdef", optionsOnFinal)
 		require.Nil(t, err)
 		require.Equal(t, "1", accountBalance.Balance)
 		require.Equal(t, uint64(1000), accountBalance.BlockCoordinates.Nonce)
@@ -125,7 +129,7 @@ func TestNetworkProvider_GetAccountESDTBalance(t *testing.T) {
 		observerFacade.MockNextError = errors.New("arbitrary error")
 		observerFacade.MockGetResponse = nil
 
-		accountBalance, err := provider.GetAccountESDTBalance(testscommon.TestAddressAlice, "ABC-abcdef")
+		accountBalance, err := provider.GetAccountESDTBalance(testscommon.TestAddressAlice, "ABC-abcdef", optionsOnFinal)
 		require.ErrorIs(t, err, errCannotGetAccount)
 		require.Nil(t, accountBalance)
 		require.Equal(t, args.ObserverUrl, observerFacade.RecordedBaseUrl)
