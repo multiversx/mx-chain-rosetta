@@ -3,8 +3,8 @@
 Set the Rosetta URLs:
 
 ```
-export ROSETTA_ONLINE=http://rosetta-mainnet:9090
-export ROSETTA_OFFLINE=http://rosetta-mainnet:9091
+export ROSETTA_ONLINE=http://localhost:8091
+export ROSETTA_OFFLINE=http://localhost:8092
 ```
 
 Set a starting point for the data API checks:
