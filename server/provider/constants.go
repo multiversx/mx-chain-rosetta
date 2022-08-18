@@ -1,8 +1,9 @@
 package provider
 
 var (
-	nativeCurrencyNumDecimals              = 18
-	genesisBlockNonce                      = 0
+	nativeCurrencyNumDecimals = 18
+	genesisBlockNonce         = 0
+	// Block with nonce = 0 is not actually retrievable from the observer
 	oldestPossibleNonceWithHistoricalState = int64(1)
 )
 

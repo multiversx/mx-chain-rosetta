@@ -77,15 +77,16 @@ func createOnlineControllers(networkProvider services.NetworkProvider) ([]server
 }
 
 func createAsserter(networkProvider services.NetworkProvider) (*asserter.Asserter, error) {
+	isHistoricalBalancesLookupEnabled := true
+
 	// The asserter automatically rejects incorrectly formatted requests.
 	asserterServer, err := asserter.NewServer(
 		services.SupportedOperationTypes,
-		true,
+		isHistoricalBalancesLookupEnabled,
 		[]*types.NetworkIdentifier{
 			{
 				Blockchain: networkProvider.GetBlockchainName(),
 				Network:    networkProvider.GetChainID(),
-				// TODO: Perhaps add subnetwork identifier, as well?
 			},
 		},
 		nil,
