@@ -111,15 +111,13 @@ func TestNetworkProvider_GetNodeStatusWithError(t *testing.T) {
 func TestGetOldestNonceWithHistoricalStateGivenNodeStatus(t *testing.T) {
 	oldestNonce := getOldestNonceWithHistoricalStateGivenNodeStatus(&resources.NodeStatus{
 		NonceAtEpochStart: 0,
-		RoundsPerEpoch:    14400,
 	})
 
 	require.Equal(t, uint64(1), oldestNonce)
 
 	oldestNonce = getOldestNonceWithHistoricalStateGivenNodeStatus(&resources.NodeStatus{
 		NonceAtEpochStart: 50000,
-		RoundsPerEpoch:    14400,
 	})
 
-	require.Equal(t, uint64(50000-14400), oldestNonce)
+	require.Equal(t, uint64(50000), oldestNonce)
 }

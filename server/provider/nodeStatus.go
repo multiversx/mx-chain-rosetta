@@ -59,13 +59,9 @@ func getLatestNonceGivenHighestFinalNonce(highestFinalNonce uint64) uint64 {
 	return highestFinalNonce - 1
 }
 
-// Workaround: this is only a heuristic (a pessimistic, restrictive one).
-// This will be improved once the Node API provides the nonce at startOfEpoch(currentEpoch - 3).
 func getOldestNonceWithHistoricalStateGivenNodeStatus(status *resources.NodeStatus) uint64 {
-	oldestNonce := int64(status.NonceAtEpochStart) - int64(status.RoundsPerEpoch)
-	if oldestNonce < oldestPossibleNonceWithHistoricalState {
-		oldestNonce = oldestPossibleNonceWithHistoricalState
+	if status.NonceAtEpochStart == 0 {
+		return oldestPossibleNonceWithHistoricalState
 	}
-
-	return uint64(oldestNonce)
+	return status.NonceAtEpochStart
 }
