@@ -1,6 +1,8 @@
 package main
 
 import (
+	"strings"
+
 	logger "github.com/ElrondNetwork/elrond-go-logger"
 	"github.com/urfave/cli"
 )
@@ -69,7 +71,7 @@ VERSION:
 	cliFlagObserverPubKey = cli.StringFlag{
 		Name:  "observer-pubkey",
 		Usage: "Specifies the public key of the observer.",
-		Value: "0000000000000000000000000000000000000000000000000000000000000000",
+		Value: strings.Repeat("0", 64),
 	}
 
 	cliFlagChainID = cli.StringFlag{

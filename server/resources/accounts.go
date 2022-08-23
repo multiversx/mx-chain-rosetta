@@ -5,13 +5,13 @@ import "github.com/ElrondNetwork/rosetta/common"
 // AccountApiResponse defines an account resource
 type AccountApiResponse struct {
 	resourceApiResponse
-	Data AccountModel `json:"data"`
+	Data AccountOnBlock `json:"data"`
 }
 
-// AccountModel defines an account resource
-type AccountModel struct {
-	Account          Account                 `json:"account"`
-	BlockCoordinates AccountBlockCoordinates `json:"blockInfo"`
+// AccountOnBlock defines an account resource
+type AccountOnBlock struct {
+	Account          Account          `json:"account"`
+	BlockCoordinates BlockCoordinates `json:"blockInfo"`
 }
 
 // Account defines an account resource
@@ -22,17 +22,11 @@ type Account struct {
 	Username string `json:"username"`
 }
 
+// AccountQueryOptions defines an (internal) account resource
 type AccountQueryOptions struct {
 	OnFinalBlock bool
 	BlockNonce   common.OptionalUint64
 	BlockHash    []byte
-}
-
-// AccountBlockCoordinates defines an account resource
-type AccountBlockCoordinates struct {
-	Nonce    uint64 `json:"nonce"`
-	Hash     string `json:"hash"`
-	RootHash string `json:"rootHash"`
 }
 
 // AccountNativeBalanceApiResponse defines an account resource
@@ -43,8 +37,8 @@ type AccountNativeBalanceApiResponse struct {
 
 // AccountNativeBalance defines an account resource
 type AccountNativeBalance struct {
-	Balance          string                  `json:"balance"`
-	BlockCoordinates AccountBlockCoordinates `json:"blockInfo"`
+	Balance          string           `json:"balance"`
+	BlockCoordinates BlockCoordinates `json:"blockInfo"`
 }
 
 // AccountESDTBalanceApiResponse defines an account resource
@@ -55,7 +49,7 @@ type AccountESDTBalanceApiResponse struct {
 
 // AccountESDTBalance defines an account resource
 type AccountESDTBalance struct {
-	Balance          string                  `json:"balance"`
-	Properties       string                  `json:"properties"`
-	BlockCoordinates AccountBlockCoordinates `json:"blockInfo"`
+	Balance          string           `json:"balance"`
+	Properties       string           `json:"properties"`
+	BlockCoordinates BlockCoordinates `json:"blockInfo"`
 }

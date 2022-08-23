@@ -21,12 +21,12 @@ func TestNetworkProvider_GetAccount(t *testing.T) {
 	t.Run("with success", func(t *testing.T) {
 		observerFacade.MockNextError = nil
 		observerFacade.MockGetResponse = resources.AccountApiResponse{
-			Data: resources.AccountModel{
+			Data: resources.AccountOnBlock{
 				Account: resources.Account{
 					Address: testscommon.TestAddressAlice,
 					Balance: "1",
 				},
-				BlockCoordinates: resources.AccountBlockCoordinates{
+				BlockCoordinates: resources.BlockCoordinates{
 					Nonce: 1000,
 				},
 			},
@@ -69,7 +69,7 @@ func TestNetworkProvider_GetAccountNativeBalance(t *testing.T) {
 		observerFacade.MockGetResponse = resources.AccountNativeBalanceApiResponse{
 			Data: resources.AccountNativeBalance{
 				Balance: "1",
-				BlockCoordinates: resources.AccountBlockCoordinates{
+				BlockCoordinates: resources.BlockCoordinates{
 					Nonce: 1000,
 				},
 			},
@@ -111,7 +111,7 @@ func TestNetworkProvider_GetAccountESDTBalance(t *testing.T) {
 		observerFacade.MockGetResponse = resources.AccountESDTBalanceApiResponse{
 			Data: resources.AccountESDTBalance{
 				Balance: "1",
-				BlockCoordinates: resources.AccountBlockCoordinates{
+				BlockCoordinates: resources.BlockCoordinates{
 					Nonce: 1000,
 				},
 			},

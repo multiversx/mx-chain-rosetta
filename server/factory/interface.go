@@ -21,7 +21,7 @@ type networkProvider interface {
 	GetNodeStatus() (*resources.AggregatedNodeStatus, error)
 	GetBlockByNonce(nonce uint64) (*data.Block, error)
 	GetBlockByHash(hash string) (*data.Block, error)
-	GetAccount(address string) (*resources.AccountModel, error)
+	GetAccount(address string) (*resources.AccountOnBlock, error)
 	GetAccountNativeBalance(address string, options resources.AccountQueryOptions) (*resources.AccountNativeBalance, error)
 	GetAccountESDTBalance(address string, tokenIdentifier string, options resources.AccountQueryOptions) (*resources.AccountESDTBalance, error)
 	IsAddressObserved(address string) (bool, error)

@@ -25,3 +25,10 @@ type NativeCurrency struct {
 	Symbol   string
 	Decimals int32
 }
+
+// BlockCoordinates is an API resource
+type BlockCoordinates struct {
+	Nonce    uint64 `json:"nonce"`
+	Hash     string `json:"hash"`
+	RootHash string `json:"rootHash"`
+}

@@ -3,7 +3,7 @@ package provider
 import "github.com/ElrondNetwork/rosetta/server/resources"
 
 // GetAccount gets an account by address
-func (provider *networkProvider) GetAccount(address string) (*resources.AccountModel, error) {
+func (provider *networkProvider) GetAccount(address string) (*resources.AccountOnBlock, error) {
 	url := buildUrlGetAccount(address)
 	response := &resources.AccountApiResponse{}
 

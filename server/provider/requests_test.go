@@ -55,7 +55,7 @@ func TestNetworkProvider_GetResource(t *testing.T) {
 	})
 
 	t.Run("with error (as err, structured)", func(t *testing.T) {
-		observerFacade.MockNextError = errors.New("{ \"error\": \"internal error\", \"code\": \"err\" }")
+		observerFacade.MockNextError = errors.New(`{"error": "internal error", "code": "err" }`)
 		observerFacade.MockGetResponse = nil
 
 		response := &dummyResourceApiResponse{}

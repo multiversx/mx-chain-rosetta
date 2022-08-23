@@ -3,6 +3,7 @@ package testscommon
 import (
 	"fmt"
 	"math/big"
+	"strings"
 
 	"github.com/ElrondNetwork/elrond-go-core/core"
 	"github.com/ElrondNetwork/elrond-go-core/core/pubkeyConverter"
@@ -12,8 +13,10 @@ import (
 	"github.com/ElrondNetwork/rosetta/server/resources"
 )
 
-const emptyHash = "0000000000000000000000000000000000000000000000000000000000000000"
-const genesisTimestamp = int64(1596117600)
+var (
+	emptyHash        = strings.Repeat("0", 64)
+	genesisTimestamp = int64(1596117600)
+)
 
 type networkProviderMock struct {
 	pubKeyConverter core.PubkeyConverter
@@ -32,7 +35,7 @@ type networkProviderMock struct {
 	MockNodeStatus                  *resources.AggregatedNodeStatus
 	MockBlocksByNonce               map[uint64]*data.Block
 	MockBlocksByHash                map[string]*data.Block
-	MockNextAccountBlockCoordinates *resources.AccountBlockCoordinates
+	MockNextAccountBlockCoordinates *resources.BlockCoordinates
 	MockAccountsByAddress           map[string]*resources.Account
 	MockAccountsNativeBalances      map[string]*resources.AccountNativeBalance
 	MockAccountsESDTBalances        map[string]*resources.AccountESDTBalance
@@ -83,7 +86,7 @@ func NewNetworkProviderMock() *networkProviderMock {
 		},
 		MockBlocksByNonce: make(map[uint64]*data.Block),
 		MockBlocksByHash:  make(map[string]*data.Block),
-		MockNextAccountBlockCoordinates: &resources.AccountBlockCoordinates{
+		MockNextAccountBlockCoordinates: &resources.BlockCoordinates{
 			Nonce:    0,
 			Hash:     emptyHash,
 			RootHash: emptyHash,
@@ -191,14 +194,14 @@ func (mock *networkProviderMock) GetBlockByHash(hash string) (*data.Block, error
 }
 
 // GetAccount -
-func (mock *networkProviderMock) GetAccount(address string) (*resources.AccountModel, error) {
+func (mock *networkProviderMock) GetAccount(address string) (*resources.AccountOnBlock, error) {
 	if mock.MockNextError != nil {
 		return nil, mock.MockNextError
 	}
 
 	account, ok := mock.MockAccountsByAddress[address]
 	if ok {
-		return &resources.AccountModel{
+		return &resources.AccountOnBlock{
 			Account:          *account,
 			BlockCoordinates: *mock.MockNextAccountBlockCoordinates,
 		}, nil
