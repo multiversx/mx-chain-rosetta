@@ -2,7 +2,7 @@ package provider
 
 import "errors"
 
-func (provider *networkProvider) getResource(url string, response resourceApiResponse) error {
+func (provider *networkProvider) getResource(url string, response resourceApiResponseHandler) error {
 	if provider.isOffline {
 		return errIsOffline
 	}
@@ -16,7 +16,7 @@ func (provider *networkProvider) getResource(url string, response resourceApiRes
 	return nil
 }
 
-func (provider *networkProvider) getResourceWithErrConversion(url string, response resourceApiResponse) error {
+func (provider *networkProvider) getResourceWithErrConversion(url string, response resourceApiResponseHandler) error {
 	_, err := provider.observerFacade.CallGetRestEndPoint(provider.observerUrl, url, response)
 	if err != nil {
 		return convertStructuredApiErrToFlatErr(err)

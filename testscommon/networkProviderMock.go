@@ -3,6 +3,7 @@ package testscommon
 import (
 	"fmt"
 	"math/big"
+	"strings"
 
 	"github.com/ElrondNetwork/elrond-go-core/core"
 	"github.com/ElrondNetwork/elrond-go-core/core/pubkeyConverter"
@@ -12,8 +13,10 @@ import (
 	"github.com/ElrondNetwork/rosetta/server/resources"
 )
 
-const emptyHash = "0000000000000000000000000000000000000000000000000000000000000000"
-const genesisTimestamp = int64(1596117600)
+var (
+	emptyHash        = strings.Repeat("0", 64)
+	genesisTimestamp = int64(1596117600)
+)
 
 type networkProviderMock struct {
 	pubKeyConverter core.PubkeyConverter
@@ -176,16 +179,16 @@ func (mock *networkProviderMock) GetBlockByHash(hash string) (*data.Block, error
 }
 
 // GetAccount -
-func (mock *networkProviderMock) GetAccount(address string) (*resources.AccountModel, error) {
+func (mock *networkProviderMock) GetAccount(address string) (*resources.AccountOnBlock, error) {
 	if mock.MockNextError != nil {
 		return nil, mock.MockNextError
 	}
 
 	account, ok := mock.MockAccountsByAddress[address]
 	if ok {
-		return &resources.AccountModel{
+		return &resources.AccountOnBlock{
 			Account: *account,
-			BlockCoordinates: resources.AccountBlockCoordinates{
+			BlockCoordinates: resources.BlockCoordinates{
 				Nonce:    mock.MockLatestBlockSummary.Nonce,
 				Hash:     mock.MockLatestBlockSummary.Hash,
 				RootHash: emptyHash,
@@ -205,7 +208,7 @@ func (mock *networkProviderMock) GetAccountNativeBalance(address string) (*resou
 	if ok {
 		return &resources.AccountNativeBalance{
 			Balance: accountBalance.Balance,
-			BlockCoordinates: resources.AccountBlockCoordinates{
+			BlockCoordinates: resources.BlockCoordinates{
 				Nonce:    mock.MockLatestBlockSummary.Nonce,
 				Hash:     mock.MockLatestBlockSummary.Hash,
 				RootHash: emptyHash,
@@ -226,7 +229,7 @@ func (mock *networkProviderMock) GetAccountESDTBalance(address string, tokenIden
 	if ok {
 		return &resources.AccountESDTBalance{
 			Balance: accountBalance.Balance,
-			BlockCoordinates: resources.AccountBlockCoordinates{
+			BlockCoordinates: resources.BlockCoordinates{
 				Nonce:    mock.MockLatestBlockSummary.Nonce,
 				Hash:     mock.MockLatestBlockSummary.Hash,
 				RootHash: emptyHash,

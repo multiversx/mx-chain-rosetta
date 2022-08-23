@@ -1,6 +1,9 @@
 package services
 
-import "encoding/hex"
+import (
+	"encoding/hex"
+	"strings"
+)
 
 var (
 	transactionVersion                           = 1
@@ -10,7 +13,7 @@ var (
 	builtInFunctionClaimDeveloperRewards         = "ClaimDeveloperRewards"
 	refundGasMessage                             = "refundedGas"
 	sendingValueToNonPayableContractDataPrefix   = "@" + hex.EncodeToString([]byte("sending value to non payable contract"))
-	emptyHash                                    = "0000000000000000000000000000000000000000000000000000000000000000"
+	emptyHash                                    = strings.Repeat("0", 64)
 )
 
 var (

@@ -151,7 +151,7 @@ func TestConstructionService_ConstructionPayloads(t *testing.T) {
 		},
 	)
 
-	unsignedTx := "{\"nonce\":42,\"value\":\"1234\",\"receiver\":\"erd1spyavw0956vq68xj8y4tenjpq2wd5a9p2c6j8gsz7ztyrnpxrruqzu66jx\",\"sender\":\"erd1qyu5wthldzr8wx5c9ucg8kjagg0jfs53s8nr3zpz3hypefsdd8ssycr6th\",\"gasPrice\":1100000000,\"gasLimit\":57500,\"data\":\"aGVsbG8=\",\"chainID\":\"T\",\"version\":1}"
+	unsignedTx := `{"nonce":42,"value":"1234","receiver":"erd1spyavw0956vq68xj8y4tenjpq2wd5a9p2c6j8gsz7ztyrnpxrruqzu66jx","sender":"erd1qyu5wthldzr8wx5c9ucg8kjagg0jfs53s8nr3zpz3hypefsdd8ssycr6th","gasPrice":1100000000,"gasLimit":57500,"data":"aGVsbG8=","chainID":"T","version":1}`
 	unsignedTxBytes := []byte(unsignedTx)
 
 	require.Nil(t, err)
@@ -169,7 +169,7 @@ func TestConstructionService_ConstructionParse(t *testing.T) {
 	extension := newNetworkProviderExtension(networkProvider)
 	service := NewConstructionService(networkProvider)
 
-	unsignedTx := "{\"nonce\":42,\"value\":\"1234\",\"receiver\":\"erd1spyavw0956vq68xj8y4tenjpq2wd5a9p2c6j8gsz7ztyrnpxrruqzu66jx\",\"sender\":\"erd1qyu5wthldzr8wx5c9ucg8kjagg0jfs53s8nr3zpz3hypefsdd8ssycr6th\",\"gasPrice\":1100000000,\"gasLimit\":57500,\"data\":\"aGVsbG8=\",\"chainID\":\"T\",\"version\":1}"
+	unsignedTx := `{"nonce":42,"value":"1234","receiver":"erd1spyavw0956vq68xj8y4tenjpq2wd5a9p2c6j8gsz7ztyrnpxrruqzu66jx","sender":"erd1qyu5wthldzr8wx5c9ucg8kjagg0jfs53s8nr3zpz3hypefsdd8ssycr6th","gasPrice":1100000000,"gasLimit":57500,"data":"aGVsbG8=","chainID":"T","version":1}`
 
 	operations := []*types.Operation{
 		{
@@ -203,7 +203,7 @@ func TestConstructionService_ConstructionCombine(t *testing.T) {
 
 	service := NewConstructionService(networkProvider)
 
-	unsignedTx := "{\"nonce\":42,\"value\":\"1234\",\"receiver\":\"erd1spyavw0956vq68xj8y4tenjpq2wd5a9p2c6j8gsz7ztyrnpxrruqzu66jx\",\"sender\":\"erd1qyu5wthldzr8wx5c9ucg8kjagg0jfs53s8nr3zpz3hypefsdd8ssycr6th\",\"gasPrice\":1100000000,\"gasLimit\":57500,\"data\":\"aGVsbG8=\",\"chainID\":\"T\",\"version\":1}"
+	unsignedTx := `{"nonce":42,"value":"1234","receiver":"erd1spyavw0956vq68xj8y4tenjpq2wd5a9p2c6j8gsz7ztyrnpxrruqzu66jx","sender":"erd1qyu5wthldzr8wx5c9ucg8kjagg0jfs53s8nr3zpz3hypefsdd8ssycr6th","gasPrice":1100000000,"gasLimit":57500,"data":"aGVsbG8=","chainID":"T","version":1}`
 
 	response, err := service.ConstructionCombine(context.Background(),
 		&types.ConstructionCombineRequest{
@@ -216,7 +216,7 @@ func TestConstructionService_ConstructionCombine(t *testing.T) {
 		},
 	)
 
-	signedTx := "{\"nonce\":42,\"value\":\"1234\",\"receiver\":\"erd1spyavw0956vq68xj8y4tenjpq2wd5a9p2c6j8gsz7ztyrnpxrruqzu66jx\",\"sender\":\"erd1qyu5wthldzr8wx5c9ucg8kjagg0jfs53s8nr3zpz3hypefsdd8ssycr6th\",\"gasPrice\":1100000000,\"gasLimit\":57500,\"data\":\"aGVsbG8=\",\"signature\":\"aabb\",\"chainID\":\"T\",\"version\":1}"
+	signedTx := `{"nonce":42,"value":"1234","receiver":"erd1spyavw0956vq68xj8y4tenjpq2wd5a9p2c6j8gsz7ztyrnpxrruqzu66jx","sender":"erd1qyu5wthldzr8wx5c9ucg8kjagg0jfs53s8nr3zpz3hypefsdd8ssycr6th","gasPrice":1100000000,"gasLimit":57500,"data":"aGVsbG8=","signature":"aabb","chainID":"T","version":1}`
 	require.Nil(t, err)
 	require.Equal(t, signedTx, response.SignedTransaction)
 }
@@ -243,7 +243,7 @@ func TestConstructionService_ConstructionHash(t *testing.T) {
 	networkProvider.MockComputedTransactionHash = "aaaa"
 	service := NewConstructionService(networkProvider)
 
-	signedTx := "{\"nonce\":42,\"value\":\"1234\",\"receiver\":\"erd1spyavw0956vq68xj8y4tenjpq2wd5a9p2c6j8gsz7ztyrnpxrruqzu66jx\",\"sender\":\"erd1qyu5wthldzr8wx5c9ucg8kjagg0jfs53s8nr3zpz3hypefsdd8ssycr6th\",\"gasPrice\":1100000000,\"gasLimit\":57500,\"data\":\"aGVsbG8=\",\"signature\":\"aabb\",\"chainID\":\"T\",\"version\":1}"
+	signedTx := `{"nonce":42,"value":"1234","receiver":"erd1spyavw0956vq68xj8y4tenjpq2wd5a9p2c6j8gsz7ztyrnpxrruqzu66jx","sender":"erd1qyu5wthldzr8wx5c9ucg8kjagg0jfs53s8nr3zpz3hypefsdd8ssycr6th","gasPrice":1100000000,"gasLimit":57500,"data":"aGVsbG8=","signature":"aabb","chainID":"T","version":1}`
 
 	response, err := service.ConstructionHash(context.Background(),
 		&types.ConstructionHashRequest{
@@ -265,7 +265,7 @@ func TestConstructionService_ConstructionSubmit(t *testing.T) {
 
 	service := NewConstructionService(networkProvider)
 
-	signedTx := "{\"nonce\":42,\"value\":\"1234\",\"receiver\":\"erd1spyavw0956vq68xj8y4tenjpq2wd5a9p2c6j8gsz7ztyrnpxrruqzu66jx\",\"sender\":\"erd1qyu5wthldzr8wx5c9ucg8kjagg0jfs53s8nr3zpz3hypefsdd8ssycr6th\",\"gasPrice\":1100000000,\"gasLimit\":57500,\"data\":\"aGVsbG8=\",\"signature\":\"aabb\",\"chainID\":\"T\",\"version\":1}"
+	signedTx := `{"nonce":42,"value":"1234","receiver":"erd1spyavw0956vq68xj8y4tenjpq2wd5a9p2c6j8gsz7ztyrnpxrruqzu66jx","sender":"erd1qyu5wthldzr8wx5c9ucg8kjagg0jfs53s8nr3zpz3hypefsdd8ssycr6th","gasPrice":1100000000,"gasLimit":57500,"data":"aGVsbG8=","signature":"aabb","chainID":"T","version":1}`
 
 	response, err := service.ConstructionSubmit(context.Background(),
 		&types.ConstructionSubmitRequest{

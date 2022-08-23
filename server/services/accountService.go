@@ -65,12 +65,12 @@ func (service *accountService) AccountBalance(
 	return response, nil
 }
 
-func (service *accountService) getBalance(address string, currencySymbol string) (*types.Amount, resources.AccountBlockCoordinates, error) {
+func (service *accountService) getBalance(address string, currencySymbol string) (*types.Amount, resources.BlockCoordinates, error) {
 	isForNative := currencySymbol == service.getNativeSymbol()
 	if isForNative {
 		accountBalance, err := service.provider.GetAccountNativeBalance(address)
 		if err != nil {
-			return nil, resources.AccountBlockCoordinates{}, err
+			return nil, resources.BlockCoordinates{}, err
 		}
 
 		amount := service.extension.valueToNativeAmount(accountBalance.Balance)
@@ -79,7 +79,7 @@ func (service *accountService) getBalance(address string, currencySymbol string)
 
 	accountBalance, err := service.provider.GetAccountESDTBalance(address, currencySymbol)
 	if err != nil {
-		return nil, resources.AccountBlockCoordinates{}, err
+		return nil, resources.BlockCoordinates{}, err
 	}
 
 	amount := service.extension.valueToCustomAmount(accountBalance.Balance, currencySymbol)

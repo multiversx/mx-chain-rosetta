@@ -1,6 +1,7 @@
 package provider
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/ElrondNetwork/rosetta/testscommon"
@@ -62,7 +63,7 @@ func createDefaultArgsNewNetworkProvider() ArgsNewNetworkProvider {
 		MinGasPrice:                 1000000000,
 		MinGasLimit:                 50000,
 		NativeCurrencySymbol:        "XeGLD",
-		GenesisBlockHash:            "0000000000000000000000000000000000000000000000000000000000000000",
+		GenesisBlockHash:            strings.Repeat("0", 64),
 		GenesisTimestamp:            123456789,
 		ObserverFacade:              testscommon.NewObserverFacadeMock(),
 		Hasher:                      testscommon.RealWorldBlake2bHasher,
