@@ -27,8 +27,6 @@ func TestNetworkProvider_GetNodeStatusWithSuccess(t *testing.T) {
 					IsSyncing:         1,
 					HighestNonce:      7,
 					HighestFinalNonce: 5,
-					NonceAtEpochStart: 0,
-					RoundsPerEpoch:    100,
 				},
 			}
 		}
@@ -52,7 +50,6 @@ func TestNetworkProvider_GetNodeStatusWithSuccess(t *testing.T) {
 		}
 
 		// Oldest nonce with historical state (as considered by Rosetta)
-		// max(1, NonceAtEpochStart - RoundsPerEpoch)
 		if nonce == 1 {
 			return &data.BlockApiResponse{
 				Data: data.BlockApiResponsePayload{
@@ -109,15 +106,21 @@ func TestNetworkProvider_GetNodeStatusWithError(t *testing.T) {
 }
 
 func TestGetOldestNonceWithHistoricalStateGivenNodeStatus(t *testing.T) {
-	oldestNonce := getOldestNonceWithHistoricalStateGivenNodeStatus(&resources.NodeStatus{
-		NonceAtEpochStart: 0,
+	args := createDefaultArgsNewNetworkProvider()
+	args.NumHistoricalBlocks = 42
+	provider, err := NewNetworkProvider(args)
+	require.Nil(t, err)
+	require.NotNil(t, provider)
+
+	oldestNonce := provider.getOldestNonceWithHistoricalStateGivenNodeStatus(&resources.NodeStatus{
+		HighestFinalNonce: 50,
+	})
+
+	require.Equal(t, uint64(8), oldestNonce)
+
+	oldestNonce = provider.getOldestNonceWithHistoricalStateGivenNodeStatus(&resources.NodeStatus{
+		HighestFinalNonce: 40,
 	})
 
 	require.Equal(t, uint64(1), oldestNonce)
-
-	oldestNonce = getOldestNonceWithHistoricalStateGivenNodeStatus(&resources.NodeStatus{
-		NonceAtEpochStart: 50000,
-	})
-
-	require.Equal(t, uint64(50000), oldestNonce)
 }

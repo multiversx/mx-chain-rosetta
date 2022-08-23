@@ -18,7 +18,7 @@ func (provider *networkProvider) GetNodeStatus() (*resources.AggregatedNodeStatu
 		return nil, err
 	}
 
-	oldestNonceWithHistoricalState := getOldestNonceWithHistoricalStateGivenNodeStatus(plainNodeStatus)
+	oldestNonceWithHistoricalState := provider.getOldestNonceWithHistoricalStateGivenNodeStatus(plainNodeStatus)
 	oldestBlockWithHistoricalState, err := provider.getBlockSummaryByNonce(oldestNonceWithHistoricalState)
 	if err != nil {
 		return nil, err
@@ -59,9 +59,11 @@ func getLatestNonceGivenHighestFinalNonce(highestFinalNonce uint64) uint64 {
 	return highestFinalNonce - 1
 }
 
-func getOldestNonceWithHistoricalStateGivenNodeStatus(status *resources.NodeStatus) uint64 {
-	if status.NonceAtEpochStart == 0 {
+func (provider *networkProvider) getOldestNonceWithHistoricalStateGivenNodeStatus(status *resources.NodeStatus) uint64 {
+	oldest := int64(status.HighestFinalNonce) - int64(provider.numHistoricalBlocks)
+	if oldest < int64(oldestPossibleNonceWithHistoricalState) {
 		return oldestPossibleNonceWithHistoricalState
 	}
-	return status.NonceAtEpochStart
+
+	return uint64(oldest)
 }
