@@ -1,13 +1,13 @@
 {
   "network": {
     "blockchain": "Elrond",
-    "network": "D"
+    "network": "1"
   },
   "http_timeout": 10,
   "max_retries": 5,
   "retry_elapsed_time": 0,
   "max_online_connections": 128,
-  "max_sync_concurrency": 64,
+  "max_sync_concurrency": 8,
   "tip_delay": 10,
   "max_reorg_depth": 100,
   "log_configuration": false,
@@ -17,10 +17,10 @@
   "coin_supported": false,
   "construction": null,
   "data": {
-    "start_index": 2045500,
+    "start_index": 10120632,
     "active_reconciliation_concurrency": 64,
-    "inactive_reconciliation_concurrency": 64,
-    "inactive_reconciliation_frequency": 1,
+    "inactive_reconciliation_concurrency": 8,
+    "inactive_reconciliation_frequency": 128,
     "log_blocks": false,
     "log_transactions": true,
     "log_balance_changes": true,
@@ -37,10 +37,10 @@
     "initial_balance_fetch_disabled": false,
     "historical_balance_disabled": false,
     "end_conditions": {
-      "duration": 1800,
+      "duration": 36000,
       "reconciliation_coverage": {
         "coverage": 1,
-        "account_count": 100
+        "account_count": 400000
       }
     }
   }
