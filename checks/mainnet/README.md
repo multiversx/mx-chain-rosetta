@@ -19,3 +19,10 @@ Check the data API:
 rosetta-cli check:data --configuration-file mainnet-data-start-after-${AFTER_BLOCK}.json \
 --online-url=${ROSETTA_ONLINE} --data-dir=mainnet-${AFTER_BLOCK}
 ```
+
+Or, using historical balances:
+
+```
+rosetta-cli check:data --configuration-file mainnet-data-start-historical.json \
+--online-url=${ROSETTA_ONLINE} --data-dir=mainnet-${AFTER_BLOCK}-historical
+```

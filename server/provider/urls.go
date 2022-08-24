@@ -1,30 +1,59 @@
 package provider
 
 import (
+	"encoding/hex"
 	"fmt"
+	"net/url"
+	"strconv"
 
-	"github.com/ElrondNetwork/elrond-proxy-go/common"
+	"github.com/ElrondNetwork/rosetta/server/resources"
 )
 
 var (
-	urlPathGetNodeStatus           = "/node/status"
-	urlPathGetGenesisBalances      = "/network/genesis-balances"
-	urlPathGetAccount              = "/address/%s"
-	urlPathGetAccountNativeBalance = "/address/%s/balance"
-	urlPathGetAccountESDTBalance   = "/address/%s/esdt/%s"
+	urlPathGetNodeStatus                        = "/node/status"
+	urlPathGetGenesisBalances                   = "/network/genesis-balances"
+	urlPathGetAccount                           = "/address/%s"
+	urlPathGetAccountNativeBalance              = "/address/%s/balance"
+	urlPathGetAccountESDTBalance                = "/address/%s/esdt/%s"
+	urlParameterAccountQueryOptionsOnFinalBlock = "onFinalBlock"
+	urlParameterAccountQueryOptionsBlockNonce   = "blockNonce"
+	urlParameterAccountQueryOptionsBlockHash    = "blockHash"
 )
 
 func buildUrlGetAccount(address string) string {
-	options := common.AccountQueryOptions{OnFinalBlock: true}
-	return common.BuildUrlWithAccountQueryOptions(fmt.Sprintf(urlPathGetAccount, address), options)
+	options := resources.NewAccountQueryOptionsOnFinalBlock()
+	return buildUrlWithAccountQueryOptions(fmt.Sprintf(urlPathGetAccount, address), options)
 }
 
-func buildUrlGetAccountNativeBalance(address string) string {
-	options := common.AccountQueryOptions{OnFinalBlock: true}
-	return common.BuildUrlWithAccountQueryOptions(fmt.Sprintf(urlPathGetAccountNativeBalance, address), options)
+func buildUrlGetAccountNativeBalance(address string, options resources.AccountQueryOptions) string {
+	return buildUrlWithAccountQueryOptions(fmt.Sprintf(urlPathGetAccountNativeBalance, address), options)
 }
 
-func buildUrlGetAccountESDTBalance(address string, tokenIdentifier string) string {
-	options := common.AccountQueryOptions{OnFinalBlock: true}
-	return common.BuildUrlWithAccountQueryOptions(fmt.Sprintf(urlPathGetAccountESDTBalance, address, tokenIdentifier), options)
+func buildUrlGetAccountESDTBalance(address string, tokenIdentifier string, options resources.AccountQueryOptions) string {
+	return buildUrlWithAccountQueryOptions(fmt.Sprintf(urlPathGetAccountESDTBalance, address, tokenIdentifier), options)
+}
+
+func buildUrlWithAccountQueryOptions(path string, options resources.AccountQueryOptions) string {
+	if options.OnFinalBlock {
+		return buildUrlWithQueryParameter(path, urlParameterAccountQueryOptionsOnFinalBlock, "true")
+	}
+	if options.BlockNonce.HasValue {
+		return buildUrlWithQueryParameter(path, urlParameterAccountQueryOptionsBlockNonce, strconv.FormatUint(options.BlockNonce.Value, 10))
+	}
+	if len(options.BlockHash) > 0 {
+		return buildUrlWithQueryParameter(path, urlParameterAccountQueryOptionsBlockHash, hex.EncodeToString(options.BlockHash))
+	}
+
+	return path
+}
+
+func buildUrlWithQueryParameter(path string, key string, value string) string {
+	u := url.URL{
+		Path: path,
+	}
+
+	query := u.Query()
+	query.Set(key, value)
+	u.RawQuery = query.Encode()
+	return u.String()
 }

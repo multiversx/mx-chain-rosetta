@@ -1,16 +1,5 @@
 package resources
 
-// NetworkConfigApiResponse is an API resource
-type NetworkConfigApiResponse struct {
-	resourceApiResponse
-	Data NetworkConfigApiResponsePayload `json:"data"`
-}
-
-// NetworkConfigApiResponsePayload is an API resource
-type NetworkConfigApiResponsePayload struct {
-	Config NetworkConfig `json:"config"`
-}
-
 // NetworkConfig is an API resource
 type NetworkConfig struct {
 	ChainID        string `json:"erd_chain_id"`
@@ -32,6 +21,14 @@ type NodeStatusApiResponsePayload struct {
 
 // NodeStatus is an API resource
 type NodeStatus struct {
+	IsSyncing         int    `json:"erd_is_syncing"`
 	HighestNonce      uint64 `json:"erd_nonce"`
 	HighestFinalNonce uint64 `json:"erd_highest_final_nonce"`
+}
+
+// AggregatedNodeStatus is an aggregated resource
+type AggregatedNodeStatus struct {
+	Synced                         bool
+	LatestBlock                    BlockSummary
+	OldestBlockWithHistoricalState BlockSummary
 }

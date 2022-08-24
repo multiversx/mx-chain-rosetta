@@ -27,3 +27,10 @@ rosetta-cli check:data --configuration-file devnet-data-start-after-${AFTER_BLOC
 --online-url=${ROSETTA_ONLINE} --data-dir=devnet-${AFTER_BLOCK}
 ```
 
+Or, using historical balances:
+
+```
+rosetta-cli check:data --configuration-file devnet-data-start-historical.json \
+--online-url=${ROSETTA_ONLINE} --data-dir=devnet-${AFTER_BLOCK}-historical
+```
+

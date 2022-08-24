@@ -121,6 +121,12 @@ VERSION:
 		Usage: "Specifies the symbol of the native currency (must be EGLD for mainnet, XeGLD for testnet and devnet).",
 		Value: "EGLD",
 	}
+
+	cliFlagNumHistoricalBlocks = cli.Uint64Flag{
+		Name:  "num-historical-blocks",
+		Usage: "Specifies the (approximate) number of available historical blocks. Usually, correlated with observer's `NumEpochsToKeep`.",
+		Value: 1500,
+	}
 )
 
 func getAllCliFlags() []cli.Flag {
@@ -141,6 +147,7 @@ func getAllCliFlags() []cli.Flag {
 		cliFlagMinGasLimit,
 		cliFlagGasPerDataByte,
 		cliFlagNativeCurrencySymbol,
+		cliFlagNumHistoricalBlocks,
 	}
 }
 
@@ -162,6 +169,7 @@ type parsedCliFlags struct {
 	minGasLimit                 uint64
 	gasPerDataByte              uint64
 	nativeCurrencySymbol        string
+	numHistoricalBlocks         uint64
 }
 
 func getParsedCliFlags(ctx *cli.Context) parsedCliFlags {
@@ -183,5 +191,6 @@ func getParsedCliFlags(ctx *cli.Context) parsedCliFlags {
 		minGasLimit:                 ctx.GlobalUint64(cliFlagMinGasLimit.Name),
 		gasPerDataByte:              ctx.GlobalUint64(cliFlagGasPerDataByte.Name),
 		nativeCurrencySymbol:        ctx.GlobalString(cliFlagNativeCurrencySymbol.Name),
+		numHistoricalBlocks:         ctx.GlobalUint64(cliFlagNumHistoricalBlocks.Name),
 	}
 }

@@ -12,12 +12,15 @@ Content-Type: application/json
     "blockchain": "Elrond",
     "network": "{{baseNetwork}}"
   },
+  "block_identifier": {
+    "index": 42
+  },
   "account_identifier": {
         "address": "erd1spyavw0956vq68xj8y4tenjpq2wd5a9p2c6j8gsz7ztyrnpxrruqzu66jx"
   },
   "currencies": [
       {
-          "symbol": "EGLD",
+          "symbol": "XeGLD",
           "decimals": 18
       }
   ]

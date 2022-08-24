@@ -1,7 +1,7 @@
 {
   "network": {
     "blockchain": "Elrond",
-    "network": "D"
+    "network": "1"
   },
   "http_timeout": 30,
   "max_retries": 5,
@@ -17,16 +17,15 @@
   "coin_supported": false,
   "construction": null,
   "data": {
-    "start_index": 1399026,
+    "start_index": 10120629,
     "active_reconciliation_concurrency": 64,
-    "inactive_reconciliation_concurrency": 32,
-    "inactive_reconciliation_frequency": 16,
+    "inactive_reconciliation_concurrency": 8,
+    "inactive_reconciliation_frequency": 128,
     "log_blocks": false,
     "log_transactions": true,
     "log_balance_changes": true,
     "log_reconciliations": true,
     "ignore_reconciliation_error": false,
-    "bootstrap_balances": "bootstrap/D_shard_0_epoch_1166_nonce_1399025.rosetta.json",
     "reconciliation_disabled": false,
     "reconciliation_drain_disabled": false,
     "inactive_discrepancy_search_disabled": false,
@@ -36,8 +35,9 @@
     "results_output_file": "",
     "pruning_disabled": true,
     "initial_balance_fetch_disabled": false,
-    "historical_balance_disabled": true,
+    "historical_balance_disabled": false,
     "end_conditions": {
+      "duration": 28800,
       "reconciliation_coverage": {
         "coverage": 1
       }

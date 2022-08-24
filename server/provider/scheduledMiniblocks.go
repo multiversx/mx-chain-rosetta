@@ -21,16 +21,6 @@ func (provider *networkProvider) simplifyBlockWithScheduledTransactions(block *d
 	return nil
 }
 
-func hasOnlyNormalMiniblocks(block *data.Block) bool {
-	for _, miniblock := range block.MiniBlocks {
-		if miniblock.ProcessingType != dataBlock.Normal.String() {
-			return false
-		}
-	}
-
-	return true
-}
-
 func doSimplifyBlockWithScheduledTransactions(previousBlock *data.Block, block *data.Block, nextBlock *data.Block) {
 	// Discard "processed" miniblocks in block N, since they already produced effects in N-1
 	removeProcessedMiniblocksOfBlock(block)

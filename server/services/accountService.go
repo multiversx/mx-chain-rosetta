@@ -28,6 +28,11 @@ func (service *accountService) AccountBalance(
 	_ context.Context,
 	request *types.AccountBalanceRequest,
 ) (*types.AccountBalanceResponse, *types.Error) {
+	options, err := blockIdentifierToAccountQueryOptions(request.BlockIdentifier)
+	if err != nil {
+		return nil, service.errFactory.newErrWithOriginal(ErrUnableToGetAccount, err)
+	}
+
 	address := request.AccountIdentifier.Address
 	if address == "" {
 		return nil, service.errFactory.newErr(ErrInvalidAccountAddress)
@@ -52,7 +57,7 @@ func (service *accountService) AccountBalance(
 		return nil, service.errFactory.newErr(ErrNotImplemented)
 	}
 
-	amount, blockCoordinates, err := service.getBalance(address, currencySymbol)
+	amount, blockCoordinates, err := service.getBalance(address, currencySymbol, options)
 	if err != nil {
 		return nil, service.errFactory.newErrWithOriginal(ErrUnableToGetAccount, err)
 	}
@@ -65,10 +70,10 @@ func (service *accountService) AccountBalance(
 	return response, nil
 }
 
-func (service *accountService) getBalance(address string, currencySymbol string) (*types.Amount, resources.BlockCoordinates, error) {
+func (service *accountService) getBalance(address string, currencySymbol string, options resources.AccountQueryOptions) (*types.Amount, resources.BlockCoordinates, error) {
 	isForNative := currencySymbol == service.getNativeSymbol()
 	if isForNative {
-		accountBalance, err := service.provider.GetAccountNativeBalance(address)
+		accountBalance, err := service.provider.GetAccountNativeBalance(address, options)
 		if err != nil {
 			return nil, resources.BlockCoordinates{}, err
 		}
@@ -77,7 +82,7 @@ func (service *accountService) getBalance(address string, currencySymbol string)
 		return amount, accountBalance.BlockCoordinates, nil
 	}
 
-	accountBalance, err := service.provider.GetAccountESDTBalance(address, currencySymbol)
+	accountBalance, err := service.provider.GetAccountESDTBalance(address, currencySymbol, options)
 	if err != nil {
 		return nil, resources.BlockCoordinates{}, err
 	}

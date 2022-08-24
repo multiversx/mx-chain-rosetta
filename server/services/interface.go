@@ -18,12 +18,12 @@ type NetworkProvider interface {
 	GetGenesisBlockSummary() *resources.BlockSummary
 	GetGenesisTimestamp() int64
 	GetGenesisBalances() ([]*resources.GenesisBalance, error)
-	GetLatestBlockSummary() (*resources.BlockSummary, error)
+	GetNodeStatus() (*resources.AggregatedNodeStatus, error)
 	GetBlockByNonce(nonce uint64) (*data.Block, error)
 	GetBlockByHash(hash string) (*data.Block, error)
 	GetAccount(address string) (*resources.AccountOnBlock, error)
-	GetAccountNativeBalance(address string) (*resources.AccountNativeBalance, error)
-	GetAccountESDTBalance(address string, tokenIdentifier string) (*resources.AccountESDTBalance, error)
+	GetAccountNativeBalance(address string, options resources.AccountQueryOptions) (*resources.AccountNativeBalance, error)
+	GetAccountESDTBalance(address string, tokenIdentifier string, options resources.AccountQueryOptions) (*resources.AccountESDTBalance, error)
 	IsAddressObserved(address string) (bool, error)
 	ConvertPubKeyToAddress(pubkey []byte) string
 	ConvertAddressToPubKey(address string) ([]byte, error)
