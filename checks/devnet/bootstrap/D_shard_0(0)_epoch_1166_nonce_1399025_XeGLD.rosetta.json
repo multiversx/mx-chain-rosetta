@@ -1,0 +1,1162 @@
+[
+    {
+        "account_identifier": {
+            "address": "erd1ln4qdurzqxvhd25cshlygq4325g4vc6lrkmh7qq0lu73g2yjjqqqey4ctw"
+        },
+        "currency": {
+            "symbol": "XeGLD",
+            "decimals": 18
+        },
+        "value": "29794062426572304"
+    },
+    {
+        "account_identifier": {
+            "address": "erd1tnygc9kvxm6gkypmqtkv0u5h0a9mj2puaaeq885zavgqlr8kjqqqhy0slh"
+        },
+        "currency": {
+            "symbol": "XeGLD",
+            "decimals": 18
+        },
+        "value": "28485695000000000"
+    },
+    {
+        "account_identifier": {
+            "address": "erd1q03ktxx2tmr082l6v3xwmvw4mljmgjmgvd6q0svsvt8epcfmjqqqc8kjqa"
+        },
+        "currency": {
+            "symbol": "XeGLD",
+            "decimals": 18
+        },
+        "value": "12000000000000"
+    },
+    {
+        "account_identifier": {
+            "address": "erd1k8et04gvuhdv5tzmuhal04xgj05tsx9n683gnzzj589znmcnqyqqm558p7"
+        },
+        "currency": {
+            "symbol": "XeGLD",
+            "decimals": 18
+        },
+        "value": "1393711496689313"
+    },
+    {
+        "account_identifier": {
+            "address": "erd1h2wf8qyhvrgqwnjlk53ep6zlkc6pt0dp0gk6sq8fzxm7qwx6qyqq7jact9"
+        },
+        "currency": {
+            "symbol": "XeGLD",
+            "decimals": 18
+        },
+        "value": "1134351059677351"
+    },
+    {
+        "account_identifier": {
+            "address": "erd1jucmp575y4xcz75qgu7pj7zx7m7f33r9p4eurulnmvkktmk0qyqqalrvxq"
+        },
+        "currency": {
+            "symbol": "XeGLD",
+            "decimals": 18
+        },
+        "value": "894005671406406043"
+    },
+    {
+        "account_identifier": {
+            "address": "erd1x3c2qnax95kpc4zh3v6njrxzntmmuef60vc47fltf7p62626yyqq9zhett"
+        },
+        "currency": {
+            "symbol": "XeGLD",
+            "decimals": 18
+        },
+        "value": "544324332946219749"
+    },
+    {
+        "account_identifier": {
+            "address": "erd1tpxta8q42ww62eh840xqcnn74zsa5c6632cdz658dkgcywzvsyqq27q88e"
+        },
+        "currency": {
+            "symbol": "XeGLD",
+            "decimals": 18
+        },
+        "value": "28485695000000000"
+    },
+    {
+        "account_identifier": {
+            "address": "erd1eq9e3ta9snefdw6ttl7qd5xke66j6dw6k46as8kzk7rtx0qvjyqq5gn2s0"
+        },
+        "currency": {
+            "symbol": "XeGLD",
+            "decimals": 18
+        },
+        "value": "181324033270586496"
+    },
+    {
+        "account_identifier": {
+            "address": "erd1l3z4j6ses48rtl2yynk6283dg4dqnunn28c09l439yflgyt95yqq68ek9j"
+        },
+        "currency": {
+            "symbol": "XeGLD",
+            "decimals": 18
+        },
+        "value": "68643806174739776"
+    },
+    {
+        "account_identifier": {
+            "address": "erd15hvrfwmaafnjfslplpfj58vjvvy3p753nerluzrcvwv63avscyqq4446tc"
+        },
+        "currency": {
+            "symbol": "XeGLD",
+            "decimals": 18
+        },
+        "value": "7296997790632650950"
+    },
+    {
+        "account_identifier": {
+            "address": "erd1uht5pszsdqj8pg8rjs7g8ze7tww4x9m63lyxsdd9dzjqvhr4vgqq635a06"
+        },
+        "currency": {
+            "symbol": "XeGLD",
+            "decimals": 18
+        },
+        "value": "20995810238080000000"
+    },
+    {
+        "account_identifier": {
+            "address": "erd1l8dwrg96j3zhr9z5658jrn725zyemw5mnux4z05fesu3l5fqwgqqyn35kz"
+        },
+        "currency": {
+            "symbol": "XeGLD",
+            "decimals": 18
+        },
+        "value": "44993949736060000000"
+    },
+    {
+        "account_identifier": {
+            "address": "erd1wqucpxjwaf0zjzd4qsus0ldy87n38atyvwfv8tm52zd2qw26wgqq6ywvs2"
+        },
+        "currency": {
+            "symbol": "XeGLD",
+            "decimals": 18
+        },
+        "value": "5413638877656463"
+    },
+    {
+        "account_identifier": {
+            "address": "erd1fhfcsttctk9j8n8wh8g6g8a3q84e4mjck2kltehad3cacutssgqqv7t76l"
+        },
+        "currency": {
+            "symbol": "XeGLD",
+            "decimals": 18
+        },
+        "value": "26200675403189343"
+    },
+    {
+        "account_identifier": {
+            "address": "erd10f47kgrsdxvkqntenmddlc6q8t53yfnm33nnuqdxd3um974pcgqqse6v28"
+        },
+        "currency": {
+            "symbol": "XeGLD",
+            "decimals": 18
+        },
+        "value": "19495293461630000000"
+    },
+    {
+        "account_identifier": {
+            "address": "erd1y7za46d4wtsl57rs0a822sdnvl3qgesn2whx3g50r49nll34cgqq3au74l"
+        },
+        "currency": {
+            "symbol": "XeGLD",
+            "decimals": 18
+        },
+        "value": "30000000000000000000"
+    },
+    {
+        "account_identifier": {
+            "address": "erd1lskcchf59pce4n6342avy88j30nyjc5l6cmny0s0sgkemavq2vqqf4wmz2"
+        },
+        "currency": {
+            "symbol": "XeGLD",
+            "decimals": 18
+        },
+        "value": "50200435820000000"
+    },
+    {
+        "account_identifier": {
+            "address": "erd10m4zvcmzaadl8n3yn492tnhl52etexmd9xh4g79v4d7wv5wnsvqqgychju"
+        },
+        "currency": {
+            "symbol": "XeGLD",
+            "decimals": 18
+        },
+        "value": "10984855964091143"
+    },
+    {
+        "account_identifier": {
+            "address": "erd18k5u3fyy2wy27fwq9gf87hcgfek66lg4a575cjyzkdkr242lsvqqkayqgz"
+        },
+        "currency": {
+            "symbol": "XeGLD",
+            "decimals": 18
+        },
+        "value": "29998033680000000000"
+    },
+    {
+        "account_identifier": {
+            "address": "erd1ucladuras4x95vsa7qgtwequylxnt6fdcer938fd6hu0dq7ajvqqklj77e"
+        },
+        "currency": {
+            "symbol": "XeGLD",
+            "decimals": 18
+        },
+        "value": "24930879766680000000"
+    },
+    {
+        "account_identifier": {
+            "address": "erd1cukyaxt37mr0sg8hqvrw0dx9htpej9mqkvvj54knfl5l6ax0jvqqctwt98"
+        },
+        "currency": {
+            "symbol": "XeGLD",
+            "decimals": 18
+        },
+        "value": "30000000000000000000"
+    },
+    {
+        "account_identifier": {
+            "address": "erd13e5stucttu2uzfmqhn49uyzkz2czy4354ex5ysph88cm946zkvqq8m787q"
+        },
+        "currency": {
+            "symbol": "XeGLD",
+            "decimals": 18
+        },
+        "value": "4000000000000000000"
+    },
+    {
+        "account_identifier": {
+            "address": "erd1qtsryvxh9svtt78k20dr2td4zvlvzzcq25nqgvpjqzpa8eapcvqqplntvv"
+        },
+        "currency": {
+            "symbol": "XeGLD",
+            "decimals": 18
+        },
+        "value": "251795070000000"
+    },
+    {
+        "account_identifier": {
+            "address": "erd17euyjt6thxje42ppyjj3pp3u296tnctc09rdepzl9fysma64cvqq4tqvc7"
+        },
+        "currency": {
+            "symbol": "XeGLD",
+            "decimals": 18
+        },
+        "value": "15000000000000"
+    },
+    {
+        "account_identifier": {
+            "address": "erd159qgrm0tyc4nv5t9ug7w945v8h5g3u2f49enlzg9lx0qz48huvqqyae7d0"
+        },
+        "currency": {
+            "symbol": "XeGLD",
+            "decimals": 18
+        },
+        "value": "30000000000000000000"
+    },
+    {
+        "account_identifier": {
+            "address": "erd1ndkw2f27yc0swj2s52jeqc73au2369ur620xm9f4s3q8kva47vqqny7xps"
+        },
+        "currency": {
+            "symbol": "XeGLD",
+            "decimals": 18
+        },
+        "value": "85339206799934335"
+    },
+    {
+        "account_identifier": {
+            "address": "erd19hdeslm0rc6hc0r54x0xyhh65wa77ycrsp5c955vfj6kwlnvxsqqc4jpd9"
+        },
+        "currency": {
+            "symbol": "XeGLD",
+            "decimals": 18
+        },
+        "value": "3998652635520000000"
+    },
+    {
+        "account_identifier": {
+            "address": "erd1dx4w6h398dqkup4r3yuqup0s4d6mydg9nhcfuxdewpder2372sqqjyhq9t"
+        },
+        "currency": {
+            "symbol": "XeGLD",
+            "decimals": 18
+        },
+        "value": "12000000000000"
+    },
+    {
+        "account_identifier": {
+            "address": "erd1tf4fmx7pn8d4fdgc0ytyyxkzr4hrzvhzw0q03z2ggddkqkwnvsqql47ukz"
+        },
+        "currency": {
+            "symbol": "XeGLD",
+            "decimals": 18
+        },
+        "value": "7506393912810000000"
+    },
+    {
+        "account_identifier": {
+            "address": "erd1fnakj4cz3k5ehwddjcnj39dagrww8ujdfme7puj49ru4rwhkvsqqfh6ytm"
+        },
+        "currency": {
+            "symbol": "XeGLD",
+            "decimals": 18
+        },
+        "value": "99950000000000000"
+    },
+    {
+        "account_identifier": {
+            "address": "erd1fzk9ued84ksk0tuh8n82rffr8d3mda8htvhyyqr3awkkdywmjsqqwwm07j"
+        },
+        "currency": {
+            "symbol": "XeGLD",
+            "decimals": 18
+        },
+        "value": "28485695000000000"
+    },
+    {
+        "account_identifier": {
+            "address": "erd1x3hcxl5xc6866v4p2krm0tmd6ykjn0d0u5upkmc3wwgrkep6csqqscpv7j"
+        },
+        "currency": {
+            "symbol": "XeGLD",
+            "decimals": 18
+        },
+        "value": "12000000000000"
+    },
+    {
+        "account_identifier": {
+            "address": "erd14qynqgnv8k6tsds7t76ge05tprncym3jl2qzp3xw0prf5k3s6sqq64k0jz"
+        },
+        "currency": {
+            "symbol": "XeGLD",
+            "decimals": 18
+        },
+        "value": "26994849923710000000"
+    },
+    {
+        "account_identifier": {
+            "address": "erd1dtzrn36ap06gzs8d3shwztndcmjreau7grgs3he3tddagpd9usqqwthjps"
+        },
+        "currency": {
+            "symbol": "XeGLD",
+            "decimals": 18
+        },
+        "value": "6769811131622435940"
+    },
+    {
+        "account_identifier": {
+            "address": "erd1wt00cvdlqrpmvl7ceupsm2ccwrrpg5tr0jdtv2reca9xh8vpz5qq2kk47n"
+        },
+        "currency": {
+            "symbol": "XeGLD",
+            "decimals": 18
+        },
+        "value": "12000000000000"
+    },
+    {
+        "account_identifier": {
+            "address": "erd17cxmfyc8lnyjyzcxrc5ntrzepzwmr5ptc8wx4ffwfna7tls2z5qqzhcnqp"
+        },
+        "currency": {
+            "symbol": "XeGLD",
+            "decimals": 18
+        },
+        "value": "12000000000000"
+    },
+    {
+        "account_identifier": {
+            "address": "erd1qr9k0ukttdpqzza887j7tgcsfk20kn6hgkxcy6uq98tn2jkeg5qqcz9mkl"
+        },
+        "currency": {
+            "symbol": "XeGLD",
+            "decimals": 18
+        },
+        "value": "5669322749200000000"
+    },
+    {
+        "account_identifier": {
+            "address": "erd1y9x9dn47s3vnck2ytze7m57jj8pwg0xaxtufdr5d2v5duyvqw5qq475838"
+        },
+        "currency": {
+            "symbol": "XeGLD",
+            "decimals": 18
+        },
+        "value": "25995297862150000000"
+    },
+    {
+        "account_identifier": {
+            "address": "erd15c6j7p8wv9eye3kjj6np7mspd574vlglwds4650gf7clvqrfc5qqq7s9wd"
+        },
+        "currency": {
+            "symbol": "XeGLD",
+            "decimals": 18
+        },
+        "value": "5000000000000000000"
+    },
+    {
+        "account_identifier": {
+            "address": "erd1fjw72kxvkthlug39fs4rag2w49pfg48td3hy704mlmk22qphu5qqrt97c6"
+        },
+        "currency": {
+            "symbol": "XeGLD",
+            "decimals": 18
+        },
+        "value": "28485695000000000"
+    },
+    {
+        "account_identifier": {
+            "address": "erd1hzt2a8nyu6l237kllkfqeepdpazkw6axpry2fvt54xjjwd8eqcqq8zxwuq"
+        },
+        "currency": {
+            "symbol": "XeGLD",
+            "decimals": 18
+        },
+        "value": "9973429476180850"
+    },
+    {
+        "account_identifier": {
+            "address": "erd1pn908ptam46e3v6g8wxw6uqja9aapkx3m770x4tu72y4tfnuxcqqszh4jl"
+        },
+        "currency": {
+            "symbol": "XeGLD",
+            "decimals": 18
+        },
+        "value": "300000000000000"
+    },
+    {
+        "account_identifier": {
+            "address": "erd1rfq7smhpxqm0nukk9g7ya2w94w3487grut33agrfjq024en52cqq9fw4m3"
+        },
+        "currency": {
+            "symbol": "XeGLD",
+            "decimals": 18
+        },
+        "value": "26284615164563052"
+    },
+    {
+        "account_identifier": {
+            "address": "erd1jh9wtwa5a26umhgvph5wlf2wxfh8jspvyhnc9aums2wglsa42cqqu2msat"
+        },
+        "currency": {
+            "symbol": "XeGLD",
+            "decimals": 18
+        },
+        "value": "29805762065230000000"
+    },
+    {
+        "account_identifier": {
+            "address": "erd1p95vqlpkqn0g2j5x8z23xpa7v907wazru8akkn3kms2yfk84scqq00n3qg"
+        },
+        "currency": {
+            "symbol": "XeGLD",
+            "decimals": 18
+        },
+        "value": "18918411785000000000"
+    },
+    {
+        "account_identifier": {
+            "address": "erd1995w3rfpj8npu847nf8l2tjvfpaeg83kllqnrm6l4ty5afanjcqqd3847e"
+        },
+        "currency": {
+            "symbol": "XeGLD",
+            "decimals": 18
+        },
+        "value": "41915171001314271"
+    },
+    {
+        "account_identifier": {
+            "address": "erd109j3nqkxff4am65wtsrzsx7ee0yqgjr8lhmn0cucj4k2a6zu5cqq6mllly"
+        },
+        "currency": {
+            "symbol": "XeGLD",
+            "decimals": 18
+        },
+        "value": "10000000000000000000"
+    },
+    {
+        "account_identifier": {
+            "address": "erd1dt7kvyatphcadylgd9xu9fktye67karvz5wvxmsz0chzt4w5kcqqtpu3fu"
+        },
+        "currency": {
+            "symbol": "XeGLD",
+            "decimals": 18
+        },
+        "value": "4999130058180000000"
+    },
+    {
+        "account_identifier": {
+            "address": "erd1c8mllmwktcmutwfrmjc43uvpsk76d3zdj2d80dhhwma4mhvf6cqqt3gk4c"
+        },
+        "currency": {
+            "symbol": "XeGLD",
+            "decimals": 18
+        },
+        "value": "600000000000000"
+    },
+    {
+        "account_identifier": {
+            "address": "erd1lxdz85pm5v2uztresxxf56thlff78cnufnk4002efet8xa7pucqqvh37yp"
+        },
+        "currency": {
+            "symbol": "XeGLD",
+            "decimals": 18
+        },
+        "value": "12000000000000"
+    },
+    {
+        "account_identifier": {
+            "address": "erd1p8kndnzpt6w3f74u5t2pstqlac5tnxvh6d8890danx03r3q7quqqsaphky"
+        },
+        "currency": {
+            "symbol": "XeGLD",
+            "decimals": 18
+        },
+        "value": "9130562452632868"
+    },
+    {
+        "account_identifier": {
+            "address": "erd1mfzyssnh2qn2erdmg4798ndpypu6afw83n8a6tfn08ptqrjdzuqqt2k5r0"
+        },
+        "currency": {
+            "symbol": "XeGLD",
+            "decimals": 18
+        },
+        "value": "8414301233234429"
+    },
+    {
+        "account_identifier": {
+            "address": "erd1zctgk4vhkej5y9xdtm4x53tza2smlkrw88t42la2vsl0s23fyuqqqzr39r"
+        },
+        "currency": {
+            "symbol": "XeGLD",
+            "decimals": 18
+        },
+        "value": "4996683844300000000"
+    },
+    {
+        "account_identifier": {
+            "address": "erd1tmpy79n64fxc7jxskssms8cpyvewk0dq4rn89m2uz9cwsjx4guqqp8jkyw"
+        },
+        "currency": {
+            "symbol": "XeGLD",
+            "decimals": 18
+        },
+        "value": "4221696234737903"
+    },
+    {
+        "account_identifier": {
+            "address": "erd1lx4yt829sp4l858s7z0kkctulv9ryf0xjp9l248m9c9zqsmj2uqq8ulmwd"
+        },
+        "currency": {
+            "symbol": "XeGLD",
+            "decimals": 18
+        },
+        "value": "8999950000000000000"
+    },
+    {
+        "account_identifier": {
+            "address": "erd1e322x75jmakfa2dc27wk6vucuzrx5f3lrglnltwewrc2qtrssuqqgxdznl"
+        },
+        "currency": {
+            "symbol": "XeGLD",
+            "decimals": 18
+        },
+        "value": "49998837360760000000"
+    },
+    {
+        "account_identifier": {
+            "address": "erd1w3mjtg84xhwyjn2pas5ffe3tkuh4507nknun5jts8cdufwrnsuqqsfkk83"
+        },
+        "currency": {
+            "symbol": "XeGLD",
+            "decimals": 18
+        },
+        "value": "6077009748268063447"
+    },
+    {
+        "account_identifier": {
+            "address": "erd13wy5sv676ewgvveyv359h6npd7fmlwvtq2adhjk2e7k85yfpjuqqutrfyw"
+        },
+        "currency": {
+            "symbol": "XeGLD",
+            "decimals": 18
+        },
+        "value": "12000000000000"
+    },
+    {
+        "account_identifier": {
+            "address": "erd1scgpf2lrjwft099ssehr5mk9rtpcw4gpxsm6wcwax0pm5kj9juqqzxvys8"
+        },
+        "currency": {
+            "symbol": "XeGLD",
+            "decimals": 18
+        },
+        "value": "891000564150000000"
+    },
+    {
+        "account_identifier": {
+            "address": "erd1ghq8ap926qzv9v6pmlptjxrl7fprj068tpxfmltyyh60hd9luuqq2sla54"
+        },
+        "currency": {
+            "symbol": "XeGLD",
+            "decimals": 18
+        },
+        "value": "300000000000000"
+    },
+    {
+        "account_identifier": {
+            "address": "erd1pywm8evuwrmzgjttrf8r9l66zmlsgvg79kh22u97agz6av027uqq60gdxt"
+        },
+        "currency": {
+            "symbol": "XeGLD",
+            "decimals": 18
+        },
+        "value": "980682640000000"
+    },
+    {
+        "account_identifier": {
+            "address": "erd19yrsf0c69mef49067n3dtn8dp34w5gje25mlhslyp9300dzapqqqu788fy"
+        },
+        "currency": {
+            "symbol": "XeGLD",
+            "decimals": 18
+        },
+        "value": "992834490000000"
+    },
+    {
+        "account_identifier": {
+            "address": "erd1zh455dnq78jghf2ws8ma72lw33zxp8009v5z5al0rawhywgl9qqq9g2q6r"
+        },
+        "currency": {
+            "symbol": "XeGLD",
+            "decimals": 18
+        },
+        "value": "992834490000000"
+    },
+    {
+        "account_identifier": {
+            "address": "erd188kv4q6n5mmu5qepxfv4gtwzmmwwrkn8s3d5gze7wlrzwxys8qqqx09zgp"
+        },
+        "currency": {
+            "symbol": "XeGLD",
+            "decimals": 18
+        },
+        "value": "5000000000000000"
+    },
+    {
+        "account_identifier": {
+            "address": "erd1ftnqf65gmmzj6pgx5pc073cf48myhsu9f4c5rvl3zp3828k9tqqqxpj9ku"
+        },
+        "currency": {
+            "symbol": "XeGLD",
+            "decimals": 18
+        },
+        "value": "16850507181405276115"
+    },
+    {
+        "account_identifier": {
+            "address": "erd1yhevsqesgu6ydwck47cg0rt77j3gp33jdfjd0v5aa6dvnukvtqqqksx30u"
+        },
+        "currency": {
+            "symbol": "XeGLD",
+            "decimals": 18
+        },
+        "value": "46677931600000000"
+    },
+    {
+        "account_identifier": {
+            "address": "erd1ascd3g9rxgs2w6ly50u5nepcywqvusydsgcfgj6vnurdqkkkdqqqhjxusf"
+        },
+        "currency": {
+            "symbol": "XeGLD",
+            "decimals": 18
+        },
+        "value": "5196594209090000000"
+    },
+    {
+        "account_identifier": {
+            "address": "erd1nuxuu4s07m0348tacnu7et3x9dsskj6rql3yax2qsmct8uux3qqqf86kl9"
+        },
+        "currency": {
+            "symbol": "XeGLD",
+            "decimals": 18
+        },
+        "value": "17000100000000000000"
+    },
+    {
+        "account_identifier": {
+            "address": "erd103qwfas892jp6l4xu76fcl6d3yamkca6skczr298ssfdky9pnqqqa3hmuj"
+        },
+        "currency": {
+            "symbol": "XeGLD",
+            "decimals": 18
+        },
+        "value": "5000000000000000000"
+    },
+    {
+        "account_identifier": {
+            "address": "erd1s8d9t4tyxreaw8tyfaa2p0yu7uk3ulcx0x242yjkjz8xy5t54qqqeh49h2"
+        },
+        "currency": {
+            "symbol": "XeGLD",
+            "decimals": 18
+        },
+        "value": "900000000000000"
+    },
+    {
+        "account_identifier": {
+            "address": "erd14ex3x03ksl6acc9zdhs8p08qgaw6c3yvre46mmpzpen60jcneqqq2apxzs"
+        },
+        "currency": {
+            "symbol": "XeGLD",
+            "decimals": 18
+        },
+        "value": "15855136154521343"
+    },
+    {
+        "account_identifier": {
+            "address": "erd19rvw9x5vw4zemlf86zxrcuyn4g5hzcrg327zkzqhyet3pvr4aqqqq5xyfp"
+        },
+        "currency": {
+            "symbol": "XeGLD",
+            "decimals": 18
+        },
+        "value": "200000000000000000"
+    },
+    {
+        "account_identifier": {
+            "address": "erd1ec5pwugzqwd2492jxpk676jmcv3mjgc7lf4glaremmjzx7udlqqqhnd0h0"
+        },
+        "currency": {
+            "symbol": "XeGLD",
+            "decimals": 18
+        },
+        "value": "1995027006640000000"
+    },
+    {
+        "account_identifier": {
+            "address": "erd1u7278ess36x9p5yu2ldwmt74zvhl2qz9z64mprma23rlujs0ryqqatgfe6"
+        },
+        "currency": {
+            "symbol": "XeGLD",
+            "decimals": 18
+        },
+        "value": "3505771909471932"
+    },
+    {
+        "account_identifier": {
+            "address": "erd129849y9zwry7qnk62eh0p8h28hhmthgqcj7gwpwgmyc08u8n4yqq660h6t"
+        },
+        "currency": {
+            "symbol": "XeGLD",
+            "decimals": 18
+        },
+        "value": "341209195000000000"
+    },
+    {
+        "account_identifier": {
+            "address": "erd14wfsya59n77mrfau6guyyg3j4h3ty6eg48w4py96lrwu3acc9gqq64h6xd"
+        },
+        "currency": {
+            "symbol": "XeGLD",
+            "decimals": 18
+        },
+        "value": "19998648639420000000"
+    },
+    {
+        "account_identifier": {
+            "address": "erd1f0hwp6xxrltzxf7a2n6rr4dgd8j5md8vv0xzda566z92ejv9dgqqzhgrmv"
+        },
+        "currency": {
+            "symbol": "XeGLD",
+            "decimals": 18
+        },
+        "value": "4999151979750000000"
+    },
+    {
+        "account_identifier": {
+            "address": "erd18ghv8gexceq6dyg288dsl9tw2u62tnary00yutx36u9eju6udgqq8anmn6"
+        },
+        "currency": {
+            "symbol": "XeGLD",
+            "decimals": 18
+        },
+        "value": "49436248790000000"
+    },
+    {
+        "account_identifier": {
+            "address": "erd1plfxm6u8uwau2747e77p6pqwz6za385zrlsnlrrul9e40apr0gqqzg7f80"
+        },
+        "currency": {
+            "symbol": "XeGLD",
+            "decimals": 18
+        },
+        "value": "4168163757911192"
+    },
+    {
+        "account_identifier": {
+            "address": "erd1xv09rw05jt5wxhs0rtra8d7klqv4jnmwrzlxccrtcl6nudjn4gqquyuqyr"
+        },
+        "currency": {
+            "symbol": "XeGLD",
+            "decimals": 18
+        },
+        "value": "99950000000000000"
+    },
+    {
+        "account_identifier": {
+            "address": "erd12njlfr985k74hr8edxaaeer4xsw2eajpy0hg50khu2h9zzjupvqqwg7v0m"
+        },
+        "currency": {
+            "symbol": "XeGLD",
+            "decimals": 18
+        },
+        "value": "104397864920547840"
+    },
+    {
+        "account_identifier": {
+            "address": "erd16wqx2s2ss58jdgcaew8dtrgd8lundwycjrx2eun006p6fywg9vqq22fjsp"
+        },
+        "currency": {
+            "symbol": "XeGLD",
+            "decimals": 18
+        },
+        "value": "28485695000000000"
+    },
+    {
+        "account_identifier": {
+            "address": "erd1tfdpldstjfsagm5lzmr7pw9mva40gyvsjdjdrje34p9ty8rwnvqq3tf45r"
+        },
+        "currency": {
+            "symbol": "XeGLD",
+            "decimals": 18
+        },
+        "value": "34371496212219784"
+    },
+    {
+        "account_identifier": {
+            "address": "erd1jqd0pgdqtx5e8quq5qlvutvwx2yf08agr2ctrmqzdr7rj6fcmvqq85h0l8"
+        },
+        "currency": {
+            "symbol": "XeGLD",
+            "decimals": 18
+        },
+        "value": "15000000000000"
+    },
+    {
+        "account_identifier": {
+            "address": "erd1zrrdjj2slg0ysl0rlyx9ctchj7seceum8q3q5222exnnk4jwavqqqxt0f7"
+        },
+        "currency": {
+            "symbol": "XeGLD",
+            "decimals": 18
+        },
+        "value": "1300000000000000"
+    },
+    {
+        "account_identifier": {
+            "address": "erd1qp32fnuj9g6cu56tv66elvxumsvpvwczwqe0awa0s2jaj0mk9sqq8c7x0q"
+        },
+        "currency": {
+            "symbol": "XeGLD",
+            "decimals": 18
+        },
+        "value": "30000000000000000000"
+    },
+    {
+        "account_identifier": {
+            "address": "erd1vcyy4s7puv5dyrv4xj6f8u3zqyuhyu3jpslfynh2rfh0wj5gtsqq5wkktq"
+        },
+        "currency": {
+            "symbol": "XeGLD",
+            "decimals": 18
+        },
+        "value": "300000000000000"
+    },
+    {
+        "account_identifier": {
+            "address": "erd1cn3r4txvt7c5nu64r5q5km85qkkevc4lle0nv9jj4fjazfs6dsqqcfhzjn"
+        },
+        "currency": {
+            "symbol": "XeGLD",
+            "decimals": 18
+        },
+        "value": "2992676564960000000"
+    },
+    {
+        "account_identifier": {
+            "address": "erd10c0fzdtkkj4qdh34t4k3a6j5ujwv02e2xuss04qshup3nk3h0sqqrud99g"
+        },
+        "currency": {
+            "symbol": "XeGLD",
+            "decimals": 18
+        },
+        "value": "100044193484204784"
+    },
+    {
+        "account_identifier": {
+            "address": "erd1vv4lu0ytzgwwfp0ax6uujztztrrqsrumwvs3khwvkqxreg8l4sqqp454d3"
+        },
+        "currency": {
+            "symbol": "XeGLD",
+            "decimals": 18
+        },
+        "value": "95924101920000000"
+    },
+    {
+        "account_identifier": {
+            "address": "erd1ekwa77tkud7qddpm48wrplsaqxehscmedxva55s5c2732etphsqqucuu78"
+        },
+        "currency": {
+            "symbol": "XeGLD",
+            "decimals": 18
+        },
+        "value": "1300000000000000"
+    },
+    {
+        "account_identifier": {
+            "address": "erd1yteak0dtru5mhradqfkxt74amf0d29zwsmdwgfzztqtlvac9hsqq4w947d"
+        },
+        "currency": {
+            "symbol": "XeGLD",
+            "decimals": 18
+        },
+        "value": "12000000000000"
+    },
+    {
+        "account_identifier": {
+            "address": "erd178hj73hw49ga85p2kd9qlp22r22rk0aez8ayhvjglasgyxjhhsqqg6l58g"
+        },
+        "currency": {
+            "symbol": "XeGLD",
+            "decimals": 18
+        },
+        "value": "31849994831520000000"
+    },
+    {
+        "account_identifier": {
+            "address": "erd1txheefzgjts392q2svafykfxpyewqasx7nyvvmqt0jwdxdgresqqn4293e"
+        },
+        "currency": {
+            "symbol": "XeGLD",
+            "decimals": 18
+        },
+        "value": "500019309800000000"
+    },
+    {
+        "account_identifier": {
+            "address": "erd1d0ud6vlf6tal67gyqt9psee6ksntgyk204myetgp8kc78ma7esqqnq0x8x"
+        },
+        "currency": {
+            "symbol": "XeGLD",
+            "decimals": 18
+        },
+        "value": "15629579487014778317"
+    },
+    {
+        "account_identifier": {
+            "address": "erd1je46tlvrnfj6jxxefww286u2rqapl3zm0xc8xjuud3mnhrf0lsqqzsmazv"
+        },
+        "currency": {
+            "symbol": "XeGLD",
+            "decimals": 18
+        },
+        "value": "5154217368112054"
+    },
+    {
+        "account_identifier": {
+            "address": "erd19fjvc27kt4gmhuzw4xt87wydcrkklzd4xzax5p7cr2u28p9xp5qqp7dsdf"
+        },
+        "currency": {
+            "symbol": "XeGLD",
+            "decimals": 18
+        },
+        "value": "200000000000000000"
+    },
+    {
+        "account_identifier": {
+            "address": "erd144ewx80jqk88n0g89k7h28p8dmctte8e2lkzj0f4ct0ahl2xr5qqadxhpa"
+        },
+        "currency": {
+            "symbol": "XeGLD",
+            "decimals": 18
+        },
+        "value": "1167218160000000"
+    },
+    {
+        "account_identifier": {
+            "address": "erd1lvzmkmcrqglu3vxzgk8lnwkfshfjfgux92pk9cyv7jmxkah585qq3gah7d"
+        },
+        "currency": {
+            "symbol": "XeGLD",
+            "decimals": 18
+        },
+        "value": "4998402090770000000"
+    },
+    {
+        "account_identifier": {
+            "address": "erd1r0m6nrr32nw8h5h9appsken0wh6qmh7qm9w34dn4accmk7pgd5qqv734cu"
+        },
+        "currency": {
+            "symbol": "XeGLD",
+            "decimals": 18
+        },
+        "value": "10000000000000000000"
+    },
+    {
+        "account_identifier": {
+            "address": "erd1qhvj6avwdxrrs23h2hqnndzhapgflu7avcrw7d7y2ygpqn7s05qq6f6ac6"
+        },
+        "currency": {
+            "symbol": "XeGLD",
+            "decimals": 18
+        },
+        "value": "108239604931044992"
+    },
+    {
+        "account_identifier": {
+            "address": "erd1x0pxfpwaux87e5vyaw3xjg8muftqqe6nqtx5jyxvc036784335qquy6u32"
+        },
+        "currency": {
+            "symbol": "XeGLD",
+            "decimals": 18
+        },
+        "value": "992834490000000"
+    },
+    {
+        "account_identifier": {
+            "address": "erd19j3t6rsztakhqrse0w40tafs9cqjycy9xnpynrrv72hphvxtn5qqrujd04"
+        },
+        "currency": {
+            "symbol": "XeGLD",
+            "decimals": 18
+        },
+        "value": "30000000000000000000"
+    },
+    {
+        "account_identifier": {
+            "address": "erd1xgukah2zafsga88eyclqd22vh4yxg646unhaw7ft7mw0d2r945qqrp8768"
+        },
+        "currency": {
+            "symbol": "XeGLD",
+            "decimals": 18
+        },
+        "value": "8073289165163622560"
+    },
+    {
+        "account_identifier": {
+            "address": "erd12n8nedh7f835ledup2vqpqpun5355e9r6fmexa64zzjllfln8cqqrdjnnr"
+        },
+        "currency": {
+            "symbol": "XeGLD",
+            "decimals": 18
+        },
+        "value": "30000000000000000000"
+    },
+    {
+        "account_identifier": {
+            "address": "erd1d2ss78hm8qeuc0pzw4v5suayuzgmf5563hxcf53w84x7nh900cqqr2j252"
+        },
+        "currency": {
+            "symbol": "XeGLD",
+            "decimals": 18
+        },
+        "value": "29877487358137894227"
+    },
+    {
+        "account_identifier": {
+            "address": "erd1mw6tgcp8gv8d9ksec4xjq48md0ckh0wnf5zlqwv745grg6kkhcqq83szmy"
+        },
+        "currency": {
+            "symbol": "XeGLD",
+            "decimals": 18
+        },
+        "value": "7523259074150000000"
+    },
+    {
+        "account_identifier": {
+            "address": "erd16lsytdtmsn7s5dxzx5mzszjzv0d775jy4xx4scwcgmdj2zykecqqltc4q5"
+        },
+        "currency": {
+            "symbol": "XeGLD",
+            "decimals": 18
+        },
+        "value": "76454003384440796"
+    },
+    {
+        "account_identifier": {
+            "address": "erd13jmka82lyyw3jzwkxke3vg9a8am8ts2hmq07jnm8k9tr2tufpuqq72yfxk"
+        },
+        "currency": {
+            "symbol": "XeGLD",
+            "decimals": 18
+        },
+        "value": "10004376130071724248"
+    },
+    {
+        "account_identifier": {
+            "address": "erd1wpfzk3yn4g6630gkwupn5v9us89w7ys2pgpvhjdj7jteu2k5ruqq78xgd5"
+        },
+        "currency": {
+            "symbol": "XeGLD",
+            "decimals": 18
+        },
+        "value": "1000000000000000000"
+    },
+    {
+        "account_identifier": {
+            "address": "erd179x684zwuhnj7p29kvnqtqd2rjyywh3lwdz878eefnhslgld9uqqryzcad"
+        },
+        "currency": {
+            "symbol": "XeGLD",
+            "decimals": 18
+        },
+        "value": "12000000000000"
+    },
+    {
+        "account_identifier": {
+            "address": "erd1u5u3vfrfd3wzucaws83wvzh866hyr0l82kq7y347t45kd68qtuqqv0ywgk"
+        },
+        "currency": {
+            "symbol": "XeGLD",
+            "decimals": 18
+        },
+        "value": "20616869472448216"
+    },
+    {
+        "account_identifier": {
+            "address": "erd1xv899kzug4s6yn4vks6sqhmtkttl8q9e7nrq453ak9ljp3jq3uqq9n5j4d"
+        },
+        "currency": {
+            "symbol": "XeGLD",
+            "decimals": 18
+        },
+        "value": "9998548007330000000"
+    },
+    {
+        "account_identifier": {
+            "address": "erd180qr5alvrnw6yrgcpn33srck7nk3sxqkuclfgtxl8jztxctgmuqq5ydgxl"
+        },
+        "currency": {
+            "symbol": "XeGLD",
+            "decimals": 18
+        },
+        "value": "78368694924884608"
+    },
+    {
+        "account_identifier": {
+            "address": "erd1ay2atfnj9prvf3nh9fjrya94fsdekfmatq2uhyc7h04nyv5eauqq6hzsnw"
+        },
+        "currency": {
+            "symbol": "XeGLD",
+            "decimals": 18
+        },
+        "value": "916614371870144"
+    }
+]
