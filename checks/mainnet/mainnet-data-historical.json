@@ -17,7 +17,7 @@
   "coin_supported": false,
   "construction": null,
   "data": {
-    "start_index": 10120632,
+    "start_index": 10120629,
     "active_reconciliation_concurrency": 64,
     "inactive_reconciliation_concurrency": 8,
     "inactive_reconciliation_frequency": 128,
