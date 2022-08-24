@@ -3,11 +3,11 @@
     "blockchain": "Elrond",
     "network": "1"
   },
-  "http_timeout": 10,
+  "http_timeout": 30,
   "max_retries": 5,
-  "retry_elapsed_time": 0,
-  "max_online_connections": 128,
-  "max_sync_concurrency": 8,
+  "retry_elapsed_time": 10,
+  "max_online_connections": 512,
+  "max_sync_concurrency": 64,
   "tip_delay": 10,
   "max_reorg_depth": 100,
   "log_configuration": false,
@@ -37,10 +37,9 @@
     "initial_balance_fetch_disabled": false,
     "historical_balance_disabled": false,
     "end_conditions": {
-      "duration": 36000,
+      "duration": 28800,
       "reconciliation_coverage": {
-        "coverage": 1,
-        "account_count": 400000
+        "coverage": 1
       }
     }
   }

@@ -1,13 +1,13 @@
 package resources
 
 import (
-	"github.com/ElrondNetwork/rosetta/common"
+	"github.com/ElrondNetwork/elrond-go-core/core"
 )
 
 // AccountQueryOptions defines an (internal) account resource
 type AccountQueryOptions struct {
 	OnFinalBlock bool
-	BlockNonce   common.OptionalUint64
+	BlockNonce   core.OptionalUint64
 	BlockHash    []byte
 }
 
@@ -21,7 +21,7 @@ func NewAccountQueryOptionsOnFinalBlock() AccountQueryOptions {
 // NewAccountQueryOptionsWithBlockNonce creates an AccountQueryOptions (for a given block nonce)
 func NewAccountQueryOptionsWithBlockNonce(blockNonce uint64) AccountQueryOptions {
 	return AccountQueryOptions{
-		BlockNonce: common.OptionalUint64{Value: blockNonce, HasValue: true},
+		BlockNonce: core.OptionalUint64{Value: blockNonce, HasValue: true},
 	}
 }
 
