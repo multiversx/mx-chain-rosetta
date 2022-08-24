@@ -2,6 +2,7 @@ package provider
 
 import "github.com/ElrondNetwork/rosetta/server/resources"
 
+// GetNodeStatus gets an aggregated node status (e.g. current block, oldest available block etc.)
 func (provider *networkProvider) GetNodeStatus() (*resources.AggregatedNodeStatus, error) {
 	if provider.isOffline {
 		return nil, errIsOffline

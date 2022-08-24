@@ -21,7 +21,7 @@ var (
 )
 
 func buildUrlGetAccount(address string) string {
-	options := resources.AccountQueryOptions{OnFinalBlock: true}
+	options := resources.NewAccountQueryOptionsOnFinalBlock()
 	return buildUrlWithAccountQueryOptions(fmt.Sprintf(urlPathGetAccount, address), options)
 }
 
@@ -34,17 +34,26 @@ func buildUrlGetAccountESDTBalance(address string, tokenIdentifier string, optio
 }
 
 func buildUrlWithAccountQueryOptions(path string, options resources.AccountQueryOptions) string {
-	u := url.URL{Path: path}
-	query := u.Query()
-
 	if options.OnFinalBlock {
-		query.Set(urlParameterAccountQueryOptionsOnFinalBlock, "true")
-	} else if options.BlockNonce.HasValue {
-		query.Set(urlParameterAccountQueryOptionsBlockNonce, strconv.FormatUint(options.BlockNonce.Value, 10))
-	} else if len(options.BlockHash) > 0 {
-		query.Set(urlParameterAccountQueryOptionsBlockHash, hex.EncodeToString(options.BlockHash))
+		return buildUrlWithQueryParameter(path, urlParameterAccountQueryOptionsOnFinalBlock, "true")
+	}
+	if options.BlockNonce.HasValue {
+		return buildUrlWithQueryParameter(path, urlParameterAccountQueryOptionsBlockNonce, strconv.FormatUint(options.BlockNonce.Value, 10))
+	}
+	if len(options.BlockHash) > 0 {
+		return buildUrlWithQueryParameter(path, urlParameterAccountQueryOptionsBlockHash, hex.EncodeToString(options.BlockHash))
 	}
 
+	return path
+}
+
+func buildUrlWithQueryParameter(path string, key string, value string) string {
+	u := url.URL{
+		Path: path,
+	}
+
+	query := u.Query()
+	query.Set(key, value)
 	u.RawQuery = query.Encode()
 	return u.String()
 }

@@ -1,7 +1,5 @@
 package resources
 
-import "github.com/ElrondNetwork/rosetta/common"
-
 // AccountApiResponse defines an account resource
 type AccountApiResponse struct {
 	resourceApiResponse
@@ -20,13 +18,6 @@ type Account struct {
 	Nonce    uint64 `json:"nonce"`
 	Balance  string `json:"balance"`
 	Username string `json:"username"`
-}
-
-// AccountQueryOptions defines an (internal) account resource
-type AccountQueryOptions struct {
-	OnFinalBlock bool
-	BlockNonce   common.OptionalUint64
-	BlockHash    []byte
 }
 
 // AccountNativeBalanceApiResponse defines an account resource

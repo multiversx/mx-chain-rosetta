@@ -62,7 +62,7 @@ func TestNetworkProvider_GetAccountNativeBalance(t *testing.T) {
 	require.Nil(t, err)
 	require.NotNil(t, provider)
 
-	optionsOnFinal := resources.AccountQueryOptions{OnFinalBlock: true}
+	optionsOnFinal := resources.NewAccountQueryOptionsOnFinalBlock()
 
 	t.Run("with success", func(t *testing.T) {
 		observerFacade.MockNextError = nil
@@ -104,7 +104,7 @@ func TestNetworkProvider_GetAccountESDTBalance(t *testing.T) {
 	require.Nil(t, err)
 	require.NotNil(t, provider)
 
-	optionsOnFinal := resources.AccountQueryOptions{OnFinalBlock: true}
+	optionsOnFinal := resources.NewAccountQueryOptionsOnFinalBlock()
 
 	t.Run("with success", func(t *testing.T) {
 		observerFacade.MockNextError = nil

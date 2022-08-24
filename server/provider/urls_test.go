@@ -3,7 +3,6 @@ package provider
 import (
 	"testing"
 
-	"github.com/ElrondNetwork/rosetta/common"
 	"github.com/ElrondNetwork/rosetta/server/resources"
 	"github.com/ElrondNetwork/rosetta/testscommon"
 	"github.com/stretchr/testify/require"
@@ -15,9 +14,9 @@ func TestBuildUrlGetAccount(t *testing.T) {
 }
 
 func TestBuildUrlGetAccountNativeBalance(t *testing.T) {
-	optionsOnFinal := resources.AccountQueryOptions{OnFinalBlock: true}
-	optionsAtBlockNonce := resources.AccountQueryOptions{BlockNonce: common.OptionalUint64{Value: 7, HasValue: true}}
-	optionsAtBlockHash := resources.AccountQueryOptions{BlockHash: []byte{0xaa, 0xbb, 0xcc, 0xdd}}
+	optionsOnFinal := resources.NewAccountQueryOptionsOnFinalBlock()
+	optionsAtBlockNonce := resources.NewAccountQueryOptionsWithBlockNonce(7)
+	optionsAtBlockHash := resources.NewAccountQueryOptionsWithBlockHash([]byte{0xaa, 0xbb, 0xcc, 0xdd})
 
 	url := buildUrlGetAccountNativeBalance(testscommon.TestAddressAlice, optionsOnFinal)
 	require.Equal(t, "/address/erd1qyu5wthldzr8wx5c9ucg8kjagg0jfs53s8nr3zpz3hypefsdd8ssycr6th/balance?onFinalBlock=true", url)
@@ -27,12 +26,15 @@ func TestBuildUrlGetAccountNativeBalance(t *testing.T) {
 
 	url = buildUrlGetAccountNativeBalance(testscommon.TestAddressAlice, optionsAtBlockHash)
 	require.Equal(t, "/address/erd1qyu5wthldzr8wx5c9ucg8kjagg0jfs53s8nr3zpz3hypefsdd8ssycr6th/balance?blockHash=aabbccdd", url)
+
+	url = buildUrlGetAccountNativeBalance(testscommon.TestAddressAlice, resources.AccountQueryOptions{})
+	require.Equal(t, "/address/erd1qyu5wthldzr8wx5c9ucg8kjagg0jfs53s8nr3zpz3hypefsdd8ssycr6th/balance", url)
 }
 
 func TestBuildUrlGetAccountESDTBalance(t *testing.T) {
-	optionsOnFinal := resources.AccountQueryOptions{OnFinalBlock: true}
-	optionsAtBlockNonce := resources.AccountQueryOptions{BlockNonce: common.OptionalUint64{Value: 7, HasValue: true}}
-	optionsAtBlockHash := resources.AccountQueryOptions{BlockHash: []byte{0xaa, 0xbb, 0xcc, 0xdd}}
+	optionsOnFinal := resources.NewAccountQueryOptionsOnFinalBlock()
+	optionsAtBlockNonce := resources.NewAccountQueryOptionsWithBlockNonce(7)
+	optionsAtBlockHash := resources.NewAccountQueryOptionsWithBlockHash([]byte{0xaa, 0xbb, 0xcc, 0xdd})
 
 	url := buildUrlGetAccountESDTBalance(testscommon.TestAddressAlice, "ABC-abcdef", optionsOnFinal)
 	require.Equal(t, "/address/erd1qyu5wthldzr8wx5c9ucg8kjagg0jfs53s8nr3zpz3hypefsdd8ssycr6th/esdt/ABC-abcdef?onFinalBlock=true", url)
@@ -42,4 +44,7 @@ func TestBuildUrlGetAccountESDTBalance(t *testing.T) {
 
 	url = buildUrlGetAccountESDTBalance(testscommon.TestAddressAlice, "ABC-abcdef", optionsAtBlockHash)
 	require.Equal(t, "/address/erd1qyu5wthldzr8wx5c9ucg8kjagg0jfs53s8nr3zpz3hypefsdd8ssycr6th/esdt/ABC-abcdef?blockHash=aabbccdd", url)
+
+	url = buildUrlGetAccountESDTBalance(testscommon.TestAddressAlice, "ABC-abcdef", resources.AccountQueryOptions{})
+	require.Equal(t, "/address/erd1qyu5wthldzr8wx5c9ucg8kjagg0jfs53s8nr3zpz3hypefsdd8ssycr6th/esdt/ABC-abcdef", url)
 }

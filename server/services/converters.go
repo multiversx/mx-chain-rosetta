@@ -4,7 +4,6 @@ import (
 	"encoding/hex"
 
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
-	"github.com/ElrondNetwork/rosetta/common"
 	"github.com/ElrondNetwork/rosetta/server/resources"
 	"github.com/coinbase/rosetta-sdk-go/types"
 )
@@ -32,12 +31,12 @@ func blockSummaryToIdentifier(blockSummary *resources.BlockSummary) *types.Block
 
 func blockIdentifierToAccountQueryOptions(identifier *types.PartialBlockIdentifier) (resources.AccountQueryOptions, error) {
 	if identifier == nil {
-		return resources.AccountQueryOptions{OnFinalBlock: true}, nil
+		return resources.NewAccountQueryOptionsOnFinalBlock(), nil
 	}
 
 	if identifier.Index != nil {
-		blockNonce := common.OptionalUint64{Value: uint64(*identifier.Index), HasValue: true}
-		return resources.AccountQueryOptions{BlockNonce: blockNonce}, nil
+		blockNonce := uint64(*identifier.Index)
+		return resources.NewAccountQueryOptionsWithBlockNonce(blockNonce), nil
 	}
 
 	if identifier.Hash != nil {
@@ -46,10 +45,10 @@ func blockIdentifierToAccountQueryOptions(identifier *types.PartialBlockIdentifi
 			return resources.AccountQueryOptions{}, err
 		}
 
-		return resources.AccountQueryOptions{BlockHash: decodedHash}, nil
+		return resources.NewAccountQueryOptionsWithBlockHash(decodedHash), nil
 	}
 
-	return resources.AccountQueryOptions{OnFinalBlock: true}, nil
+	return resources.NewAccountQueryOptionsOnFinalBlock(), nil
 }
 
 func addressToAccountIdentifier(address string) *types.AccountIdentifier {
