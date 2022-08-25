@@ -27,3 +27,9 @@ rosetta-cli check:data --configuration-file devnet-data-start-after-${AFTER_BLOC
 --online-url=${ROSETTA_ONLINE} --data-dir=devnet-${AFTER_BLOCK}
 ```
 
+Check the data API (with `projected shard == 0`):
+
+```
+rosetta-cli check:data --configuration-file devnet-data-start-after-${AFTER_BLOCK}-with-projected-shard.json \
+--online-url=${ROSETTA_ONLINE} --data-dir=devnet-${AFTER_BLOCK}-with-projected-shard
+```
