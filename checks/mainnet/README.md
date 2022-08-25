@@ -23,6 +23,6 @@ rosetta-cli check:data --configuration-file mainnet-data-start-after-${AFTER_BLO
 Or, using historical balances:
 
 ```
-rosetta-cli check:data --configuration-file mainnet-data-start-historical.json \
+rosetta-cli check:data --configuration-file mainnet-data-historical.json \
 --online-url=${ROSETTA_ONLINE} --data-dir=mainnet-${AFTER_BLOCK}-historical
 ```

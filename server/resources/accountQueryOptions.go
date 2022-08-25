@@ -21,7 +21,10 @@ func NewAccountQueryOptionsOnFinalBlock() AccountQueryOptions {
 // NewAccountQueryOptionsWithBlockNonce creates an AccountQueryOptions (for a given block nonce)
 func NewAccountQueryOptionsWithBlockNonce(blockNonce uint64) AccountQueryOptions {
 	return AccountQueryOptions{
-		BlockNonce: core.OptionalUint64{Value: blockNonce, HasValue: true},
+		BlockNonce: core.OptionalUint64{
+			Value:    blockNonce,
+			HasValue: true,
+		},
 	}
 }
 
