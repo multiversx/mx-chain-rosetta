@@ -57,7 +57,8 @@ func (provider *networkProvider) getLatestBlockNonce() (uint64, error) {
 }
 
 func getLatestNonceGivenHighestFinalNonce(highestFinalNonce uint64) uint64 {
-	return highestFinalNonce - 1
+	// Account for rollback-related edge cases while node is syncing (in conjunction with scheduled miniblocks).
+	return highestFinalNonce - 2
 }
 
 func (provider *networkProvider) getOldestNonceWithHistoricalStateGivenNodeStatus(status *resources.NodeStatus) uint64 {
