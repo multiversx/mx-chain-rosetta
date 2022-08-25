@@ -36,14 +36,14 @@ func TestNetworkProvider_GetNodeStatusWithSuccess(t *testing.T) {
 
 	observerFacade.GetBlockByNonceCalled = func(shardID uint32, nonce uint64, options common.BlockQueryOptions) (*data.BlockApiResponse, error) {
 		// The one before "HighestFinalNonce"
-		if nonce == 4 {
+		if nonce == 3 {
 			return &data.BlockApiResponse{
 				Data: data.BlockApiResponsePayload{
 					Block: data.Block{
-						Nonce:         4,
-						Hash:          "0004",
-						PrevBlockHash: "0003",
-						Timestamp:     4,
+						Nonce:         3,
+						Hash:          "0003",
+						PrevBlockHash: "0002",
+						Timestamp:     3,
 					},
 				},
 			}, nil
@@ -63,14 +63,14 @@ func TestNetworkProvider_GetNodeStatusWithSuccess(t *testing.T) {
 			}, nil
 		}
 
-		panic("unexpected request")
+		return nil, errors.New("unexpected request")
 	}
 
 	expectedSummaryOfLatest := resources.BlockSummary{
-		Nonce:             4,
-		Hash:              "0004",
-		PreviousBlockHash: "0003",
-		Timestamp:         4,
+		Nonce:             3,
+		Hash:              "0003",
+		PreviousBlockHash: "0002",
+		Timestamp:         3,
 	}
 
 	expectedSummaryOfOldest := resources.BlockSummary{
