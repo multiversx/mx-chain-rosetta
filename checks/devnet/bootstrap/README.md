@@ -1,6 +1,6 @@
 # Bootstrap balances
 
-The files were built using [balancesExporter](https://github.com/ElrondNetwork/elrond-tools-go/tree/main/trieTools/balancesExporter).
+These files were built using [balancesExporter](https://github.com/ElrondNetwork/elrond-tools-go/tree/main/trieTools/balancesExporter).
 
 ### `D_shard_0_epoch_1166_nonce_1399025_XeGLD.rosetta-json.metadata.json`
 
