@@ -37,9 +37,9 @@
     "initial_balance_fetch_disabled": false,
     "historical_balance_disabled": false,
     "end_conditions": {
-      "duration": 28800,
       "reconciliation_coverage": {
-        "coverage": 1
+        "coverage": 1,
+        "from_tip": true
       }
     }
   }
