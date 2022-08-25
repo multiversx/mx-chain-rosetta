@@ -11,6 +11,7 @@ import (
 	"github.com/ElrondNetwork/elrond-go-core/hashing"
 	"github.com/ElrondNetwork/elrond-go-core/marshal"
 	logger "github.com/ElrondNetwork/elrond-go-logger"
+	"github.com/ElrondNetwork/elrond-go/storage/lrucache"
 	"github.com/ElrondNetwork/elrond-proxy-go/common"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/ElrondNetwork/rosetta/server/resources"
@@ -60,9 +61,18 @@ type networkProvider struct {
 	pubKeyConverter       core.PubkeyConverter
 
 	networkConfig *resources.NetworkConfig
+
+	blocksCache blocksCache
 }
 
 func NewNetworkProvider(args ArgsNewNetworkProvider) (*networkProvider, error) {
+	// Since for each block N we also have to fetch block N-1 block and N+1 (see "simplifyBlockWithScheduledTransactions"),
+	// it makes sense to cache the block response (using a LRU cache).
+	blocksCache, err := lrucache.NewCache(blocksCacheSize)
+	if err != nil {
+		return nil, err
+	}
+
 	return &networkProvider{
 		isOffline: args.IsOffline,
 
@@ -88,6 +98,8 @@ func NewNetworkProvider(args ArgsNewNetworkProvider) (*networkProvider, error) {
 			MinGasPrice:    args.MinGasPrice,
 			MinGasLimit:    args.MinGasLimit,
 		},
+
+		blocksCache: blocksCache,
 	}, nil
 }
 
@@ -214,6 +226,11 @@ func (provider *networkProvider) doGetBlockByNonce(nonce uint64) (*data.Block, e
 		WithLogs:         true,
 	}
 
+	block, ok := provider.getBlockByNonceCached(nonce)
+	if ok {
+		return block, nil
+	}
+
 	response, err := provider.observerFacade.GetBlockByNonce(provider.observedActualShard, nonce, queryOptions)
 	if err != nil {
 		return nil, newErrCannotGetBlockByNonce(nonce, convertStructuredApiErrToFlatErr(err))
@@ -222,7 +239,27 @@ func (provider *networkProvider) doGetBlockByNonce(nonce uint64) (*data.Block, e
 		return nil, newErrCannotGetBlockByNonce(nonce, errors.New(response.Error))
 	}
 
-	return &response.Data.Block, nil
+	block = &response.Data.Block
+
+	provider.cacheBlockByNonce(nonce, block)
+
+	return block, nil
+}
+
+func (provider *networkProvider) getBlockByNonceCached(nonce uint64) (*data.Block, bool) {
+	blockUntyped, ok := provider.blocksCache.Get(blockNonceToBytes(nonce))
+	if ok {
+		block, ok := blockUntyped.(*data.Block)
+		if ok {
+			return block, true
+		}
+	}
+
+	return nil, false
+}
+
+func (provider *networkProvider) cacheBlockByNonce(nonce uint64, block *data.Block) {
+	_ = provider.blocksCache.Put(blockNonceToBytes(nonce), block, 1)
 }
 
 // GetBlockByHash gets a block by hash

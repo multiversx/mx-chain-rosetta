@@ -18,3 +18,8 @@ type observerFacade interface {
 type resourceApiResponseHandler interface {
 	GetErrorMessage() string
 }
+
+type blocksCache interface {
+	Get(key []byte) (value interface{}, ok bool)
+	Put(key []byte, value interface{}, size int) (evicted bool)
+}
