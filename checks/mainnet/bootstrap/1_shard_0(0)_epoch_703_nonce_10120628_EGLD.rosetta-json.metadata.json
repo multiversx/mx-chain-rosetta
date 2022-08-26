@@ -1,0 +1,15 @@
+{
+    "chainID": "1",
+    "actualShardID": 0,
+    "epoch": 703,
+    "blockNonce": 10120628,
+    "blockRootHash": "f99b410532e59727bb7cbeb3119701dd95ad06c0a98e6876b78ec85516d82d16",
+    "format": "rosetta-json",
+    "currency": "EGLD",
+    "currencyDecimals": 18,
+    "withContracts": false,
+    "withZero": false,
+    "byProjectedShardID": 0,
+    "byProjectedShardHasValue": true,
+    "numAccounts": 2657
+}
