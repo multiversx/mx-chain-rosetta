@@ -6,6 +6,7 @@ require (
 	github.com/ElrondNetwork/elrond-go v1.3.27
 	github.com/ElrondNetwork/elrond-go-core v1.1.19
 	github.com/ElrondNetwork/elrond-go-logger v1.0.7
+	github.com/ElrondNetwork/elrond-go-storage v1.0.0
 	github.com/ElrondNetwork/elrond-proxy-go v1.1.21-0.20220628202443-2bad25dc45a3
 	github.com/coinbase/rosetta-sdk-go v0.7.10
 	github.com/stretchr/testify v1.7.2
