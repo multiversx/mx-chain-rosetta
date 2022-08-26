@@ -66,7 +66,7 @@ type networkProvider struct {
 }
 
 func NewNetworkProvider(args ArgsNewNetworkProvider) (*networkProvider, error) {
-	// Since for each block N we also have to fetch block N-1 block and N+1 (see "simplifyBlockWithScheduledTransactions"),
+	// Since for each block N we also have to fetch block N-1 and block N+1 (see "simplifyBlockWithScheduledTransactions"),
 	// it makes sense to cache the block response (using a LRU cache).
 	blocksCache, err := lrucache.NewCache(blocksCacheCapacity)
 	if err != nil {
@@ -259,10 +259,7 @@ func (provider *networkProvider) getBlockByNonceCached(nonce uint64) (*data.Bloc
 }
 
 func (provider *networkProvider) cacheBlockByNonce(nonce uint64, block *data.Block) {
-	// For the moment, we use "numTxs" as an indicator for the block size (heuristics).
-	// In the future, we might compute the actual size (iterate over miniblocks, over transactions etc.).
-	heuristicBlockSize := int(block.NumTxs)
-	_ = provider.blocksCache.Put(blockNonceToBytes(nonce), block, heuristicBlockSize)
+	_ = provider.blocksCache.Put(blockNonceToBytes(nonce), block, 1)
 }
 
 // GetBlockByHash gets a block by hash
