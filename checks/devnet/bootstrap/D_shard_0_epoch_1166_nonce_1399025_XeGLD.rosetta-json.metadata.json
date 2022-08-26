@@ -1,0 +1,15 @@
+{
+    "chainID": "D",
+    "actualShardID": 0,
+    "epoch": 1166,
+    "blockNonce": 1399025,
+    "blockRootHash": "76b164b26389f7f57a18fea93280b211095d837c60a224aea3eab48b2d68c388",
+    "format": "rosetta-json",
+    "currency": "XeGLD",
+    "currencyDecimals": 18,
+    "withContracts": false,
+    "withZero": false,
+    "byProjectedShardID": 0,
+    "byProjectedShardHasValue": false,
+    "numAccounts": 6763
+}
