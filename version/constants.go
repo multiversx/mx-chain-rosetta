@@ -8,5 +8,6 @@ const (
 	RosettaMiddlewareVersion = "v0.2.2"
 
 	// NodeVersion is the canonical version of the node runtime
+	// TODO: We should fetch this from node/status.
 	NodeVersion = "rc/2022-july"
 )
