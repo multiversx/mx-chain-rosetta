@@ -49,15 +49,19 @@ func (service *networkService) NetworkStatus(
 		return nil, service.errFactory.newErr(ErrOfflineMode)
 	}
 
-	latestBlockSummary, err := service.provider.GetLatestBlockSummary()
+	nodeStatus, err := service.provider.GetNodeStatus()
 	if err != nil {
-		return nil, service.errFactory.newErrWithOriginal(ErrUnableToGetBlock, err)
+		return nil, service.errFactory.newErrWithOriginal(ErrUnableToGetNodeStatus, err)
 	}
 
 	networkStatusResponse := &types.NetworkStatusResponse{
-		CurrentBlockIdentifier: blockSummaryToIdentifier(latestBlockSummary),
-		CurrentBlockTimestamp:  timestampInMilliseconds(latestBlockSummary.Timestamp),
+		CurrentBlockIdentifier: blockSummaryToIdentifier(&nodeStatus.LatestBlock),
+		CurrentBlockTimestamp:  timestampInMilliseconds(nodeStatus.LatestBlock.Timestamp),
 		GenesisBlockIdentifier: service.extension.getGenesisBlockIdentifier(),
+		OldestBlockIdentifier:  blockSummaryToIdentifier(&nodeStatus.OldestBlockWithHistoricalState),
+		SyncStatus: &types.SyncStatus{
+			Synced: &nodeStatus.Synced,
+		},
 		Peers: []*types.Peer{
 			{
 				PeerID: service.provider.GetObserverPubkey(),
@@ -79,9 +83,10 @@ func (service *networkService) NetworkOptions(
 			NodeVersion:    version.NodeVersion,
 		},
 		Allow: &types.Allow{
-			OperationStatuses: supportedOperationStatuses,
-			OperationTypes:    SupportedOperationTypes,
-			Errors:            service.errFactory.getPossibleErrors(),
+			OperationStatuses:       supportedOperationStatuses,
+			OperationTypes:          SupportedOperationTypes,
+			Errors:                  service.errFactory.getPossibleErrors(),
+			HistoricalBalanceLookup: true,
 		},
 	}, nil
 }

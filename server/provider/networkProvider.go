@@ -3,7 +3,6 @@ package provider
 import (
 	"encoding/hex"
 	"errors"
-	"fmt"
 	"math/big"
 
 	"github.com/ElrondNetwork/elrond-go-core/core"
@@ -15,12 +14,6 @@ import (
 	"github.com/ElrondNetwork/elrond-proxy-go/common"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/ElrondNetwork/rosetta/server/resources"
-)
-
-var (
-	urlPathGetNodeStatus      = "/node/status"
-	urlPathGetGenesisBalances = "/network/genesis-balances"
-	urlPathGetAccount         = "/address/%s"
 )
 
 var log = logger.GetOrCreate("server/provider")
@@ -39,6 +32,7 @@ type ArgsNewNetworkProvider struct {
 	NativeCurrencySymbol        string
 	GenesisBlockHash            string
 	GenesisTimestamp            int64
+	NumHistoricalBlocks         uint64
 
 	ObserverFacade observerFacade
 
@@ -57,6 +51,7 @@ type networkProvider struct {
 	nativeCurrencySymbol        string
 	genesisBlockHash            string
 	genesisTimestamp            int64
+	numHistoricalBlocks         uint64
 
 	observerFacade observerFacade
 
@@ -79,6 +74,7 @@ func NewNetworkProvider(args ArgsNewNetworkProvider) (*networkProvider, error) {
 		nativeCurrencySymbol:        args.NativeCurrencySymbol,
 		genesisBlockHash:            args.GenesisBlockHash,
 		genesisTimestamp:            args.GenesisTimestamp,
+		numHistoricalBlocks:         args.NumHistoricalBlocks,
 
 		observerFacade: args.ObserverFacade,
 
@@ -148,30 +144,18 @@ func (provider *networkProvider) GetGenesisBalances() ([]*resources.GenesisBalan
 	}
 
 	response := &resources.GenesisBalancesApiResponse{}
-
-	_, err := provider.observerFacade.CallGetRestEndPoint(provider.observerUrl, urlPathGetGenesisBalances, &response)
+	err := provider.getResource(urlPathGetGenesisBalances, response)
 	if err != nil {
-		return nil, convertStructuredApiErrToFlatErr(err)
-	}
-	if response.Error != "" {
-		return nil, errors.New(response.Error)
+		return nil, err
 	}
 
 	return response.Data.Balances, nil
 }
 
-// GetLatestBlockSummary gets a summary of the latest block
-func (provider *networkProvider) GetLatestBlockSummary() (*resources.BlockSummary, error) {
+func (provider *networkProvider) getBlockSummaryByNonce(nonce uint64) (resources.BlockSummary, error) {
 	if provider.isOffline {
-		return nil, errIsOffline
+		return resources.BlockSummary{}, errIsOffline
 	}
-
-	latestBlockNonce, err := provider.getLatestBlockNonce()
-	if err != nil {
-		return nil, err
-	}
-
-	log.Debug("GetLatestBlockSummary()", "latestBlockNonce", latestBlockNonce)
 
 	queryOptions := common.BlockQueryOptions{
 		WithTransactions: false,
@@ -180,47 +164,19 @@ func (provider *networkProvider) GetLatestBlockSummary() (*resources.BlockSummar
 
 	blockResponse, err := provider.observerFacade.GetBlockByNonce(
 		provider.observedActualShard,
-		latestBlockNonce,
+		nonce,
 		queryOptions,
 	)
 	if err != nil {
-		return nil, newErrCannotGetBlockByNonce(latestBlockNonce, err)
+		return resources.BlockSummary{}, newErrCannotGetBlockByNonce(nonce, err)
 	}
 
-	return &resources.BlockSummary{
+	return resources.BlockSummary{
 		Nonce:             blockResponse.Data.Block.Nonce,
 		Hash:              blockResponse.Data.Block.Hash,
 		PreviousBlockHash: blockResponse.Data.Block.PrevBlockHash,
 		Timestamp:         int64(blockResponse.Data.Block.Timestamp),
 	}, nil
-}
-
-func (provider *networkProvider) getLatestBlockNonce() (uint64, error) {
-	nodeStatus, err := provider.getNodeStatus()
-	if err != nil {
-		return 0, err
-	}
-
-	// In the context of scheduled transactions, make sure the N+1 block is final, as well.
-	return nodeStatus.HighestFinalNonce - 1, nil
-}
-
-func (provider *networkProvider) getNodeStatus() (*resources.NodeStatus, error) {
-	if provider.isOffline {
-		return nil, errIsOffline
-	}
-
-	response := &resources.NodeStatusApiResponse{}
-
-	_, err := provider.observerFacade.CallGetRestEndPoint(provider.observerUrl, urlPathGetNodeStatus, &response)
-	if err != nil {
-		return nil, convertStructuredApiErrToFlatErr(err)
-	}
-	if response.Error != "" {
-		return nil, errors.New(response.Error)
-	}
-
-	return &response.Data.Status, nil
 }
 
 // GetBlockByNonce gets a block by nonce
@@ -304,45 +260,6 @@ func (provider *networkProvider) doGetBlockByHash(hash string) (*data.Block, err
 	}
 
 	return &response.Data.Block, nil
-}
-
-// GetAccount gets an account by address
-func (provider *networkProvider) GetAccount(address string) (*data.AccountModel, error) {
-	if provider.isOffline {
-		return nil, errIsOffline
-	}
-
-	account, err := provider.doGetAccount(address)
-	if err != nil {
-		log.Warn("GetAccount()", "address", address, "err", err)
-		return nil, err
-	}
-
-	log.Trace("GetAccount()",
-		"address", account.Account.Address,
-		"balance", account.Account.Balance,
-		"block", account.BlockInfo.Nonce,
-		"blockHash", account.BlockInfo.Hash,
-		"blockRootHash", account.BlockInfo.RootHash,
-	)
-
-	return account, nil
-}
-
-func (provider *networkProvider) doGetAccount(address string) (*data.AccountModel, error) {
-	options := common.AccountQueryOptions{OnFinalBlock: true}
-	url := common.BuildUrlWithAccountQueryOptions(fmt.Sprintf(urlPathGetAccount, address), options)
-	response := &data.AccountApiResponse{}
-
-	_, err := provider.observerFacade.CallGetRestEndPoint(provider.observerUrl, url, &response)
-	if err != nil {
-		return nil, newErrCannotGetAccount(address, convertStructuredApiErrToFlatErr(err))
-	}
-	if response.Error != "" {
-		return nil, newErrCannotGetAccount(address, errors.New(response.Error))
-	}
-
-	return &response.Data, nil
 }
 
 // IsAddressObserved returns whether the address is observed (i.e. is located in an observed shard)

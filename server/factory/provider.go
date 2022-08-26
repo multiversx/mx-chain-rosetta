@@ -1,8 +1,6 @@
 package factory
 
 import (
-	"time"
-
 	"github.com/ElrondNetwork/elrond-go-core/core/pubkeyConverter"
 	hasherFactory "github.com/ElrondNetwork/elrond-go-core/hashing/factory"
 	marshalFactory "github.com/ElrondNetwork/elrond-go-core/marshal/factory"
@@ -26,10 +24,6 @@ const (
 	requestTimeoutInSeconds = 60
 )
 
-var (
-	nodeStatusCacheDuration = time.Duration(1 * time.Second)
-)
-
 type ArgsCreateNetworkProvider struct {
 	IsOffline                   bool
 	NumShards                   uint32
@@ -45,6 +39,7 @@ type ArgsCreateNetworkProvider struct {
 	NativeCurrencySymbol        string
 	GenesisBlockHash            string
 	GenesisTimestamp            int64
+	NumHistoricalBlocks         uint64
 }
 
 // CreateNetworkProvider creates a network provider
@@ -127,6 +122,7 @@ func CreateNetworkProvider(args ArgsCreateNetworkProvider) (networkProvider, err
 		NativeCurrencySymbol:        args.NativeCurrencySymbol,
 		GenesisBlockHash:            args.GenesisBlockHash,
 		GenesisTimestamp:            args.GenesisTimestamp,
+		NumHistoricalBlocks:         args.NumHistoricalBlocks,
 
 		ObserverFacade: &components.ObserverFacade{
 			Processor:            baseProcessor,

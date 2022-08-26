@@ -3,6 +3,8 @@ package provider
 var (
 	nativeCurrencyNumDecimals = 18
 	genesisBlockNonce         = 0
+	// Block with nonce = 0 is not actually retrievable from the observer
+	oldestPossibleNonceWithHistoricalState = uint64(1)
 )
 
 type MiniblockProcessingType string

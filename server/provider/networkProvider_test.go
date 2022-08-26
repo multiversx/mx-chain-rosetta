@@ -1,6 +1,7 @@
 package provider
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/ElrondNetwork/rosetta/testscommon"
@@ -47,4 +48,27 @@ func TestNewNetworkProvider(t *testing.T) {
 	assert.Equal(t, "XeGLD", provider.GetNativeCurrency().Symbol)
 	assert.Equal(t, "aaaa", provider.GetGenesisBlockSummary().Hash)
 	assert.Equal(t, int64(123456789), provider.GetGenesisTimestamp())
+}
+
+func createDefaultArgsNewNetworkProvider() ArgsNewNetworkProvider {
+	return ArgsNewNetworkProvider{
+		IsOffline:                   false,
+		ObservedActualShard:         0,
+		ObservedProjectedShard:      0,
+		ObservedProjectedShardIsSet: false,
+		ObserverUrl:                 "http://my-observer:8080",
+		ObserverPubkey:              "MY-OBSERVER",
+		ChainID:                     "T",
+		GasPerDataByte:              1500,
+		MinGasPrice:                 1000000000,
+		MinGasLimit:                 50000,
+		NativeCurrencySymbol:        "XeGLD",
+		GenesisBlockHash:            strings.Repeat("0", 64),
+		GenesisTimestamp:            123456789,
+		ObserverFacade:              testscommon.NewObserverFacadeMock(),
+		Hasher:                      testscommon.RealWorldBlake2bHasher,
+		MarshalizerForHashing:       testscommon.MarshalizerForHashing,
+		PubKeyConverter:             testscommon.RealWorldBech32PubkeyConverter,
+		NumHistoricalBlocks:         10000,
+	}
 }

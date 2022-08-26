@@ -22,7 +22,13 @@ type observerFacadeMock struct {
 	MockTransactionsByHash map[string]*data.FullTransaction
 	MockBlocks             []*data.Block
 
-	SendTransactionCalled func(tx *data.Transaction) (int, string, error)
+	GetBlockByNonceCalled     func(shardID uint32, nonce uint64, options common.BlockQueryOptions) (*data.BlockApiResponse, error)
+	GetBlockByHashCalled      func(shardID uint32, hash string, options common.BlockQueryOptions) (*data.BlockApiResponse, error)
+	CallGetRestEndPointCalled func(baseUrl string, path string, value interface{}) (int, error)
+	SendTransactionCalled     func(tx *data.Transaction) (int, string, error)
+
+	RecordedBaseUrl string
+	RecordedPath    string
 }
 
 // NewObserverFacadeMock -
@@ -45,6 +51,13 @@ func NewObserverFacadeMock() *observerFacadeMock {
 
 // CallGetRestEndPoint -
 func (mock *observerFacadeMock) CallGetRestEndPoint(baseUrl string, path string, value interface{}) (int, error) {
+	mock.RecordedBaseUrl = baseUrl
+	mock.RecordedPath = path
+
+	if mock.CallGetRestEndPointCalled != nil {
+		return mock.CallGetRestEndPointCalled(baseUrl, path, value)
+	}
+
 	if mock.MockNextError != nil {
 		return 0, mock.MockNextError
 	}
@@ -115,6 +128,10 @@ func (mock *observerFacadeMock) GetTransactionByHashAndSenderAddress(hash string
 
 // GetBlockByHash -
 func (mock *observerFacadeMock) GetBlockByHash(shardID uint32, hash string, options common.BlockQueryOptions) (*data.BlockApiResponse, error) {
+	if mock.GetBlockByHashCalled != nil {
+		return mock.GetBlockByHashCalled(shardID, hash, options)
+	}
+
 	if mock.MockNextError != nil {
 		return nil, mock.MockNextError
 	}
@@ -143,6 +160,10 @@ func (mock *observerFacadeMock) GetBlockByHash(shardID uint32, hash string, opti
 
 // GetBlockByNonce -
 func (mock *observerFacadeMock) GetBlockByNonce(shardID uint32, nonce uint64, options common.BlockQueryOptions) (*data.BlockApiResponse, error) {
+	if mock.GetBlockByNonceCalled != nil {
+		return mock.GetBlockByNonceCalled(shardID, nonce, options)
+	}
+
 	if mock.MockNextError != nil {
 		return nil, mock.MockNextError
 	}
