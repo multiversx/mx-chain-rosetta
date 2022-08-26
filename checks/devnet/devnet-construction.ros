@@ -4,9 +4,9 @@ transfer(1){
     elrond_currency = {"symbol":"XeGLD", "decimals":18};
     sender = {
       "account_identifier": {
-        "address": "erd1spyavw0956vq68xj8y4tenjpq2wd5a9p2c6j8gsz7ztyrnpxrruqzu66jx"
+        "address": "erd1ldjsdetjvegjdnda0qw2h62kq6rpvrklkc5pw9zxm0nwulfhtyqqtyc4vq"
       },
-      "privkey": "b8ca6f8203fb4b545a8e83c5384da033c415db155b53fb5b8eba7ff5a039d639",
+      "privkey": "3e4e89e501eb542c12403fb15c52479e8721f2f4dedc3b3ef0f3b47b37de006c",
       "curve_type": "edwards25519",
       "currency": {
           "symbol": "XeGLD",
@@ -23,9 +23,9 @@ transfer(1){
     sender_amount = 0-{{recipient_amount}};
     recipient = {
       "account_identifier": {
-        "address": "erd1ekrktkp7meytt8cvlhvavtzpz795056xpftw9lwxyc8gu4a7kw2qjfzpy9"
+        "address": "erd1xtslmt67utuewwv8jsx729mxjxaa8dvyyzp7492hy99dl7hvcuqq30l98v"
       },
-      "privkey": "0b3b9eae3c6eacf29fc5424f9f0b29e64f00844d0e08d1cef1b68cedbfaaa769",
+      "privkey": "e2cfd1bf75bd3d2f7a5cdc35f0d9d0ed395185e3beab941e0d03f5f8f9da4dec",
       "curve_type": "edwards25519",
       "currency": {
           "symbol": "XeGLD",
