@@ -22,4 +22,6 @@ type resourceApiResponseHandler interface {
 type blocksCache interface {
 	Get(key []byte) (value interface{}, ok bool)
 	Put(key []byte, value interface{}, size int) (evicted bool)
+	Len() int
+	Keys() [][]byte
 }

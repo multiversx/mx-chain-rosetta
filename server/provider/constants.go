@@ -5,7 +5,7 @@ var (
 	genesisBlockNonce         = 0
 	// Block with nonce = 0 is not actually retrievable from the observer
 	oldestPossibleNonceWithHistoricalState = uint64(1)
-	blocksCacheSize                        = 4096
+	blocksCacheCapacity                    = 4096
 )
 
 type MiniblockProcessingType string

@@ -1,9 +1,12 @@
 package provider
 
 import (
+	"errors"
 	"strings"
 	"testing"
 
+	"github.com/ElrondNetwork/elrond-proxy-go/common"
+	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/ElrondNetwork/rosetta/testscommon"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -48,6 +51,77 @@ func TestNewNetworkProvider(t *testing.T) {
 	assert.Equal(t, "XeGLD", provider.GetNativeCurrency().Symbol)
 	assert.Equal(t, "aaaa", provider.GetGenesisBlockSummary().Hash)
 	assert.Equal(t, int64(123456789), provider.GetGenesisTimestamp())
+}
+
+func TestNetworkProvider_DoGetBlockByNonce(t *testing.T) {
+	observerFacade := testscommon.NewObserverFacadeMock()
+	args := createDefaultArgsNewNetworkProvider()
+	args.ObserverFacade = observerFacade
+
+	provider, err := NewNetworkProvider(args)
+	require.Nil(t, err)
+	require.NotNil(t, provider)
+
+	t.Run("with error (not cached)", func(t *testing.T) {
+		observerFacade.GetBlockByNonceCalled = func(shardID uint32, nonce uint64, options common.BlockQueryOptions) (*data.BlockApiResponse, error) {
+			return nil, errors.New("arbitrary error")
+		}
+
+		block, err := provider.doGetBlockByNonce(42)
+		require.Nil(t, block)
+		require.ErrorContains(t, err, "arbitrary error")
+		require.Equal(t, 0, provider.blocksCache.Len())
+	})
+
+	t.Run("with success (cached)", func(t *testing.T) {
+		observerFacade.GetBlockByNonceCalled = func(shardID uint32, nonce uint64, options common.BlockQueryOptions) (*data.BlockApiResponse, error) {
+			if nonce == 42 {
+				return &data.BlockApiResponse{
+					Data: data.BlockApiResponsePayload{
+						Block: data.Block{
+							Nonce: 42,
+						},
+					},
+				}, nil
+			}
+
+			return nil, errors.New("unexpected request")
+		}
+
+		block, err := provider.doGetBlockByNonce(42)
+		require.Nil(t, err)
+		require.Equal(t, uint64(42), block.Nonce)
+		require.Equal(t, 1, provider.blocksCache.Len())
+
+		observerFacade.GetBlockByNonceCalled = func(shardID uint32, nonce uint64, options common.BlockQueryOptions) (*data.BlockApiResponse, error) {
+			return nil, errors.New("unexpected request")
+		}
+
+		cachedBlock, err := provider.doGetBlockByNonce(42)
+		require.Nil(t, err)
+		require.Equal(t, block, cachedBlock)
+	})
+
+	t.Run("many requests, filling the cache", func(t *testing.T) {
+		observerFacade.GetBlockByNonceCalled = func(shardID uint32, nonce uint64, options common.BlockQueryOptions) (*data.BlockApiResponse, error) {
+			return &data.BlockApiResponse{
+				Data: data.BlockApiResponsePayload{
+					Block: data.Block{
+						Nonce: nonce,
+					},
+				},
+			}, nil
+		}
+
+		for i := uint64(0); i < uint64(blocksCacheCapacity*2); i++ {
+			block, err := provider.doGetBlockByNonce(i)
+			require.Nil(t, err)
+			require.Equal(t, i, block.Nonce)
+
+		}
+
+		require.Equal(t, blocksCacheCapacity, provider.blocksCache.Len())
+	})
 }
 
 func createDefaultArgsNewNetworkProvider() ArgsNewNetworkProvider {
