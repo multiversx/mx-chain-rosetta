@@ -26,7 +26,7 @@
     "log_balance_changes": true,
     "log_reconciliations": true,
     "ignore_reconciliation_error": false,
-    "bootstrap_balances": "bootstrap/1_shard_0_epoch_703_nonce_10120628.rosetta.json",
+    "bootstrap_balances": "bootstrap/1_shard_0_epoch_703_nonce_10120628_EGLD.rosetta.json",
     "reconciliation_disabled": false,
     "reconciliation_drain_disabled": false,
     "inactive_discrepancy_search_disabled": false,
