@@ -24,4 +24,5 @@ type blocksCache interface {
 	Put(key []byte, value interface{}, size int) (evicted bool)
 	Len() int
 	Keys() [][]byte
+	Clear()
 }
