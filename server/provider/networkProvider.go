@@ -251,7 +251,8 @@ func (provider *networkProvider) getBlockByNonceCached(nonce uint64) (*data.Bloc
 	if ok {
 		block, ok := blockUntyped.(*data.Block)
 		if ok {
-			return block, true
+			blockCopy := *block
+			return &blockCopy, true
 		}
 	}
 
@@ -259,7 +260,8 @@ func (provider *networkProvider) getBlockByNonceCached(nonce uint64) (*data.Bloc
 }
 
 func (provider *networkProvider) cacheBlockByNonce(nonce uint64, block *data.Block) {
-	_ = provider.blocksCache.Put(blockNonceToBytes(nonce), block, 1)
+	blockCopy := *block
+	_ = provider.blocksCache.Put(blockNonceToBytes(nonce), &blockCopy, 1)
 }
 
 // GetBlockByHash gets a block by hash

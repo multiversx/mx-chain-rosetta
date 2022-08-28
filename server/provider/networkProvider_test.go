@@ -122,6 +122,42 @@ func TestNetworkProvider_DoGetBlockByNonce(t *testing.T) {
 
 		require.Equal(t, blocksCacheCapacity, provider.blocksCache.Len())
 	})
+
+	t.Run("the cache holds block copies", func(t *testing.T) {
+		provider.blocksCache.Clear()
+
+		observerFacade.GetBlockByNonceCalled = func(shardID uint32, nonce uint64, options common.BlockQueryOptions) (*data.BlockApiResponse, error) {
+			return &data.BlockApiResponse{
+				Data: data.BlockApiResponsePayload{
+					Block: data.Block{
+						Nonce: nonce,
+						MiniBlocks: []*data.MiniBlock{
+							{Hash: "aaaa"},
+							{Hash: "bbbb"},
+						},
+					},
+				},
+			}, nil
+		}
+
+		block, err := provider.doGetBlockByNonce(7)
+		require.Nil(t, err)
+		require.Equal(t, uint64(7), block.Nonce)
+		require.Len(t, block.MiniBlocks, 2)
+		require.Equal(t, 1, provider.blocksCache.Len())
+
+		// Simulate mutations performed by downstream handling of blocks, i.e. "simplifyBlockWithScheduledTransactions":
+		block.MiniBlocks = []*data.MiniBlock{}
+
+		cachedBlock, err := provider.doGetBlockByNonce(7)
+		require.Nil(t, err)
+		require.Equal(t, uint64(7), cachedBlock.Nonce)
+		// Miniblocks removal (above) does not reflect in the cached data
+		require.Len(t, cachedBlock.MiniBlocks, 2)
+		// ... because the cache holds block copies:
+		require.False(t, &block == &cachedBlock)
+		require.Equal(t, 1, provider.blocksCache.Len())
+	})
 }
 
 func createDefaultArgsNewNetworkProvider() ArgsNewNetworkProvider {
