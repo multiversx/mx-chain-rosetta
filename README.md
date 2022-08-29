@@ -31,18 +31,20 @@ Before starting the observer, make sure to edit the `config/prefs.toml`:
 Furthermore, adjust `config/config.toml`, as follows:
 
 ```
+...
 [GeneralSettings]
     StartInEpochEnabled = false
-
+...
 [StoragePruning]
     AccountsTrieCleanOldEpochsData = false
     NumEpochsToKeep = 128 # a desired history length
-
+...
 [StateTriesConfig]
     AccountsStatePruningEnabled = false
-
+...
 [DbLookupExtensions]
     Enabled = true
+...
 ```
 
 ### Setup Observer's database
@@ -83,7 +85,7 @@ Or, in order to start using the `offline` mode:
 
 ## Setup a database
 
-In order to support historical balances lookup, Rosetta has to connect to an Observer whose database contains _non-pruned accounts tries_. Such databases can be re-built locally or downloaded from the Internet.
+In order to support historical balances lookup, Rosetta has to connect to an Observer whose database contains _non-pruned accounts tries_. Such databases can be re-built locally or downloaded from the Elrond public archive - the URL being available [on request](https://t.me/ElrondDevelopers).
 
 ### Build archives
 
@@ -91,22 +93,26 @@ In order to locally re-build a database with historical lookup support, one shou
 
 #### `config.toml`
 ```
+...
 [StoragePruning]
     AccountsTrieCleanOldEpochsData = false
     NumEpochsToKeep = 128 # a desired history length
-
+...
 [StateTriesConfig]
     AccountsStatePruningEnabled = false
-
+...
 [DbLookupExtensions]
     Enabled = true
+...
 ```
 
 The **source** database (e.g. located in `./import-db/db`) should normally be a recent node database including epoch `N`, while the **destination** database (e.g. located in `./db`) should contain epoch `N - NumEpochsToKeep - 1` with an intact `AccountsTries` (i.e. not removed due to the default `NumEpochsToKeep = 3` and `AccountsTrieCleanOldEpochsData = true`).
 
 ### Download archives
 
-An archive supporting historical lookup is available to download **on demand**, from a cloud-based, S3-compatible storage.
+_**Note:** the information in this section is preliminary and subject to change. It is expected to stabilize ~4 weeks after the release of [elrond-go v1.3.37](https://github.com/ElrondNetwork/elrond-go/releases/tag/v1.3.37)._
+
+An archive supporting historical lookup is available to download [on request](https://t.me/ElrondDevelopers), from a cloud-based, S3-compatible storage.
 
 The archive consists of:
  - Individual files per _epoch_: `Epoch_*.tar`
@@ -114,7 +120,7 @@ The archive consists of:
 
 Before starting the download, set up the following environment variables - make sure to adjust them beforehand, as necessary:
 
-#### `devnet` example
+`devnet` example
 
 ```
 export CHAIN_ID=D
@@ -123,7 +129,8 @@ export EPOCH_LAST=1807
 export URL_BASE=https://location-of-devnet-archives
 ```
 
-#### `mainnet` example
+`mainnet` example
+
 ```
 export CHAIN_ID=1
 export EPOCH_FIRST=700
