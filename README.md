@@ -138,7 +138,7 @@ export EPOCH_LAST=760
 export URL_BASE=https://location-of-mainnet-archives
 ```
 
-If you've previosuly downloaded a set of archives in the past, and you'd like to (incrementally) download newer ones, make sure to re-download a couple of previously-downloaded epochs, as follows:
+If you've previously downloaded a set of archives in the past, and you'd like to (incrementally) download newer ones, make sure to re-download a couple of previously-downloaded epochs, as follows:
 
 ```
 export LATEST_DOWNLOADED_EPOCH=760
