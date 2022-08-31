@@ -68,10 +68,12 @@ func (transformer *transactionsTransformer) transformTxsOfBlock(block *data.Bloc
 	}
 
 	for _, rosettaTx := range rosettaTxs {
-		filteredOperations, err := transformer.extension.filterObservedOperations(rosettaTx.Operations)
+		filteredOperations, err := filterOperationsByAddress(rosettaTx.Operations, transformer.extension.isAddressObserved)
 		if err != nil {
 			return nil, err
 		}
+
+		filteredOperations = filterOutOperationsWithZeroAmount(filteredOperations)
 
 		populateStatusOfOperations(filteredOperations)
 		rosettaTx.Operations = filteredOperations
@@ -167,7 +169,7 @@ func (transformer *transactionsTransformer) rewardTxToRosettaTx(tx *data.FullTra
 }
 
 func (transformer *transactionsTransformer) moveBalanceTxToRosetta(tx *data.FullTransaction) *types.Transaction {
-	hasValue := tx.Value != "0"
+	hasValue := isNonZeroAmount(tx.Value)
 	operations := make([]*types.Operation, 0)
 
 	if hasValue {
@@ -238,7 +240,7 @@ func (transformer *transactionsTransformer) invalidTxToRosettaTx(tx *data.FullTr
 }
 
 func (transformer *transactionsTransformer) mempoolMoveBalanceTxToRosettaTx(tx *data.FullTransaction) *types.Transaction {
-	hasValue := tx.Value != "0"
+	hasValue := isNonZeroAmount(tx.Value)
 	operations := make([]*types.Operation, 0)
 
 	if hasValue {
