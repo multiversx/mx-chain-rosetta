@@ -29,7 +29,7 @@ func newTransactionsTransformer(provider NetworkProvider) *transactionsTransform
 	}
 }
 
-func (transformer *transactionsTransformer) transformTxsFromBlock(block *data.Block) ([]*types.Transaction, error) {
+func (transformer *transactionsTransformer) transformTxsOfBlock(block *data.Block) ([]*types.Transaction, error) {
 	txs := make([]*data.FullTransaction, 0)
 	receipts := make([]*transaction.ApiReceipt, 0)
 

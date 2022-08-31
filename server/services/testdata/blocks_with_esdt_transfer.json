@@ -1,0 +1,117 @@
+[
+    {
+        "comment": "block with ESDT transfer",
+        "nonce": 27684,
+        "round": 28037,
+        "epoch": 23,
+        "shard": 0,
+        "numTxs": 1,
+        "hash": "03a5862243b266adc7cd28df1977261ef822650cc7ce1ca0e39f8160f5db2095",
+        "prevBlockHash": "f8205d5306fb6bd15785f08640374e8ea27cda4f17183ed0340a4819228082f6",
+        "stateRootHash": "b40258e450b9dd1f6c48cc2828f2f356f5a22a33ab747ae9e146055419350095",
+        "accumulatedFees": "130000000000000",
+        "developerFees": "0",
+        "status": "on-chain",
+        "timestamp": 1648719822,
+        "miniBlocks": [
+            {
+                "hash": "dc6d43bdc2dfa348cf5ea2d773f1ed0c996b8a6ff47f6281d7d6d0710378b9cf",
+                "type": "TxBlock",
+                "processingType": "Normal",
+                "constructionState": "Final",
+                "sourceShard": 0,
+                "destinationShard": 0,
+                "transactions": [
+                    {
+                        "type": "normal",
+                        "processingTypeOnSource": "BuiltInFunctionCall",
+                        "processingTypeOnDestination": "BuiltInFunctionCall",
+                        "hash": "83cfddd5a245afc653f0f9e821fd2ef6d78b00adeccb9afb5bd3c16abc258af7",
+                        "nonce": 6,
+                        "round": 0,
+                        "epoch": 23,
+                        "value": "0",
+                        "receiver": "erd1testnlersh4z0wsv8kjx39me4rmnvjkwu8dsaea7ukdvvc9z396qykv7z7",
+                        "sender": "erd1testnlersh4z0wsv8kjx39me4rmnvjkwu8dsaea7ukdvvc9z396qykv7z7",
+                        "gasPrice": 1000000000,
+                        "gasLimit": 500000,
+                        "data": "RVNEVFRyYW5zZmVyQDQyNDE1MjJkNjMzODMwNjQzMjM5QDA1NmJjNzVlMmQ2MzEwMDAwMA==",
+                        "signature": "8832bdcd143fd44a0470825e8b1dbdcfe2bc07f7b4b06d2c778b754f20f9b340594da0fb3d22ab775ccb36927a72dbf79f25a8c19ee61dd0d9c6a416f9b0530e",
+                        "sourceShard": 0,
+                        "destinationShard": 0,
+                        "miniblockType": "TxBlock",
+                        "miniblockHash": "dc6d43bdc2dfa348cf5ea2d773f1ed0c996b8a6ff47f6281d7d6d0710378b9cf",
+                        "logs": {
+                            "address": "erd1testnlersh4z0wsv8kjx39me4rmnvjkwu8dsaea7ukdvvc9z396qykv7z7",
+                            "events": [
+                                {
+                                    "address": "erd1testnlersh4z0wsv8kjx39me4rmnvjkwu8dsaea7ukdvvc9z396qykv7z7",
+                                    "identifier": "ESDTTransfer",
+                                    "topics": [
+                                        "QkFSLWM4MGQyOQ==",
+                                        "",
+                                        "BWvHXi1jEAAA",
+                                        "XmC5/yOF6ie6DD2kaJd5qPc2Ss7h2w7nvuWaxmCiiXQ="
+                                    ],
+                                    "data": null
+                                },
+                                {
+                                    "address": "erd1testnlersh4z0wsv8kjx39me4rmnvjkwu8dsaea7ukdvvc9z396qykv7z7",
+                                    "identifier": "completedTxEvent",
+                                    "topics": [
+                                        "g8/d1aJFr8ZT8PnoIf0u9teLAK3sy5r7W9PBarwlivc="
+                                    ],
+                                    "data": null
+                                }
+                            ]
+                        },
+                        "status": "success",
+                        "tokens": [
+                            "BAR-c80d29"
+                        ],
+                        "esdtValues": [
+                            "100000000000000000000"
+                        ],
+                        "operation": "ESDTTransfer",
+                        "initiallyPaidFee": "131720000000000"
+                    }
+                ],
+                "indexOfFirstTxProcessed": 0,
+                "indexOfLastTxProcessed": 0
+            },
+            {
+                "hash": "ce73c055b983540f324214a299d2d4fbf255d843b7cfc317fdedfce29665a941",
+                "type": "SmartContractResultBlock",
+                "processingType": "Normal",
+                "isFromReceiptsStorage": true,
+                "sourceShard": 0,
+                "destinationShard": 0,
+                "transactions": [
+                    {
+                        "type": "unsigned",
+                        "processingTypeOnSource": "MoveBalance",
+                        "processingTypeOnDestination": "MoveBalance",
+                        "hash": "e6b8809b7834c5ac6efa9adc33fc5f6256e641a9eb1283fea932fd556be69ed0",
+                        "nonce": 7,
+                        "round": 0,
+                        "epoch": 23,
+                        "value": "1720000000000",
+                        "receiver": "erd1testnlersh4z0wsv8kjx39me4rmnvjkwu8dsaea7ukdvvc9z396qykv7z7",
+                        "sender": "erd1testnlersh4z0wsv8kjx39me4rmnvjkwu8dsaea7ukdvvc9z396qykv7z7",
+                        "gasPrice": 1000000000,
+                        "data": "QDZmNmI=",
+                        "previousTransactionHash": "83cfddd5a245afc653f0f9e821fd2ef6d78b00adeccb9afb5bd3c16abc258af7",
+                        "originalTransactionHash": "83cfddd5a245afc653f0f9e821fd2ef6d78b00adeccb9afb5bd3c16abc258af7",
+                        "sourceShard": 0,
+                        "destinationShard": 0,
+                        "miniblockType": "SmartContractResultBlock",
+                        "miniblockHash": "ce73c055b983540f324214a299d2d4fbf255d843b7cfc317fdedfce29665a941",
+                        "status": "success",
+                        "operation": "transfer",
+                        "isRefund": true
+                    }
+                ]
+            }
+        ]
+    }
+]
