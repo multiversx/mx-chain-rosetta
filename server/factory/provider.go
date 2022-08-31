@@ -37,6 +37,7 @@ type ArgsCreateNetworkProvider struct {
 	MinGasPrice                 uint64
 	MinGasLimit                 uint64
 	NativeCurrencySymbol        string
+	CustomCurrenciesSymbols     []string
 	GenesisBlockHash            string
 	GenesisTimestamp            int64
 	NumHistoricalBlocks         uint64
@@ -120,6 +121,7 @@ func CreateNetworkProvider(args ArgsCreateNetworkProvider) (networkProvider, err
 		MinGasPrice:                 args.MinGasPrice,
 		MinGasLimit:                 args.MinGasLimit,
 		NativeCurrencySymbol:        args.NativeCurrencySymbol,
+		CustomCurrenciesSymbols:     args.CustomCurrenciesSymbols,
 		GenesisBlockHash:            args.GenesisBlockHash,
 		GenesisTimestamp:            args.GenesisTimestamp,
 		NumHistoricalBlocks:         args.NumHistoricalBlocks,

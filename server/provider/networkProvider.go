@@ -31,6 +31,7 @@ type ArgsNewNetworkProvider struct {
 	MinGasPrice                 uint64
 	MinGasLimit                 uint64
 	NativeCurrencySymbol        string
+	CustomCurrenciesSymbols     []string
 	GenesisBlockHash            string
 	GenesisTimestamp            int64
 	NumHistoricalBlocks         uint64
@@ -50,6 +51,7 @@ type networkProvider struct {
 	observerUrl                 string
 	observerPubkey              string
 	nativeCurrencySymbol        string
+	customCurrenciesSymbols     []string
 	genesisBlockHash            string
 	genesisTimestamp            int64
 	numHistoricalBlocks         uint64
@@ -82,6 +84,7 @@ func NewNetworkProvider(args ArgsNewNetworkProvider) (*networkProvider, error) {
 		observerUrl:                 args.ObserverUrl,
 		observerPubkey:              args.ObserverPubkey,
 		nativeCurrencySymbol:        args.NativeCurrencySymbol,
+		customCurrenciesSymbols:     args.CustomCurrenciesSymbols,
 		genesisBlockHash:            args.GenesisBlockHash,
 		genesisTimestamp:            args.GenesisTimestamp,
 		numHistoricalBlocks:         args.NumHistoricalBlocks,
@@ -119,11 +122,26 @@ func (provider *networkProvider) GetChainID() string {
 }
 
 // GetNativeCurrency gets the native currency (EGLD, 18 decimals)
-func (provider *networkProvider) GetNativeCurrency() resources.NativeCurrency {
-	return resources.NativeCurrency{
+func (provider *networkProvider) GetNativeCurrency() resources.Currency {
+	return resources.Currency{
 		Symbol:   provider.nativeCurrencySymbol,
 		Decimals: int32(nativeCurrencyNumDecimals),
 	}
+}
+
+// GetCustomCurrencies gets the enabled custom currencies (ESDTs)
+func (provider *networkProvider) GetCustomCurrencies() []resources.Currency {
+	currencies := make([]resources.Currency, 0, len(provider.customCurrenciesSymbols))
+
+	for _, symbol := range provider.customCurrenciesSymbols {
+		currencies = append(currencies, resources.Currency{
+			Symbol: symbol,
+			// TODO: Fetch this from the metachain observer
+			Decimals: 0,
+		})
+	}
+
+	return currencies
 }
 
 // GetObserverPubkey gets the pubkey of the connected observer

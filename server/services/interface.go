@@ -12,7 +12,8 @@ type NetworkProvider interface {
 	IsOffline() bool
 	GetBlockchainName() string
 	GetChainID() string
-	GetNativeCurrency() resources.NativeCurrency
+	GetNativeCurrency() resources.Currency
+	GetCustomCurrencies() []resources.Currency
 	GetObserverPubkey() string
 	GetNetworkConfig() *resources.NetworkConfig
 	GetGenesisBlockSummary() *resources.BlockSummary

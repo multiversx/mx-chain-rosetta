@@ -7,6 +7,7 @@ import (
 
 	"github.com/ElrondNetwork/elrond-proxy-go/common"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
+	"github.com/ElrondNetwork/rosetta/server/resources"
 	"github.com/ElrondNetwork/rosetta/testscommon"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -25,6 +26,7 @@ func TestNewNetworkProvider(t *testing.T) {
 		MinGasPrice:                 1000000001,
 		MinGasLimit:                 50001,
 		NativeCurrencySymbol:        "XeGLD",
+		CustomCurrenciesSymbols:     []string{"FOO-abcdef", "BAR-abcdef"},
 		GenesisBlockHash:            "aaaa",
 		GenesisTimestamp:            123456789,
 		ObserverFacade:              testscommon.NewObserverFacadeMock(),
@@ -49,6 +51,7 @@ func TestNewNetworkProvider(t *testing.T) {
 	assert.Equal(t, uint64(1000000001), provider.GetNetworkConfig().MinGasPrice)
 	assert.Equal(t, uint64(50001), provider.GetNetworkConfig().MinGasLimit)
 	assert.Equal(t, "XeGLD", provider.GetNativeCurrency().Symbol)
+	assert.Equal(t, []resources.Currency{{Symbol: "FOO-abcdef"}, {Symbol: "BAR-abcdef"}}, provider.GetCustomCurrencies())
 	assert.Equal(t, "aaaa", provider.GetGenesisBlockSummary().Hash)
 	assert.Equal(t, int64(123456789), provider.GetGenesisTimestamp())
 }
