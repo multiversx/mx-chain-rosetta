@@ -17,6 +17,6 @@ var (
 )
 
 var (
-	transactionEventSignalError       = "signalError"
-	transactionEventTransferValueOnly = "transferValueOnly"
+	transactionEventSignalError  = "signalError"
+	transactionEventESDTTransfer = "ESDTTransfer"
 )

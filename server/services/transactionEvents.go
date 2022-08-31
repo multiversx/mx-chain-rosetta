@@ -4,12 +4,13 @@ import (
 	"fmt"
 )
 
-type eventTransferValueOnly struct {
-	sender   string
-	receiver string
-	value    string
+type eventTransferESDT struct {
+	sender          string
+	tokenIdentifier string
+	receiver        string
+	value           string
 }
 
-func (event *eventTransferValueOnly) String() string {
-	return fmt.Sprintf("%s -> %s (%s)", event.sender, event.receiver, event.value)
+func (event *eventTransferESDT) String() string {
+	return fmt.Sprintf("%s - (%s) - > %s (%s)", event.sender, event.tokenIdentifier, event.receiver, event.value)
 }

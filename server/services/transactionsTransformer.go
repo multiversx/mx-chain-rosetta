@@ -1,7 +1,6 @@
 package services
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
@@ -265,42 +264,28 @@ func (transformer *transactionsTransformer) mempoolMoveBalanceTxToRosettaTx(tx *
 }
 
 func (transformer *transactionsTransformer) addOperationsGivenTransactionEvents(tx *data.FullTransaction, rosettaTx *types.Transaction) error {
-	// TBD: uncomment when applicable ("transferValueOnly" events duplicate the information of SCRs in most contexts)
-	// err := transformer.addOperationsGivenEventTransferValueOnly(tx, rosettaTx)
-	// if err != nil {
-	// 	return err
-	// }
-
-	return nil
-}
-
-func (transformer *transactionsTransformer) addOperationsGivenEventTransferValueOnly(tx *data.FullTransaction, rosettaTx *types.Transaction) error {
-	event, err := transformer.eventsController.extractEventTransferValueOnly(tx)
+	eventsESDTTransfer, err := transformer.eventsController.extractEventsESDTTransfers(tx)
 	if err != nil {
-		if errors.Is(err, errEventNotFound) {
-			return nil
-		}
 		return err
 	}
 
-	log.Debug("addOperationsGivenEventTransferValueOnly(), event found", "tx", tx.Hash, "event", event.String())
+	for _, event := range eventsESDTTransfer {
+		// TODO: Check if identifier is enabled
+		operations := []*types.Operation{
+			{
+				Type:    opESDTTransfer,
+				Account: addressToAccountIdentifier(event.sender),
+				Amount:  transformer.extension.valueToCustomAmount("-"+event.value, event.tokenIdentifier),
+			},
+			{
+				Type:    opESDTTransfer,
+				Account: addressToAccountIdentifier(event.receiver),
+				Amount:  transformer.extension.valueToCustomAmount(event.value, event.tokenIdentifier),
+			},
+		}
 
-	operations := transformer.eventTransferValueOnlyToOperations(event)
-	rosettaTx.Operations = append(rosettaTx.Operations, operations...)
-	return nil
-}
-
-func (transformer *transactionsTransformer) eventTransferValueOnlyToOperations(event *eventTransferValueOnly) []*types.Operation {
-	return []*types.Operation{
-		{
-			Type:    opTransfer,
-			Account: addressToAccountIdentifier(event.sender),
-			Amount:  transformer.extension.valueToNativeAmount("-" + event.value),
-		},
-		{
-			Type:    opTransfer,
-			Account: addressToAccountIdentifier(event.receiver),
-			Amount:  transformer.extension.valueToNativeAmount(event.value),
-		},
+		rosettaTx.Operations = append(rosettaTx.Operations, operations...)
 	}
+
+	return nil
 }

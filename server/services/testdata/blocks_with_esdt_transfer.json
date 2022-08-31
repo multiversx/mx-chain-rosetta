@@ -75,9 +75,7 @@
                         "operation": "ESDTTransfer",
                         "initiallyPaidFee": "131720000000000"
                     }
-                ],
-                "indexOfFirstTxProcessed": 0,
-                "indexOfLastTxProcessed": 0
+                ]
             },
             {
                 "hash": "ce73c055b983540f324214a299d2d4fbf255d843b7cfc317fdedfce29665a941",

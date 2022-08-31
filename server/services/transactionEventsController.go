@@ -19,44 +19,20 @@ func newTransactionEventsController(provider NetworkProvider) *transactionEvents
 	}
 }
 
-func (controller *transactionEventsController) findEventByIdentifier(tx *data.FullTransaction, identifier string) (*transaction.Events, error) {
+func (controller *transactionEventsController) findManyEventsByIdentifier(tx *data.FullTransaction, identifier string) []*transaction.Events {
+	events := make([]*transaction.Events, 0)
+
 	if !controller.hasEvents(tx) {
-		return nil, errEventNotFound
+		return events
 	}
 
 	for _, event := range tx.Logs.Events {
 		if event.Identifier == identifier {
-			return event, nil
+			events = append(events, event)
 		}
 	}
 
-	return nil, errEventNotFound
-}
-
-func (controller *transactionEventsController) extractEventTransferValueOnly(tx *data.FullTransaction) (*eventTransferValueOnly, error) {
-	event, err := controller.findEventByIdentifier(tx, transactionEventTransferValueOnly)
-	if err != nil {
-		return nil, err
-	}
-
-	numTopics := len(event.Topics)
-	if numTopics != 3 {
-		return nil, fmt.Errorf("%w: bad number of topics for 'transferValueOnly' = %d", errCannotRecognizeEvent, numTopics)
-	}
-
-	senderPubkey := event.Topics[0]
-	receiverPubkey := event.Topics[1]
-	valueBytes := event.Topics[2]
-
-	sender := controller.provider.ConvertPubKeyToAddress(senderPubkey)
-	receiver := controller.provider.ConvertPubKeyToAddress(receiverPubkey)
-	value := big.NewInt(0).SetBytes(valueBytes)
-
-	return &eventTransferValueOnly{
-		sender:   sender,
-		receiver: receiver,
-		value:    value.String(),
-	}, nil
+	return events
 }
 
 func (controller *transactionEventsController) hasSignalErrorOfSendingValueToNonPayableContract(tx *data.FullTransaction) bool {
@@ -75,6 +51,34 @@ func (controller *transactionEventsController) hasSignalErrorOfSendingValueToNon
 	}
 
 	return false
+}
+
+func (controller *transactionEventsController) extractEventsESDTTransfers(tx *data.FullTransaction) ([]*eventTransferESDT, error) {
+	rawEvents := controller.findManyEventsByIdentifier(tx, transactionEventESDTTransfer)
+	typedEvents := make([]*eventTransferESDT, 0, len(rawEvents))
+
+	for _, event := range rawEvents {
+		numTopics := len(event.Topics)
+		if numTopics != 4 {
+			return nil, fmt.Errorf("%w: bad number of topics for 'ESDTTransfer' = %d", errCannotRecognizeEvent, numTopics)
+		}
+
+		tokenIdentifier := event.Topics[0]
+		valueBytes := event.Topics[2]
+		receiverPubkey := event.Topics[3]
+
+		receiver := controller.provider.ConvertPubKeyToAddress(receiverPubkey)
+		value := big.NewInt(0).SetBytes(valueBytes)
+
+		typedEvents = append(typedEvents, &eventTransferESDT{
+			sender:          event.Address,
+			tokenIdentifier: string(tokenIdentifier),
+			receiver:        receiver,
+			value:           value.String(),
+		})
+	}
+
+	return typedEvents, nil
 }
 
 func (controller *transactionEventsController) hasEvents(tx *data.FullTransaction) bool {

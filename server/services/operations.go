@@ -10,6 +10,7 @@ const (
 	opScResult               = "SmartContractResult"
 	opFeeOfInvalidTx         = "FeeOfInvalidTransaction"
 	opFeeRefund              = "FeeRefund"
+	opESDTTransfer           = "ESDTTransfer"
 )
 
 var (

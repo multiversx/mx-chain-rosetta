@@ -69,15 +69,42 @@ func TestTransactionsTransformer_UnsignedTxToRosettaTx(t *testing.T) {
 
 func TestTransactionsTransformer_TransformTxsOfBlockWithESDTIssue(t *testing.T) {
 	networkProvider := testscommon.NewNetworkProviderMock()
+	extension := newNetworkProviderExtension(networkProvider)
 	transformer := newTransactionsTransformer(networkProvider)
 
 	blocks, err := readTestBlocks("testdata/blocks_with_esdt_issue.json")
 	require.Nil(t, err)
 
+	// Block 27497 (issue ESDT)
 	txs, err := transformer.transformTxsOfBlock(blocks[0])
+	require.Nil(t, err)
 	require.Len(t, txs, 1)
 
+	expectedTx := &types.Transaction{
+		TransactionIdentifier: hashToTransactionIdentifier("851d90b7b0770c648de5945ca76d2ded62a540856467911db5e550ce6a959807"),
+		Operations: []*types.Operation{
+			{
+				Type:                opTransfer,
+				OperationIdentifier: indexToOperationIdentifier(0),
+				Account:             addressToAccountIdentifier("erd1testnlersh4z0wsv8kjx39me4rmnvjkwu8dsaea7ukdvvc9z396qykv7z7"),
+				Amount:              extension.valueToNativeAmount("-50000000000000000"),
+				Status:              &opStatusSuccess,
+			},
+			{
+				Type:                opFee,
+				OperationIdentifier: indexToOperationIdentifier(1),
+				Account:             addressToAccountIdentifier("erd1testnlersh4z0wsv8kjx39me4rmnvjkwu8dsaea7ukdvvc9z396qykv7z7"),
+				Amount:              extension.valueToNativeAmount("-1220275000000000"),
+				Status:              &opStatusSuccess,
+			},
+		},
+	}
+
+	require.Equal(t, expectedTx, txs[0])
+
+	// Block 27501 (results of issue ESDT)
 	txs, err = transformer.transformTxsOfBlock(blocks[1])
+	require.Nil(t, err)
 	require.Len(t, txs, 2)
 }
 
