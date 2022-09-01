@@ -43,6 +43,7 @@ type ArgsNewNetworkProvider struct {
 	PubKeyConverter       core.PubkeyConverter
 }
 
+// In the future, we might rename this to "networkFacade" (which, in turn, depends on networkProvider, currencyProvider, blocksProvider and so on).
 type networkProvider struct {
 	isOffline                   bool
 	observedActualShard         uint32
@@ -50,13 +51,12 @@ type networkProvider struct {
 	observedProjectedShardIsSet bool
 	observerUrl                 string
 	observerPubkey              string
-	nativeCurrencySymbol        string
-	customCurrenciesSymbols     []string
 	genesisBlockHash            string
 	genesisTimestamp            int64
 	numHistoricalBlocks         uint64
 
-	observerFacade observerFacade
+	currenciesProvider *currenciesProvider
+	observerFacade     observerFacade
 
 	hasher                hashing.Hasher
 	marshalizerForHashing marshal.Marshalizer
@@ -67,6 +67,7 @@ type networkProvider struct {
 	blocksCache blocksCache
 }
 
+// NewNetworkProvider (future-to-be renamed to NewNetworkFacade) creates a new networkProvider
 func NewNetworkProvider(args ArgsNewNetworkProvider) (*networkProvider, error) {
 	// Since for each block N we also have to fetch block N-1 and block N+1 (see "simplifyBlockWithScheduledTransactions"),
 	// it makes sense to cache the block response (using a LRU cache).
@@ -74,6 +75,8 @@ func NewNetworkProvider(args ArgsNewNetworkProvider) (*networkProvider, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	currenciesProvider := newCurrenciesProvider(args.NativeCurrencySymbol, args.CustomCurrenciesSymbols)
 
 	return &networkProvider{
 		isOffline: args.IsOffline,
@@ -83,13 +86,12 @@ func NewNetworkProvider(args ArgsNewNetworkProvider) (*networkProvider, error) {
 		observedProjectedShardIsSet: args.ObservedProjectedShardIsSet,
 		observerUrl:                 args.ObserverUrl,
 		observerPubkey:              args.ObserverPubkey,
-		nativeCurrencySymbol:        args.NativeCurrencySymbol,
-		customCurrenciesSymbols:     args.CustomCurrenciesSymbols,
 		genesisBlockHash:            args.GenesisBlockHash,
 		genesisTimestamp:            args.GenesisTimestamp,
 		numHistoricalBlocks:         args.NumHistoricalBlocks,
 
-		observerFacade: args.ObserverFacade,
+		currenciesProvider: currenciesProvider,
+		observerFacade:     args.ObserverFacade,
 
 		hasher:                args.Hasher,
 		marshalizerForHashing: args.MarshalizerForHashing,
@@ -123,25 +125,22 @@ func (provider *networkProvider) GetChainID() string {
 
 // GetNativeCurrency gets the native currency (EGLD, 18 decimals)
 func (provider *networkProvider) GetNativeCurrency() resources.Currency {
-	return resources.Currency{
-		Symbol:   provider.nativeCurrencySymbol,
-		Decimals: int32(nativeCurrencyNumDecimals),
-	}
+	return provider.currenciesProvider.getNativeCurrency()
 }
 
 // GetCustomCurrencies gets the enabled custom currencies (ESDTs)
 func (provider *networkProvider) GetCustomCurrencies() []resources.Currency {
-	currencies := make([]resources.Currency, 0, len(provider.customCurrenciesSymbols))
+	return provider.currenciesProvider.getCustomCurrencies()
+}
 
-	for _, symbol := range provider.customCurrenciesSymbols {
-		currencies = append(currencies, resources.Currency{
-			Symbol: symbol,
-			// TODO: Fetch this from the metachain observer
-			Decimals: 0,
-		})
-	}
+// GetCustomCurrencyBySymbol gets a custom currency (ESDT) by symbol (identifier)
+func (provider *networkProvider) GetCustomCurrencyBySymbol(symbol string) (resources.Currency, bool) {
+	return provider.currenciesProvider.getCustomCurrencyBySymbol(symbol)
+}
 
-	return currencies
+// HasCustomCurrency checks whether a custom currency (ESDT) is enabled (supported)
+func (provider *networkProvider) HasCustomCurrency(symbol string) bool {
+	return provider.currenciesProvider.hasCustomCurrency(symbol)
 }
 
 // GetObserverPubkey gets the pubkey of the connected observer
@@ -435,6 +434,7 @@ func (provider *networkProvider) LogDescription() {
 		"observedActualShard", provider.observedActualShard,
 		"observedProjectedShard", provider.observedProjectedShard,
 		"observedProjectedShardIsSet", provider.observedProjectedShardIsSet,
-		"nativeCurrency", provider.nativeCurrencySymbol,
+		"nativeCurrency", provider.currenciesProvider.getNativeCurrency().Symbol,
+		"customCurrencies", provider.currenciesProvider.getCustomCurrenciesSymbols(),
 	)
 }

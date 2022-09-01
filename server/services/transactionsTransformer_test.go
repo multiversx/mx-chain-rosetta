@@ -80,7 +80,7 @@ func TestTransactionsTransformer_TransformTxsOfBlockWithESDTIssue(t *testing.T) 
 	require.Nil(t, err)
 	require.Len(t, txs, 1)
 
-	expectedTx := &types.Transaction{
+	expectedIssueTx := &types.Transaction{
 		TransactionIdentifier: hashToTransactionIdentifier("851d90b7b0770c648de5945ca76d2ded62a540856467911db5e550ce6a959807"),
 		Operations: []*types.Operation{
 			{
@@ -100,12 +100,41 @@ func TestTransactionsTransformer_TransformTxsOfBlockWithESDTIssue(t *testing.T) 
 		},
 	}
 
-	require.Equal(t, expectedTx, txs[0])
+	require.Equal(t, expectedIssueTx, txs[0])
 
 	// Block 27501 (results of issue ESDT)
 	txs, err = transformer.transformTxsOfBlock(blocks[1])
 	require.Nil(t, err)
 	require.Len(t, txs, 2)
+
+	expectedRefundSCR := &types.Transaction{
+		TransactionIdentifier: hashToTransactionIdentifier("8fa82004d9eb82e34b39bbe22521a7b85a190950cd6876d2e97950de906622d7"),
+		Operations: []*types.Operation{
+			{
+				Type:                opScResult,
+				OperationIdentifier: indexToOperationIdentifier(0),
+				Account:             addressToAccountIdentifier("erd1testnlersh4z0wsv8kjx39me4rmnvjkwu8dsaea7ukdvvc9z396qykv7z7"),
+				Amount:              extension.valueToNativeAmount("497775000000000"),
+				Status:              &opStatusSuccess,
+			},
+		},
+	}
+
+	expectedTransferSCR := &types.Transaction{
+		TransactionIdentifier: hashToTransactionIdentifier("e462e1b73b720015315d0f508d165817ba1989cb1d2c63903bd01c3b8450afb8"),
+		Operations: []*types.Operation{
+			{
+				Type:                opESDTTransfer,
+				OperationIdentifier: indexToOperationIdentifier(0),
+				Account:             addressToAccountIdentifier("erd1testnlersh4z0wsv8kjx39me4rmnvjkwu8dsaea7ukdvvc9z396qykv7z7"),
+				Amount:              extension.valueToCustomAmount("1000000000000", "FOO-6d28db"),
+				Status:              &opStatusSuccess,
+			},
+		},
+	}
+
+	require.Equal(t, expectedRefundSCR, txs[0])
+	require.Equal(t, expectedTransferSCR, txs[1])
 }
 
 func readTestBlocks(filePath string) ([]*data.Block, error) {
