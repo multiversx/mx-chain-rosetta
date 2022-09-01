@@ -62,6 +62,7 @@ func startRosetta(ctx *cli.Context) error {
 		NativeCurrencySymbol:        cliFlags.nativeCurrencySymbol,
 		CustomCurrenciesSymbols:     cliFlags.customCurrenciesSymbols,
 		GenesisBlockHash:            cliFlags.genesisBlock,
+		NumHistoricalBlocks:         cliFlags.numHistoricalBlocks,
 	})
 	if err != nil {
 		return err
