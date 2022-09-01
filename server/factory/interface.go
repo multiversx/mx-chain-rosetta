@@ -14,6 +14,8 @@ type networkProvider interface {
 	GetChainID() string
 	GetNativeCurrency() resources.Currency
 	GetCustomCurrencies() []resources.Currency
+	GetCustomCurrencyBySymbol(symbol string) (resources.Currency, bool)
+	HasCustomCurrency(symbol string) bool
 	GetObserverPubkey() string
 	GetNetworkConfig() *resources.NetworkConfig
 	GetGenesisBlockSummary() *resources.BlockSummary

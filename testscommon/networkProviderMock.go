@@ -130,6 +130,23 @@ func (mock *networkProviderMock) GetCustomCurrencies() []resources.Currency {
 	return mock.MockCustomCurrencies
 }
 
+// GetCustomCurrencyBySymbol -
+func (mock *networkProviderMock) GetCustomCurrencyBySymbol(symbol string) (resources.Currency, bool) {
+	for _, currency := range mock.MockCustomCurrencies {
+		if currency.Symbol == symbol {
+			return currency, true
+		}
+	}
+
+	return resources.Currency{}, false
+}
+
+// HasCustomCurrency -
+func (mock *networkProviderMock) HasCustomCurrency(symbol string) bool {
+	_, has := mock.GetCustomCurrencyBySymbol(symbol)
+	return has
+}
+
 // GetObserverPubkey -
 func (mock *networkProviderMock) GetObserverPubkey() string {
 	return mock.MockObserverPubkey

@@ -270,7 +270,11 @@ func (transformer *transactionsTransformer) addOperationsGivenTransactionEvents(
 	}
 
 	for _, event := range eventsESDTTransfer {
-		// TODO: Check if identifier is enabled
+		if !transformer.provider.HasCustomCurrency(event.tokenIdentifier) {
+			// We are only emitting balance-changing operations for supported currencies.
+			continue
+		}
+
 		operations := []*types.Operation{
 			{
 				Type:    opESDTTransfer,

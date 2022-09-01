@@ -7,6 +7,7 @@ import (
 
 	"github.com/ElrondNetwork/elrond-go-core/core"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
+	"github.com/ElrondNetwork/rosetta/server/resources"
 	"github.com/ElrondNetwork/rosetta/testscommon"
 	"github.com/coinbase/rosetta-sdk-go/types"
 	"github.com/stretchr/testify/require"
@@ -69,6 +70,8 @@ func TestTransactionsTransformer_UnsignedTxToRosettaTx(t *testing.T) {
 
 func TestTransactionsTransformer_TransformTxsOfBlockWithESDTIssue(t *testing.T) {
 	networkProvider := testscommon.NewNetworkProviderMock()
+	networkProvider.MockCustomCurrencies = []resources.Currency{{Symbol: "FOO-6d28db"}}
+
 	extension := newNetworkProviderExtension(networkProvider)
 	transformer := newTransactionsTransformer(networkProvider)
 
