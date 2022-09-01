@@ -17,6 +17,8 @@ var (
 )
 
 var (
-	transactionEventSignalError  = "signalError"
-	transactionEventESDTTransfer = "ESDTTransfer"
+	transactionEventSignalError          = "signalError"
+	transactionEventESDTTransfer         = "ESDTTransfer"
+	transactionEventESDTNFTTransfer      = "ESDTNFTTransfer"
+	transactionEventMultiESDTNFTTransfer = "MultiESDTNFTTransfer"
 )

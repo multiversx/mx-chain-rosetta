@@ -264,13 +264,13 @@ func (transformer *transactionsTransformer) mempoolMoveBalanceTxToRosettaTx(tx *
 }
 
 func (transformer *transactionsTransformer) addOperationsGivenTransactionEvents(tx *data.FullTransaction, rosettaTx *types.Transaction) error {
-	eventsESDTTransfer, err := transformer.eventsController.extractEventsESDTTransfers(tx)
+	eventsESDTTransfer, err := transformer.eventsController.extractEventsESDTOrESDTNFTTransfers(tx)
 	if err != nil {
 		return err
 	}
 
 	for _, event := range eventsESDTTransfer {
-		if !transformer.provider.HasCustomCurrency(event.tokenIdentifier) {
+		if !transformer.provider.HasCustomCurrency(event.identifier) {
 			// We are only emitting balance-changing operations for supported currencies.
 			continue
 		}
@@ -279,12 +279,12 @@ func (transformer *transactionsTransformer) addOperationsGivenTransactionEvents(
 			{
 				Type:    opESDTTransfer,
 				Account: addressToAccountIdentifier(event.sender),
-				Amount:  transformer.extension.valueToCustomAmount("-"+event.value, event.tokenIdentifier),
+				Amount:  transformer.extension.valueToCustomAmount("-"+event.value, event.getComposedIdentifier()),
 			},
 			{
 				Type:    opESDTTransfer,
 				Account: addressToAccountIdentifier(event.receiver),
-				Amount:  transformer.extension.valueToCustomAmount(event.value, event.tokenIdentifier),
+				Amount:  transformer.extension.valueToCustomAmount(event.value, event.getComposedIdentifier()),
 			},
 		}
 
