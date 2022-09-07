@@ -53,6 +53,7 @@ func (extractor *transactionsFeaturesDetector) isInvalidTransactionOfTypeMoveBal
 		return false
 	}
 
+	// TODO: Analyze whether we can simplify the conditions below, or possibly discard them completely / replace them with simpler ones.
 	withSendingValueToNonPayableContract := extractor.eventsController.hasSignalErrorOfSendingValueToNonPayableContract(tx)
 	withMetaTransactionIsInvalid := extractor.eventsController.hasSignalErrorOfMetaTransactionIsInvalid(tx)
 	return withSendingValueToNonPayableContract || withMetaTransactionIsInvalid

@@ -78,8 +78,24 @@ func (controller *transactionEventsController) hasSignalErrorOfSendingValueToNon
 }
 
 func (controller *transactionEventsController) hasSignalErrorOfMetaTransactionIsInvalid(tx *data.FullTransaction) bool {
-	_, err := controller.findEventByIdentifier(tx, transactionEventInvalidMetaTransaction)
-	return err == nil
+	if !controller.hasEvents(tx) {
+		return false
+	}
+
+	for _, event := range tx.Logs.Events {
+		isSignalError := event.Identifier == transactionEventSignalError
+		if !isSignalError {
+			continue
+		}
+
+		for _, topic := range event.Topics {
+			if string(topic) == transactionEventTopicInvalidMetaTransaction {
+				return true
+			}
+		}
+	}
+
+	return false
 }
 
 func (controller *transactionEventsController) hasEvents(tx *data.FullTransaction) bool {
