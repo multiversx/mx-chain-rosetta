@@ -88,10 +88,9 @@ func (controller *transactionEventsController) hasSignalErrorOfMetaTransactionIs
 			continue
 		}
 
-		for _, topic := range event.Topics {
-			if string(topic) == transactionEventTopicInvalidMetaTransaction {
-				return true
-			}
+		hasTopicInvalidMetaTransaction := eventHasTopic(event, transactionEventTopicInvalidMetaTransaction)
+		if hasTopicInvalidMetaTransaction {
+			return true
 		}
 	}
 
@@ -100,4 +99,14 @@ func (controller *transactionEventsController) hasSignalErrorOfMetaTransactionIs
 
 func (controller *transactionEventsController) hasEvents(tx *data.FullTransaction) bool {
 	return tx.Logs != nil && tx.Logs.Events != nil && len(tx.Logs.Events) > 0
+}
+
+func eventHasTopic(event *transaction.Events, topicToFind string) bool {
+	for _, topic := range event.Topics {
+		if string(topic) == topicToFind {
+			return true
+		}
+	}
+
+	return false
 }
