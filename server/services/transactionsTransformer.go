@@ -217,7 +217,7 @@ func (transformer *transactionsTransformer) refundReceiptToRosettaTx(receipt *tr
 func (transformer *transactionsTransformer) invalidTxToRosettaTx(tx *data.FullTransaction) *types.Transaction {
 	fee := tx.InitiallyPaidFee
 
-	if transformer.featuresDetector.isInvalidTransactionOfSendingValueToNonPayableContractOfTypeMoveBalance(tx) {
+	if transformer.featuresDetector.isInvalidTransactionOfTypeMoveBalanceThatOnlyConsumesDataMovementGas(tx) {
 		// For this type of transactions, the fee only has the "data movement" component
 		// (we ignore tx.InitiallyPaidFee, which is not correctly provided in this case).
 		// Though, note that for built-in function calls (e.g. sending tokens using a transfer function) etc.,

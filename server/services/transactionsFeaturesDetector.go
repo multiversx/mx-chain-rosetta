@@ -41,9 +41,11 @@ func (extractor *transactionsFeaturesDetector) doesContractResultHoldRewardsOfCl
 	return isResultOfClaimDeveloperRewards && hasNoData && hasZeroNonce
 }
 
-// isInvalidTransactionOfSendingValueToNonPayableContractOfTypeMoveBalance detects intra-shard transactions
-// bearing the error "sending value to non-payable contract", which are included in invalid mini-block,
-func (extractor *transactionsFeaturesDetector) isInvalidTransactionOfSendingValueToNonPayableContractOfTypeMoveBalance(tx *data.FullTransaction) bool {
+// isInvalidTransactionOfTypeMoveBalanceThatOnlyConsumesDataMovementGas detects (intra-shard) invalid transactions
+// that only consume the "data movement" component of the gas:
+// - "sending value to non-payable contract"
+// - "meta transaction is invalid"
+func (extractor *transactionsFeaturesDetector) isInvalidTransactionOfTypeMoveBalanceThatOnlyConsumesDataMovementGas(tx *data.FullTransaction) bool {
 	isInvalid := tx.Type == string(transaction.TxTypeInvalid)
 	isMoveBalance := tx.ProcessingTypeOnSource == transactionProcessingTypeMoveBalance && tx.ProcessingTypeOnDestination == transactionProcessingTypeMoveBalance
 
@@ -51,5 +53,8 @@ func (extractor *transactionsFeaturesDetector) isInvalidTransactionOfSendingValu
 		return false
 	}
 
-	return extractor.eventsController.hasSignalErrorOfSendingValueToNonPayableContract(tx)
+	// TODO: Analyze whether we can simplify the conditions below, or possibly discard them completely / replace them with simpler ones.
+	withSendingValueToNonPayableContract := extractor.eventsController.hasSignalErrorOfSendingValueToNonPayableContract(tx)
+	withMetaTransactionIsInvalid := extractor.eventsController.hasSignalErrorOfMetaTransactionIsInvalid(tx)
+	return withSendingValueToNonPayableContract || withMetaTransactionIsInvalid
 }

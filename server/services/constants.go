@@ -17,8 +17,9 @@ var (
 )
 
 var (
-	transactionEventSignalError          = "signalError"
-	transactionEventESDTTransfer         = "ESDTTransfer"
-	transactionEventESDTNFTTransfer      = "ESDTNFTTransfer"
-	transactionEventMultiESDTNFTTransfer = "MultiESDTNFTTransfer"
+	transactionEventSignalError                 = "signalError"
+	transactionEventESDTTransfer                = "ESDTTransfer"
+	transactionEventESDTNFTTransfer             = "ESDTNFTTransfer"
+	transactionEventMultiESDTNFTTransfer        = "MultiESDTNFTTransfer"
+	transactionEventTopicInvalidMetaTransaction = "meta transaction is invalid"
 )

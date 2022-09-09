@@ -94,3 +94,33 @@ func (controller *transactionEventsController) findManyEventsByIdentifier(tx *da
 
 	return events
 }
+
+func (controller *transactionEventsController) hasSignalErrorOfMetaTransactionIsInvalid(tx *data.FullTransaction) bool {
+	if !controller.hasEvents(tx) {
+		return false
+	}
+
+	for _, event := range tx.Logs.Events {
+		isSignalError := event.Identifier == transactionEventSignalError
+		if !isSignalError {
+			continue
+		}
+
+		hasTopicInvalidMetaTransaction := eventHasTopic(event, transactionEventTopicInvalidMetaTransaction)
+		if hasTopicInvalidMetaTransaction {
+			return true
+		}
+	}
+
+	return false
+}
+
+func eventHasTopic(event *transaction.Events, topicToFind string) bool {
+	for _, topic := range event.Topics {
+		if string(topic) == topicToFind {
+			return true
+		}
+	}
+
+	return false
+}
