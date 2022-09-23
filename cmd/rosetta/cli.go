@@ -75,9 +75,9 @@ VERSION:
 	}
 
 	cliFlagChainID = cli.StringFlag{
-		Name:  "chain-id",
-		Usage: "Specifies the Chain ID.",
-		Value: "1",
+		Name:     "chain-id",
+		Usage:    "Specifies the Chain ID.",
+		Required: true,
 	}
 
 	cliFlagNumShards = cli.UintFlag{

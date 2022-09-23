@@ -63,7 +63,7 @@ func NewNetworkProviderMock() *networkProviderMock {
 		MockGenesisBlockHash:            emptyHash,
 		MockGenesisTimestamp:            genesisTimestamp,
 		MockNetworkConfig: &resources.NetworkConfig{
-			ChainID:        "test",
+			ChainID:        "devnet",
 			GasPerDataByte: 1500,
 			MinGasPrice:    1000000000,
 			MinGasLimit:    50000,

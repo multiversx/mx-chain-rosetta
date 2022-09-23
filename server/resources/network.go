@@ -1,11 +1,11 @@
 package resources
 
-// NetworkConfig is an API resource
+// NetworkConfig is a resource
 type NetworkConfig struct {
-	ChainID        string `json:"erd_chain_id"`
-	GasPerDataByte uint64 `json:"erd_gas_per_data_byte"`
-	MinGasPrice    uint64 `json:"erd_min_gas_price"`
-	MinGasLimit    uint64 `json:"erd_min_gas_limit"`
+	ChainID        string
+	GasPerDataByte uint64
+	MinGasPrice    uint64
+	MinGasLimit    uint64
 }
 
 // NodeStatusApiResponse is an API resource

@@ -113,7 +113,7 @@ func (provider *networkProvider) GetBlockchainName() string {
 	return resources.BlockchainName
 }
 
-// GetChainID gets the chain identifier ("1" for mainnet, "D" for devnet etc.)
+// GetChainID gets the chain identifier
 func (provider *networkProvider) GetChainID() string {
 	return provider.networkConfig.ChainID
 }
