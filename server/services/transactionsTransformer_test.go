@@ -3,6 +3,7 @@ package services
 import (
 	"testing"
 
+	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/ElrondNetwork/rosetta/testscommon"
 	"github.com/coinbase/rosetta-sdk-go/types"
@@ -64,4 +65,45 @@ func TestTransactionsTransformer_UnsignedTxToRosettaTx(t *testing.T) {
 	rosettaMoveBalanceTx := transformer.unsignedTxToRosettaTx(moveBalanceTx, txsInBlock)
 	require.Equal(t, expectedRefundTx, rosettaFefundTx)
 	require.Equal(t, expectedMoveBalanceTx, rosettaMoveBalanceTx)
+}
+
+func TestTransactionsTransformer_InvalidTxToRosettaTx(t *testing.T) {
+	networkProvider := testscommon.NewNetworkProviderMock()
+	extension := newNetworkProviderExtension(networkProvider)
+	transformer := newTransactionsTransformer(networkProvider)
+
+	tx := &data.FullTransaction{
+		Hash:             "aaaa",
+		Sender:           testscommon.TestAddressAlice,
+		Receiver:         testscommon.TestAddressBob,
+		Value:            "1234",
+		Type:             string(transaction.TxTypeInvalid),
+		InitiallyPaidFee: "50000000000000",
+	}
+
+	expectedTx := &types.Transaction{
+		TransactionIdentifier: hashToTransactionIdentifier("aaaa"),
+		Operations: []*types.Operation{
+			{
+				Status:  &opStatusFailure,
+				Type:    opTransfer,
+				Account: addressToAccountIdentifier(testscommon.TestAddressAlice),
+				Amount:  extension.valueToNativeAmount("-1234"),
+			},
+			{
+				Status:  &opStatusFailure,
+				Type:    opTransfer,
+				Account: addressToAccountIdentifier(testscommon.TestAddressBob),
+				Amount:  extension.valueToNativeAmount("1234"),
+			},
+			{
+				Type:    opFeeOfInvalidTx,
+				Account: addressToAccountIdentifier(testscommon.TestAddressAlice),
+				Amount:  extension.valueToNativeAmount("-50000000000000"),
+			},
+		},
+	}
+
+	rosettaTx := transformer.invalidTxToRosettaTx(tx)
+	require.Equal(t, expectedTx, rosettaTx)
 }

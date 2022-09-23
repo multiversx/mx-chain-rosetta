@@ -150,7 +150,7 @@ func (service *blockService) createGenesisOperations(balances []*resources.Genes
 		return nil, err
 	}
 
-	populateStatusOfOperations(operations)
+	applyDefaultStatusOnOperations(operations)
 
 	return operations, nil
 }

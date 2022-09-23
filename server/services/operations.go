@@ -25,11 +25,16 @@ var (
 	}
 
 	opStatusSuccess = "Success"
+	opStatusFailure = "Failure"
 
 	supportedOperationStatuses = []*types.OperationStatus{
 		{
 			Status:     opStatusSuccess,
 			Successful: true,
+		},
+		{
+			Status:     opStatusFailure,
+			Successful: false,
 		},
 	}
 )
@@ -40,9 +45,10 @@ func indexOperations(operations []*types.Operation) {
 	}
 }
 
-func populateStatusOfOperations(operations []*types.Operation) {
+func applyDefaultStatusOnOperations(operations []*types.Operation) {
 	for _, operation := range operations {
-		// TODO: Improve this, perhaps use a clone?
-		operation.Status = &opStatusSuccess
+		if operation.Status == nil {
+			operation.Status = &opStatusSuccess
+		}
 	}
 }
