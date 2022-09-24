@@ -26,7 +26,8 @@ type ArgsNewNetworkProvider struct {
 	ObservedProjectedShardIsSet bool
 	ObserverUrl                 string
 	ObserverPubkey              string
-	ChainID                     string
+	NetworkID                   string
+	NetworkName                 string
 	GasPerDataByte              uint64
 	MinGasPrice                 uint64
 	MinGasLimit                 uint64
@@ -93,7 +94,8 @@ func NewNetworkProvider(args ArgsNewNetworkProvider) (*networkProvider, error) {
 		pubKeyConverter:       args.PubKeyConverter,
 
 		networkConfig: &resources.NetworkConfig{
-			ChainID:        args.ChainID,
+			NetworkID:      args.NetworkID,
+			NetworkName:    args.NetworkName,
 			GasPerDataByte: args.GasPerDataByte,
 			MinGasPrice:    args.MinGasPrice,
 			MinGasLimit:    args.MinGasLimit,
@@ -111,11 +113,6 @@ func (provider *networkProvider) IsOffline() bool {
 // GetBlockchainName returns the name of the network ("Elrond")
 func (provider *networkProvider) GetBlockchainName() string {
 	return resources.BlockchainName
-}
-
-// GetChainID gets the chain identifier
-func (provider *networkProvider) GetChainID() string {
-	return provider.networkConfig.ChainID
 }
 
 // GetNativeCurrency gets the native currency (EGLD, 18 decimals)

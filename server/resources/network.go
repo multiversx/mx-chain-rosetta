@@ -2,7 +2,8 @@ package resources
 
 // NetworkConfig is a resource
 type NetworkConfig struct {
-	ChainID        string
+	NetworkID      string
+	NetworkName    string
 	GasPerDataByte uint64
 	MinGasPrice    uint64
 	MinGasLimit    uint64

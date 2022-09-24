@@ -74,9 +74,15 @@ VERSION:
 		Value: strings.Repeat("0", 64),
 	}
 
-	cliFlagChainID = cli.StringFlag{
-		Name:     "chain-id",
-		Usage:    "Specifies the Chain ID.",
+	cliFlagNetworkID = cli.StringFlag{
+		Name:     "network-id",
+		Usage:    "Specifies the network ID (e.g. 1, D, T)",
+		Required: true,
+	}
+
+	cliFlagNetworkName = cli.StringFlag{
+		Name:     "network-name",
+		Usage:    "Specifies the network name (e.g. mainnet, devnet, testnet).",
 		Required: true,
 	}
 
@@ -139,7 +145,8 @@ func getAllCliFlags() []cli.Flag {
 		cliFlagObserverProjectedShard,
 		cliFlagObserverHttpUrl,
 		cliFlagObserverPubKey,
-		cliFlagChainID,
+		cliFlagNetworkID,
+		cliFlagNetworkName,
 		cliFlagNumShards,
 		cliFlagGenesisBlock,
 		cliFlagGenesisTimestamp,
@@ -161,7 +168,8 @@ type parsedCliFlags struct {
 	observerProjectedShardIsSet bool
 	observerHttpUrl             string
 	observerPubkey              string
-	chainID                     string
+	networkID                   string
+	networkName                 string
 	numShards                   uint32
 	genesisBlock                string
 	genesisTimestamp            int64
@@ -183,7 +191,8 @@ func getParsedCliFlags(ctx *cli.Context) parsedCliFlags {
 		observerProjectedShardIsSet: ctx.GlobalIsSet(cliFlagObserverProjectedShard.Name),
 		observerHttpUrl:             ctx.GlobalString(cliFlagObserverHttpUrl.Name),
 		observerPubkey:              ctx.GlobalString(cliFlagObserverPubKey.Name),
-		chainID:                     ctx.GlobalString(cliFlagChainID.Name),
+		networkID:                   ctx.GlobalString(cliFlagNetworkID.Name),
+		networkName:                 ctx.GlobalString(cliFlagNetworkName.Name),
 		numShards:                   uint32(ctx.GlobalUint(cliFlagNumShards.Name)),
 		genesisBlock:                ctx.GlobalString(cliFlagGenesisBlock.Name),
 		genesisTimestamp:            ctx.GlobalInt64(cliFlagGenesisTimestamp.Name),

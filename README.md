@@ -71,7 +71,7 @@ Then, start `rosetta` as follows:
 
 ```
 ./rosetta --observer-http-url=http://localhost:8080 --observer-actual-shard=0 \
---chain-id=D --native-currency=XeGLD \
+--network-id=D --network-name=devnet --native-currency=XeGLD \
 --port=9091
 ```
 
@@ -79,7 +79,7 @@ Or, in order to start using the `offline` mode:
 
 ```
 ./rosetta --observer-actual-shard=0 \
---chain-id=D --native-currency=XeGLD \
+--network-id=D --network-name=devnet --native-currency=XeGLD \
 --port=9092 --offline
 ```
 

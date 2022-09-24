@@ -32,7 +32,8 @@ type ArgsCreateNetworkProvider struct {
 	ObservedProjectedShardIsSet bool
 	ObserverUrl                 string
 	ObserverPubkey              string
-	ChainID                     string
+	NetworkID                   string
+	NetworkName                 string
 	GasPerDataByte              uint64
 	MinGasPrice                 uint64
 	MinGasLimit                 uint64
@@ -115,7 +116,8 @@ func CreateNetworkProvider(args ArgsCreateNetworkProvider) (networkProvider, err
 		ObservedProjectedShardIsSet: args.ObservedProjectedShardIsSet,
 		ObserverUrl:                 args.ObserverUrl,
 		ObserverPubkey:              args.ObserverPubkey,
-		ChainID:                     args.ChainID,
+		NetworkID:                   args.NetworkID,
+		NetworkName:                 args.NetworkName,
 		GasPerDataByte:              args.GasPerDataByte,
 		MinGasPrice:                 args.MinGasPrice,
 		MinGasLimit:                 args.MinGasLimit,
