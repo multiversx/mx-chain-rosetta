@@ -25,39 +25,53 @@ func TestNetworkProvider_GetNodeStatusWithSuccess(t *testing.T) {
 			value.(*resources.NodeStatusApiResponse).Data = resources.NodeStatusApiResponsePayload{
 				Status: resources.NodeStatus{
 					IsSyncing:         1,
-					HighestNonce:      7,
-					HighestFinalNonce: 5,
+					HighestNonce:      1005,
+					HighestFinalNonce: 1000,
+					OldestKeptEpoch:   3,
 				},
 			}
+
+			return 0, nil
 		}
 
-		return 0, nil
+		// 5 = OldestKeptEpoch + 2
+		if path == "/node/epoch-start/5" {
+			value.(*resources.EpochStartApiResponse).Data = resources.EpochStartApiResponsePayload{
+				EpochStart: resources.EpochStart{
+					Nonce: 500,
+				},
+			}
+
+			return 0, nil
+		}
+
+		return 0, errors.New("unexpected request")
 	}
 
 	observerFacade.GetBlockByNonceCalled = func(shardID uint32, nonce uint64, options common.BlockQueryOptions) (*data.BlockApiResponse, error) {
-		// The one before "HighestFinalNonce"
-		if nonce == 3 {
+		// 998 = HighestFinalNonce - 2
+		if nonce == 998 {
 			return &data.BlockApiResponse{
 				Data: data.BlockApiResponsePayload{
 					Block: data.Block{
-						Nonce:         3,
-						Hash:          "0003",
-						PrevBlockHash: "0002",
-						Timestamp:     3,
+						Nonce:         998,
+						Hash:          "00000998",
+						PrevBlockHash: "00000997",
+						Timestamp:     998,
 					},
 				},
 			}, nil
 		}
 
-		// Oldest nonce with historical state (as considered by Rosetta)
-		if nonce == 1 {
+		// Oldest nonce with historical state
+		if nonce == 500 {
 			return &data.BlockApiResponse{
 				Data: data.BlockApiResponsePayload{
 					Block: data.Block{
-						Nonce:         1,
-						Hash:          "0001",
-						PrevBlockHash: "0000",
-						Timestamp:     1,
+						Nonce:         500,
+						Hash:          "00000500",
+						PrevBlockHash: "00000499",
+						Timestamp:     500,
 					},
 				},
 			}, nil
@@ -67,17 +81,17 @@ func TestNetworkProvider_GetNodeStatusWithSuccess(t *testing.T) {
 	}
 
 	expectedSummaryOfLatest := resources.BlockSummary{
-		Nonce:             3,
-		Hash:              "0003",
-		PreviousBlockHash: "0002",
-		Timestamp:         3,
+		Nonce:             998,
+		Hash:              "00000998",
+		PreviousBlockHash: "00000997",
+		Timestamp:         998,
 	}
 
 	expectedSummaryOfOldest := resources.BlockSummary{
-		Nonce:             1,
-		Hash:              "0001",
-		PreviousBlockHash: "0000",
-		Timestamp:         1,
+		Nonce:             500,
+		Hash:              "00000500",
+		PreviousBlockHash: "00000499",
+		Timestamp:         500,
 	}
 
 	nodeStatus, err := provider.GetNodeStatus()
@@ -106,20 +120,41 @@ func TestNetworkProvider_GetNodeStatusWithError(t *testing.T) {
 }
 
 func TestGetOldestNonceWithHistoricalStateGivenNodeStatus(t *testing.T) {
+	observerFacade := testscommon.NewObserverFacadeMock()
 	args := createDefaultArgsNewNetworkProvider()
+	args.ObserverFacade = observerFacade
+
 	provider, err := NewNetworkProvider(args)
 	require.Nil(t, err)
 	require.NotNil(t, provider)
 
-	oldestNonce := provider.getOldestNonceWithHistoricalStateGivenNodeStatus(&resources.NodeStatus{
-		HighestFinalNonce: 50,
+	observerFacade.CallGetRestEndPointCalled = func(baseUrl, path string, value interface{}) (int, error) {
+		if path == "/node/epoch-start/5" {
+			value.(*resources.EpochStartApiResponse).Data = resources.EpochStartApiResponsePayload{
+				EpochStart: resources.EpochStart{
+					Nonce: 500,
+				},
+			}
+
+			return 0, nil
+		}
+
+		if path == "/node/epoch-start/3" {
+			return 0, errors.New("arbitrary error")
+		}
+
+		return 0, errors.New("unexpected request")
+	}
+
+	oldestNonce, err := provider.getOldestNonceWithHistoricalStateGivenNodeStatus(&resources.NodeStatus{
+		OldestKeptEpoch: 3,
 	})
+	require.Nil(t, err)
+	require.Equal(t, uint64(500), oldestNonce)
 
-	require.Equal(t, uint64(8), oldestNonce)
-
-	oldestNonce = provider.getOldestNonceWithHistoricalStateGivenNodeStatus(&resources.NodeStatus{
-		HighestFinalNonce: 40,
+	oldestNonce, err = provider.getOldestNonceWithHistoricalStateGivenNodeStatus(&resources.NodeStatus{
+		OldestKeptEpoch: 1,
 	})
-
-	require.Equal(t, uint64(1), oldestNonce)
+	require.Equal(t, uint64(0), oldestNonce)
+	require.ErrorContains(t, err, "arbitrary error")
 }

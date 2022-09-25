@@ -66,14 +66,18 @@ func getLatestNonceGivenHighestFinalNonce(highestFinalNonce uint64) uint64 {
 }
 
 func (provider *networkProvider) getOldestNonceWithHistoricalStateGivenNodeStatus(status *resources.NodeStatus) (uint64, error) {
-	// Avoid eventual snapshotting-related edge-cases by not considering the 2 oldest kept epochs.
-	oldestEligibleEpoch := status.OldestKeptEpoch + 2
+	oldestEligibleEpoch := getOldestEligibleEpochGivenOldestKeptEpoch(status.OldestKeptEpoch)
 	epochStartInfo, err := provider.getEpochStartInfo(oldestEligibleEpoch)
 	if err != nil {
 		return 0, err
 	}
 
 	return epochStartInfo.Nonce, nil
+}
+
+func getOldestEligibleEpochGivenOldestKeptEpoch(oldestKeptEpoch uint32) uint32 {
+	// Avoid eventual snapshotting-related edge-cases by not considering the 2 oldest kept epochs.
+	return oldestKeptEpoch + 2
 }
 
 func (provider *networkProvider) getEpochStartInfo(epoch uint32) (*resources.EpochStart, error) {
