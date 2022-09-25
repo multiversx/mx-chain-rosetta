@@ -25,6 +25,23 @@ type NodeStatus struct {
 	IsSyncing         int    `json:"erd_is_syncing"`
 	HighestNonce      uint64 `json:"erd_nonce"`
 	HighestFinalNonce uint64 `json:"erd_highest_final_nonce"`
+	OldestKeptEpoch   uint32 `json:"erd_oldest_kept_epoch"`
+}
+
+// EpochStartApiResponse is an API resource
+type EpochStartApiResponse struct {
+	resourceApiResponse
+	Data EpochStartApiResponsePayload `json:"data"`
+}
+
+// EpochStartApiResponsePayload is an API resource
+type EpochStartApiResponsePayload struct {
+	EpochStart EpochStart `json:"epochStart"`
+}
+
+// EpochStart is an API resource
+type EpochStart struct {
+	Nonce uint64 `json:"nonce"`
 }
 
 // AggregatedNodeStatus is an aggregated resource
