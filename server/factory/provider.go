@@ -40,7 +40,6 @@ type ArgsCreateNetworkProvider struct {
 	NativeCurrencySymbol        string
 	GenesisBlockHash            string
 	GenesisTimestamp            int64
-	NumHistoricalBlocks         uint64
 }
 
 // CreateNetworkProvider creates a network provider
@@ -124,7 +123,6 @@ func CreateNetworkProvider(args ArgsCreateNetworkProvider) (networkProvider, err
 		NativeCurrencySymbol:        args.NativeCurrencySymbol,
 		GenesisBlockHash:            args.GenesisBlockHash,
 		GenesisTimestamp:            args.GenesisTimestamp,
-		NumHistoricalBlocks:         args.NumHistoricalBlocks,
 
 		ObserverFacade: &components.ObserverFacade{
 			Processor:            baseProcessor,

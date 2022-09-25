@@ -34,7 +34,6 @@ type ArgsNewNetworkProvider struct {
 	NativeCurrencySymbol        string
 	GenesisBlockHash            string
 	GenesisTimestamp            int64
-	NumHistoricalBlocks         uint64
 
 	ObserverFacade observerFacade
 
@@ -53,7 +52,6 @@ type networkProvider struct {
 	nativeCurrencySymbol        string
 	genesisBlockHash            string
 	genesisTimestamp            int64
-	numHistoricalBlocks         uint64
 
 	observerFacade observerFacade
 
@@ -85,7 +83,6 @@ func NewNetworkProvider(args ArgsNewNetworkProvider) (*networkProvider, error) {
 		nativeCurrencySymbol:        args.NativeCurrencySymbol,
 		genesisBlockHash:            args.GenesisBlockHash,
 		genesisTimestamp:            args.GenesisTimestamp,
-		numHistoricalBlocks:         args.NumHistoricalBlocks,
 
 		observerFacade: args.ObserverFacade,
 

@@ -107,7 +107,6 @@ func TestNetworkProvider_GetNodeStatusWithError(t *testing.T) {
 
 func TestGetOldestNonceWithHistoricalStateGivenNodeStatus(t *testing.T) {
 	args := createDefaultArgsNewNetworkProvider()
-	args.NumHistoricalBlocks = 42
 	provider, err := NewNetworkProvider(args)
 	require.Nil(t, err)
 	require.NotNil(t, provider)

@@ -62,10 +62,5 @@ func getLatestNonceGivenHighestFinalNonce(highestFinalNonce uint64) uint64 {
 }
 
 func (provider *networkProvider) getOldestNonceWithHistoricalStateGivenNodeStatus(status *resources.NodeStatus) uint64 {
-	oldest := int64(status.HighestFinalNonce) - int64(provider.numHistoricalBlocks)
-	if oldest < int64(oldestPossibleNonceWithHistoricalState) {
-		return oldestPossibleNonceWithHistoricalState
-	}
-
-	return uint64(oldest)
+	return oldestPossibleNonceWithHistoricalState
 }

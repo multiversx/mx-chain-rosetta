@@ -180,6 +180,5 @@ func createDefaultArgsNewNetworkProvider() ArgsNewNetworkProvider {
 		Hasher:                      testscommon.RealWorldBlake2bHasher,
 		MarshalizerForHashing:       testscommon.MarshalizerForHashing,
 		PubKeyConverter:             testscommon.RealWorldBech32PubkeyConverter,
-		NumHistoricalBlocks:         10000,
 	}
 }
