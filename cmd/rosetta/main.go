@@ -70,6 +70,8 @@ func startRosetta(ctx *cli.Context) error {
 		MinGasLimit:                 cliFlags.minGasLimit,
 		NativeCurrencySymbol:        cliFlags.nativeCurrencySymbol,
 		GenesisBlockHash:            cliFlags.genesisBlock,
+		FirstHistoricalEpoch:        cliFlags.firstHistoricalEpoch,
+		NumHistoricalEpochs:         cliFlags.numHistoricalEpochs,
 	})
 	if err != nil {
 		return err
