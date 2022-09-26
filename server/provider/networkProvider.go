@@ -419,5 +419,7 @@ func (provider *networkProvider) LogDescription() {
 		"observedProjectedShard", provider.observedProjectedShard,
 		"observedProjectedShardIsSet", provider.observedProjectedShardIsSet,
 		"nativeCurrency", provider.nativeCurrencySymbol,
+		"firstHistoricalEpoch", provider.firstHistoricalEpoch,
+		"numHistoricalEpochs", provider.numHistoricalEpochs,
 	)
 }
