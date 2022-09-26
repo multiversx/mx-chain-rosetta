@@ -127,6 +127,18 @@ VERSION:
 		Usage: "Specifies the symbol of the native currency (must be EGLD for mainnet, XeGLD for testnet and devnet).",
 		Value: "EGLD",
 	}
+
+	cliFlagFirstHistoricalEpoch = cli.UintFlag{
+		Name:     "first-historical-epoch",
+		Usage:    "Specifies the first epoch with historical data available in Observer's database.",
+		Required: true,
+	}
+
+	cliFlagNumHistoricalEpochs = cli.UintFlag{
+		Name:     "num-historical-epochs",
+		Usage:    "Provides a hint for the number of historical epochs to be kept.",
+		Required: true,
+	}
 )
 
 func getAllCliFlags() []cli.Flag {
@@ -148,6 +160,8 @@ func getAllCliFlags() []cli.Flag {
 		cliFlagMinGasLimit,
 		cliFlagGasPerDataByte,
 		cliFlagNativeCurrencySymbol,
+		cliFlagFirstHistoricalEpoch,
+		cliFlagNumHistoricalEpochs,
 	}
 }
 
@@ -170,6 +184,8 @@ type parsedCliFlags struct {
 	minGasLimit                 uint64
 	gasPerDataByte              uint64
 	nativeCurrencySymbol        string
+	firstHistoricalEpoch        uint32
+	numHistoricalEpochs         uint32
 }
 
 func getParsedCliFlags(ctx *cli.Context) parsedCliFlags {
@@ -192,5 +208,7 @@ func getParsedCliFlags(ctx *cli.Context) parsedCliFlags {
 		minGasLimit:                 ctx.GlobalUint64(cliFlagMinGasLimit.Name),
 		gasPerDataByte:              ctx.GlobalUint64(cliFlagGasPerDataByte.Name),
 		nativeCurrencySymbol:        ctx.GlobalString(cliFlagNativeCurrencySymbol.Name),
+		firstHistoricalEpoch:        uint32(ctx.GlobalUint(cliFlagFirstHistoricalEpoch.Name)),
+		numHistoricalEpochs:         uint32(ctx.GlobalUint(cliFlagNumHistoricalEpochs.Name)),
 	}
 }

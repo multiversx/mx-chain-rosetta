@@ -25,7 +25,7 @@ type NodeStatus struct {
 	IsSyncing         int    `json:"erd_is_syncing"`
 	HighestNonce      uint64 `json:"erd_nonce"`
 	HighestFinalNonce uint64 `json:"erd_highest_final_nonce"`
-	OldestKeptEpoch   uint32 `json:"erd_oldest_kept_epoch"`
+	CurrentEpoch      uint32 `json:"erd_epoch_number"`
 }
 
 // EpochStartApiResponse is an API resource

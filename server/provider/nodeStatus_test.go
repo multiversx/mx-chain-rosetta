@@ -16,6 +16,8 @@ func TestNetworkProvider_GetNodeStatusWithSuccess(t *testing.T) {
 	observerFacade := testscommon.NewObserverFacadeMock()
 	args := createDefaultArgsNewNetworkProvider()
 	args.ObserverFacade = observerFacade
+	args.FirstHistoricalEpoch = 2
+	args.NumHistoricalEpochs = 8
 
 	provider, err := NewNetworkProvider(args)
 	require.Nil(t, err)
@@ -28,18 +30,18 @@ func TestNetworkProvider_GetNodeStatusWithSuccess(t *testing.T) {
 					IsSyncing:         1,
 					HighestNonce:      1005,
 					HighestFinalNonce: 1000,
-					OldestKeptEpoch:   3,
+					CurrentEpoch:      11,
 				},
 			}
 
 			return 0, nil
 		}
 
-		// 5 = OldestKeptEpoch + 2
-		if path == "/node/epoch-start/5" {
+		// 3 = max(11 - 8, 2)
+		if path == "/node/epoch-start/3" {
 			value.(*resources.EpochStartApiResponse).Data = resources.EpochStartApiResponsePayload{
 				EpochStart: resources.EpochStart{
-					Nonce: 500,
+					Nonce: 300,
 				},
 			}
 
@@ -65,14 +67,14 @@ func TestNetworkProvider_GetNodeStatusWithSuccess(t *testing.T) {
 		}
 
 		// Oldest nonce with historical state
-		if nonce == 500 {
+		if nonce == 300 {
 			return &data.BlockApiResponse{
 				Data: data.BlockApiResponsePayload{
 					Block: api.Block{
-						Nonce:         500,
-						Hash:          "00000500",
-						PrevBlockHash: "00000499",
-						Timestamp:     500,
+						Nonce:         300,
+						Hash:          "00000300",
+						PrevBlockHash: "00000299",
+						Timestamp:     300,
 					},
 				},
 			}, nil
@@ -89,10 +91,10 @@ func TestNetworkProvider_GetNodeStatusWithSuccess(t *testing.T) {
 	}
 
 	expectedSummaryOfOldest := resources.BlockSummary{
-		Nonce:             500,
-		Hash:              "00000500",
-		PreviousBlockHash: "00000499",
-		Timestamp:         500,
+		Nonce:             300,
+		Hash:              "00000300",
+		PreviousBlockHash: "00000299",
+		Timestamp:         300,
 	}
 
 	nodeStatus, err := provider.GetNodeStatus()
@@ -124,23 +126,38 @@ func TestGetOldestNonceWithHistoricalStateGivenNodeStatus(t *testing.T) {
 	observerFacade := testscommon.NewObserverFacadeMock()
 	args := createDefaultArgsNewNetworkProvider()
 	args.ObserverFacade = observerFacade
+	args.FirstHistoricalEpoch = 2
+	args.NumHistoricalEpochs = 8
 
 	provider, err := NewNetworkProvider(args)
 	require.Nil(t, err)
 	require.NotNil(t, provider)
 
 	observerFacade.CallGetRestEndPointCalled = func(baseUrl, path string, value interface{}) (int, error) {
-		if path == "/node/epoch-start/5" {
+		// 2 = max(7 - 8, 2)
+		if path == "/node/epoch-start/2" {
 			value.(*resources.EpochStartApiResponse).Data = resources.EpochStartApiResponsePayload{
 				EpochStart: resources.EpochStart{
-					Nonce: 500,
+					Nonce: 200,
 				},
 			}
 
 			return 0, nil
 		}
 
+		// 3 = max(11 - 8, 2)
 		if path == "/node/epoch-start/3" {
+			value.(*resources.EpochStartApiResponse).Data = resources.EpochStartApiResponsePayload{
+				EpochStart: resources.EpochStart{
+					Nonce: 300,
+				},
+			}
+
+			return 0, nil
+		}
+
+		// 42 = 50 - 8
+		if path == "/node/epoch-start/42" {
 			return 0, errors.New("arbitrary error")
 		}
 
@@ -148,14 +165,41 @@ func TestGetOldestNonceWithHistoricalStateGivenNodeStatus(t *testing.T) {
 	}
 
 	oldestNonce, err := provider.getOldestNonceWithHistoricalStateGivenNodeStatus(&resources.NodeStatus{
-		OldestKeptEpoch: 3,
+		CurrentEpoch: 7,
 	})
 	require.Nil(t, err)
-	require.Equal(t, uint64(500), oldestNonce)
+	require.Equal(t, uint64(200), oldestNonce)
 
 	oldestNonce, err = provider.getOldestNonceWithHistoricalStateGivenNodeStatus(&resources.NodeStatus{
-		OldestKeptEpoch: 1,
+		CurrentEpoch: 11,
+	})
+	require.Nil(t, err)
+	require.Equal(t, uint64(300), oldestNonce)
+
+	oldestNonce, err = provider.getOldestNonceWithHistoricalStateGivenNodeStatus(&resources.NodeStatus{
+		CurrentEpoch: 50,
 	})
 	require.Equal(t, uint64(0), oldestNonce)
 	require.ErrorContains(t, err, "arbitrary error")
+}
+
+func TestGetOldestEligibleEpoch(t *testing.T) {
+	observerFacade := testscommon.NewObserverFacadeMock()
+	args := createDefaultArgsNewNetworkProvider()
+	args.ObserverFacade = observerFacade
+	args.FirstHistoricalEpoch = 2
+	args.NumHistoricalEpochs = 8
+
+	provider, err := NewNetworkProvider(args)
+	require.Nil(t, err)
+	require.NotNil(t, provider)
+
+	epoch := provider.getOldestEligibleEpoch(7)
+	require.Equal(t, uint32(2), epoch)
+
+	epoch = provider.getOldestEligibleEpoch(11)
+	require.Equal(t, uint32(3), epoch)
+
+	epoch = provider.getOldestEligibleEpoch(100)
+	require.Equal(t, uint32(92), epoch)
 }
