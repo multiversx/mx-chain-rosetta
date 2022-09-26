@@ -86,7 +86,7 @@ func createAsserter(networkProvider services.NetworkProvider) (*asserter.Asserte
 		[]*types.NetworkIdentifier{
 			{
 				Blockchain: networkProvider.GetBlockchainName(),
-				Network:    networkProvider.GetChainID(),
+				Network:    networkProvider.GetNetworkConfig().NetworkName,
 			},
 		},
 		nil,

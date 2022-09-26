@@ -63,7 +63,8 @@ func NewNetworkProviderMock() *networkProviderMock {
 		MockGenesisBlockHash:            emptyHash,
 		MockGenesisTimestamp:            genesisTimestamp,
 		MockNetworkConfig: &resources.NetworkConfig{
-			ChainID:        "test",
+			NetworkID:      "T",
+			NetworkName:    "testnet",
 			GasPerDataByte: 1500,
 			MinGasPrice:    1000000000,
 			MinGasLimit:    50000,
@@ -108,11 +109,6 @@ func (mock *networkProviderMock) IsOffline() bool {
 // GetBlockchainName -
 func (mock *networkProviderMock) GetBlockchainName() string {
 	return resources.BlockchainName
-}
-
-// GetChainID -
-func (mock *networkProviderMock) GetChainID() string {
-	return mock.MockNetworkConfig.ChainID
 }
 
 // GetNativeCurrency -

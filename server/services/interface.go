@@ -11,7 +11,6 @@ import (
 type NetworkProvider interface {
 	IsOffline() bool
 	GetBlockchainName() string
-	GetChainID() string
 	GetNativeCurrency() resources.NativeCurrency
 	GetObserverPubkey() string
 	GetNetworkConfig() *resources.NetworkConfig

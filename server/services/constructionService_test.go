@@ -63,7 +63,7 @@ func TestConstructionService_ConstructionPreprocess(t *testing.T) {
 
 func TestConstructionService_ConstructionMetadata(t *testing.T) {
 	networkProvider := testscommon.NewNetworkProviderMock()
-	networkProvider.MockNetworkConfig.ChainID = "T"
+	networkProvider.MockNetworkConfig.NetworkID = "T"
 	networkProvider.MockAccountsByAddress[testscommon.TestAddressAlice] = &resources.Account{
 		Address: testscommon.TestAddressAlice,
 		Nonce:   42,
@@ -108,7 +108,7 @@ func TestConstructionService_ConstructionMetadata(t *testing.T) {
 
 func TestConstructionService_ConstructionPayloads(t *testing.T) {
 	networkProvider := testscommon.NewNetworkProviderMock()
-	networkProvider.MockNetworkConfig.ChainID = "T"
+	networkProvider.MockNetworkConfig.NetworkID = "T"
 	networkProvider.MockAccountsByAddress[testscommon.TestAddressAlice] = &resources.Account{
 		Address: testscommon.TestAddressAlice,
 		Nonce:   42,
@@ -164,7 +164,7 @@ func TestConstructionService_ConstructionPayloads(t *testing.T) {
 
 func TestConstructionService_ConstructionParse(t *testing.T) {
 	networkProvider := testscommon.NewNetworkProviderMock()
-	networkProvider.MockNetworkConfig.ChainID = "T"
+	networkProvider.MockNetworkConfig.NetworkID = "T"
 
 	extension := newNetworkProviderExtension(networkProvider)
 	service := NewConstructionService(networkProvider)
@@ -199,7 +199,7 @@ func TestConstructionService_ConstructionParse(t *testing.T) {
 
 func TestConstructionService_ConstructionCombine(t *testing.T) {
 	networkProvider := testscommon.NewNetworkProviderMock()
-	networkProvider.MockNetworkConfig.ChainID = "T"
+	networkProvider.MockNetworkConfig.NetworkID = "T"
 
 	service := NewConstructionService(networkProvider)
 

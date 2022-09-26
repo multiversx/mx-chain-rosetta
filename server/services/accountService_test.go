@@ -12,7 +12,6 @@ import (
 
 func TestAccountService_AccountBalance(t *testing.T) {
 	networkProvider := testscommon.NewNetworkProviderMock()
-	networkProvider.MockNetworkConfig.ChainID = "T"
 	service := NewAccountService(networkProvider)
 
 	t.Run("with empty address", func(t *testing.T) {

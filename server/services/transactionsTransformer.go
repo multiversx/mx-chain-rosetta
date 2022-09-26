@@ -73,7 +73,7 @@ func (transformer *transactionsTransformer) transformTxsFromBlock(block *data.Bl
 			return nil, err
 		}
 
-		populateStatusOfOperations(filteredOperations)
+		applyDefaultStatusOnOperations(filteredOperations)
 		rosettaTx.Operations = filteredOperations
 	}
 
@@ -228,6 +228,18 @@ func (transformer *transactionsTransformer) invalidTxToRosettaTx(tx *data.FullTr
 	return &types.Transaction{
 		TransactionIdentifier: hashToTransactionIdentifier(tx.Hash),
 		Operations: []*types.Operation{
+			{
+				Status:  &opStatusFailure,
+				Type:    opTransfer,
+				Account: addressToAccountIdentifier(tx.Sender),
+				Amount:  transformer.extension.valueToNativeAmount("-" + tx.Value),
+			},
+			{
+				Status:  &opStatusFailure,
+				Type:    opTransfer,
+				Account: addressToAccountIdentifier(tx.Receiver),
+				Amount:  transformer.extension.valueToNativeAmount(tx.Value),
+			},
 			{
 				Type:    opFeeOfInvalidTx,
 				Account: addressToAccountIdentifier(tx.Sender),

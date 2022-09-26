@@ -15,6 +15,14 @@ import (
 )
 
 func main() {
+	// This is a workaround, so that TCP sockets opened by rosetta (as a TCP client) to read data from the observer can be reused more easily,
+	// once their TCP TIME_WAIT expires.
+	// The default value would have been very small (e.g. 2), thus forcing the TCP client (rosetta)
+	// to << read, CLOSING, TIME_WAIT, CLOSED >>, without any reuse - thus easily exhausting all available sockets in a short amount of time,
+	// under heavy load.
+	// References: https://github.com/golang/go/issues/16012
+	http.DefaultTransport.(*http.Transport).MaxIdleConnsPerHost = 512
+
 	app := cli.NewApp()
 	cli.AppHelpTemplate = helpTemplate
 	app.Name = "Elrond Rosetta CLI App"
@@ -55,7 +63,8 @@ func startRosetta(ctx *cli.Context) error {
 		ObservedProjectedShardIsSet: cliFlags.observerProjectedShardIsSet,
 		ObserverUrl:                 cliFlags.observerHttpUrl,
 		ObserverPubkey:              cliFlags.observerPubkey,
-		ChainID:                     cliFlags.chainID,
+		NetworkID:                   cliFlags.networkID,
+		NetworkName:                 cliFlags.networkName,
 		GasPerDataByte:              cliFlags.gasPerDataByte,
 		MinGasPrice:                 cliFlags.minGasPrice,
 		MinGasLimit:                 cliFlags.minGasLimit,

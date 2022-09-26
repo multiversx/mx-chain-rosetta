@@ -14,7 +14,6 @@ import (
 
 func TestBlockService_BlockByIndex(t *testing.T) {
 	networkProvider := testscommon.NewNetworkProviderMock()
-	networkProvider.MockNetworkConfig.ChainID = "T"
 	networkProvider.MockNumShards = 1
 	extension := newNetworkProviderExtension(networkProvider)
 

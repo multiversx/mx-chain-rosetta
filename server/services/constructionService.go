@@ -185,7 +185,7 @@ func (service *constructionService) computeMetadata(options objectsMap) (objects
 		return nil, service.errFactory.newErrWithOriginal(ErrMalformedValue, errors.New("value missing"))
 	}
 
-	metadata["chainID"] = service.provider.GetChainID()
+	metadata["chainID"] = service.provider.GetNetworkConfig().NetworkID
 	metadata["version"] = transactionVersion
 
 	senderAddressI, ok := options["sender"]
