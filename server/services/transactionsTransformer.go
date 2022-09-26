@@ -4,8 +4,8 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/ElrondNetwork/elrond-go-core/data/api"
 	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
-	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/coinbase/rosetta-sdk-go/types"
 )
 
@@ -29,8 +29,8 @@ func newTransactionsTransformer(provider NetworkProvider) *transactionsTransform
 	}
 }
 
-func (transformer *transactionsTransformer) transformTxsFromBlock(block *data.Block) ([]*types.Transaction, error) {
-	txs := make([]*data.FullTransaction, 0)
+func (transformer *transactionsTransformer) transformTxsFromBlock(block *api.Block) ([]*types.Transaction, error) {
+	txs := make([]*transaction.ApiTransactionResult, 0)
 	receipts := make([]*transaction.ApiReceipt, 0)
 
 	for _, miniblock := range block.MiniBlocks {
@@ -82,7 +82,7 @@ func (transformer *transactionsTransformer) transformTxsFromBlock(block *data.Bl
 	return rosettaTxs, nil
 }
 
-func (transformer *transactionsTransformer) txToRosettaTx(tx *data.FullTransaction, txsInBlock []*data.FullTransaction) (*types.Transaction, error) {
+func (transformer *transactionsTransformer) txToRosettaTx(tx *transaction.ApiTransactionResult, txsInBlock []*transaction.ApiTransactionResult) (*types.Transaction, error) {
 	var rosettaTx *types.Transaction
 
 	switch tx.Type {
@@ -107,8 +107,8 @@ func (transformer *transactionsTransformer) txToRosettaTx(tx *data.FullTransacti
 }
 
 func (transformer *transactionsTransformer) unsignedTxToRosettaTx(
-	scr *data.FullTransaction,
-	txsInBlock []*data.FullTransaction,
+	scr *transaction.ApiTransactionResult,
+	txsInBlock []*transaction.ApiTransactionResult,
 ) *types.Transaction {
 	if scr.IsRefund {
 		return &types.Transaction{
@@ -153,7 +153,7 @@ func (transformer *transactionsTransformer) unsignedTxToRosettaTx(
 	}
 }
 
-func (transformer *transactionsTransformer) rewardTxToRosettaTx(tx *data.FullTransaction) *types.Transaction {
+func (transformer *transactionsTransformer) rewardTxToRosettaTx(tx *transaction.ApiTransactionResult) *types.Transaction {
 	return &types.Transaction{
 		TransactionIdentifier: hashToTransactionIdentifier(tx.Hash),
 		Operations: []*types.Operation{
@@ -166,7 +166,7 @@ func (transformer *transactionsTransformer) rewardTxToRosettaTx(tx *data.FullTra
 	}
 }
 
-func (transformer *transactionsTransformer) moveBalanceTxToRosetta(tx *data.FullTransaction) *types.Transaction {
+func (transformer *transactionsTransformer) moveBalanceTxToRosetta(tx *transaction.ApiTransactionResult) *types.Transaction {
 	hasValue := tx.Value != "0"
 	operations := make([]*types.Operation, 0)
 
@@ -214,7 +214,7 @@ func (transformer *transactionsTransformer) refundReceiptToRosettaTx(receipt *tr
 	}, nil
 }
 
-func (transformer *transactionsTransformer) invalidTxToRosettaTx(tx *data.FullTransaction) *types.Transaction {
+func (transformer *transactionsTransformer) invalidTxToRosettaTx(tx *transaction.ApiTransactionResult) *types.Transaction {
 	fee := tx.InitiallyPaidFee
 
 	if transformer.featuresDetector.isInvalidTransactionOfTypeMoveBalanceThatOnlyConsumesDataMovementGas(tx) {
@@ -249,7 +249,7 @@ func (transformer *transactionsTransformer) invalidTxToRosettaTx(tx *data.FullTr
 	}
 }
 
-func (transformer *transactionsTransformer) mempoolMoveBalanceTxToRosettaTx(tx *data.FullTransaction) *types.Transaction {
+func (transformer *transactionsTransformer) mempoolMoveBalanceTxToRosettaTx(tx *transaction.ApiTransactionResult) *types.Transaction {
 	hasValue := tx.Value != "0"
 	operations := make([]*types.Operation, 0)
 
@@ -275,7 +275,7 @@ func (transformer *transactionsTransformer) mempoolMoveBalanceTxToRosettaTx(tx *
 	}
 }
 
-func (transformer *transactionsTransformer) addOperationsGivenTransactionEvents(tx *data.FullTransaction, rosettaTx *types.Transaction) error {
+func (transformer *transactionsTransformer) addOperationsGivenTransactionEvents(tx *transaction.ApiTransactionResult, rosettaTx *types.Transaction) error {
 	// TBD: uncomment when applicable ("transferValueOnly" events duplicate the information of SCRs in most contexts)
 	// err := transformer.addOperationsGivenEventTransferValueOnly(tx, rosettaTx)
 	// if err != nil {
@@ -285,7 +285,7 @@ func (transformer *transactionsTransformer) addOperationsGivenTransactionEvents(
 	return nil
 }
 
-func (transformer *transactionsTransformer) addOperationsGivenEventTransferValueOnly(tx *data.FullTransaction, rosettaTx *types.Transaction) error {
+func (transformer *transactionsTransformer) addOperationsGivenEventTransferValueOnly(tx *transaction.ApiTransactionResult, rosettaTx *types.Transaction) error {
 	event, err := transformer.eventsController.extractEventTransferValueOnly(tx)
 	if err != nil {
 		if errors.Is(err, errEventNotFound) {

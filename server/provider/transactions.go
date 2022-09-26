@@ -1,9 +1,9 @@
 package provider
 
-import "github.com/ElrondNetwork/elrond-proxy-go/data"
+import "github.com/ElrondNetwork/elrond-go-core/data/transaction"
 
-func discardTransactions(txs []*data.FullTransaction, txsHashesToDiscard map[string]struct{}) []*data.FullTransaction {
-	txsToKeep := make([]*data.FullTransaction, 0, len(txs))
+func discardTransactions(txs []*transaction.ApiTransactionResult, txsHashesToDiscard map[string]struct{}) []*transaction.ApiTransactionResult {
+	txsToKeep := make([]*transaction.ApiTransactionResult, 0, len(txs))
 
 	for _, tx := range txs {
 		_, shouldDiscard := txsHashesToDiscard[tx.Hash]
@@ -17,8 +17,8 @@ func discardTransactions(txs []*data.FullTransaction, txsHashesToDiscard map[str
 	return txsToKeep
 }
 
-func filterTransactions(txs []*data.FullTransaction, txsHashesToKeep map[string]struct{}) []*data.FullTransaction {
-	txsToKeep := make([]*data.FullTransaction, 0, len(txs))
+func filterTransactions(txs []*transaction.ApiTransactionResult, txsHashesToKeep map[string]struct{}) []*transaction.ApiTransactionResult {
+	txsToKeep := make([]*transaction.ApiTransactionResult, 0, len(txs))
 
 	for _, tx := range txs {
 		_, shouldKeep := txsHashesToKeep[tx.Hash]
@@ -30,8 +30,8 @@ func filterTransactions(txs []*data.FullTransaction, txsHashesToKeep map[string]
 	return txsToKeep
 }
 
-func deduplicateTransactions(txs []*data.FullTransaction) []*data.FullTransaction {
-	deduplicatedTxs := make([]*data.FullTransaction, 0, len(txs))
+func deduplicateTransactions(txs []*transaction.ApiTransactionResult) []*transaction.ApiTransactionResult {
+	deduplicatedTxs := make([]*transaction.ApiTransactionResult, 0, len(txs))
 	seenTxsHashes := make(map[string]struct{})
 
 	for _, tx := range txs {

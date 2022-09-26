@@ -4,7 +4,7 @@ import (
 	"context"
 	"sync"
 
-	"github.com/ElrondNetwork/elrond-proxy-go/data"
+	"github.com/ElrondNetwork/elrond-go-core/data/api"
 	"github.com/ElrondNetwork/rosetta/server/resources"
 	"github.com/coinbase/rosetta-sdk-go/server"
 	"github.com/coinbase/rosetta-sdk-go/types"
@@ -183,7 +183,7 @@ func (service *blockService) getBlockByHash(hash string) (*types.BlockResponse, 
 	return rosettaBlock, nil
 }
 
-func (service *blockService) convertToRosettaBlock(block *data.Block) (*types.BlockResponse, error) {
+func (service *blockService) convertToRosettaBlock(block *api.Block) (*types.BlockResponse, error) {
 	// Genesis block is handled separately, in Block()
 	parentBlockIdentifier := &types.BlockIdentifier{
 		Index: int64(block.Nonce - 1),
