@@ -19,7 +19,11 @@ func (provider *networkProvider) GetNodeStatus() (*resources.AggregatedNodeStatu
 		return nil, err
 	}
 
-	oldestNonceWithHistoricalState := provider.getOldestNonceWithHistoricalStateGivenNodeStatus(plainNodeStatus)
+	oldestNonceWithHistoricalState, err := provider.getOldestNonceWithHistoricalStateGivenNodeStatus(plainNodeStatus)
+	if err != nil {
+		return nil, err
+	}
+
 	oldestBlockWithHistoricalState, err := provider.getBlockSummaryByNonce(oldestNonceWithHistoricalState)
 	if err != nil {
 		return nil, err
@@ -61,11 +65,36 @@ func getLatestNonceGivenHighestFinalNonce(highestFinalNonce uint64) uint64 {
 	return highestFinalNonce - 2
 }
 
-func (provider *networkProvider) getOldestNonceWithHistoricalStateGivenNodeStatus(status *resources.NodeStatus) uint64 {
-	oldest := int64(status.HighestFinalNonce) - int64(provider.numHistoricalBlocks)
-	if oldest < int64(oldestPossibleNonceWithHistoricalState) {
-		return oldestPossibleNonceWithHistoricalState
+func (provider *networkProvider) getOldestNonceWithHistoricalStateGivenNodeStatus(status *resources.NodeStatus) (uint64, error) {
+	oldestEligibleEpoch := provider.getOldestEligibleEpoch(status.CurrentEpoch)
+	epochStartInfo, err := provider.getEpochStartInfo(oldestEligibleEpoch)
+	if err != nil {
+		return 0, err
 	}
 
-	return uint64(oldest)
+	return epochStartInfo.Nonce, nil
+}
+
+func (provider *networkProvider) getOldestEligibleEpoch(currentEpoch uint32) uint32 {
+	oldestEpoch := int(currentEpoch) - int(provider.numHistoricalEpochs)
+	if oldestEpoch < int(provider.firstHistoricalEpoch) {
+		return provider.firstHistoricalEpoch
+	}
+
+	return uint32(oldestEpoch)
+}
+
+func (provider *networkProvider) getEpochStartInfo(epoch uint32) (*resources.EpochStart, error) {
+	if provider.isOffline {
+		return nil, errIsOffline
+	}
+
+	url := buildUrlGetEpochStartInfo(epoch)
+	response := &resources.EpochStartApiResponse{}
+	err := provider.getResource(url, response)
+	if err != nil {
+		return nil, err
+	}
+
+	return &response.Data.EpochStart, nil
 }

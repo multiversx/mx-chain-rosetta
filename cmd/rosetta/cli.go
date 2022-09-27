@@ -128,10 +128,16 @@ VERSION:
 		Value: "EGLD",
 	}
 
-	cliFlagNumHistoricalBlocks = cli.Uint64Flag{
-		Name:  "num-historical-blocks",
-		Usage: "Specifies the (approximate) number of available historical blocks. Usually, correlated with observer's `NumEpochsToKeep`.",
-		Value: 1500,
+	cliFlagFirstHistoricalEpoch = cli.UintFlag{
+		Name:     "first-historical-epoch",
+		Usage:    "Specifies the first epoch with historical data available in Observer's database.",
+		Required: true,
+	}
+
+	cliFlagNumHistoricalEpochs = cli.UintFlag{
+		Name:     "num-historical-epochs",
+		Usage:    "Provides a hint for the number of historical epochs to be kept.",
+		Required: true,
 	}
 )
 
@@ -154,7 +160,8 @@ func getAllCliFlags() []cli.Flag {
 		cliFlagMinGasLimit,
 		cliFlagGasPerDataByte,
 		cliFlagNativeCurrencySymbol,
-		cliFlagNumHistoricalBlocks,
+		cliFlagFirstHistoricalEpoch,
+		cliFlagNumHistoricalEpochs,
 	}
 }
 
@@ -177,7 +184,8 @@ type parsedCliFlags struct {
 	minGasLimit                 uint64
 	gasPerDataByte              uint64
 	nativeCurrencySymbol        string
-	numHistoricalBlocks         uint64
+	firstHistoricalEpoch        uint32
+	numHistoricalEpochs         uint32
 }
 
 func getParsedCliFlags(ctx *cli.Context) parsedCliFlags {
@@ -200,6 +208,7 @@ func getParsedCliFlags(ctx *cli.Context) parsedCliFlags {
 		minGasLimit:                 ctx.GlobalUint64(cliFlagMinGasLimit.Name),
 		gasPerDataByte:              ctx.GlobalUint64(cliFlagGasPerDataByte.Name),
 		nativeCurrencySymbol:        ctx.GlobalString(cliFlagNativeCurrencySymbol.Name),
-		numHistoricalBlocks:         ctx.GlobalUint64(cliFlagNumHistoricalBlocks.Name),
+		firstHistoricalEpoch:        uint32(ctx.GlobalUint(cliFlagFirstHistoricalEpoch.Name)),
+		numHistoricalEpochs:         uint32(ctx.GlobalUint(cliFlagNumHistoricalEpochs.Name)),
 	}
 }

@@ -34,7 +34,8 @@ type ArgsNewNetworkProvider struct {
 	NativeCurrencySymbol        string
 	GenesisBlockHash            string
 	GenesisTimestamp            int64
-	NumHistoricalBlocks         uint64
+	FirstHistoricalEpoch        uint32
+	NumHistoricalEpochs         uint32
 
 	ObserverFacade observerFacade
 
@@ -53,7 +54,8 @@ type networkProvider struct {
 	nativeCurrencySymbol        string
 	genesisBlockHash            string
 	genesisTimestamp            int64
-	numHistoricalBlocks         uint64
+	firstHistoricalEpoch        uint32
+	numHistoricalEpochs         uint32
 
 	observerFacade observerFacade
 
@@ -85,7 +87,8 @@ func NewNetworkProvider(args ArgsNewNetworkProvider) (*networkProvider, error) {
 		nativeCurrencySymbol:        args.NativeCurrencySymbol,
 		genesisBlockHash:            args.GenesisBlockHash,
 		genesisTimestamp:            args.GenesisTimestamp,
-		numHistoricalBlocks:         args.NumHistoricalBlocks,
+		firstHistoricalEpoch:        args.FirstHistoricalEpoch,
+		numHistoricalEpochs:         args.NumHistoricalEpochs,
 
 		observerFacade: args.ObserverFacade,
 
@@ -415,5 +418,7 @@ func (provider *networkProvider) LogDescription() {
 		"observedProjectedShard", provider.observedProjectedShard,
 		"observedProjectedShardIsSet", provider.observedProjectedShardIsSet,
 		"nativeCurrency", provider.nativeCurrencySymbol,
+		"firstHistoricalEpoch", provider.firstHistoricalEpoch,
+		"numHistoricalEpochs", provider.numHistoricalEpochs,
 	)
 }

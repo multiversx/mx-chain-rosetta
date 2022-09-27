@@ -28,6 +28,8 @@ func TestNewNetworkProvider(t *testing.T) {
 		NativeCurrencySymbol:        "XeGLD",
 		GenesisBlockHash:            "aaaa",
 		GenesisTimestamp:            123456789,
+		FirstHistoricalEpoch:        1000,
+		NumHistoricalEpochs:         1024,
 		ObserverFacade:              testscommon.NewObserverFacadeMock(),
 		Hasher:                      testscommon.RealWorldBlake2bHasher,
 		MarshalizerForHashing:       testscommon.MarshalizerForHashing,
@@ -52,6 +54,8 @@ func TestNewNetworkProvider(t *testing.T) {
 	assert.Equal(t, "XeGLD", provider.GetNativeCurrency().Symbol)
 	assert.Equal(t, "aaaa", provider.GetGenesisBlockSummary().Hash)
 	assert.Equal(t, int64(123456789), provider.GetGenesisTimestamp())
+	assert.Equal(t, uint32(1000), provider.firstHistoricalEpoch)
+	assert.Equal(t, uint32(1024), provider.numHistoricalEpochs)
 }
 
 func TestNetworkProvider_DoGetBlockByNonce(t *testing.T) {
@@ -180,6 +184,5 @@ func createDefaultArgsNewNetworkProvider() ArgsNewNetworkProvider {
 		Hasher:                      testscommon.RealWorldBlake2bHasher,
 		MarshalizerForHashing:       testscommon.MarshalizerForHashing,
 		PubKeyConverter:             testscommon.RealWorldBech32PubkeyConverter,
-		NumHistoricalBlocks:         10000,
 	}
 }
