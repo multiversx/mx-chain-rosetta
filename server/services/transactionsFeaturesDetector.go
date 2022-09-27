@@ -4,7 +4,6 @@ import (
 	"bytes"
 
 	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
-	"github.com/ElrondNetwork/elrond-proxy-go/data"
 )
 
 type transactionsFeaturesDetector struct {
@@ -19,8 +18,8 @@ func newTransactionsFeaturesDetector(provider NetworkProvider) *transactionsFeat
 
 // Example SCRs can be found here: https://api.elrond.com/transactions?function=ClaimDeveloperRewards
 func (extractor *transactionsFeaturesDetector) doesContractResultHoldRewardsOfClaimDeveloperRewards(
-	contractResult *data.FullTransaction,
-	allTransactionsInBlock []*data.FullTransaction,
+	contractResult *transaction.ApiTransactionResult,
+	allTransactionsInBlock []*transaction.ApiTransactionResult,
 ) bool {
 	claimDeveloperRewardsTxs := make(map[string]struct{})
 
@@ -45,7 +44,7 @@ func (extractor *transactionsFeaturesDetector) doesContractResultHoldRewardsOfCl
 // that only consume the "data movement" component of the gas:
 // - "sending value to non-payable contract"
 // - "meta transaction is invalid"
-func (extractor *transactionsFeaturesDetector) isInvalidTransactionOfTypeMoveBalanceThatOnlyConsumesDataMovementGas(tx *data.FullTransaction) bool {
+func (extractor *transactionsFeaturesDetector) isInvalidTransactionOfTypeMoveBalanceThatOnlyConsumesDataMovementGas(tx *transaction.ApiTransactionResult) bool {
 	isInvalid := tx.Type == string(transaction.TxTypeInvalid)
 	isMoveBalance := tx.ProcessingTypeOnSource == transactionProcessingTypeMoveBalance && tx.ProcessingTypeOnDestination == transactionProcessingTypeMoveBalance
 

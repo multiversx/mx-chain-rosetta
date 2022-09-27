@@ -4,6 +4,7 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/ElrondNetwork/elrond-go-core/data/api"
 	"github.com/ElrondNetwork/elrond-proxy-go/common"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/ElrondNetwork/rosetta/server/resources"
@@ -55,7 +56,7 @@ func TestNetworkProvider_GetNodeStatusWithSuccess(t *testing.T) {
 		if nonce == 998 {
 			return &data.BlockApiResponse{
 				Data: data.BlockApiResponsePayload{
-					Block: data.Block{
+					Block: api.Block{
 						Nonce:         998,
 						Hash:          "00000998",
 						PrevBlockHash: "00000997",
@@ -69,7 +70,7 @@ func TestNetworkProvider_GetNodeStatusWithSuccess(t *testing.T) {
 		if nonce == 300 {
 			return &data.BlockApiResponse{
 				Data: data.BlockApiResponsePayload{
-					Block: data.Block{
+					Block: api.Block{
 						Nonce:         300,
 						Hash:          "00000300",
 						PrevBlockHash: "00000299",

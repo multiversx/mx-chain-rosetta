@@ -1,11 +1,12 @@
 package provider
 
 import (
+	"github.com/ElrondNetwork/elrond-go-core/data/api"
 	dataBlock "github.com/ElrondNetwork/elrond-go-core/data/block"
-	"github.com/ElrondNetwork/elrond-proxy-go/data"
+	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
 )
 
-func (provider *networkProvider) simplifyBlockWithScheduledTransactions(block *data.Block) error {
+func (provider *networkProvider) simplifyBlockWithScheduledTransactions(block *api.Block) error {
 	previousBlock, err := provider.doGetBlockByNonce(block.Nonce - 1)
 	if err != nil {
 		return err
@@ -21,7 +22,7 @@ func (provider *networkProvider) simplifyBlockWithScheduledTransactions(block *d
 	return nil
 }
 
-func doSimplifyBlockWithScheduledTransactions(previousBlock *data.Block, block *data.Block, nextBlock *data.Block) {
+func doSimplifyBlockWithScheduledTransactions(previousBlock *api.Block, block *api.Block, nextBlock *api.Block) {
 	// Discard "processed" miniblocks in block N, since they already produced effects in N-1
 	removeProcessedMiniblocksOfBlock(block)
 
@@ -32,14 +33,14 @@ func doSimplifyBlockWithScheduledTransactions(previousBlock *data.Block, block *
 	// Build an artificial miniblock holding the "invalid" transactions that produced their effects in block N,
 	// and replace the existing (one or two "invalid" miniblocks).
 	invalidTxs := gatherInvalidTransactions(previousBlock, block, nextBlock)
-	invalidMiniblock := &data.MiniBlock{
+	invalidMiniblock := &api.MiniBlock{
 		Type:         dataBlock.InvalidBlock.String(),
 		Transactions: invalidTxs,
 	}
 	removeInvalidMiniblocks(block)
 
 	if len(invalidMiniblock.Transactions) > 0 {
-		appendMiniblocksToBlock(block, []*data.MiniBlock{invalidMiniblock})
+		appendMiniblocksToBlock(block, []*api.MiniBlock{invalidMiniblock})
 	}
 
 	// Discard "scheduled" miniblocks of N, since we've already brought the "processed" ones from N+1,
@@ -47,14 +48,14 @@ func doSimplifyBlockWithScheduledTransactions(previousBlock *data.Block, block *
 	removeScheduledMiniblocks(block)
 }
 
-func removeProcessedMiniblocksOfBlock(block *data.Block) {
-	removeMiniblocksFromBlock(block, func(miniblock *data.MiniBlock) bool {
+func removeProcessedMiniblocksOfBlock(block *api.Block) {
+	removeMiniblocksFromBlock(block, func(miniblock *api.MiniBlock) bool {
 		return miniblock.ProcessingType == dataBlock.Processed.String()
 	})
 }
 
-func removeScheduledMiniblocks(block *data.Block) {
-	removeMiniblocksFromBlock(block, func(miniblock *data.MiniBlock) bool {
+func removeScheduledMiniblocks(block *api.Block) {
+	removeMiniblocksFromBlock(block, func(miniblock *api.MiniBlock) bool {
 		hasProcessingTypeScheduled := miniblock.ProcessingType == dataBlock.Scheduled.String()
 		hasConstructionStateNotFinal := miniblock.ConstructionState != dataBlock.Final.String()
 		shouldRemove := hasProcessingTypeScheduled && hasConstructionStateNotFinal
@@ -62,13 +63,13 @@ func removeScheduledMiniblocks(block *data.Block) {
 	})
 }
 
-func removeInvalidMiniblocks(block *data.Block) {
-	removeMiniblocksFromBlock(block, func(miniblock *data.MiniBlock) bool {
+func removeInvalidMiniblocks(block *api.Block) {
+	removeMiniblocksFromBlock(block, func(miniblock *api.MiniBlock) bool {
 		return miniblock.Type == dataBlock.InvalidBlock.String()
 	})
 }
 
-func gatherInvalidTransactions(previousBlock *data.Block, block *data.Block, nextBlock *data.Block) []*data.FullTransaction {
+func gatherInvalidTransactions(previousBlock *api.Block, block *api.Block, nextBlock *api.Block) []*transaction.ApiTransactionResult {
 	// Find "invalid" transactions that are "final" in N
 	invalidTxsInBlock := findInvalidTransactions(block)
 	// If also present in N-1, discard them
@@ -88,7 +89,7 @@ func gatherInvalidTransactions(previousBlock *data.Block, block *data.Block, nex
 	return invalidTxs
 }
 
-func findScheduledTransactionsHashes(block *data.Block) map[string]struct{} {
+func findScheduledTransactionsHashes(block *api.Block) map[string]struct{} {
 	txs := make(map[string]struct{})
 
 	for _, miniblock := range block.MiniBlocks {
@@ -106,8 +107,8 @@ func findScheduledTransactionsHashes(block *data.Block) map[string]struct{} {
 	return txs
 }
 
-func findProcessedMiniblocks(block *data.Block) []*data.MiniBlock {
-	foundMiniblocks := make([]*data.MiniBlock, 0, len(block.MiniBlocks))
+func findProcessedMiniblocks(block *api.Block) []*api.MiniBlock {
+	foundMiniblocks := make([]*api.MiniBlock, 0, len(block.MiniBlocks))
 
 	for _, miniblock := range block.MiniBlocks {
 		if miniblock.ProcessingType == dataBlock.Processed.String() {
@@ -118,8 +119,8 @@ func findProcessedMiniblocks(block *data.Block) []*data.MiniBlock {
 	return foundMiniblocks
 }
 
-func findInvalidTransactions(block *data.Block) []*data.FullTransaction {
-	invalidTxs := make([]*data.FullTransaction, 0)
+func findInvalidTransactions(block *api.Block) []*transaction.ApiTransactionResult {
+	invalidTxs := make([]*transaction.ApiTransactionResult, 0)
 
 	for _, miniblock := range block.MiniBlocks {
 		if miniblock.Type == dataBlock.InvalidBlock.String() {

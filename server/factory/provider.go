@@ -100,6 +100,7 @@ func CreateNetworkProvider(args ArgsCreateNetworkProvider) (networkProvider, err
 		pubKeyConverter,
 		hasher,
 		marshalizerForHashing,
+		false,
 	)
 	if err != nil {
 		return nil, err

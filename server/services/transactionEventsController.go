@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
-	"github.com/ElrondNetwork/elrond-proxy-go/data"
 )
 
 type transactionEventsController struct {
@@ -19,7 +18,7 @@ func newTransactionEventsController(provider NetworkProvider) *transactionEvents
 	}
 }
 
-func (controller *transactionEventsController) findEventByIdentifier(tx *data.FullTransaction, identifier string) (*transaction.Events, error) {
+func (controller *transactionEventsController) findEventByIdentifier(tx *transaction.ApiTransactionResult, identifier string) (*transaction.Events, error) {
 	if !controller.hasEvents(tx) {
 		return nil, errEventNotFound
 	}
@@ -33,7 +32,7 @@ func (controller *transactionEventsController) findEventByIdentifier(tx *data.Fu
 	return nil, errEventNotFound
 }
 
-func (controller *transactionEventsController) extractEventTransferValueOnly(tx *data.FullTransaction) (*eventTransferValueOnly, error) {
+func (controller *transactionEventsController) extractEventTransferValueOnly(tx *transaction.ApiTransactionResult) (*eventTransferValueOnly, error) {
 	event, err := controller.findEventByIdentifier(tx, transactionEventTransferValueOnly)
 	if err != nil {
 		return nil, err
@@ -59,7 +58,7 @@ func (controller *transactionEventsController) extractEventTransferValueOnly(tx 
 	}, nil
 }
 
-func (controller *transactionEventsController) hasSignalErrorOfSendingValueToNonPayableContract(tx *data.FullTransaction) bool {
+func (controller *transactionEventsController) hasSignalErrorOfSendingValueToNonPayableContract(tx *transaction.ApiTransactionResult) bool {
 	if !controller.hasEvents(tx) {
 		return false
 	}
@@ -77,7 +76,7 @@ func (controller *transactionEventsController) hasSignalErrorOfSendingValueToNon
 	return false
 }
 
-func (controller *transactionEventsController) hasSignalErrorOfMetaTransactionIsInvalid(tx *data.FullTransaction) bool {
+func (controller *transactionEventsController) hasSignalErrorOfMetaTransactionIsInvalid(tx *transaction.ApiTransactionResult) bool {
 	if !controller.hasEvents(tx) {
 		return false
 	}
@@ -97,7 +96,7 @@ func (controller *transactionEventsController) hasSignalErrorOfMetaTransactionIs
 	return false
 }
 
-func (controller *transactionEventsController) hasEvents(tx *data.FullTransaction) bool {
+func (controller *transactionEventsController) hasEvents(tx *transaction.ApiTransactionResult) bool {
 	return tx.Logs != nil && tx.Logs.Events != nil && len(tx.Logs.Events) > 0
 }
 

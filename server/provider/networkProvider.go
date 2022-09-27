@@ -6,6 +6,7 @@ import (
 	"math/big"
 
 	"github.com/ElrondNetwork/elrond-go-core/core"
+	"github.com/ElrondNetwork/elrond-go-core/data/api"
 	"github.com/ElrondNetwork/elrond-go-core/data/receipt"
 	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
 	"github.com/ElrondNetwork/elrond-go-core/hashing"
@@ -192,7 +193,7 @@ func (provider *networkProvider) getBlockSummaryByNonce(nonce uint64) (resources
 }
 
 // GetBlockByNonce gets a block by nonce
-func (provider *networkProvider) GetBlockByNonce(nonce uint64) (*data.Block, error) {
+func (provider *networkProvider) GetBlockByNonce(nonce uint64) (*api.Block, error) {
 	if provider.isOffline {
 		return nil, errIsOffline
 	}
@@ -220,7 +221,7 @@ func (provider *networkProvider) GetBlockByNonce(nonce uint64) (*data.Block, err
 	return block, nil
 }
 
-func (provider *networkProvider) doGetBlockByNonce(nonce uint64) (*data.Block, error) {
+func (provider *networkProvider) doGetBlockByNonce(nonce uint64) (*api.Block, error) {
 	queryOptions := common.BlockQueryOptions{
 		WithTransactions: true,
 		WithLogs:         true,
@@ -246,10 +247,10 @@ func (provider *networkProvider) doGetBlockByNonce(nonce uint64) (*data.Block, e
 	return block, nil
 }
 
-func (provider *networkProvider) getBlockByNonceCached(nonce uint64) (*data.Block, bool) {
+func (provider *networkProvider) getBlockByNonceCached(nonce uint64) (*api.Block, bool) {
 	blockUntyped, ok := provider.blocksCache.Get(blockNonceToBytes(nonce))
 	if ok {
-		block, ok := blockUntyped.(*data.Block)
+		block, ok := blockUntyped.(*api.Block)
 		if ok {
 			blockCopy := *block
 			return &blockCopy, true
@@ -259,13 +260,13 @@ func (provider *networkProvider) getBlockByNonceCached(nonce uint64) (*data.Bloc
 	return nil, false
 }
 
-func (provider *networkProvider) cacheBlockByNonce(nonce uint64, block *data.Block) {
+func (provider *networkProvider) cacheBlockByNonce(nonce uint64, block *api.Block) {
 	blockCopy := *block
 	_ = provider.blocksCache.Put(blockNonceToBytes(nonce), &blockCopy, 1)
 }
 
 // GetBlockByHash gets a block by hash
-func (provider *networkProvider) GetBlockByHash(hash string) (*data.Block, error) {
+func (provider *networkProvider) GetBlockByHash(hash string) (*api.Block, error) {
 	if provider.isOffline {
 		return nil, errIsOffline
 	}
@@ -284,7 +285,7 @@ func (provider *networkProvider) GetBlockByHash(hash string) (*data.Block, error
 	return block, nil
 }
 
-func (provider *networkProvider) doGetBlockByHash(hash string) (*data.Block, error) {
+func (provider *networkProvider) doGetBlockByHash(hash string) (*api.Block, error) {
 	queryOptions := common.BlockQueryOptions{
 		WithTransactions: true,
 		WithLogs:         true,
@@ -381,7 +382,7 @@ func (provider *networkProvider) SendTransaction(tx *data.Transaction) (string, 
 }
 
 // GetMempoolTransactionByHash gets a transaction from the pool
-func (provider *networkProvider) GetMempoolTransactionByHash(hash string) (*data.FullTransaction, error) {
+func (provider *networkProvider) GetMempoolTransactionByHash(hash string) (*transaction.ApiTransactionResult, error) {
 	if provider.isOffline {
 		return nil, errIsOffline
 	}
@@ -400,7 +401,7 @@ func (provider *networkProvider) GetMempoolTransactionByHash(hash string) (*data
 
 // ComputeTransactionFeeForMoveBalance computes the fee for a move-balance transaction.
 // TODO: when freeze account feature is merged, this will need to be adapted as well, as for guarded transactions we have an additional gas (limit).
-func (provider *networkProvider) ComputeTransactionFeeForMoveBalance(tx *data.FullTransaction) *big.Int {
+func (provider *networkProvider) ComputeTransactionFeeForMoveBalance(tx *transaction.ApiTransactionResult) *big.Int {
 	minGasLimit := provider.networkConfig.MinGasLimit
 	gasPerDataByte := provider.networkConfig.GasPerDataByte
 	gasLimit := minGasLimit + gasPerDataByte*uint64(len(tx.Data))

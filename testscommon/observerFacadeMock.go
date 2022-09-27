@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/ElrondNetwork/elrond-go-core/data/api"
+	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
 	"github.com/ElrondNetwork/elrond-go/sharding"
 	"github.com/ElrondNetwork/elrond-proxy-go/common"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
@@ -19,8 +21,8 @@ type observerFacadeMock struct {
 	MockNextApiResponseError    string
 
 	MockAccountsByAddress  map[string]*data.Account
-	MockTransactionsByHash map[string]*data.FullTransaction
-	MockBlocks             []*data.Block
+	MockTransactionsByHash map[string]*transaction.ApiTransactionResult
+	MockBlocks             []*api.Block
 
 	GetBlockByNonceCalled     func(shardID uint32, nonce uint64, options common.BlockQueryOptions) (*data.BlockApiResponse, error)
 	GetBlockByHashCalled      func(shardID uint32, hash string, options common.BlockQueryOptions) (*data.BlockApiResponse, error)
@@ -41,8 +43,8 @@ func NewObserverFacadeMock() *observerFacadeMock {
 		MockNextError:               nil,
 
 		MockAccountsByAddress:  make(map[string]*data.Account),
-		MockTransactionsByHash: make(map[string]*data.FullTransaction),
-		MockBlocks: []*data.Block{{
+		MockTransactionsByHash: make(map[string]*transaction.ApiTransactionResult),
+		MockBlocks: []*api.Block{{
 			Nonce: 0,
 			Hash:  "0000",
 		}},
@@ -113,7 +115,7 @@ func (mock *observerFacadeMock) ComputeTransactionHash(tx *data.Transaction) (st
 }
 
 // GetTransactionByHashAndSenderAddress -
-func (mock *observerFacadeMock) GetTransactionByHashAndSenderAddress(hash string, sender string, withEvents bool) (*data.FullTransaction, int, error) {
+func (mock *observerFacadeMock) GetTransactionByHashAndSenderAddress(hash string, sender string, withEvents bool) (*transaction.ApiTransactionResult, int, error) {
 	if mock.MockNextError != nil {
 		return nil, 0, mock.MockNextError
 	}

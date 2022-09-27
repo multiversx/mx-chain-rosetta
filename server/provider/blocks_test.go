@@ -3,13 +3,13 @@ package provider
 import (
 	"testing"
 
-	"github.com/ElrondNetwork/elrond-proxy-go/data"
+	"github.com/ElrondNetwork/elrond-go-core/data/api"
 	"github.com/stretchr/testify/require"
 )
 
 func TestRemoveMiniblocksFromBlock(t *testing.T) {
-	block := &data.Block{
-		MiniBlocks: []*data.MiniBlock{
+	block := &api.Block{
+		MiniBlocks: []*api.MiniBlock{
 			{Hash: "aaaa", SourceShard: 7},
 			{Hash: "bbbb", SourceShard: 8},
 			{Hash: "aabb", SourceShard: 7},
@@ -17,7 +17,7 @@ func TestRemoveMiniblocksFromBlock(t *testing.T) {
 		},
 	}
 
-	shouldRemove := func(miniblock *data.MiniBlock) bool {
+	shouldRemove := func(miniblock *api.MiniBlock) bool {
 		return miniblock.SourceShard == 8
 	}
 
@@ -28,14 +28,14 @@ func TestRemoveMiniblocksFromBlock(t *testing.T) {
 }
 
 func TestAppendMiniblocksToBlock(t *testing.T) {
-	block := &data.Block{
-		MiniBlocks: []*data.MiniBlock{
+	block := &api.Block{
+		MiniBlocks: []*api.MiniBlock{
 			{Hash: "aaaa"},
 			{Hash: "bbbb"},
 		},
 	}
 
-	appendMiniblocksToBlock(block, []*data.MiniBlock{{Hash: "abcd"}, {Hash: "dcba"}})
+	appendMiniblocksToBlock(block, []*api.MiniBlock{{Hash: "abcd"}, {Hash: "dcba"}})
 	require.Len(t, block.MiniBlocks, 4)
 	require.Equal(t, "abcd", block.MiniBlocks[2].Hash)
 	require.Equal(t, "dcba", block.MiniBlocks[3].Hash)

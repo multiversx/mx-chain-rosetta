@@ -5,6 +5,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/ElrondNetwork/elrond-go-core/data/api"
 	"github.com/ElrondNetwork/elrond-proxy-go/common"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/ElrondNetwork/rosetta/testscommon"
@@ -83,7 +84,7 @@ func TestNetworkProvider_DoGetBlockByNonce(t *testing.T) {
 			if nonce == 42 {
 				return &data.BlockApiResponse{
 					Data: data.BlockApiResponsePayload{
-						Block: data.Block{
+						Block: api.Block{
 							Nonce: 42,
 						},
 					},
@@ -111,7 +112,7 @@ func TestNetworkProvider_DoGetBlockByNonce(t *testing.T) {
 		observerFacade.GetBlockByNonceCalled = func(shardID uint32, nonce uint64, options common.BlockQueryOptions) (*data.BlockApiResponse, error) {
 			return &data.BlockApiResponse{
 				Data: data.BlockApiResponsePayload{
-					Block: data.Block{
+					Block: api.Block{
 						Nonce: nonce,
 					},
 				},
@@ -134,9 +135,9 @@ func TestNetworkProvider_DoGetBlockByNonce(t *testing.T) {
 		observerFacade.GetBlockByNonceCalled = func(shardID uint32, nonce uint64, options common.BlockQueryOptions) (*data.BlockApiResponse, error) {
 			return &data.BlockApiResponse{
 				Data: data.BlockApiResponsePayload{
-					Block: data.Block{
+					Block: api.Block{
 						Nonce: nonce,
-						MiniBlocks: []*data.MiniBlock{
+						MiniBlocks: []*api.MiniBlock{
 							{Hash: "aaaa"},
 							{Hash: "bbbb"},
 						},
@@ -152,7 +153,7 @@ func TestNetworkProvider_DoGetBlockByNonce(t *testing.T) {
 		require.Equal(t, 1, provider.blocksCache.Len())
 
 		// Simulate mutations performed by downstream handling of blocks, i.e. "simplifyBlockWithScheduledTransactions":
-		block.MiniBlocks = []*data.MiniBlock{}
+		block.MiniBlocks = []*api.MiniBlock{}
 
 		cachedBlock, err := provider.doGetBlockByNonce(7)
 		require.Nil(t, err)

@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
-	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/ElrondNetwork/rosetta/testscommon"
 	"github.com/stretchr/testify/require"
 )
@@ -14,7 +13,7 @@ func TestFeaturesDetector_IsInvalidTransactionOfTypeMoveBalanceThatOnlyConsumesD
 	detector := newTransactionsFeaturesDetector(networkProvider)
 
 	t.Run("arbitrary tx", func(t *testing.T) {
-		arbitraryTx := &data.FullTransaction{
+		arbitraryTx := &transaction.ApiTransactionResult{
 			Hash:     "aaaa",
 			Sender:   testscommon.TestAddressAlice,
 			Receiver: testscommon.TestAddressBob,
@@ -26,7 +25,7 @@ func TestFeaturesDetector_IsInvalidTransactionOfTypeMoveBalanceThatOnlyConsumesD
 	})
 
 	t.Run("invalid tx with event 'sending value to non-payable contract'", func(t *testing.T) {
-		tx := &data.FullTransaction{
+		tx := &transaction.ApiTransactionResult{
 			ProcessingTypeOnSource:      transactionProcessingTypeMoveBalance,
 			ProcessingTypeOnDestination: transactionProcessingTypeMoveBalance,
 			Hash:                        "bbbb",
@@ -50,7 +49,7 @@ func TestFeaturesDetector_IsInvalidTransactionOfTypeMoveBalanceThatOnlyConsumesD
 	})
 
 	t.Run("invalid tx with event 'invalid meta transaction'", func(t *testing.T) {
-		tx := &data.FullTransaction{
+		tx := &transaction.ApiTransactionResult{
 			ProcessingTypeOnSource:      transactionProcessingTypeMoveBalance,
 			ProcessingTypeOnDestination: transactionProcessingTypeMoveBalance,
 			Hash:                        "cccc",

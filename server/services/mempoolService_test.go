@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
-	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/ElrondNetwork/rosetta/testscommon"
 	"github.com/coinbase/rosetta-sdk-go/server"
 	"github.com/coinbase/rosetta-sdk-go/types"
@@ -26,7 +25,7 @@ func TestMempoolService_MempoolTransaction(t *testing.T) {
 	extension := newNetworkProviderExtension(networkProvider)
 	service := NewMempoolService(networkProvider)
 
-	networkProvider.MockMempoolTransactionsByHash["aaaa"] = &data.FullTransaction{
+	networkProvider.MockMempoolTransactionsByHash["aaaa"] = &transaction.ApiTransactionResult{
 		Hash:     "aaaa",
 		Type:     string(transaction.TxTypeNormal),
 		Receiver: testscommon.TestAddressBob,

@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
-	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/ElrondNetwork/rosetta/testscommon"
 	"github.com/stretchr/testify/require"
 )
@@ -14,13 +13,13 @@ func TestTransactionEventsController_HasSignalErrorOfSendingValueToNonPayableCon
 	controller := newTransactionEventsController(networkProvider)
 
 	t.Run("arbitrary tx", func(t *testing.T) {
-		tx := &data.FullTransaction{}
+		tx := &transaction.ApiTransactionResult{}
 		txMatches := controller.hasSignalErrorOfSendingValueToNonPayableContract(tx)
 		require.False(t, txMatches)
 	})
 
 	t.Run("invalid tx with event 'sending value to non-payable contract'", func(t *testing.T) {
-		tx := &data.FullTransaction{
+		tx := &transaction.ApiTransactionResult{
 			Logs: &transaction.ApiLogs{
 
 				Events: []*transaction.Events{
@@ -42,13 +41,13 @@ func TestTransactionEventsController_HasSignalErrorOfMetaTransactionIsInvalid(t 
 	controller := newTransactionEventsController(networkProvider)
 
 	t.Run("arbitrary tx", func(t *testing.T) {
-		tx := &data.FullTransaction{}
+		tx := &transaction.ApiTransactionResult{}
 		txMatches := controller.hasSignalErrorOfMetaTransactionIsInvalid(tx)
 		require.False(t, txMatches)
 	})
 
 	t.Run("invalid tx with event 'invalid meta transaction'", func(t *testing.T) {
-		tx := &data.FullTransaction{
+		tx := &transaction.ApiTransactionResult{
 			Logs: &transaction.ApiLogs{
 
 				Events: []*transaction.Events{
