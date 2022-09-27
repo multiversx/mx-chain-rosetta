@@ -96,7 +96,6 @@ In order to locally re-build a database with historical lookup support, one shou
 ...
 [StoragePruning]
     AccountsTrieCleanOldEpochsData = false
-    NumEpochsToKeep = 128 # a desired history length
 ...
 [StateTriesConfig]
     AccountsStatePruningEnabled = false
@@ -106,11 +105,9 @@ In order to locally re-build a database with historical lookup support, one shou
 ...
 ```
 
-The **source** database (e.g. located in `./import-db/db`) should normally be a recent node database including epoch `N`, while the **destination** database (e.g. located in `./db`) should contain epoch `N - NumEpochsToKeep - 1` with an intact `AccountsTries` (i.e. not removed due to the default `NumEpochsToKeep = 3` and `AccountsTrieCleanOldEpochsData = true`).
+The **source** database (e.g. located in `./import-db/db`) should normally be a recent node database, while the **destination** database (e.g. located in `./db`) should contain a desired _starting epoch_ `N` as it's latest epoch - with intact `AccountsTries` (i.e. not removed due to `AccountsTrieCleanOldEpochsData = true`).
 
 ### Download archives
-
-_**Note:** the information in this section is preliminary and subject to change. It is expected to stabilize ~4 weeks after the release of [elrond-go v1.3.37](https://github.com/ElrondNetwork/elrond-go/releases/tag/v1.3.37)._
 
 An archive supporting historical lookup is available to download [on request](https://t.me/ElrondDevelopers), from a cloud-based, S3-compatible storage.
 
@@ -185,6 +182,36 @@ done
 
 The folder `~/historical-workspace/db` is now ready to be copied to the observer's working directory.
 
+## Storage Pruning
+
+At this moment, we only support a [storage pruning](https://www.rosetta-api.org/docs/storage_pruning.html#docsNav) mechanism that is **manually triggered** - the Observer behind Rosetta does not perform any _automatic pruning_. Instead, removing old epochs should be performed as follows:
+ - stop Observer and Rosetta
+ - remove epochs `[oldest, ..., latest - N - s]` (where `N` is the desired number of historical epochs, and `s = 2`, see below) from `/db/{chainID}` (or `/data/{chainID}` when using the Docker setup)
+ - start Observer and Rosetta
+
+The constant `s = 2` is needed to overcome possible snapshotting-related edge-cases, still present as of September 2022 (the use of this constant will become obsolete in future releases).
+
+### **Pruning example**
+
+For example, let's say that the `/db/{chainID}` (or `/data/{chainID}`) folder contains:
+ - the folder `Static`
+ - the folders `Epoch_1000, Epoch_1001, ..., Epoch_2022`.
+
+Now, assume that you'd like to only have historical support for the latest `N = 22` epochs. Therefore, let's remove `[oldest, ..., latest - N - s] = [1000, ..., 1998]` epochs. In the end, the `/db/{chainID}` (or `/data/{chainID}`) folder contains:  
+ - the folder `Static`
+ - the folders `Epoch_1999`, `Epoch_2000`, ... `Epoch_2022` (a number of `N + s = 24` epochs)
+
+Then, when starting the Rosetta instance, you need to specify the `--first-historical-epoch` and `--num-historical-epochs` as follows:
+ - `--first-historical-epoch = oldest + s = 1999 + 2 = 2001`
+ - `--num-historical-epochs = N = 22`
+
+The parameters and `--first-historical-epoch` and `--num-historical-epochs` are used to compute the [`oldest_block_identifier`](https://www.rosetta-api.org/docs/models/NetworkStatusResponse.html), using this formula:
+
+```
+oldest_epoch = max(first_historical_epoch, current_epoch - num_historical_epochs)
+
+oldest_block_identifier = first block of oldest_epoch
+```
 
 ## Implementation notes
 
