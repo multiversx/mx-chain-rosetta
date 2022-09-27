@@ -9,5 +9,5 @@ const (
 
 	// NodeVersion is the canonical version of the node runtime
 	// TODO: We should fetch this from node/status.
-	NodeVersion = "feat/rosetta"
+	NodeVersion = "v1.3.42-rosetta1"
 )
