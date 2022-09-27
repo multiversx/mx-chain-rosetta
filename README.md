@@ -195,14 +195,14 @@ The constant `s = 2` is needed to overcome possible snapshotting-related edge-ca
 
 For example, let's say that the `/db/{chainID}` (or `/data/{chainID}`) folder contains:
  - the folder `Static`
- - the folders `Epoch_1000, Epoch_1001, ..., Epoch_2022`.
+ - the folders `Epoch_500, Epoch_501, ..., Epoch_1022`.
 
-Now, assume that you'd like to only have historical support for the latest `N = 22` epochs. Therefore, let's remove `[oldest, ..., latest - N - s] = [1000, ..., 1998]` epochs. In the end, the `/db/{chainID}` (or `/data/{chainID}`) folder contains:  
+Now, assume that you'd like to only have historical support for the latest `N = 22` epochs. Therefore, let's remove `[oldest, ..., latest - N - s] = [500, ..., 998]` epochs. In the end, the `/db/{chainID}` (or `/data/{chainID}`) folder contains:  
  - the folder `Static`
- - the folders `Epoch_1999`, `Epoch_2000`, ... `Epoch_2022` (a number of `N + s = 24` epochs)
+ - the folders `Epoch_999`, `Epoch_1000`, ... `Epoch_1022` (a number of `N + s = 24` epochs)
 
 Then, when starting the Rosetta instance, you need to specify the `--first-historical-epoch` and `--num-historical-epochs` as follows:
- - `--first-historical-epoch = oldest + s = 1999 + 2 = 2001`
+ - `--first-historical-epoch = oldest + s = 999 + 2 = 1001`
  - `--num-historical-epochs = N = 22`
 
 The parameters and `--first-historical-epoch` and `--num-historical-epochs` are used to compute the [`oldest_block_identifier`](https://www.rosetta-api.org/docs/models/NetworkStatusResponse.html), using this formula:
