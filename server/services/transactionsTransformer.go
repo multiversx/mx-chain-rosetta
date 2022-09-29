@@ -71,6 +71,8 @@ func (transformer *transactionsTransformer) transformTxsOfBlock(block *api.Block
 			return nil, err
 		}
 
+		filteredOperations = filterOutOperationsWithZeroAmount(filteredOperations)
+
 		applyDefaultStatusOnOperations(filteredOperations)
 		rosettaTx.Operations = filteredOperations
 	}
