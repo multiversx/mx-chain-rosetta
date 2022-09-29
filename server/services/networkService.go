@@ -28,13 +28,13 @@ func (service *networkService) NetworkList(
 	_ context.Context,
 	_ *types.MetadataRequest,
 ) (*types.NetworkListResponse, *types.Error) {
-	chainID := service.provider.GetChainID()
+	network := service.provider.GetNetworkConfig().NetworkName
 
 	return &types.NetworkListResponse{
 		NetworkIdentifiers: []*types.NetworkIdentifier{
 			{
 				Blockchain: service.provider.GetBlockchainName(),
-				Network:    chainID,
+				Network:    network,
 			},
 		},
 	}, nil

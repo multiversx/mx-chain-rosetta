@@ -5,6 +5,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/ElrondNetwork/elrond-go-core/data/api"
 	"github.com/ElrondNetwork/elrond-proxy-go/common"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/ElrondNetwork/rosetta/server/resources"
@@ -21,7 +22,8 @@ func TestNewNetworkProvider(t *testing.T) {
 		ObservedProjectedShardIsSet: true,
 		ObserverUrl:                 "http://my-observer:8080",
 		ObserverPubkey:              "abba",
-		ChainID:                     "T",
+		NetworkID:                   "T",
+		NetworkName:                 "testnet",
 		GasPerDataByte:              1501,
 		MinGasPrice:                 1000000001,
 		MinGasLimit:                 50001,
@@ -29,6 +31,8 @@ func TestNewNetworkProvider(t *testing.T) {
 		CustomCurrenciesSymbols:     []string{"FOO-abcdef", "BAR-abcdef"},
 		GenesisBlockHash:            "aaaa",
 		GenesisTimestamp:            123456789,
+		FirstHistoricalEpoch:        1000,
+		NumHistoricalEpochs:         1024,
 		ObserverFacade:              testscommon.NewObserverFacadeMock(),
 		Hasher:                      testscommon.RealWorldBlake2bHasher,
 		MarshalizerForHashing:       testscommon.MarshalizerForHashing,
@@ -45,8 +49,8 @@ func TestNewNetworkProvider(t *testing.T) {
 	assert.Equal(t, true, provider.observedProjectedShardIsSet)
 	assert.Equal(t, "http://my-observer:8080", provider.observerUrl)
 	assert.Equal(t, "abba", provider.GetObserverPubkey())
-	assert.Equal(t, "T", provider.GetChainID())
-	assert.Equal(t, "T", provider.GetNetworkConfig().ChainID)
+	assert.Equal(t, "T", provider.GetNetworkConfig().NetworkID)
+	assert.Equal(t, "testnet", provider.GetNetworkConfig().NetworkName)
 	assert.Equal(t, uint64(1501), provider.GetNetworkConfig().GasPerDataByte)
 	assert.Equal(t, uint64(1000000001), provider.GetNetworkConfig().MinGasPrice)
 	assert.Equal(t, uint64(50001), provider.GetNetworkConfig().MinGasLimit)
@@ -54,6 +58,8 @@ func TestNewNetworkProvider(t *testing.T) {
 	assert.Equal(t, []resources.Currency{{Symbol: "FOO-abcdef"}, {Symbol: "BAR-abcdef"}}, provider.GetCustomCurrencies())
 	assert.Equal(t, "aaaa", provider.GetGenesisBlockSummary().Hash)
 	assert.Equal(t, int64(123456789), provider.GetGenesisTimestamp())
+	assert.Equal(t, uint32(1000), provider.firstHistoricalEpoch)
+	assert.Equal(t, uint32(1024), provider.numHistoricalEpochs)
 }
 
 func TestNetworkProvider_DoGetBlockByNonce(t *testing.T) {
@@ -81,7 +87,7 @@ func TestNetworkProvider_DoGetBlockByNonce(t *testing.T) {
 			if nonce == 42 {
 				return &data.BlockApiResponse{
 					Data: data.BlockApiResponsePayload{
-						Block: data.Block{
+						Block: api.Block{
 							Nonce: 42,
 						},
 					},
@@ -109,7 +115,7 @@ func TestNetworkProvider_DoGetBlockByNonce(t *testing.T) {
 		observerFacade.GetBlockByNonceCalled = func(shardID uint32, nonce uint64, options common.BlockQueryOptions) (*data.BlockApiResponse, error) {
 			return &data.BlockApiResponse{
 				Data: data.BlockApiResponsePayload{
-					Block: data.Block{
+					Block: api.Block{
 						Nonce: nonce,
 					},
 				},
@@ -132,9 +138,9 @@ func TestNetworkProvider_DoGetBlockByNonce(t *testing.T) {
 		observerFacade.GetBlockByNonceCalled = func(shardID uint32, nonce uint64, options common.BlockQueryOptions) (*data.BlockApiResponse, error) {
 			return &data.BlockApiResponse{
 				Data: data.BlockApiResponsePayload{
-					Block: data.Block{
+					Block: api.Block{
 						Nonce: nonce,
-						MiniBlocks: []*data.MiniBlock{
+						MiniBlocks: []*api.MiniBlock{
 							{Hash: "aaaa"},
 							{Hash: "bbbb"},
 						},
@@ -150,7 +156,7 @@ func TestNetworkProvider_DoGetBlockByNonce(t *testing.T) {
 		require.Equal(t, 1, provider.blocksCache.Len())
 
 		// Simulate mutations performed by downstream handling of blocks, i.e. "simplifyBlockWithScheduledTransactions":
-		block.MiniBlocks = []*data.MiniBlock{}
+		block.MiniBlocks = []*api.MiniBlock{}
 
 		cachedBlock, err := provider.doGetBlockByNonce(7)
 		require.Nil(t, err)
@@ -171,7 +177,7 @@ func createDefaultArgsNewNetworkProvider() ArgsNewNetworkProvider {
 		ObservedProjectedShardIsSet: false,
 		ObserverUrl:                 "http://my-observer:8080",
 		ObserverPubkey:              "MY-OBSERVER",
-		ChainID:                     "T",
+		NetworkID:                   "T",
 		GasPerDataByte:              1500,
 		MinGasPrice:                 1000000000,
 		MinGasLimit:                 50000,
@@ -182,6 +188,5 @@ func createDefaultArgsNewNetworkProvider() ArgsNewNetworkProvider {
 		Hasher:                      testscommon.RealWorldBlake2bHasher,
 		MarshalizerForHashing:       testscommon.MarshalizerForHashing,
 		PubKeyConverter:             testscommon.RealWorldBech32PubkeyConverter,
-		NumHistoricalBlocks:         10000,
 	}
 }

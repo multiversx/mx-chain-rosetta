@@ -3,12 +3,12 @@ package provider
 import (
 	"testing"
 
-	"github.com/ElrondNetwork/elrond-proxy-go/data"
+	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
 	"github.com/stretchr/testify/require"
 )
 
 func TestDiscardTransactions(t *testing.T) {
-	transactions := []*data.FullTransaction{
+	transactions := []*transaction.ApiTransactionResult{
 		{Hash: "aaaa"},
 		{Hash: "bbbb"},
 		{Hash: "aabb"},
@@ -23,7 +23,7 @@ func TestDiscardTransactions(t *testing.T) {
 }
 
 func TestFilterTransactions(t *testing.T) {
-	transactions := []*data.FullTransaction{
+	transactions := []*transaction.ApiTransactionResult{
 		{Hash: "aaaa"},
 		{Hash: "bbbb"},
 		{Hash: "aabb"},
@@ -38,7 +38,7 @@ func TestFilterTransactions(t *testing.T) {
 }
 
 func TestDeduplicateTransactions(t *testing.T) {
-	transactions := []*data.FullTransaction{
+	transactions := []*transaction.ApiTransactionResult{
 		{Hash: "aaaa"},
 		{Hash: "bbbb"},
 		{Hash: "aabb"},

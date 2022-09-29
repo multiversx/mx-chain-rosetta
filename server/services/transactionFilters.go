@@ -2,12 +2,11 @@ package services
 
 import (
 	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
-	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/coinbase/rosetta-sdk-go/types"
 )
 
-func filterOutIntrashardContractResultsWhoseOriginalTransactionIsInInvalidMiniblock(txs []*data.FullTransaction) []*data.FullTransaction {
-	filteredTxs := make([]*data.FullTransaction, 0, len(txs))
+func filterOutIntrashardContractResultsWhoseOriginalTransactionIsInInvalidMiniblock(txs []*transaction.ApiTransactionResult) []*transaction.ApiTransactionResult {
+	filteredTxs := make([]*transaction.ApiTransactionResult, 0, len(txs))
 	invalidTxs := make(map[string]struct{})
 
 	for _, tx := range txs {
@@ -30,8 +29,8 @@ func filterOutIntrashardContractResultsWhoseOriginalTransactionIsInInvalidMinibl
 	return filteredTxs
 }
 
-func filterOutIntrashardRelayedTransactionAlreadyHeldInInvalidMiniblock(txs []*data.FullTransaction) []*data.FullTransaction {
-	filteredTxs := make([]*data.FullTransaction, 0, len(txs))
+func filterOutIntrashardRelayedTransactionAlreadyHeldInInvalidMiniblock(txs []*transaction.ApiTransactionResult) []*transaction.ApiTransactionResult {
+	filteredTxs := make([]*transaction.ApiTransactionResult, 0, len(txs))
 	invalidTxs := make(map[string]struct{})
 
 	for _, tx := range txs {

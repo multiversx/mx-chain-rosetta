@@ -74,10 +74,16 @@ VERSION:
 		Value: strings.Repeat("0", 64),
 	}
 
-	cliFlagChainID = cli.StringFlag{
-		Name:  "chain-id",
-		Usage: "Specifies the Chain ID.",
-		Value: "1",
+	cliFlagNetworkID = cli.StringFlag{
+		Name:     "network-id",
+		Usage:    "Specifies the network ID (e.g. 1, D, T)",
+		Required: true,
+	}
+
+	cliFlagNetworkName = cli.StringFlag{
+		Name:     "network-name",
+		Usage:    "Specifies the network name (e.g. mainnet, devnet, testnet).",
+		Required: true,
 	}
 
 	cliFlagNumShards = cli.UintFlag{
@@ -122,16 +128,22 @@ VERSION:
 		Value: "EGLD",
 	}
 
+	cliFlagFirstHistoricalEpoch = cli.UintFlag{
+		Name:     "first-historical-epoch",
+		Usage:    "Specifies the first epoch with historical data available in Observer's database.",
+		Required: true,
+	}
+
+	cliFlagNumHistoricalEpochs = cli.UintFlag{
+		Name:     "num-historical-epochs",
+		Usage:    "Provides a hint for the number of historical epochs to be kept.",
+		Required: true,
+	}
+
 	cliFlagCustomCurrenciesSymbols = cli.StringSliceFlag{
 		Name:  "custom-currencies",
 		Usage: "Specifies the symbols of enabled custom currencies (i.e. ESDT identifiers).",
 		Value: &cli.StringSlice{},
-	}
-
-	cliFlagNumHistoricalBlocks = cli.Uint64Flag{
-		Name:  "num-historical-blocks",
-		Usage: "Specifies the (approximate) number of available historical blocks. Usually, correlated with observer's `NumEpochsToKeep`.",
-		Value: 1500,
 	}
 )
 
@@ -145,7 +157,8 @@ func getAllCliFlags() []cli.Flag {
 		cliFlagObserverProjectedShard,
 		cliFlagObserverHttpUrl,
 		cliFlagObserverPubKey,
-		cliFlagChainID,
+		cliFlagNetworkID,
+		cliFlagNetworkName,
 		cliFlagNumShards,
 		cliFlagGenesisBlock,
 		cliFlagGenesisTimestamp,
@@ -153,8 +166,9 @@ func getAllCliFlags() []cli.Flag {
 		cliFlagMinGasLimit,
 		cliFlagGasPerDataByte,
 		cliFlagNativeCurrencySymbol,
+		cliFlagFirstHistoricalEpoch,
+		cliFlagNumHistoricalEpochs,
 		cliFlagCustomCurrenciesSymbols,
-		cliFlagNumHistoricalBlocks,
 	}
 }
 
@@ -168,7 +182,8 @@ type parsedCliFlags struct {
 	observerProjectedShardIsSet bool
 	observerHttpUrl             string
 	observerPubkey              string
-	chainID                     string
+	networkID                   string
+	networkName                 string
 	numShards                   uint32
 	genesisBlock                string
 	genesisTimestamp            int64
@@ -176,8 +191,9 @@ type parsedCliFlags struct {
 	minGasLimit                 uint64
 	gasPerDataByte              uint64
 	nativeCurrencySymbol        string
+	firstHistoricalEpoch        uint32
+	numHistoricalEpochs         uint32
 	customCurrenciesSymbols     []string
-	numHistoricalBlocks         uint64
 }
 
 func getParsedCliFlags(ctx *cli.Context) parsedCliFlags {
@@ -191,7 +207,8 @@ func getParsedCliFlags(ctx *cli.Context) parsedCliFlags {
 		observerProjectedShardIsSet: ctx.GlobalIsSet(cliFlagObserverProjectedShard.Name),
 		observerHttpUrl:             ctx.GlobalString(cliFlagObserverHttpUrl.Name),
 		observerPubkey:              ctx.GlobalString(cliFlagObserverPubKey.Name),
-		chainID:                     ctx.GlobalString(cliFlagChainID.Name),
+		networkID:                   ctx.GlobalString(cliFlagNetworkID.Name),
+		networkName:                 ctx.GlobalString(cliFlagNetworkName.Name),
 		numShards:                   uint32(ctx.GlobalUint(cliFlagNumShards.Name)),
 		genesisBlock:                ctx.GlobalString(cliFlagGenesisBlock.Name),
 		genesisTimestamp:            ctx.GlobalInt64(cliFlagGenesisTimestamp.Name),
@@ -199,7 +216,8 @@ func getParsedCliFlags(ctx *cli.Context) parsedCliFlags {
 		minGasLimit:                 ctx.GlobalUint64(cliFlagMinGasLimit.Name),
 		gasPerDataByte:              ctx.GlobalUint64(cliFlagGasPerDataByte.Name),
 		nativeCurrencySymbol:        ctx.GlobalString(cliFlagNativeCurrencySymbol.Name),
+		firstHistoricalEpoch:        uint32(ctx.GlobalUint(cliFlagFirstHistoricalEpoch.Name)),
+		numHistoricalEpochs:         uint32(ctx.GlobalUint(cliFlagNumHistoricalEpochs.Name)),
 		customCurrenciesSymbols:     ctx.GlobalStringSlice(cliFlagCustomCurrenciesSymbols.Name),
-		numHistoricalBlocks:         ctx.GlobalUint64(cliFlagNumHistoricalBlocks.Name),
 	}
 }

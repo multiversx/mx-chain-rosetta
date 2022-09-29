@@ -3,12 +3,12 @@ package services
 import (
 	"encoding/hex"
 
-	"github.com/ElrondNetwork/elrond-proxy-go/data"
+	"github.com/ElrondNetwork/elrond-go-core/data/api"
 	"github.com/ElrondNetwork/rosetta/server/resources"
 	"github.com/coinbase/rosetta-sdk-go/types"
 )
 
-func blockToIdentifier(block *data.Block) *types.BlockIdentifier {
+func blockToIdentifier(block *api.Block) *types.BlockIdentifier {
 	return &types.BlockIdentifier{
 		Index: int64(block.Nonce),
 		Hash:  block.Hash,

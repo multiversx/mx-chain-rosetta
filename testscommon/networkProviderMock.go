@@ -7,6 +7,7 @@ import (
 
 	"github.com/ElrondNetwork/elrond-go-core/core"
 	"github.com/ElrondNetwork/elrond-go-core/core/pubkeyConverter"
+	"github.com/ElrondNetwork/elrond-go-core/data/api"
 	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
 	"github.com/ElrondNetwork/elrond-go/sharding"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
@@ -34,13 +35,13 @@ type networkProviderMock struct {
 	MockNetworkConfig               *resources.NetworkConfig
 	MockGenesisBalances             []*resources.GenesisBalance
 	MockNodeStatus                  *resources.AggregatedNodeStatus
-	MockBlocksByNonce               map[uint64]*data.Block
-	MockBlocksByHash                map[string]*data.Block
+	MockBlocksByNonce               map[uint64]*api.Block
+	MockBlocksByHash                map[string]*api.Block
 	MockNextAccountBlockCoordinates *resources.BlockCoordinates
 	MockAccountsByAddress           map[string]*resources.Account
 	MockAccountsNativeBalances      map[string]*resources.AccountNativeBalance
 	MockAccountsESDTBalances        map[string]*resources.AccountESDTBalance
-	MockMempoolTransactionsByHash   map[string]*data.FullTransaction
+	MockMempoolTransactionsByHash   map[string]*transaction.ApiTransactionResult
 	MockComputedTransactionHash     string
 	MockComputedReceiptHash         string
 	MockNextError                   error
@@ -65,7 +66,8 @@ func NewNetworkProviderMock() *networkProviderMock {
 		MockGenesisBlockHash:            emptyHash,
 		MockGenesisTimestamp:            genesisTimestamp,
 		MockNetworkConfig: &resources.NetworkConfig{
-			ChainID:        "test",
+			NetworkID:      "T",
+			NetworkName:    "testnet",
 			GasPerDataByte: 1500,
 			MinGasPrice:    1000000000,
 			MinGasLimit:    50000,
@@ -86,8 +88,8 @@ func NewNetworkProviderMock() *networkProviderMock {
 				Timestamp:         genesisTimestamp,
 			},
 		},
-		MockBlocksByNonce: make(map[uint64]*data.Block),
-		MockBlocksByHash:  make(map[string]*data.Block),
+		MockBlocksByNonce: make(map[uint64]*api.Block),
+		MockBlocksByHash:  make(map[string]*api.Block),
 		MockNextAccountBlockCoordinates: &resources.BlockCoordinates{
 			Nonce:    0,
 			Hash:     emptyHash,
@@ -96,7 +98,7 @@ func NewNetworkProviderMock() *networkProviderMock {
 		MockAccountsByAddress:         make(map[string]*resources.Account),
 		MockAccountsNativeBalances:    make(map[string]*resources.AccountNativeBalance),
 		MockAccountsESDTBalances:      make(map[string]*resources.AccountESDTBalance),
-		MockMempoolTransactionsByHash: make(map[string]*data.FullTransaction),
+		MockMempoolTransactionsByHash: make(map[string]*transaction.ApiTransactionResult),
 		MockComputedTransactionHash:   emptyHash,
 		MockNextError:                 nil,
 	}
@@ -110,11 +112,6 @@ func (mock *networkProviderMock) IsOffline() bool {
 // GetBlockchainName -
 func (mock *networkProviderMock) GetBlockchainName() string {
 	return resources.BlockchainName
-}
-
-// GetChainID -
-func (mock *networkProviderMock) GetChainID() string {
-	return mock.MockNetworkConfig.ChainID
 }
 
 // GetNativeCurrency -
@@ -190,7 +187,7 @@ func (mock *networkProviderMock) GetNodeStatus() (*resources.AggregatedNodeStatu
 }
 
 // GetBlockByNonce -
-func (mock *networkProviderMock) GetBlockByNonce(nonce uint64) (*data.Block, error) {
+func (mock *networkProviderMock) GetBlockByNonce(nonce uint64) (*api.Block, error) {
 	if mock.MockNextError != nil {
 		return nil, mock.MockNextError
 	}
@@ -204,7 +201,7 @@ func (mock *networkProviderMock) GetBlockByNonce(nonce uint64) (*data.Block, err
 }
 
 // GetBlockByHash -
-func (mock *networkProviderMock) GetBlockByHash(hash string) (*data.Block, error) {
+func (mock *networkProviderMock) GetBlockByHash(hash string) (*api.Block, error) {
 	if mock.MockNextError != nil {
 		return nil, mock.MockNextError
 	}
@@ -324,7 +321,7 @@ func (mock *networkProviderMock) ComputeReceiptHash(apiReceipt *transaction.ApiR
 }
 
 // ComputeTransactionFeeForMoveBalance -
-func (mock *networkProviderMock) ComputeTransactionFeeForMoveBalance(tx *data.FullTransaction) *big.Int {
+func (mock *networkProviderMock) ComputeTransactionFeeForMoveBalance(tx *transaction.ApiTransactionResult) *big.Int {
 	minGasLimit := mock.MockNetworkConfig.MinGasLimit
 	gasPerDataByte := mock.MockNetworkConfig.GasPerDataByte
 	gasLimit := minGasLimit + gasPerDataByte*uint64(len(tx.Data))
@@ -347,7 +344,7 @@ func (mock *networkProviderMock) SendTransaction(tx *data.Transaction) (string, 
 }
 
 // GetMempoolTransactionByHash -
-func (mock *networkProviderMock) GetMempoolTransactionByHash(hash string) (*data.FullTransaction, error) {
+func (mock *networkProviderMock) GetMempoolTransactionByHash(hash string) (*transaction.ApiTransactionResult, error) {
 	if mock.MockNextError != nil {
 		return nil, mock.MockNextError
 	}

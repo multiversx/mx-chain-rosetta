@@ -12,7 +12,7 @@ import (
 
 func TestNetworkService_NetworkList(t *testing.T) {
 	networkProvider := testscommon.NewNetworkProviderMock()
-	networkProvider.MockNetworkConfig.ChainID = "T"
+	networkProvider.MockNetworkConfig.NetworkName = "testnet"
 	service := NewNetworkService(networkProvider)
 
 	response, err := service.NetworkList(context.Background(), nil)
@@ -20,13 +20,12 @@ func TestNetworkService_NetworkList(t *testing.T) {
 	require.Nil(t, err)
 	require.Equal(t, []*types.NetworkIdentifier{{
 		Blockchain: "Elrond",
-		Network:    "T",
+		Network:    "testnet",
 	}}, response.NetworkIdentifiers)
 }
 
 func TestNetworkService_NetworkOptions(t *testing.T) {
 	networkProvider := testscommon.NewNetworkProviderMock()
-	networkProvider.MockNetworkConfig.ChainID = "T"
 	service := NewNetworkService(networkProvider)
 
 	networkOptions, err := service.NetworkOptions(context.Background(), nil)
@@ -47,7 +46,6 @@ func TestNetworkService_NetworkOptions(t *testing.T) {
 
 func TestNetworkService_NetworkStatus(t *testing.T) {
 	networkProvider := testscommon.NewNetworkProviderMock()
-	networkProvider.MockNetworkConfig.ChainID = "T"
 	networkProvider.MockObserverPubkey = "my-computer"
 	networkProvider.MockGenesisBlockHash = "genesisHash"
 	networkProvider.MockNodeStatus.LatestBlock.Nonce = 42

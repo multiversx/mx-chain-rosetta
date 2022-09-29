@@ -3,18 +3,19 @@ package provider
 import (
 	"testing"
 
+	"github.com/ElrondNetwork/elrond-go-core/data/api"
 	dataBlock "github.com/ElrondNetwork/elrond-go-core/data/block"
-	"github.com/ElrondNetwork/elrond-proxy-go/data"
+	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
 	"github.com/stretchr/testify/require"
 )
 
 func TestGatherInvalidTransactions(t *testing.T) {
 	// Block N-1
-	previousBlock := &data.Block{
-		MiniBlocks: []*data.MiniBlock{
+	previousBlock := &api.Block{
+		MiniBlocks: []*api.MiniBlock{
 			{
 				Type: dataBlock.InvalidBlock.String(),
-				Transactions: []*data.FullTransaction{
+				Transactions: []*transaction.ApiTransactionResult{
 					{Hash: "aaaa"},
 				},
 			},
@@ -22,18 +23,18 @@ func TestGatherInvalidTransactions(t *testing.T) {
 	}
 
 	// Block N
-	block := &data.Block{
-		MiniBlocks: []*data.MiniBlock{
+	block := &api.Block{
+		MiniBlocks: []*api.MiniBlock{
 			{
 				ProcessingType: dataBlock.Scheduled.String(),
-				Transactions: []*data.FullTransaction{
+				Transactions: []*transaction.ApiTransactionResult{
 					{Hash: "bbbb"},
 					{Hash: "cccc"},
 				},
 			},
 			{
 				Type: dataBlock.InvalidBlock.String(),
-				Transactions: []*data.FullTransaction{
+				Transactions: []*transaction.ApiTransactionResult{
 					{Hash: "bbbb"},
 				},
 			},
@@ -41,17 +42,17 @@ func TestGatherInvalidTransactions(t *testing.T) {
 	}
 
 	// Block N+1
-	nextBlock := &data.Block{
-		MiniBlocks: []*data.MiniBlock{
+	nextBlock := &api.Block{
+		MiniBlocks: []*api.MiniBlock{
 			{
 				ProcessingType: dataBlock.Processed.String(),
-				Transactions: []*data.FullTransaction{
+				Transactions: []*transaction.ApiTransactionResult{
 					{Hash: "cccc"},
 				},
 			},
 			{
 				Type: dataBlock.InvalidBlock.String(),
-				Transactions: []*data.FullTransaction{
+				Transactions: []*transaction.ApiTransactionResult{
 					{Hash: "bbbb"},
 					{Hash: "eeee"},
 				},
@@ -70,11 +71,11 @@ func TestGatherInvalidTransactions_WhenIntraShardIsMissingInPreviousBlock(t *tes
 	// Edge case on start of epoch.
 
 	// Block N-1
-	previousBlock := &data.Block{
-		MiniBlocks: []*data.MiniBlock{
+	previousBlock := &api.Block{
+		MiniBlocks: []*api.MiniBlock{
 			{
 				ProcessingType: dataBlock.Scheduled.String(),
-				Transactions: []*data.FullTransaction{
+				Transactions: []*transaction.ApiTransactionResult{
 					{Hash: "aaaa"},
 				},
 			},
@@ -84,18 +85,18 @@ func TestGatherInvalidTransactions_WhenIntraShardIsMissingInPreviousBlock(t *tes
 	}
 
 	// Block N
-	block := &data.Block{
-		MiniBlocks: []*data.MiniBlock{
+	block := &api.Block{
+		MiniBlocks: []*api.MiniBlock{
 			{
 				ProcessingType: dataBlock.Scheduled.String(),
-				Transactions: []*data.FullTransaction{
+				Transactions: []*transaction.ApiTransactionResult{
 					{Hash: "abab"},
 					{Hash: "cccc"},
 				},
 			},
 			{
 				Type: dataBlock.InvalidBlock.String(),
-				Transactions: []*data.FullTransaction{
+				Transactions: []*transaction.ApiTransactionResult{
 					{Hash: "aaaa"},
 				},
 			},
@@ -103,7 +104,7 @@ func TestGatherInvalidTransactions_WhenIntraShardIsMissingInPreviousBlock(t *tes
 				// Intra-shard miniblock, holds both "aaaa" (scheduled in N-1, with effects in N)
 				// and "abab" (scheduled in N, with effects in N)
 				Type: dataBlock.InvalidBlock.String(),
-				Transactions: []*data.FullTransaction{
+				Transactions: []*transaction.ApiTransactionResult{
 					{Hash: "aaaa"},
 					{Hash: "abab"},
 				},
@@ -112,17 +113,17 @@ func TestGatherInvalidTransactions_WhenIntraShardIsMissingInPreviousBlock(t *tes
 	}
 
 	// Block N+1
-	nextBlock := &data.Block{
-		MiniBlocks: []*data.MiniBlock{
+	nextBlock := &api.Block{
+		MiniBlocks: []*api.MiniBlock{
 			{
 				ProcessingType: dataBlock.Processed.String(),
-				Transactions: []*data.FullTransaction{
+				Transactions: []*transaction.ApiTransactionResult{
 					{Hash: "cccc"},
 				},
 			},
 			{
 				Type: dataBlock.InvalidBlock.String(),
-				Transactions: []*data.FullTransaction{
+				Transactions: []*transaction.ApiTransactionResult{
 					{Hash: "abab"},
 				},
 			},
@@ -139,16 +140,16 @@ func TestDoSimplifyBlockWithScheduledTransactions_WithRespectToConstructionState
 	// Edge case on cross-shard miniblocks, both scheduled and final.
 
 	// Empty, trivial blocks at N-1 and N+1
-	previousBlock := &data.Block{MiniBlocks: []*data.MiniBlock{}}
-	nextBlock := &data.Block{MiniBlocks: []*data.MiniBlock{}}
+	previousBlock := &api.Block{MiniBlocks: []*api.MiniBlock{}}
+	nextBlock := &api.Block{MiniBlocks: []*api.MiniBlock{}}
 
 	// Scheduled & Final (won't be removed)
-	block := &data.Block{
-		MiniBlocks: []*data.MiniBlock{
+	block := &api.Block{
+		MiniBlocks: []*api.MiniBlock{
 			{
 				ProcessingType:    dataBlock.Scheduled.String(),
 				ConstructionState: dataBlock.Final.String(),
-				Transactions: []*data.FullTransaction{
+				Transactions: []*transaction.ApiTransactionResult{
 					{Hash: "aaaa"},
 					{Hash: "bbbb"},
 				},
@@ -163,11 +164,11 @@ func TestDoSimplifyBlockWithScheduledTransactions_WithRespectToConstructionState
 	require.Equal(t, "bbbb", block.MiniBlocks[0].Transactions[1].Hash)
 
 	// Scheduled & !Final (will be removed)
-	block = &data.Block{
-		MiniBlocks: []*data.MiniBlock{
+	block = &api.Block{
+		MiniBlocks: []*api.MiniBlock{
 			{
 				ProcessingType: dataBlock.Scheduled.String(),
-				Transactions: []*data.FullTransaction{
+				Transactions: []*transaction.ApiTransactionResult{
 					{Hash: "aaaa"},
 					{Hash: "bbbb"},
 				},

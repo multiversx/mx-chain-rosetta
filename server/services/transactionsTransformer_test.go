@@ -6,7 +6,8 @@ import (
 	"testing"
 
 	"github.com/ElrondNetwork/elrond-go-core/core"
-	"github.com/ElrondNetwork/elrond-proxy-go/data"
+	"github.com/ElrondNetwork/elrond-go-core/data/api"
+	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
 	"github.com/ElrondNetwork/rosetta/server/resources"
 	"github.com/ElrondNetwork/rosetta/testscommon"
 	"github.com/coinbase/rosetta-sdk-go/types"
@@ -18,7 +19,7 @@ func TestTransactionsTransformer_UnsignedTxToRosettaTx(t *testing.T) {
 	extension := newNetworkProviderExtension(networkProvider)
 	transformer := newTransactionsTransformer(networkProvider)
 
-	refundTx := &data.FullTransaction{
+	refundTx := &transaction.ApiTransactionResult{
 		Hash:     "aaaa",
 		Sender:   testscommon.TestAddressOfContract,
 		Receiver: testscommon.TestAddressAlice,
@@ -37,7 +38,7 @@ func TestTransactionsTransformer_UnsignedTxToRosettaTx(t *testing.T) {
 		},
 	}
 
-	moveBalanceTx := &data.FullTransaction{
+	moveBalanceTx := &transaction.ApiTransactionResult{
 		Hash:     "aaaa",
 		Sender:   testscommon.TestAddressOfContract,
 		Receiver: testscommon.TestAddressAlice,
@@ -60,7 +61,7 @@ func TestTransactionsTransformer_UnsignedTxToRosettaTx(t *testing.T) {
 		},
 	}
 
-	txsInBlock := []*data.FullTransaction{refundTx, moveBalanceTx}
+	txsInBlock := []*transaction.ApiTransactionResult{refundTx, moveBalanceTx}
 
 	rosettaFefundTx := transformer.unsignedTxToRosettaTx(refundTx, txsInBlock)
 	rosettaMoveBalanceTx := transformer.unsignedTxToRosettaTx(moveBalanceTx, txsInBlock)
@@ -140,8 +141,8 @@ func TestTransactionsTransformer_TransformTxsOfBlockWithESDTIssue(t *testing.T) 
 	require.Equal(t, expectedTransferSCR, txs[1])
 }
 
-func readTestBlocks(filePath string) ([]*data.Block, error) {
-	var blocks []*data.Block
+func readTestBlocks(filePath string) ([]*api.Block, error) {
+	var blocks []*api.Block
 
 	err := readJson(filePath, &blocks)
 	if err != nil {

@@ -32,7 +32,8 @@ type ArgsCreateNetworkProvider struct {
 	ObservedProjectedShardIsSet bool
 	ObserverUrl                 string
 	ObserverPubkey              string
-	ChainID                     string
+	NetworkID                   string
+	NetworkName                 string
 	GasPerDataByte              uint64
 	MinGasPrice                 uint64
 	MinGasLimit                 uint64
@@ -40,7 +41,8 @@ type ArgsCreateNetworkProvider struct {
 	CustomCurrenciesSymbols     []string
 	GenesisBlockHash            string
 	GenesisTimestamp            int64
-	NumHistoricalBlocks         uint64
+	FirstHistoricalEpoch        uint32
+	NumHistoricalEpochs         uint32
 }
 
 // CreateNetworkProvider creates a network provider
@@ -99,6 +101,7 @@ func CreateNetworkProvider(args ArgsCreateNetworkProvider) (networkProvider, err
 		pubKeyConverter,
 		hasher,
 		marshalizerForHashing,
+		false,
 	)
 	if err != nil {
 		return nil, err
@@ -116,7 +119,8 @@ func CreateNetworkProvider(args ArgsCreateNetworkProvider) (networkProvider, err
 		ObservedProjectedShardIsSet: args.ObservedProjectedShardIsSet,
 		ObserverUrl:                 args.ObserverUrl,
 		ObserverPubkey:              args.ObserverPubkey,
-		ChainID:                     args.ChainID,
+		NetworkID:                   args.NetworkID,
+		NetworkName:                 args.NetworkName,
 		GasPerDataByte:              args.GasPerDataByte,
 		MinGasPrice:                 args.MinGasPrice,
 		MinGasLimit:                 args.MinGasLimit,
@@ -124,7 +128,8 @@ func CreateNetworkProvider(args ArgsCreateNetworkProvider) (networkProvider, err
 		CustomCurrenciesSymbols:     args.CustomCurrenciesSymbols,
 		GenesisBlockHash:            args.GenesisBlockHash,
 		GenesisTimestamp:            args.GenesisTimestamp,
-		NumHistoricalBlocks:         args.NumHistoricalBlocks,
+		FirstHistoricalEpoch:        args.FirstHistoricalEpoch,
+		NumHistoricalEpochs:         args.NumHistoricalEpochs,
 
 		ObserverFacade: &components.ObserverFacade{
 			Processor:            baseProcessor,

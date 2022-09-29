@@ -4,8 +4,8 @@ import (
 	"context"
 	"testing"
 
+	"github.com/ElrondNetwork/elrond-go-core/data/api"
 	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
-	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/ElrondNetwork/rosetta/testscommon"
 	"github.com/coinbase/rosetta-sdk-go/server"
 	"github.com/coinbase/rosetta-sdk-go/types"
@@ -14,11 +14,10 @@ import (
 
 func TestBlockService_BlockByIndex(t *testing.T) {
 	networkProvider := testscommon.NewNetworkProviderMock()
-	networkProvider.MockNetworkConfig.ChainID = "T"
 	networkProvider.MockNumShards = 1
 	extension := newNetworkProviderExtension(networkProvider)
 
-	networkProvider.MockBlocksByNonce[7] = &data.Block{
+	networkProvider.MockBlocksByNonce[7] = &api.Block{
 		Hash:          "0007",
 		Nonce:         7,
 		Timestamp:     1,
@@ -26,9 +25,9 @@ func TestBlockService_BlockByIndex(t *testing.T) {
 		Epoch:         1,
 		Round:         42,
 		Status:        "on-chain",
-		MiniBlocks: []*data.MiniBlock{
+		MiniBlocks: []*api.MiniBlock{
 			{
-				Transactions: []*data.FullTransaction{
+				Transactions: []*transaction.ApiTransactionResult{
 					{
 						Hash:             "aaaa",
 						Type:             string(transaction.TxTypeNormal),
@@ -42,7 +41,7 @@ func TestBlockService_BlockByIndex(t *testing.T) {
 		},
 	}
 
-	networkProvider.MockBlocksByNonce[8] = &data.Block{
+	networkProvider.MockBlocksByNonce[8] = &api.Block{
 		Hash:          "0008",
 		Nonce:         8,
 		Timestamp:     2,
@@ -50,7 +49,7 @@ func TestBlockService_BlockByIndex(t *testing.T) {
 		Epoch:         1,
 		Round:         43,
 		Status:        "on-chain",
-		MiniBlocks:    []*data.MiniBlock{{Transactions: []*data.FullTransaction{}}},
+		MiniBlocks:    []*api.MiniBlock{{Transactions: []*transaction.ApiTransactionResult{}}},
 	}
 
 	service := NewBlockService(networkProvider)

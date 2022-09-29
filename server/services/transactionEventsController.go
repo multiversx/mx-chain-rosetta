@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
-	"github.com/ElrondNetwork/elrond-proxy-go/data"
 )
 
 type transactionEventsController struct {
@@ -19,7 +18,7 @@ func newTransactionEventsController(provider NetworkProvider) *transactionEvents
 	}
 }
 
-func (controller *transactionEventsController) hasSignalErrorOfSendingValueToNonPayableContract(tx *data.FullTransaction) bool {
+func (controller *transactionEventsController) hasSignalErrorOfSendingValueToNonPayableContract(tx *transaction.ApiTransactionResult) bool {
 	if !controller.hasEvents(tx) {
 		return false
 	}
@@ -37,7 +36,7 @@ func (controller *transactionEventsController) hasSignalErrorOfSendingValueToNon
 	return false
 }
 
-func (controller *transactionEventsController) extractEventsESDTOrESDTNFTTransfers(tx *data.FullTransaction) ([]*eventESDTOrESDTNFTTransfer, error) {
+func (controller *transactionEventsController) extractEventsESDTOrESDTNFTTransfers(tx *transaction.ApiTransactionResult) ([]*eventESDTOrESDTNFTTransfer, error) {
 	rawEventsESDTTransfer := controller.findManyEventsByIdentifier(tx, transactionEventESDTTransfer)
 	rawEventsESDTNFTTransfer := controller.findManyEventsByIdentifier(tx, transactionEventESDTNFTTransfer)
 	rawEventsMultiESDTNFTTransfer := controller.findManyEventsByIdentifier(tx, transactionEventMultiESDTNFTTransfer)
@@ -75,11 +74,11 @@ func (controller *transactionEventsController) extractEventsESDTOrESDTNFTTransfe
 	return typedEvents, nil
 }
 
-func (controller *transactionEventsController) hasEvents(tx *data.FullTransaction) bool {
+func (controller *transactionEventsController) hasEvents(tx *transaction.ApiTransactionResult) bool {
 	return tx.Logs != nil && tx.Logs.Events != nil && len(tx.Logs.Events) > 0
 }
 
-func (controller *transactionEventsController) findManyEventsByIdentifier(tx *data.FullTransaction, identifier string) []*transaction.Events {
+func (controller *transactionEventsController) findManyEventsByIdentifier(tx *transaction.ApiTransactionResult, identifier string) []*transaction.Events {
 	events := make([]*transaction.Events, 0)
 
 	if !controller.hasEvents(tx) {
@@ -95,7 +94,7 @@ func (controller *transactionEventsController) findManyEventsByIdentifier(tx *da
 	return events
 }
 
-func (controller *transactionEventsController) hasSignalErrorOfMetaTransactionIsInvalid(tx *data.FullTransaction) bool {
+func (controller *transactionEventsController) hasSignalErrorOfMetaTransactionIsInvalid(tx *transaction.ApiTransactionResult) bool {
 	if !controller.hasEvents(tx) {
 		return false
 	}

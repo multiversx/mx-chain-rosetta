@@ -1,11 +1,12 @@
 package resources
 
-// NetworkConfig is an API resource
+// NetworkConfig is a resource
 type NetworkConfig struct {
-	ChainID        string `json:"erd_chain_id"`
-	GasPerDataByte uint64 `json:"erd_gas_per_data_byte"`
-	MinGasPrice    uint64 `json:"erd_min_gas_price"`
-	MinGasLimit    uint64 `json:"erd_min_gas_limit"`
+	NetworkID      string
+	NetworkName    string
+	GasPerDataByte uint64
+	MinGasPrice    uint64
+	MinGasLimit    uint64
 }
 
 // NodeStatusApiResponse is an API resource
@@ -24,6 +25,23 @@ type NodeStatus struct {
 	IsSyncing         int    `json:"erd_is_syncing"`
 	HighestNonce      uint64 `json:"erd_nonce"`
 	HighestFinalNonce uint64 `json:"erd_highest_final_nonce"`
+	CurrentEpoch      uint32 `json:"erd_epoch_number"`
+}
+
+// EpochStartApiResponse is an API resource
+type EpochStartApiResponse struct {
+	resourceApiResponse
+	Data EpochStartApiResponsePayload `json:"data"`
+}
+
+// EpochStartApiResponsePayload is an API resource
+type EpochStartApiResponsePayload struct {
+	EpochStart EpochStart `json:"epochStart"`
+}
+
+// EpochStart is an API resource
+type EpochStart struct {
+	Nonce uint64 `json:"nonce"`
 }
 
 // AggregatedNodeStatus is an aggregated resource

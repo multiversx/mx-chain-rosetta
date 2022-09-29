@@ -11,6 +11,7 @@ import (
 
 var (
 	urlPathGetNodeStatus                        = "/node/status"
+	urlPathGetEpochStartInfo                    = "/node/epoch-start/%d"
 	urlPathGetGenesisBalances                   = "/network/genesis-balances"
 	urlPathGetAccount                           = "/address/%s"
 	urlPathGetAccountNativeBalance              = "/address/%s/balance"
@@ -19,6 +20,10 @@ var (
 	urlParameterAccountQueryOptionsBlockNonce   = "blockNonce"
 	urlParameterAccountQueryOptionsBlockHash    = "blockHash"
 )
+
+func buildUrlGetEpochStartInfo(epoch uint32) string {
+	return fmt.Sprintf(urlPathGetEpochStartInfo, epoch)
+}
 
 func buildUrlGetAccount(address string) string {
 	options := resources.NewAccountQueryOptionsOnFinalBlock()
