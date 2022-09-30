@@ -21,5 +21,6 @@ var (
 	transactionEventESDTTransfer                = "ESDTTransfer"
 	transactionEventESDTNFTTransfer             = "ESDTNFTTransfer"
 	transactionEventMultiESDTNFTTransfer        = "MultiESDTNFTTransfer"
+	transactionEventESDTLocalBurn               = "ESDTLocalBurn"
 	transactionEventTopicInvalidMetaTransaction = "meta transaction is invalid"
 )

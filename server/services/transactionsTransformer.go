@@ -281,6 +281,11 @@ func (transformer *transactionsTransformer) addOperationsGivenTransactionEvents(
 		return err
 	}
 
+	eventsESDTLocalBurn, err := transformer.eventsController.extractEventsESDTLocalBurn(tx)
+	if err != nil {
+		return err
+	}
+
 	for _, event := range eventsESDTTransfer {
 		if !transformer.provider.HasCustomCurrency(event.identifier) {
 			// We are only emitting balance-changing operations for supported currencies.
@@ -297,6 +302,23 @@ func (transformer *transactionsTransformer) addOperationsGivenTransactionEvents(
 				Type:    opESDTTransfer,
 				Account: addressToAccountIdentifier(event.receiver),
 				Amount:  transformer.extension.valueToCustomAmount(event.value, event.getComposedIdentifier()),
+			},
+		}
+
+		rosettaTx.Operations = append(rosettaTx.Operations, operations...)
+	}
+
+	for _, event := range eventsESDTLocalBurn {
+		if !transformer.provider.HasCustomCurrency(event.identifier) {
+			// We are only emitting balance-changing operations for supported currencies.
+			continue
+		}
+
+		operations := []*types.Operation{
+			{
+				Type:    opESDTTransfer,
+				Account: addressToAccountIdentifier(event.address),
+				Amount:  transformer.extension.valueToCustomAmount("-"+event.value, event.getComposedIdentifier()),
 			},
 		}
 

@@ -74,6 +74,32 @@ func (controller *transactionEventsController) extractEventsESDTOrESDTNFTTransfe
 	return typedEvents, nil
 }
 
+func (controller *transactionEventsController) extractEventsESDTLocalBurn(tx *transaction.ApiTransactionResult) ([]*eventESDTLocalBurn, error) {
+	rawEvents := controller.findManyEventsByIdentifier(tx, transactionEventESDTLocalBurn)
+	typedEvents := make([]*eventESDTLocalBurn, 0, len(rawEvents))
+
+	for _, event := range rawEvents {
+		numTopics := len(event.Topics)
+		if numTopics != 3 {
+			return nil, fmt.Errorf("%w: bad number of topics for ESDTLocalBurn event = %d", errCannotRecognizeEvent, numTopics)
+		}
+
+		identifider := event.Topics[0]
+		nonceAsBytes := event.Topics[1]
+		valueBytes := event.Topics[2]
+		value := big.NewInt(0).SetBytes(valueBytes)
+
+		typedEvents = append(typedEvents, &eventESDTLocalBurn{
+			address:      event.Address,
+			identifier:   string(identifider),
+			nonceAsBytes: nonceAsBytes,
+			value:        value.String(),
+		})
+	}
+
+	return typedEvents, nil
+}
+
 func (controller *transactionEventsController) hasEvents(tx *transaction.ApiTransactionResult) bool {
 	return tx.Logs != nil && tx.Logs.Events != nil && len(tx.Logs.Events) > 0
 }
