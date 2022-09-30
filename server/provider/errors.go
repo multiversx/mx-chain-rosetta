@@ -4,6 +4,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strconv"
+	"strings"
+	"unicode"
+
+	"github.com/ElrondNetwork/rosetta/server/resources"
 )
 
 var errIsOffline = errors.New("server is in offline mode")
@@ -45,4 +50,32 @@ func convertStructuredApiErrToFlatErr(apiErr error) error {
 type structuredApiError struct {
 	Error string `json:"error"`
 	Code  string `json:"code"`
+}
+
+// parseBlockCoordinatesIfErrAccountNotFoundAtBlock parses block coordinates from errors such as:
+// "get esdt balance for account error: account was not found at block: nonce = ..., hash = ..."
+// Perhap we should handle these situations on Node API and return appropriately structured errors.
+func parseBlockCoordinatesIfErrAccountNotFoundAtBlock(inputErr error) (resources.BlockCoordinates, bool) {
+	errMessage := inputErr.Error()
+
+	if !strings.Contains(errMessage, "account was not found at block") {
+		return resources.BlockCoordinates{}, false
+	}
+
+	parts := strings.FieldsFunc(errMessage, func(c rune) bool {
+		return !unicode.IsLetter(c) && !unicode.IsNumber(c)
+	})
+
+	nonce, err := strconv.ParseUint(parts[13], 10, 64)
+	if err != nil {
+		log.Warn("cannot parse block coordinates from error", "inputErr", inputErr, "err", err)
+		return resources.BlockCoordinates{}, false
+	}
+
+	hash := parts[15]
+
+	return resources.BlockCoordinates{
+		Nonce: nonce,
+		Hash:  hash,
+	}, true
 }
