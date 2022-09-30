@@ -23,6 +23,7 @@ var (
 		opFeeOfInvalidTx,
 		opGenesisBalanceMovement,
 		opFeeRefund,
+		opESDTTransfer,
 	}
 
 	opStatusSuccess = "Success"
