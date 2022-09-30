@@ -35,12 +35,24 @@ type AccountNativeBalance struct {
 // AccountESDTBalanceApiResponse defines an account resource
 type AccountESDTBalanceApiResponse struct {
 	resourceApiResponse
-	Data AccountESDTBalance `json:"data"`
+	Data AccountESDTBalanceApiResponsePayload `json:"data"`
+}
+
+// AccountESDTBalanceApiResponsePayload is an API resource
+type AccountESDTBalanceApiResponsePayload struct {
+	TokenData        AccountESDTTokenData `json:"tokenData"`
+	BlockCoordinates BlockCoordinates     `json:"blockInfo"`
+}
+
+// AccountESDTTokenData defines an account resource
+type AccountESDTTokenData struct {
+	Identifier string `json:"tokenIdentifier"`
+	Balance    string `json:"balance"`
+	Properties string `json:"properties"`
 }
 
 // AccountESDTBalance defines an account resource
 type AccountESDTBalance struct {
-	Balance          string           `json:"balance"`
-	Properties       string           `json:"properties"`
-	BlockCoordinates BlockCoordinates `json:"blockInfo"`
+	Balance          string
+	BlockCoordinates BlockCoordinates
 }

@@ -1,6 +1,8 @@
 package provider
 
-import "github.com/ElrondNetwork/rosetta/server/resources"
+import (
+	"github.com/ElrondNetwork/rosetta/server/resources"
+)
 
 // GetAccount gets an account by address
 func (provider *networkProvider) GetAccount(address string) (*resources.AccountOnBlock, error) {
@@ -55,6 +57,14 @@ func (provider *networkProvider) GetAccountESDTBalance(address string, tokenIden
 
 	err := provider.getResource(url, response)
 	if err != nil {
+		blockCoordinates, ok := parseBlockCoordinatesIfErrAccountNotFoundAtBlock(err)
+		if ok {
+			return &resources.AccountESDTBalance{
+				Balance:          "0",
+				BlockCoordinates: blockCoordinates,
+			}, nil
+		}
+
 		return nil, newErrCannotGetAccount(address, err)
 	}
 
@@ -62,11 +72,15 @@ func (provider *networkProvider) GetAccountESDTBalance(address string, tokenIden
 
 	log.Trace("GetAccountESDTBalance()",
 		"address", address,
-		"balance", data.Balance,
+		"tokenIdentifier", tokenIdentifier,
+		"balance", data.TokenData.Balance,
 		"block", data.BlockCoordinates.Nonce,
 		"blockHash", data.BlockCoordinates.Hash,
 		"blockRootHash", data.BlockCoordinates.RootHash,
 	)
 
-	return data, nil
+	return &resources.AccountESDTBalance{
+		Balance:          data.TokenData.Balance,
+		BlockCoordinates: data.BlockCoordinates,
+	}, nil
 }
