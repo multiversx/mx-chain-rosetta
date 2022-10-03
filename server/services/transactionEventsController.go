@@ -59,8 +59,8 @@ func (controller *transactionEventsController) extractEventsESDTOrESDTNFTTransfe
 		valueBytes := event.Topics[2]
 		receiverPubkey := event.Topics[3]
 
-		receiver := controller.provider.ConvertPubKeyToAddress(receiverPubkey)
 		value := big.NewInt(0).SetBytes(valueBytes)
+		receiver := controller.provider.ConvertPubKeyToAddress(receiverPubkey)
 
 		typedEvents = append(typedEvents, &eventESDTOrESDTNFTTransfer{
 			sender:       event.Address,
@@ -117,6 +117,35 @@ func (controller *transactionEventsController) extractEventsESDTLocalMint(tx *tr
 
 		typedEvents = append(typedEvents, &eventESDTLocalMint{
 			address:      event.Address,
+			identifier:   string(identifider),
+			nonceAsBytes: nonceAsBytes,
+			value:        value.String(),
+		})
+	}
+
+	return typedEvents, nil
+}
+
+func (controller *transactionEventsController) extractEventsESDTWipe(tx *transaction.ApiTransactionResult) ([]*eventESDTWipe, error) {
+	rawEvents := controller.findManyEventsByIdentifier(tx, transactionEventESDTWipe)
+	typedEvents := make([]*eventESDTWipe, 0, len(rawEvents))
+
+	for _, event := range rawEvents {
+		numTopics := len(event.Topics)
+		if numTopics != 4 {
+			return nil, fmt.Errorf("%w: bad number of topics for ESDTWipe event = %d", errCannotRecognizeEvent, numTopics)
+		}
+
+		identifider := event.Topics[0]
+		nonceAsBytes := event.Topics[1]
+		valueBytes := event.Topics[2]
+		accountPubkey := event.Topics[3]
+
+		value := big.NewInt(0).SetBytes(valueBytes)
+		accountAddress := controller.provider.ConvertPubKeyToAddress(accountPubkey)
+
+		typedEvents = append(typedEvents, &eventESDTWipe{
+			address:      accountAddress,
 			identifier:   string(identifider),
 			nonceAsBytes: nonceAsBytes,
 			value:        value.String(),
