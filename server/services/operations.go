@@ -15,14 +15,16 @@ const (
 )
 
 var (
-	// SupportedOperationTypes is a list of the supported operations.
+	// SupportedOperationTypes is a list of the supported operations
 	SupportedOperationTypes = []string{
+		opGenesisBalanceMovement,
 		opTransfer,
 		opFee,
 		opReward,
 		opScResult,
+		opFeeRefundAsScResult,
+		opDeveloperRewardsAsScResult,
 		opFeeOfInvalidTx,
-		opGenesisBalanceMovement,
 		opFeeRefund,
 	}
 
