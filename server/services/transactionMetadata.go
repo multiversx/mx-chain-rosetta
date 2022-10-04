@@ -22,10 +22,10 @@ func extractTransactionMetadata(tx *transaction.ApiTransactionResult) objectsMap
 		metadata["originalSender"] = tx.OriginalSender
 	}
 	if len(tx.SenderUsername) > 0 {
-		metadata["senderUsername"] = tx.SenderUsername
+		metadata["senderUsername"] = string(tx.SenderUsername)
 	}
 	if len(tx.ReceiverUsername) > 0 {
-		metadata["receiverUsername"] = tx.ReceiverUsername
+		metadata["receiverUsername"] = string(tx.ReceiverUsername)
 	}
 	if len(tx.OriginalTransactionHash) > 0 {
 		metadata["originalTransaction"] = tx.OriginalTransactionHash

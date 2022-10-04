@@ -71,6 +71,7 @@ func getLatestNonceGivenHighestFinalNonce(highestFinalNonce uint64) (uint64, err
 	if highestFinalNonce <= nonceDelta {
 		return 0, errCannotGetLatestBlockNonce
 	}
+
 	return highestFinalNonce - nonceDelta, nil
 }
 
