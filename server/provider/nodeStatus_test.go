@@ -113,6 +113,20 @@ func TestNetworkProvider_GetNodeStatusWithError(t *testing.T) {
 	require.Nil(t, err)
 	require.NotNil(t, provider)
 
+	observerFacade.CallGetRestEndPointCalled = func(baseUrl, path string, value interface{}) (int, error) {
+		if path == "/node/status" {
+			value.(*resources.NodeStatusApiResponse).Data = resources.NodeStatusApiResponsePayload{
+				Status: resources.NodeStatus{
+					HighestFinalNonce: 42,
+				},
+			}
+
+			return 0, nil
+		}
+
+		return 0, errors.New("unexpected request")
+	}
+
 	observerFacade.GetBlockByNonceCalled = func(shardID uint32, nonce uint64, options common.BlockQueryOptions) (*data.BlockApiResponse, error) {
 		return nil, errors.New("arbitrary error")
 	}
@@ -120,6 +134,58 @@ func TestNetworkProvider_GetNodeStatusWithError(t *testing.T) {
 	nodeStatus, err := provider.GetNodeStatus()
 	require.Nil(t, nodeStatus)
 	require.ErrorContains(t, err, "arbitrary error")
+}
+
+func TestNetworkProvider_GetLatestBlockNonce(t *testing.T) {
+	observerFacade := testscommon.NewObserverFacadeMock()
+	args := createDefaultArgsNewNetworkProvider()
+	args.ObserverFacade = observerFacade
+	args.FirstHistoricalEpoch = 2
+	args.NumHistoricalEpochs = 8
+
+	provider, err := NewNetworkProvider(args)
+	require.Nil(t, err)
+	require.NotNil(t, provider)
+
+	t.Run("when HighestFinalNonce <= 2 (node didn't start syncing)", func(t *testing.T) {
+		observerFacade.CallGetRestEndPointCalled = func(baseUrl, path string, value interface{}) (int, error) {
+			if path == "/node/status" {
+				value.(*resources.NodeStatusApiResponse).Data = resources.NodeStatusApiResponsePayload{
+					Status: resources.NodeStatus{
+						HighestFinalNonce: 0,
+					},
+				}
+
+				return 0, nil
+			}
+
+			return 0, errors.New("unexpected request")
+		}
+
+		nonce, err := provider.getLatestBlockNonce()
+		require.Error(t, errCannotGetLatestBlockNonce, err)
+		require.Equal(t, uint64(0), nonce)
+	})
+
+	t.Run("when HighestFinalNonce > 2", func(t *testing.T) {
+		observerFacade.CallGetRestEndPointCalled = func(baseUrl, path string, value interface{}) (int, error) {
+			if path == "/node/status" {
+				value.(*resources.NodeStatusApiResponse).Data = resources.NodeStatusApiResponsePayload{
+					Status: resources.NodeStatus{
+						HighestFinalNonce: 42,
+					},
+				}
+
+				return 0, nil
+			}
+
+			return 0, errors.New("unexpected request")
+		}
+
+		nonce, err := provider.getLatestBlockNonce()
+		require.Nil(t, err)
+		require.Equal(t, uint64(40), nonce)
+	})
 }
 
 func TestGetOldestNonceWithHistoricalStateGivenNodeStatus(t *testing.T) {
