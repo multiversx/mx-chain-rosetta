@@ -11,6 +11,7 @@ const (
 	opFeeOfInvalidTx         = "FeeOfInvalidTransaction"
 	opFeeRefund              = "FeeRefund"
 	opESDTTransfer           = "ESDTTransfer"
+	// TODO: perhaps other operations for burn / mint / wipe?
 )
 
 var (
