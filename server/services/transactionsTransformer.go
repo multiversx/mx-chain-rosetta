@@ -115,7 +115,7 @@ func (transformer *transactionsTransformer) unsignedTxToRosettaTx(
 			TransactionIdentifier: hashToTransactionIdentifier(scr.Hash),
 			Operations: []*types.Operation{
 				{
-					Type:    opScResult,
+					Type:    opFeeRefundAsScResult,
 					Account: addressToAccountIdentifier(scr.Receiver),
 					Amount:  transformer.extension.valueToNativeAmount(scr.Value),
 				},
@@ -128,7 +128,7 @@ func (transformer *transactionsTransformer) unsignedTxToRosettaTx(
 			TransactionIdentifier: hashToTransactionIdentifier(scr.Hash),
 			Operations: []*types.Operation{
 				{
-					Type:    opScResult,
+					Type:    opDeveloperRewardsAsScResult,
 					Account: addressToAccountIdentifier(scr.Receiver),
 					Amount:  transformer.extension.valueToNativeAmount(scr.Value),
 				},
@@ -150,6 +150,7 @@ func (transformer *transactionsTransformer) unsignedTxToRosettaTx(
 				Amount:  transformer.extension.valueToNativeAmount(scr.Value),
 			},
 		},
+		Metadata: extractTransactionMetadata(scr),
 	}
 }
 
@@ -193,6 +194,7 @@ func (transformer *transactionsTransformer) moveBalanceTxToRosetta(tx *transacti
 	return &types.Transaction{
 		TransactionIdentifier: hashToTransactionIdentifier(tx.Hash),
 		Operations:            operations,
+		Metadata:              extractTransactionMetadata(tx),
 	}
 }
 
@@ -246,6 +248,7 @@ func (transformer *transactionsTransformer) invalidTxToRosettaTx(tx *transaction
 				Amount:  transformer.extension.valueToNativeAmount("-" + fee),
 			},
 		},
+		Metadata: extractTransactionMetadata(tx),
 	}
 }
 
@@ -272,6 +275,7 @@ func (transformer *transactionsTransformer) mempoolMoveBalanceTxToRosettaTx(tx *
 	return &types.Transaction{
 		TransactionIdentifier: hashToTransactionIdentifier(tx.Hash),
 		Operations:            operations,
+		Metadata:              extractTransactionMetadata(tx),
 	}
 }
 

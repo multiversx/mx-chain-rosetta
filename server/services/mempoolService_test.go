@@ -25,7 +25,7 @@ func TestMempoolService_MempoolTransaction(t *testing.T) {
 	extension := newNetworkProviderExtension(networkProvider)
 	service := NewMempoolService(networkProvider)
 
-	networkProvider.MockMempoolTransactionsByHash["aaaa"] = &transaction.ApiTransactionResult{
+	tx := &transaction.ApiTransactionResult{
 		Hash:     "aaaa",
 		Type:     string(transaction.TxTypeNormal),
 		Receiver: testscommon.TestAddressBob,
@@ -34,6 +34,8 @@ func TestMempoolService_MempoolTransaction(t *testing.T) {
 		GasLimit: 50000,
 		GasPrice: 1000000000,
 	}
+
+	networkProvider.MockMempoolTransactionsByHash["aaaa"] = tx
 
 	expectedRosettaTx := &types.Transaction{
 		TransactionIdentifier: hashToTransactionIdentifier("aaaa"),
@@ -51,6 +53,7 @@ func TestMempoolService_MempoolTransaction(t *testing.T) {
 				Amount:              extension.valueToNativeAmount("1234"),
 			},
 		},
+		Metadata: extractTransactionMetadata(tx),
 	}
 
 	txResponse, err := getMempoolTransactionByHash(service, "aaaa")

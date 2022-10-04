@@ -28,7 +28,7 @@ func TestTransactionsTransformer_UnsignedTxToRosettaTx(t *testing.T) {
 		TransactionIdentifier: hashToTransactionIdentifier("aaaa"),
 		Operations: []*types.Operation{
 			{
-				Type:    opScResult,
+				Type:    opFeeRefundAsScResult,
 				Account: addressToAccountIdentifier(testscommon.TestAddressAlice),
 				Amount:  extension.valueToNativeAmount("1234"),
 			},
@@ -56,6 +56,7 @@ func TestTransactionsTransformer_UnsignedTxToRosettaTx(t *testing.T) {
 				Amount:  extension.valueToNativeAmount("1234"),
 			},
 		},
+		Metadata: extractTransactionMetadata(moveBalanceTx),
 	}
 
 	txsInBlock := []*transaction.ApiTransactionResult{refundTx, moveBalanceTx}
@@ -101,6 +102,7 @@ func TestTransactionsTransformer_InvalidTxToRosettaTx(t *testing.T) {
 				Amount:  extension.valueToNativeAmount("-50000000000000"),
 			},
 		},
+		Metadata: extractTransactionMetadata(tx),
 	}
 
 	rosettaTx := transformer.invalidTxToRosettaTx(tx)
