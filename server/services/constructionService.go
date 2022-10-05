@@ -39,9 +39,9 @@ func (service *constructionService) ConstructionPreprocess(
 		return nil, err
 	}
 
-	options, err := service.prepareConstructionOptions(request.Operations, request.Metadata)
-	if err != nil {
-		return nil, err
+	options, errOptions := service.prepareConstructionOptions(request.Operations, request.Metadata)
+	if errOptions != nil {
+		return nil, service.errFactory.newErrWithOriginal(ErrConstructionCheck, errOptions)
 	}
 
 	if len(request.MaxFee) > 0 {
@@ -119,10 +119,10 @@ func checkOperationsType(op *types.Operation) bool {
 	return false
 }
 
-func (service *constructionService) prepareConstructionOptions(operations []*types.Operation, metadata objectsMap) (objectsMap, *types.Error) {
+func (service *constructionService) prepareConstructionOptions(operations []*types.Operation, metadata objectsMap) (objectsMap, error) {
 	options := make(objectsMap)
-	options["sender"] = operations[0].Account.Address
 	options["type"] = operations[0].Type
+	options["sender"] = operations[0].Account.Address
 
 	if metadata["receiver"] != nil {
 		options["receiver"] = metadata["receiver"]
@@ -130,7 +130,7 @@ func (service *constructionService) prepareConstructionOptions(operations []*typ
 		if len(operations) > 1 {
 			options["receiver"] = operations[1].Account.Address
 		} else {
-			return nil, service.errFactory.newErrWithOriginal(ErrConstructionCheck, errors.New("cannot prepare transaction receiver"))
+			return nil, errors.New("cannot prepare transaction receiver")
 		}
 	}
 
