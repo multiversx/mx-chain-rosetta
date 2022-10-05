@@ -5,7 +5,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"errors"
-	"fmt"
+	"strings"
 
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/coinbase/rosetta-sdk-go/server"
@@ -34,44 +34,94 @@ func (service *constructionService) ConstructionPreprocess(
 	_ context.Context,
 	request *types.ConstructionPreprocessRequest,
 ) (*types.ConstructionPreprocessResponse, *types.Error) {
+	log.Info("constructionService.ConstructionPreprocess()",
+		"metadata", request.Metadata,
+		"maxFee", request.MaxFee,
+		"suggestedFeeMultiplier", request.SuggestedFeeMultiplier,
+	)
+
+	requestMetadata, err := newConstructionPreprocessMetadata(request.Metadata)
+	if err != nil {
+		return nil, service.errFactory.newErrWithOriginal(ErrConstructionCheck, err)
+	}
+
+	responseOptions := &constructionOptions{}
+
+	// TODO:
 	if err := service.checkOperationsAndMeta(request.Operations, request.Metadata); err != nil {
 		return nil, err
 	}
 
-	options, err := service.getOptionsFromOperations(request.Operations)
-	if err != nil {
-		return nil, err
+	if len(requestMetadata.Sender) > 0 {
+		responseOptions.Sender = requestMetadata.Sender
+	} else {
+		responseOptions.Sender = request.Operations[0].Account.Address
 	}
 
+	if len(requestMetadata.Receiver) > 0 {
+		responseOptions.Receiver = requestMetadata.Receiver
+	} else {
+		if len(request.Operations) < 2 {
+			return nil, service.errFactory.newErrWithOriginal(ErrConstructionCheck, errors.New("cannot prepare receiver"))
+		}
+		responseOptions.Receiver = request.Operations[1].Account.Address
+	}
+
+	if len(requestMetadata.Value) > 0 {
+		responseOptions.Value = requestMetadata.Value
+	} else {
+		// TODO:
+		responseOptions.Value = strings.Trim(request.Operations[0].Amount.Value, "-")
+	}
+
+	responseOptions.FirstOperationType = request.Operations[0].Type
+
 	if len(request.MaxFee) > 0 {
+		// TODO:
 		maxFee := request.MaxFee[0]
 		if !service.extension.isNativeCurrency(maxFee.Currency) {
 			return nil, service.errFactory.newErrWithOriginal(ErrConstructionCheck, errors.New("invalid currency"))
 		}
 
-		options["maxFee"] = maxFee.Value
+		responseOptions.MaxFee = maxFee.Value
 	}
 
 	if request.SuggestedFeeMultiplier != nil {
-		options["feeMultiplier"] = *request.SuggestedFeeMultiplier
+		responseOptions.FeeMultiplier = *request.SuggestedFeeMultiplier
+	}
+	if requestMetadata.GasLimit > 0 {
+		responseOptions.GasLimit = requestMetadata.GasLimit
+	}
+	if requestMetadata.GasPrice > 0 {
+		responseOptions.GasPrice = requestMetadata.GasPrice
+	}
+	if len(requestMetadata.Data) > 0 {
+		responseOptions.Data = requestMetadata.Data
 	}
 
-	if request.Metadata["gasLimit"] != nil {
-		options["gasLimit"] = request.Metadata["gasLimit"]
+	optionsAsObjectsMap, err := responseOptions.toObjectsMap()
+	if err != nil {
+		return nil, service.errFactory.newErrWithOriginal(ErrConstructionCheck, err)
 	}
-	if request.Metadata["gasPrice"] != nil {
-		options["gasPrice"] = request.Metadata["gasPrice"]
-	}
-	if request.Metadata["data"] != nil {
-		options["data"] = request.Metadata["data"]
-	}
+
+	// TODO: Ensure sender & receiver & value & FirstOperationType are known!
+	// if metadata["sender"], ok = options["sender"]; !ok {
+	// 	return nil, service.errFactory.newErrWithOriginal(ErrMalformedValue, errors.New("sender address missing"))
+	// }
+	// if metadata["receiver"], ok = options["receiver"]; !ok {
+	// 	return nil, service.errFactory.newErrWithOriginal(ErrMalformedValue, errors.New("receiver address missing"))
+	// }
+	// if metadata["value"], ok = options["value"]; !ok {
+	// 	return nil, service.errFactory.newErrWithOriginal(ErrMalformedValue, errors.New("value missing"))
+	// }
 
 	return &types.ConstructionPreprocessResponse{
-		Options: options,
+		Options: optionsAsObjectsMap,
 	}, nil
 }
 
 func (service *constructionService) checkOperationsAndMeta(ops []*types.Operation, meta map[string]interface{}) *types.Error {
+	// TODO: remove this constraint; metadata should be sufficient, as well
 	if len(ops) == 0 {
 		return service.errFactory.newErrWithOriginal(ErrConstructionCheck, errors.New("invalid number of operations"))
 	}
@@ -85,31 +135,11 @@ func (service *constructionService) checkOperationsAndMeta(ops []*types.Operatio
 		}
 	}
 
-	if meta["gasLimit"] != nil {
-		if !checkValueIsOk(meta["gasLimit"]) {
-			return service.errFactory.newErrWithOriginal(ErrConstructionCheck, errors.New("invalid metadata gas limit"))
-		}
-	}
-	if meta["gasPrice"] != nil {
-		if !checkValueIsOk(meta["gasPrice"]) {
-			return service.errFactory.newErrWithOriginal(ErrConstructionCheck, errors.New("invalid metadata gas price"))
-		}
-	}
-
 	return nil
 }
 
-func checkValueIsOk(value interface{}) bool {
-	switch value.(type) {
-	case uint64, float64, int:
-		return true
-	default:
-		return false
-	}
-}
-
 func checkOperationsType(op *types.Operation) bool {
-	for _, supOp := range SupportedOperationTypes {
+	for _, supOp := range SupportedOperationTypesForConstruction {
 		if supOp == op.Type {
 			return true
 		}
@@ -118,93 +148,59 @@ func checkOperationsType(op *types.Operation) bool {
 	return false
 }
 
-func (service *constructionService) getOptionsFromOperations(ops []*types.Operation) (objectsMap, *types.Error) {
-	if len(ops) < 2 {
-		return nil, service.errFactory.newErrWithOriginal(ErrConstructionCheck, errors.New("invalid number of operations"))
-	}
-	options := make(objectsMap)
-	options["sender"] = ops[0].Account.Address
-	options["receiver"] = ops[1].Account.Address
-	options["type"] = ops[0].Type
-	options["value"] = ops[1].Amount.Value
-
-	return options, nil
-}
-
 // ConstructionMetadata gets any information required to construct a transaction for a specific network (e.g. the account nonce)
 func (service *constructionService) ConstructionMetadata(
 	_ context.Context,
 	request *types.ConstructionMetadataRequest,
 ) (*types.ConstructionMetadataResponse, *types.Error) {
+	log.Info("constructionService.ConstructionMetadata()", "options", request.Options)
+
 	if service.provider.IsOffline() {
 		return nil, service.errFactory.newErr(ErrOfflineMode)
 	}
 
-	txType, ok := request.Options["type"].(string)
-	if !ok {
-		return nil, service.errFactory.newErrWithOriginal(ErrInvalidInputParam, errors.New("invalid operation type"))
-	}
-
-	metadata, err := service.computeMetadata(request.Options)
+	requestOptions, err := newConstructionOptions(request.Options)
 	if err != nil {
-		return nil, err
+		return nil, service.errFactory.newErrWithOriginal(ErrConstructionCheck, err)
 	}
 
-	networkConfig := service.provider.GetNetworkConfig()
-	suggestedFee, gasPrice, gasLimit, err := service.computeSuggestedFeeAndGas(txType, request.Options, networkConfig)
-	if err != nil {
-		return nil, err
-	}
+	txType := requestOptions.FirstOperationType
 
-	metadata["gasLimit"] = gasLimit
-	metadata["gasPrice"] = gasPrice
+	metadata := &constructionMetadata{}
+	metadata.Data = requestOptions.Data
+	metadata.ChainID = service.provider.GetNetworkConfig().NetworkID
+	metadata.Version = transactionVersion
+	metadata.Sender = requestOptions.Sender
+	metadata.Receiver = requestOptions.Receiver
+	metadata.Value = requestOptions.Value
 
-	return &types.ConstructionMetadataResponse{
-		Metadata: metadata,
-		SuggestedFee: []*types.Amount{
-			service.extension.valueToNativeAmount(suggestedFee.String()),
-		},
-	}, nil
-}
-
-func (service *constructionService) computeMetadata(options objectsMap) (objectsMap, *types.Error) {
-	metadata := make(objectsMap)
-	if dataField, ok := options["data"]; ok {
-		// convert string to byte array
-		metadata["data"] = []byte(fmt.Sprintf("%v", dataField))
-	}
-
-	var ok bool
-	if metadata["sender"], ok = options["sender"]; !ok {
-		return nil, service.errFactory.newErrWithOriginal(ErrMalformedValue, errors.New("sender address missing"))
-	}
-	if metadata["receiver"], ok = options["receiver"]; !ok {
-		return nil, service.errFactory.newErrWithOriginal(ErrMalformedValue, errors.New("receiver address missing"))
-	}
-	if metadata["value"], ok = options["value"]; !ok {
-		return nil, service.errFactory.newErrWithOriginal(ErrMalformedValue, errors.New("value missing"))
-	}
-
-	metadata["chainID"] = service.provider.GetNetworkConfig().NetworkID
-	metadata["version"] = transactionVersion
-
-	senderAddressI, ok := options["sender"]
-	if !ok {
-		return nil, service.errFactory.newErrWithOriginal(ErrInvalidInputParam, errors.New("cannot find sender address"))
-	}
-	senderAddress, ok := senderAddressI.(string)
-	if !ok {
-		return nil, service.errFactory.newErrWithOriginal(ErrMalformedValue, errors.New("sender address is invalid"))
-	}
-
-	account, err := service.provider.GetAccount(senderAddress)
+	account, err := service.provider.GetAccount(requestOptions.Sender)
 	if err != nil {
 		return nil, service.errFactory.newErrWithOriginal(ErrUnableToGetAccount, err)
 	}
 
-	metadata["nonce"] = account.Account.Nonce
+	metadata.Nonce = account.Account.Nonce
 
-	return metadata, nil
+	networkConfig := service.provider.GetNetworkConfig()
+	suggestedFee, gasPrice, gasLimit, errTyped := service.computeSuggestedFeeAndGas(txType, requestOptions, networkConfig)
+	if err != nil {
+		return nil, errTyped
+	}
+
+	metadata.GasLimit = gasLimit
+	metadata.GasPrice = gasPrice
+
+	metadataAsObjectsMap, err := metadata.toObjectsMap()
+	if err != nil {
+		return nil, service.errFactory.newErrWithOriginal(ErrConstructionCheck, err)
+	}
+
+	return &types.ConstructionMetadataResponse{
+		Metadata: metadataAsObjectsMap,
+		SuggestedFee: []*types.Amount{
+			service.extension.valueToNativeAmount(suggestedFee.String()),
+		},
+	}, nil
 }
 
 // ConstructionPayloads returns an unsigned transaction blob and a collection of payloads that must be signed
@@ -212,6 +208,8 @@ func (service *constructionService) ConstructionPayloads(
 	_ context.Context,
 	request *types.ConstructionPayloadsRequest,
 ) (*types.ConstructionPayloadsResponse, *types.Error) {
+	log.Info("constructionService.ConstructionPayloads()", "metadata", request.Metadata)
+
 	if err := service.checkOperationsAndMeta(request.Operations, request.Metadata); err != nil {
 		return nil, err
 	}
@@ -384,6 +382,8 @@ func (service *constructionService) ConstructionSubmit(
 	_ context.Context,
 	request *types.ConstructionSubmitRequest,
 ) (*types.TransactionIdentifierResponse, *types.Error) {
+	log.Info("constructionService.ConstructionSubmit()", "transaction", request.SignedTransaction)
+
 	if service.provider.IsOffline() {
 		return nil, service.errFactory.newErr(ErrOfflineMode)
 	}
