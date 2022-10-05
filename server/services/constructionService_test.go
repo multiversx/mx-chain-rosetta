@@ -307,3 +307,105 @@ func TestConstructionService_CreateOperationsFromPreparedTx(t *testing.T) {
 	operations := service.createOperationsFromPreparedTx(preparedTx)
 	require.Equal(t, expectedOperations, operations)
 }
+
+func TestConstructionService_PrepareConstructionOptions(t *testing.T) {
+	t.Parallel()
+
+	networkProvider := testscommon.NewNetworkProviderMock()
+	extension := newNetworkProviderExtension(networkProvider)
+	service := NewConstructionService(networkProvider).(*constructionService)
+
+	t.Run("two operations, no metadata", func(t *testing.T) {
+		t.Parallel()
+
+		operations := []*types.Operation{
+			{
+				OperationIdentifier: indexToOperationIdentifier(0),
+				Type:                opTransfer,
+				Account:             addressToAccountIdentifier(testscommon.TestAddressAlice),
+				Amount:              extension.valueToNativeAmount("-12345"),
+			},
+			{
+				OperationIdentifier: indexToOperationIdentifier(1),
+				Type:                opTransfer,
+				Account:             addressToAccountIdentifier(testscommon.TestAddressBob),
+				Amount:              extension.valueToNativeAmount("12345"),
+			},
+		}
+
+		metadata := make(objectsMap)
+
+		options, err := service.prepareConstructionOptions(operations, metadata)
+		require.Nil(t, err)
+		require.Equal(t, opTransfer, options["type"])
+		require.Equal(t, testscommon.TestAddressAlice, options["sender"])
+		require.Equal(t, testscommon.TestAddressBob, options["receiver"])
+		require.Equal(t, "12345", options["value"])
+	})
+
+	t.Run("one operation, with metadata having: receiver", func(t *testing.T) {
+		t.Parallel()
+
+		operations := []*types.Operation{
+			{
+				OperationIdentifier: indexToOperationIdentifier(0),
+				Type:                opTransfer,
+				Account:             addressToAccountIdentifier(testscommon.TestAddressAlice),
+				Amount:              extension.valueToNativeAmount("-12345"),
+			},
+		}
+
+		metadata := make(objectsMap)
+		metadata["receiver"] = testscommon.TestAddressBob
+
+		options, err := service.prepareConstructionOptions(operations, metadata)
+		require.Nil(t, err)
+		require.Equal(t, opTransfer, options["type"])
+		require.Equal(t, testscommon.TestAddressAlice, options["sender"])
+		require.Equal(t, testscommon.TestAddressBob, options["receiver"])
+		require.Equal(t, "12345", options["value"])
+	})
+
+	t.Run("one operation, with metadata having: receiver, value", func(t *testing.T) {
+		t.Parallel()
+
+		operations := []*types.Operation{
+			{
+				OperationIdentifier: indexToOperationIdentifier(0),
+				Type:                opTransfer,
+				Account:             addressToAccountIdentifier(testscommon.TestAddressAlice),
+				Amount:              extension.valueToNativeAmount("ignored"),
+			},
+		}
+
+		metadata := make(objectsMap)
+		metadata["receiver"] = testscommon.TestAddressBob
+		metadata["value"] = "12345"
+
+		options, err := service.prepareConstructionOptions(operations, metadata)
+		require.Nil(t, err)
+		require.Equal(t, opTransfer, options["type"])
+		require.Equal(t, testscommon.TestAddressAlice, options["sender"])
+		require.Equal(t, testscommon.TestAddressBob, options["receiver"])
+		require.Equal(t, "12345", options["value"])
+	})
+
+	t.Run("one operation, with missing metadata: receiver", func(t *testing.T) {
+		t.Parallel()
+
+		operations := []*types.Operation{
+			{
+				OperationIdentifier: indexToOperationIdentifier(0),
+				Type:                opTransfer,
+				Account:             addressToAccountIdentifier(testscommon.TestAddressAlice),
+				Amount:              extension.valueToNativeAmount("ignored"),
+			},
+		}
+
+		metadata := make(objectsMap)
+
+		options, err := service.prepareConstructionOptions(operations, metadata)
+		require.ErrorContains(t, err, "cannot prepare transaction receiver")
+		require.Nil(t, options)
+	})
+}
