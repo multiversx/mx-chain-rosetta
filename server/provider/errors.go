@@ -10,6 +10,7 @@ var errIsOffline = errors.New("server is in offline mode")
 var errCannotGetBlock = errors.New("cannot get block")
 var errCannotGetAccount = errors.New("cannot get account")
 var errCannotGetTransaction = errors.New("cannot get transaction")
+var errCannotGetLatestBlockNonce = errors.New("cannot get latest block nonce, maybe the node didn't start syncing")
 
 func newErrCannotGetBlockByNonce(nonce uint64, innerError error) error {
 	return fmt.Errorf("%w: %v, nonce = %d", errCannotGetBlock, innerError, nonce)

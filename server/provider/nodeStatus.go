@@ -13,7 +13,11 @@ func (provider *networkProvider) GetNodeStatus() (*resources.AggregatedNodeStatu
 		return nil, err
 	}
 
-	latestNonce := getLatestNonceGivenHighestFinalNonce(plainNodeStatus.HighestFinalNonce)
+	latestNonce, err := getLatestNonceGivenHighestFinalNonce(plainNodeStatus.HighestFinalNonce)
+	if err != nil {
+		return nil, err
+	}
+
 	latestBlockSummary, err := provider.getBlockSummaryByNonce(latestNonce)
 	if err != nil {
 		return nil, err
@@ -57,12 +61,18 @@ func (provider *networkProvider) getLatestBlockNonce() (uint64, error) {
 	}
 
 	// In the context of scheduled transactions, make sure the N+1 block is final, as well.
-	return getLatestNonceGivenHighestFinalNonce(nodeStatus.HighestFinalNonce), nil
+	return getLatestNonceGivenHighestFinalNonce(nodeStatus.HighestFinalNonce)
 }
 
-func getLatestNonceGivenHighestFinalNonce(highestFinalNonce uint64) uint64 {
+func getLatestNonceGivenHighestFinalNonce(highestFinalNonce uint64) (uint64, error) {
 	// Account for rollback-related edge cases while node is syncing (in conjunction with scheduled miniblocks).
-	return highestFinalNonce - 2
+	const nonceDelta = 2
+
+	if highestFinalNonce <= nonceDelta {
+		return 0, errCannotGetLatestBlockNonce
+	}
+
+	return highestFinalNonce - nonceDelta, nil
 }
 
 func (provider *networkProvider) getOldestNonceWithHistoricalStateGivenNodeStatus(status *resources.NodeStatus) (uint64, error) {

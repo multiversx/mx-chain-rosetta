@@ -3,7 +3,7 @@ module github.com/ElrondNetwork/rosetta
 go 1.18
 
 require (
-	github.com/ElrondNetwork/elrond-go v1.3.42
+	github.com/ElrondNetwork/elrond-go v1.3.43-rosetta1
 	github.com/ElrondNetwork/elrond-go-core v1.1.19
 	github.com/ElrondNetwork/elrond-go-logger v1.0.7
 	github.com/ElrondNetwork/elrond-go-storage v1.0.0

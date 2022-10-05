@@ -17,6 +17,15 @@ func TestBlockService_BlockByIndex(t *testing.T) {
 	networkProvider.MockNumShards = 1
 	extension := newNetworkProviderExtension(networkProvider)
 
+	tx := &transaction.ApiTransactionResult{
+		Hash:             "aaaa",
+		Type:             string(transaction.TxTypeNormal),
+		Sender:           testscommon.TestAddressAlice,
+		Receiver:         testscommon.TestAddressBob,
+		Value:            "1",
+		InitiallyPaidFee: "50000000000000",
+	}
+
 	networkProvider.MockBlocksByNonce[7] = &api.Block{
 		Hash:          "0007",
 		Nonce:         7,
@@ -27,16 +36,7 @@ func TestBlockService_BlockByIndex(t *testing.T) {
 		Status:        "on-chain",
 		MiniBlocks: []*api.MiniBlock{
 			{
-				Transactions: []*transaction.ApiTransactionResult{
-					{
-						Hash:             "aaaa",
-						Type:             string(transaction.TxTypeNormal),
-						Sender:           testscommon.TestAddressAlice,
-						Receiver:         testscommon.TestAddressBob,
-						Value:            "1",
-						InitiallyPaidFee: "50000000000000",
-					},
-				},
+				Transactions: []*transaction.ApiTransactionResult{tx},
 			},
 		},
 	}
@@ -84,6 +84,7 @@ func TestBlockService_BlockByIndex(t *testing.T) {
 						Status:              &opStatusSuccess,
 					},
 				},
+				Metadata: extractTransactionMetadata(tx),
 			},
 		},
 		Metadata: objectsMap{
