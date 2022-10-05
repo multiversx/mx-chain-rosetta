@@ -13,6 +13,8 @@ import (
 )
 
 func TestNetworkProvider_GetNodeStatusWithSuccess(t *testing.T) {
+	t.Parallel()
+
 	observerFacade := testscommon.NewObserverFacadeMock()
 	args := createDefaultArgsNewNetworkProvider()
 	args.ObserverFacade = observerFacade
@@ -105,6 +107,8 @@ func TestNetworkProvider_GetNodeStatusWithSuccess(t *testing.T) {
 }
 
 func TestNetworkProvider_GetNodeStatusWithError(t *testing.T) {
+	t.Parallel()
+
 	observerFacade := testscommon.NewObserverFacadeMock()
 	args := createDefaultArgsNewNetworkProvider()
 	args.ObserverFacade = observerFacade
@@ -137,6 +141,8 @@ func TestNetworkProvider_GetNodeStatusWithError(t *testing.T) {
 }
 
 func TestNetworkProvider_GetLatestBlockNonce(t *testing.T) {
+	t.Parallel()
+
 	observerFacade := testscommon.NewObserverFacadeMock()
 	args := createDefaultArgsNewNetworkProvider()
 	args.ObserverFacade = observerFacade
@@ -148,6 +154,8 @@ func TestNetworkProvider_GetLatestBlockNonce(t *testing.T) {
 	require.NotNil(t, provider)
 
 	t.Run("when HighestFinalNonce <= 2 (node didn't start syncing)", func(t *testing.T) {
+		t.Parallel()
+
 		observerFacade.CallGetRestEndPointCalled = func(baseUrl, path string, value interface{}) (int, error) {
 			if path == "/node/status" {
 				value.(*resources.NodeStatusApiResponse).Data = resources.NodeStatusApiResponsePayload{
@@ -168,6 +176,8 @@ func TestNetworkProvider_GetLatestBlockNonce(t *testing.T) {
 	})
 
 	t.Run("when HighestFinalNonce > 2", func(t *testing.T) {
+		t.Parallel()
+
 		observerFacade.CallGetRestEndPointCalled = func(baseUrl, path string, value interface{}) (int, error) {
 			if path == "/node/status" {
 				value.(*resources.NodeStatusApiResponse).Data = resources.NodeStatusApiResponsePayload{
@@ -189,6 +199,8 @@ func TestNetworkProvider_GetLatestBlockNonce(t *testing.T) {
 }
 
 func TestGetOldestNonceWithHistoricalStateGivenNodeStatus(t *testing.T) {
+	t.Parallel()
+
 	observerFacade := testscommon.NewObserverFacadeMock()
 	args := createDefaultArgsNewNetworkProvider()
 	args.ObserverFacade = observerFacade
@@ -250,6 +262,8 @@ func TestGetOldestNonceWithHistoricalStateGivenNodeStatus(t *testing.T) {
 }
 
 func TestGetOldestEligibleEpoch(t *testing.T) {
+	t.Parallel()
+
 	observerFacade := testscommon.NewObserverFacadeMock()
 	args := createDefaultArgsNewNetworkProvider()
 	args.ObserverFacade = observerFacade
