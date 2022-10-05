@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/coinbase/rosetta-sdk-go/server"
@@ -38,9 +39,9 @@ func (service *constructionService) ConstructionPreprocess(
 		return nil, err
 	}
 
-	options, err := service.getOptionsFromOperations(request.Operations)
-	if err != nil {
-		return nil, err
+	options, errOptions := service.prepareConstructionOptions(request.Operations, request.Metadata)
+	if errOptions != nil {
+		return nil, service.errFactory.newErrWithOriginal(ErrConstructionCheck, errOptions)
 	}
 
 	if len(request.MaxFee) > 0 {
@@ -118,15 +119,30 @@ func checkOperationsType(op *types.Operation) bool {
 	return false
 }
 
-func (service *constructionService) getOptionsFromOperations(ops []*types.Operation) (objectsMap, *types.Error) {
-	if len(ops) < 2 {
-		return nil, service.errFactory.newErrWithOriginal(ErrConstructionCheck, errors.New("invalid number of operations"))
-	}
+func (service *constructionService) prepareConstructionOptions(operations []*types.Operation, metadata objectsMap) (objectsMap, error) {
 	options := make(objectsMap)
-	options["sender"] = ops[0].Account.Address
-	options["receiver"] = ops[1].Account.Address
-	options["type"] = ops[0].Type
-	options["value"] = ops[1].Amount.Value
+	options["type"] = operations[0].Type
+	options["sender"] = operations[0].Account.Address
+
+	if metadata["receiver"] != nil {
+		options["receiver"] = metadata["receiver"]
+	} else {
+		if len(operations) > 1 {
+			options["receiver"] = operations[1].Account.Address
+		} else {
+			return nil, errors.New("cannot prepare transaction receiver")
+		}
+	}
+
+	if metadata["value"] != nil {
+		options["value"] = metadata["value"]
+	} else {
+		if len(operations) > 1 {
+			options["value"] = operations[1].Amount.Value
+		} else {
+			options["value"] = strings.Trim(operations[0].Amount.Value, "-")
+		}
+	}
 
 	return options, nil
 }
