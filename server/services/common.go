@@ -49,12 +49,6 @@ func multiplyUint64(a uint64, b uint64) *big.Int {
 	return big.NewInt(0).Mul(big.NewInt(0).SetUint64(a), big.NewInt(0).SetUint64(b))
 }
 
-func divideBigIntByBigFloat(numerator *big.Int, denominator *big.Float) *big.Float {
-	result := big.NewFloat(0).SetInt(numerator)
-	result = result.Quo(result, denominator)
-	return result
-}
-
 func addBigInt(a *big.Int, b *big.Int) *big.Int {
 	return big.NewInt(0).Add(a, b)
 }

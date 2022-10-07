@@ -2,19 +2,16 @@ package services
 
 import (
 	"errors"
-	"math/big"
 )
 
 type constructionOptions struct {
-	Sender         string  `json:"sender"`
-	Receiver       string  `json:"receiver"`
-	Amount         string  `json:"amount"`
-	CurrencySymbol string  `json:"currencySymbol"`
-	GasLimit       uint64  `json:"gasLimit"`
-	GasPrice       uint64  `json:"gasPrice"`
-	Data           []byte  `json:"data"`
-	MaxFee         string  `json:"maxFee"`
-	FeeMultiplier  float64 `json:"feeMultiplier"`
+	Sender         string `json:"sender"`
+	Receiver       string `json:"receiver"`
+	Amount         string `json:"amount"`
+	CurrencySymbol string `json:"currencySymbol"`
+	GasLimit       uint64 `json:"gasLimit"`
+	GasPrice       uint64 `json:"gasPrice"`
+	Data           []byte `json:"data"`
 }
 
 func newConstructionOptions(obj objectsMap) (*constructionOptions, error) {
@@ -27,17 +24,20 @@ func newConstructionOptions(obj objectsMap) (*constructionOptions, error) {
 	return result, nil
 }
 
-func (options *constructionOptions) getMaxFee() *big.Int {
-	maxFee, ok := big.NewInt(0).SetString(options.MaxFee, 10)
-	if ok {
-		return maxFee
+func (options *constructionOptions) coalesceGasLimit(estimatedGasLimit uint64) uint64 {
+	if options.GasLimit == 0 {
+		return estimatedGasLimit
 	}
 
-	return big.NewInt(0)
+	return options.GasLimit
 }
 
-func (options *constructionOptions) hasMaxFee() bool {
-	return len(options.MaxFee) > 0
+func (options *constructionOptions) coalesceGasPrice(minGasPrice uint64) uint64 {
+	if options.GasPrice == 0 {
+		return minGasPrice
+	}
+
+	return options.GasPrice
 }
 
 func (options *constructionOptions) validate(nativeCurrencySymbol string) error {

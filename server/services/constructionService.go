@@ -35,8 +35,6 @@ func (service *constructionService) ConstructionPreprocess(
 ) (*types.ConstructionPreprocessResponse, *types.Error) {
 	log.Debug("constructionService.ConstructionPreprocess()",
 		"metadata", request.Metadata,
-		"maxFee", request.MaxFee,
-		"suggestedFeeMultiplier", request.SuggestedFeeMultiplier,
 	)
 
 	noOperationProvided := len(request.Operations) == 0
@@ -89,18 +87,6 @@ func (service *constructionService) ConstructionPreprocess(
 		responseOptions.CurrencySymbol = request.Operations[0].Amount.Currency.Symbol
 	}
 
-	if len(request.MaxFee) > 0 {
-		maxFee := request.MaxFee[0]
-		if !service.extension.isNativeCurrency(maxFee.Currency) {
-			return nil, service.errFactory.newErrWithOriginal(ErrConstruction, errors.New("invalid currency for fee"))
-		}
-
-		responseOptions.MaxFee = maxFee.Value
-	}
-
-	if request.SuggestedFeeMultiplier != nil {
-		responseOptions.FeeMultiplier = *request.SuggestedFeeMultiplier
-	}
 	if requestMetadata.GasLimit > 0 {
 		responseOptions.GasLimit = requestMetadata.GasLimit
 	}
@@ -151,7 +137,7 @@ func (service *constructionService) ConstructionMetadata(
 
 	computedData := service.computeData(requestOptions)
 
-	fee, gasPrice, gasLimit, errTyped := service.computeFeeComponents(requestOptions, computedData)
+	fee, gasLimit, gasPrice, errTyped := service.computeFeeComponents(requestOptions, computedData)
 	if err != nil {
 		return nil, errTyped
 	}
