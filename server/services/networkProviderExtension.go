@@ -40,9 +40,17 @@ func (extension *networkProviderExtension) getNativeCurrency() *types.Currency {
 	}
 }
 
+func (extension *networkProviderExtension) getNativeCurrencySymbol() string {
+	return extension.provider.GetNativeCurrency().Symbol
+}
+
 func (extension *networkProviderExtension) isNativeCurrency(currency *types.Currency) bool {
 	nativeCurrency := extension.provider.GetNativeCurrency()
 	return currency.Symbol == nativeCurrency.Symbol && currency.Decimals == nativeCurrency.Decimals
+}
+
+func (extension *networkProviderExtension) isNativeCurrencySymbol(symbol string) bool {
+	return symbol == extension.getNativeCurrencySymbol()
 }
 
 func (extension *networkProviderExtension) getGenesisBlockIdentifier() *types.BlockIdentifier {

@@ -28,12 +28,6 @@ var (
 		opFeeRefund,
 	}
 
-	// SupportedOperationTypesForConstruction is a list of the supported operations for transaction construction
-	SupportedOperationTypesForConstruction = []string{
-		opTransfer,
-		opFee,
-	}
-
 	opStatusSuccess = "Success"
 	opStatusFailure = "Failure"
 
