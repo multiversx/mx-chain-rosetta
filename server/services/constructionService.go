@@ -151,12 +151,10 @@ func (service *constructionService) ConstructionMetadata(
 
 	computedData := service.computeData(requestOptions)
 
-	suggestedFee, gasPrice, gasLimit, errTyped := service.computeSuggestedFeeAndGas(requestOptions, computedData)
+	fee, gasPrice, gasLimit, errTyped := service.computeFeeComponents(requestOptions, computedData)
 	if err != nil {
 		return nil, errTyped
 	}
-
-	//
 
 	metadata := &constructionMetadata{}
 	metadata.Nonce = account.Account.Nonce
@@ -178,7 +176,7 @@ func (service *constructionService) ConstructionMetadata(
 	return &types.ConstructionMetadataResponse{
 		Metadata: metadataAsObjectsMap,
 		SuggestedFee: []*types.Amount{
-			service.extension.valueToNativeAmount(suggestedFee.String()),
+			service.extension.valueToNativeAmount(fee.String()),
 		},
 	}, nil
 }

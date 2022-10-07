@@ -36,6 +36,10 @@ func (options *constructionOptions) getMaxFee() *big.Int {
 	return big.NewInt(0)
 }
 
+func (options *constructionOptions) hasMaxFee() bool {
+	return len(options.MaxFee) > 0
+}
+
 func (options *constructionOptions) validate(nativeCurrencySymbol string) error {
 	if len(options.Sender) == 0 {
 		return errors.New("missing option 'sender'")

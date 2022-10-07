@@ -6,9 +6,10 @@ import (
 	"github.com/coinbase/rosetta-sdk-go/types"
 )
 
-func (service *constructionService) computeSuggestedFeeAndGas(options *constructionOptions, computedData []byte) (*big.Int, uint64, uint64, *types.Error) {
+func (service *constructionService) computeFeeComponents(options *constructionOptions, computedData []byte) (*big.Int, uint64, uint64, *types.Error) {
 	networkConfig := service.provider.GetNetworkConfig()
-	providedMaxFee := options.getMaxFee()
+	maxFee := options.getMaxFee()
+	hasMaxFee := options.hasMaxFee()
 	providedGasLimit := options.GasLimit
 	providedGasPrice := options.GasPrice
 	decidedGasLimit := uint64(0)
@@ -55,14 +56,16 @@ func (service *constructionService) computeSuggestedFeeAndGas(options *construct
 
 	// In the case that the caller provides both a max fee and a suggested fee multiplier,
 	// the max fee will set an upper bound on the suggested fee (regardless of the multiplier provided).
-	if computedFee.Cmp(providedMaxFee) > 0 {
+	if hasMaxFee && computedFee.Cmp(maxFee) > 0 {
+		computedFee = maxFee
+
 		// We are re-computing the decidedGasPrice, as follows:
 		// providedMaxFee = movementGasLimit * decidedGasPrice + executionGasLimit * decidedGasPrice * gasPriceModifier
 		// =>
 		// decidedGasPrice = providedMaxFee / (movementGasLimit + executionGasLimit * gasPriceModifier)
 
 		denominator := big.NewFloat(float64(movementGasLimit) + float64(executionGasLimit)*gasPriceModifier)
-		recomputedGasPrice := divideBigIntByBigFloat(providedMaxFee, denominator)
+		recomputedGasPrice := divideBigIntByBigFloat(maxFee, denominator)
 		decidedGasPrice, _ = recomputedGasPrice.Uint64()
 	}
 

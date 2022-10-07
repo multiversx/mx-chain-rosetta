@@ -56,5 +56,5 @@ func divideBigIntByBigFloat(numerator *big.Int, denominator *big.Float) *big.Flo
 }
 
 func addBigInt(a *big.Int, b *big.Int) *big.Int {
-	return big.NewInt(0).And(a, b)
+	return big.NewInt(0).Add(a, b)
 }
