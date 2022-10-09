@@ -1,6 +1,7 @@
 package services
 
 import (
+	"math/big"
 	"testing"
 
 	"github.com/ElrondNetwork/rosetta/testscommon"
@@ -90,4 +91,14 @@ func TestConstructionService_ComputeFeeComponents(t *testing.T) {
 		require.Equal(t, uint64(50000), gasLimit)
 		require.Equal(t, uint64(2000000000), gasPrice)
 	})
+}
+
+func TestComputeFee(t *testing.T) {
+	t.Parallel()
+
+	require.Equal(t, big.NewInt(50000000000000), computeFee(50000, 0, 1000000000, 0.01))
+	require.Equal(t, big.NewInt(50000000000000), computeFee(50000, 0, 1000000000, 0.02))
+	require.Equal(t, big.NewInt(100000000000000), computeFee(50000, 0, 2000000000, 0.01))
+	require.Equal(t, big.NewInt(70000000000000), computeFee(70000, 0, 1000000000, 0.01))
+	require.Equal(t, big.NewInt(60000000000000), computeFee(50000, 1000000, 1000000000, 0.01))
 }
