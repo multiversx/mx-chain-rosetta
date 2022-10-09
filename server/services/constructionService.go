@@ -33,9 +33,7 @@ func (service *constructionService) ConstructionPreprocess(
 	_ context.Context,
 	request *types.ConstructionPreprocessRequest,
 ) (*types.ConstructionPreprocessResponse, *types.Error) {
-	log.Debug("constructionService.ConstructionPreprocess()",
-		"metadata", request.Metadata,
-	)
+	log.Debug("constructionService.ConstructionPreprocess()", "metadata", request.Metadata)
 
 	noOperationProvided := len(request.Operations) == 0
 	lessThanTwoOperationsProvided := len(request.Operations) < 2

@@ -54,7 +54,7 @@ func (options *constructionOptions) validate(nativeCurrencySymbol string) error 
 		return errors.New("missing option 'currencySymbol'")
 	}
 	if len(options.Data) > 0 && options.CurrencySymbol != nativeCurrencySymbol {
-		return errors.New("for custom currencies, cannot populate option 'data'")
+		return errors.New("for custom currencies, option 'data' must be empty")
 	}
 
 	return nil

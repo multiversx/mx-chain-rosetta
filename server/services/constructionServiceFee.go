@@ -35,7 +35,6 @@ func (service *constructionService) computeFeeComponents(options *constructionOp
 	}
 
 	fee := computeFee(movementGasLimit, executionGasLimit, gasPrice, gasPriceModifier)
-
 	return fee, gasLimit, gasPrice, nil
 }
 
