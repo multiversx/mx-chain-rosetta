@@ -42,16 +42,16 @@ func (options *constructionOptions) coalesceGasPrice(minGasPrice uint64) uint64 
 
 func (options *constructionOptions) validate(nativeCurrencySymbol string) error {
 	if len(options.Sender) == 0 {
-		return errors.New("missing option 'sender'")
+		return errors.New("missing option: 'sender'")
 	}
 	if len(options.Receiver) == 0 {
-		return errors.New("missing option 'receiver'")
+		return errors.New("missing option: 'receiver'")
 	}
 	if isZeroAmount(options.Amount) {
-		return errors.New("missing option 'amount'")
+		return errors.New("missing option: 'amount'")
 	}
 	if len(options.CurrencySymbol) == 0 {
-		return errors.New("missing option 'currencySymbol'")
+		return errors.New("missing option: 'currencySymbol'")
 	}
 	if len(options.Data) > 0 && options.CurrencySymbol != nativeCurrencySymbol {
 		return errors.New("for custom currencies, option 'data' must be empty")

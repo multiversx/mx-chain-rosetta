@@ -33,22 +33,22 @@ func TestConstructionOptions_CoalesceGasPrice(t *testing.T) {
 func TestConstructionOptions_Validate(t *testing.T) {
 	t.Parallel()
 
-	require.ErrorContains(t, (&constructionOptions{}).validate("XeGLD"), "missing option 'sender'")
+	require.ErrorContains(t, (&constructionOptions{}).validate("XeGLD"), "missing option: 'sender'")
 
 	require.ErrorContains(t, (&constructionOptions{
 		Sender: "alice",
-	}).validate("XeGLD"), "missing option 'receiver'")
+	}).validate("XeGLD"), "missing option: 'receiver'")
 
 	require.ErrorContains(t, (&constructionOptions{
 		Sender:   "alice",
 		Receiver: "bob",
-	}).validate("XeGLD"), "missing option 'amount'")
+	}).validate("XeGLD"), "missing option: 'amount'")
 
 	require.ErrorContains(t, (&constructionOptions{
 		Sender:   "alice",
 		Receiver: "bob",
 		Amount:   "1234",
-	}).validate("XeGLD"), "missing option 'currencySymbol'")
+	}).validate("XeGLD"), "missing option: 'currencySymbol'")
 
 	require.ErrorContains(t, (&constructionOptions{
 		Sender:         "alice",

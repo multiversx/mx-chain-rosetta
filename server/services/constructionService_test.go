@@ -332,7 +332,7 @@ func TestConstructionService_ConstructionParse(t *testing.T) {
 	extension := newNetworkProviderExtension(networkProvider)
 	service := NewConstructionService(networkProvider)
 
-	unsignedTx := `{"nonce":42,"value":"1234","receiver":"erd1spyavw0956vq68xj8y4tenjpq2wd5a9p2c6j8gsz7ztyrnpxrruqzu66jx","sender":"erd1qyu5wthldzr8wx5c9ucg8kjagg0jfs53s8nr3zpz3hypefsdd8ssycr6th","gasPrice":1100000000,"gasLimit":57500,"data":"aGVsbG8=","chainID":"T","version":1}`
+	notSignedTx := `{"nonce":42,"value":"1234","receiver":"erd1spyavw0956vq68xj8y4tenjpq2wd5a9p2c6j8gsz7ztyrnpxrruqzu66jx","sender":"erd1qyu5wthldzr8wx5c9ucg8kjagg0jfs53s8nr3zpz3hypefsdd8ssycr6th","gasPrice":1100000000,"gasLimit":57500,"data":"aGVsbG8=","chainID":"T","version":1}`
 
 	operations := []*types.Operation{
 		{
@@ -352,7 +352,7 @@ func TestConstructionService_ConstructionParse(t *testing.T) {
 	response, err := service.ConstructionParse(context.Background(),
 		&types.ConstructionParseRequest{
 			Signed:      false,
-			Transaction: unsignedTx,
+			Transaction: notSignedTx,
 		},
 	)
 	require.Nil(t, err)
@@ -366,11 +366,11 @@ func TestConstructionService_ConstructionCombine(t *testing.T) {
 	networkProvider := testscommon.NewNetworkProviderMock()
 	service := NewConstructionService(networkProvider)
 
-	unsignedTx := `{"nonce":42,"value":"1234","receiver":"erd1spyavw0956vq68xj8y4tenjpq2wd5a9p2c6j8gsz7ztyrnpxrruqzu66jx","sender":"erd1qyu5wthldzr8wx5c9ucg8kjagg0jfs53s8nr3zpz3hypefsdd8ssycr6th","gasPrice":1100000000,"gasLimit":57500,"data":"aGVsbG8=","chainID":"T","version":1}`
+	notSignedTx := `{"nonce":42,"value":"1234","receiver":"erd1spyavw0956vq68xj8y4tenjpq2wd5a9p2c6j8gsz7ztyrnpxrruqzu66jx","sender":"erd1qyu5wthldzr8wx5c9ucg8kjagg0jfs53s8nr3zpz3hypefsdd8ssycr6th","gasPrice":1100000000,"gasLimit":57500,"data":"aGVsbG8=","chainID":"T","version":1}`
 
 	response, err := service.ConstructionCombine(context.Background(),
 		&types.ConstructionCombineRequest{
-			UnsignedTransaction: unsignedTx,
+			UnsignedTransaction: notSignedTx,
 			Signatures: []*types.Signature{
 				{
 					Bytes: []byte{0xaa, 0xbb},

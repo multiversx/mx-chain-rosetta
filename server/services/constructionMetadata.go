@@ -66,22 +66,22 @@ func (metadata *constructionMetadata) toTransaction() (*data.Transaction, error)
 
 func (metadata *constructionMetadata) validate() error {
 	if len(metadata.Sender) == 0 {
-		return errors.New("missing metadata: sender")
+		return errors.New("missing metadata: 'sender'")
 	}
 	if len(metadata.Receiver) == 0 {
-		return errors.New("missing metadata: receiver")
+		return errors.New("missing metadata: 'receiver'")
 	}
 	if metadata.GasLimit == 0 {
-		return errors.New("missing metadata: gasLimit")
+		return errors.New("missing metadata: 'gasLimit'")
 	}
 	if metadata.GasPrice == 0 {
-		return errors.New("missing metadata: gasPrice")
+		return errors.New("missing metadata: 'gasPrice'")
 	}
 	if metadata.Version != 1 {
-		return errors.New("bad metadata: unexpected version")
+		return errors.New("bad metadata: unexpected 'version'")
 	}
 	if len(metadata.ChainID) == 0 {
-		return errors.New("missing metadata: chainID")
+		return errors.New("missing metadata: 'chainID'")
 	}
 
 	return nil
