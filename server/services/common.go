@@ -38,7 +38,16 @@ func fromObjectsMap(obj objectsMap, value any) error {
 }
 
 func isZeroAmount(amount string) bool {
-	return amount == "" || amount == "0" || amount == "-0"
+	if amount == "" {
+		return true
+	}
+
+	value, ok := big.NewInt(0).SetString(amount, 10)
+	if ok {
+		return value.Sign() == 0
+	}
+
+	return false
 }
 
 func getMagnitudeOfAmount(amount string) string {

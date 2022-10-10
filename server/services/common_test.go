@@ -37,6 +37,7 @@ func Test_IsZeroAmount(t *testing.T) {
 	require.True(t, isZeroAmount(""))
 	require.True(t, isZeroAmount("0"))
 	require.True(t, isZeroAmount("-0"))
+	require.True(t, isZeroAmount("00"))
 	require.False(t, isZeroAmount("1"))
 	require.False(t, isZeroAmount("-1"))
 }

@@ -53,7 +53,7 @@ func TestConstructionMetadata_Validate(t *testing.T) {
 		Receiver: "bob",
 		GasLimit: 50000,
 		GasPrice: 1000000000,
-	}).validate(), "bad metadata: unexpected 'version'")
+	}).validate(), "bad metadata: unexpected 'version' 0")
 
 	require.ErrorContains(t, (&constructionMetadata{
 		Sender:   "alice",
@@ -61,7 +61,7 @@ func TestConstructionMetadata_Validate(t *testing.T) {
 		GasLimit: 50000,
 		GasPrice: 1000000000,
 		Version:  42,
-	}).validate(), "bad metadata: unexpected 'version'")
+	}).validate(), "bad metadata: unexpected 'version' 42")
 
 	require.ErrorContains(t, (&constructionMetadata{
 		Sender:   "alice",

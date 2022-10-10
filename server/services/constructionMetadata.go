@@ -3,6 +3,7 @@ package services
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 )
@@ -78,7 +79,7 @@ func (metadata *constructionMetadata) validate() error {
 		return errors.New("missing metadata: 'gasPrice'")
 	}
 	if metadata.Version != 1 {
-		return errors.New("bad metadata: unexpected 'version'")
+		return fmt.Errorf("bad metadata: unexpected 'version' %v", metadata.Version)
 	}
 	if len(metadata.ChainID) == 0 {
 		return errors.New("missing metadata: 'chainID'")
