@@ -170,7 +170,7 @@ func (service *constructionService) computeData(options *constructionOptions) []
 		return options.Data
 	}
 
-	// TBD: Add implementation for ESDT.
+	// TODO: Handle in a future PR
 	return make([]byte, 0)
 }
 

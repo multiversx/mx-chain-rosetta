@@ -45,7 +45,7 @@ func (options *constructionOptions) validate(nativeCurrencySymbol string) error 
 		return errors.New("missing option 'sender'")
 	}
 	if len(options.Receiver) == 0 {
-		return errors.New("missing option 'receive'")
+		return errors.New("missing option 'receiver'")
 	}
 	if isZeroAmount(options.Amount) {
 		return errors.New("missing option 'amount'")
