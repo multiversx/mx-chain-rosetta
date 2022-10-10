@@ -57,7 +57,7 @@ func (metadata *constructionMetadata) toTransaction() (*data.Transaction, error)
 	tx.Value = metadata.Amount
 	tx.GasLimit = metadata.GasLimit
 	tx.GasPrice = metadata.GasPrice
-	tx.Data = nil
+	tx.Data = metadata.Data
 	tx.ChainID = metadata.ChainID
 	tx.Version = uint32(metadata.Version)
 
