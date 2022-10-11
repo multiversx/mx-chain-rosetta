@@ -9,7 +9,8 @@ import (
 	"github.com/ElrondNetwork/rosetta/server/resources"
 )
 
-type networkProvider interface {
+// NetworkProvider defines the actions that need to be performed by the component that handles network data fetching
+type NetworkProvider interface {
 	IsOffline() bool
 	GetBlockchainName() string
 	GetNativeCurrency() resources.NativeCurrency

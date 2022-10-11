@@ -37,7 +37,7 @@ func (service *offlineService) Block(
 }
 
 // BlockTransaction - not implemented
-// We dont need this method because all transactions are returned by method Block
+// We don't need this method because all transactions are returned by method Block
 func (service *offlineService) BlockTransaction(
 	_ context.Context,
 	_ *types.BlockTransactionRequest,

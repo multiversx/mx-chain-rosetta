@@ -9,12 +9,12 @@ type DisabledExternalStorageConnector struct {
 }
 
 // GetTransactionsByAddress returns nothing
-func (connector *DisabledExternalStorageConnector) GetTransactionsByAddress(address string) ([]data.DatabaseTransaction, error) {
+func (connector *DisabledExternalStorageConnector) GetTransactionsByAddress(_ string) ([]data.DatabaseTransaction, error) {
 	return make([]data.DatabaseTransaction, 0), nil
 }
 
 // GetAtlasBlockByShardIDAndNonce returns nothing
-func (connector *DisabledExternalStorageConnector) GetAtlasBlockByShardIDAndNonce(shardID uint32, nonce uint64) (data.AtlasBlock, error) {
+func (connector *DisabledExternalStorageConnector) GetAtlasBlockByShardIDAndNonce(_ uint32, _ uint64) (data.AtlasBlock, error) {
 	return data.AtlasBlock{}, nil
 }
 

@@ -45,7 +45,7 @@ type ArgsCreateNetworkProvider struct {
 }
 
 // CreateNetworkProvider creates a network provider
-func CreateNetworkProvider(args ArgsCreateNetworkProvider) (networkProvider, error) {
+func CreateNetworkProvider(args ArgsCreateNetworkProvider) (NetworkProvider, error) {
 	shardCoordinator, err := sharding.NewMultiShardCoordinator(args.NumShards, args.ObservedActualShard)
 	if err != nil {
 		return nil, err
