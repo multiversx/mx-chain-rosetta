@@ -8,7 +8,7 @@ import (
 
 type objectsMap map[string]interface{}
 
-func toObjectsMap(value any) (objectsMap, error) {
+func toObjectsMap(value interface{}) (objectsMap, error) {
 	data, err := json.Marshal(value)
 	if err != nil {
 		return nil, err
@@ -23,7 +23,7 @@ func toObjectsMap(value any) (objectsMap, error) {
 	return result, nil
 }
 
-func fromObjectsMap(obj objectsMap, value any) error {
+func fromObjectsMap(obj objectsMap, value interface{}) error {
 	data, err := json.Marshal(obj)
 	if err != nil {
 		return err
