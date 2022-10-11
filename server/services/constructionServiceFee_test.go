@@ -4,169 +4,101 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/ElrondNetwork/rosetta/server/resources"
 	"github.com/ElrondNetwork/rosetta/testscommon"
 	"github.com/stretchr/testify/require"
 )
 
-func TestEstimateGasLimit(t *testing.T) {
+func TestConstructionService_ComputeFeeComponents(t *testing.T) {
 	t.Parallel()
 
 	networkProvider := testscommon.NewNetworkProviderMock()
 	service := NewConstructionService(networkProvider).(*constructionService)
 
-	minGasLimit := uint64(1000)
-	gasPerDataByte := uint64(100)
-	networkConfig := &resources.NetworkConfig{
-		GasPerDataByte: gasPerDataByte,
-		MinGasLimit:    minGasLimit,
-	}
+	t.Run("native transfer", func(t *testing.T) {
+		fee, gasLimit, gasPrice, err := service.computeFeeComponents(&constructionOptions{
+			GasLimit:       50000,
+			GasPrice:       1000000000,
+			CurrencySymbol: "XeGLD",
+		}, []byte{})
 
-	dataField := "transaction-data"
-	options := objectsMap{
-		"data": dataField,
-	}
+		require.Nil(t, err)
+		require.Equal(t, "50000000000000", fee.String())
+		require.Equal(t, uint64(50000), gasLimit)
+		require.Equal(t, uint64(1000000000), gasPrice)
+	})
 
-	expectedGasLimit := minGasLimit + uint64(len(dataField))*gasPerDataByte
+	t.Run("native transfer, with computed data", func(t *testing.T) {
+		fee, gasLimit, gasPrice, err := service.computeFeeComponents(&constructionOptions{
+			GasLimit:       53000,
+			GasPrice:       1000000000,
+			CurrencySymbol: "XeGLD",
+		}, []byte{0xaa, 0xbb})
 
-	gasLimit, err := service.estimateGasLimit(opTransfer, networkConfig, options)
-	require.Nil(t, err)
-	require.Equal(t, expectedGasLimit, gasLimit)
+		require.Nil(t, err)
+		require.Equal(t, "53000000000000", fee.String())
+		require.Equal(t, uint64(53000), gasLimit)
+		require.Equal(t, uint64(1000000000), gasPrice)
+	})
 
-	gasLimit, err = service.estimateGasLimit(opTransfer, networkConfig, nil)
-	require.Nil(t, err)
-	require.Equal(t, minGasLimit, gasLimit)
+	t.Run("native transfer, with insufficient gas limit", func(t *testing.T) {
+		fee, gasLimit, gasPrice, err := service.computeFeeComponents(&constructionOptions{
+			GasLimit:       40000,
+			GasPrice:       1000000000,
+			CurrencySymbol: "XeGLD",
+		}, []byte{})
 
-	// Unsupported operation type (you cannot estimate gasLimit for e.g. a reward operation)
-	gasLimit, err = service.estimateGasLimit(opReward, networkConfig, nil)
-	require.Equal(t, ErrNotImplemented, errCode(err.Code))
-	require.Equal(t, uint64(0), gasLimit)
+		require.Equal(t, int32(ErrInsufficientGasLimit), err.Code)
+		require.Nil(t, fee)
+		require.Equal(t, uint64(0), gasLimit)
+		require.Equal(t, uint64(0), gasPrice)
+	})
+
+	t.Run("native transfer, with more gas limit than necessary", func(t *testing.T) {
+		fee, gasLimit, gasPrice, err := service.computeFeeComponents(&constructionOptions{
+			GasLimit:       70000,
+			GasPrice:       1000000000,
+			CurrencySymbol: "XeGLD",
+		}, []byte{})
+
+		require.Nil(t, err)
+		require.Equal(t, "50000000000000", fee.String())
+		require.Equal(t, uint64(70000), gasLimit)
+		require.Equal(t, uint64(1000000000), gasPrice)
+	})
+
+	t.Run("native transfer, with gas price too low", func(t *testing.T) {
+		fee, gasLimit, gasPrice, err := service.computeFeeComponents(&constructionOptions{
+			GasLimit:       50000,
+			GasPrice:       500000000,
+			CurrencySymbol: "XeGLD",
+		}, []byte{})
+
+		require.Equal(t, int32(ErrGasPriceTooLow), err.Code)
+		require.Nil(t, fee)
+		require.Equal(t, uint64(0), gasLimit)
+		require.Equal(t, uint64(0), gasPrice)
+	})
+
+	t.Run("native transfer, with gas price higher than necessary", func(t *testing.T) {
+		fee, gasLimit, gasPrice, err := service.computeFeeComponents(&constructionOptions{
+			GasLimit:       50000,
+			GasPrice:       2000000000,
+			CurrencySymbol: "XeGLD",
+		}, []byte{})
+
+		require.Nil(t, err)
+		require.Equal(t, "100000000000000", fee.String())
+		require.Equal(t, uint64(50000), gasLimit)
+		require.Equal(t, uint64(2000000000), gasPrice)
+	})
 }
 
-func TestProvidedGasLimit(t *testing.T) {
+func TestComputeFee(t *testing.T) {
 	t.Parallel()
 
-	networkProvider := testscommon.NewNetworkProviderMock()
-	service := NewConstructionService(networkProvider).(*constructionService)
-
-	minGasLimit := uint64(1000)
-	gasPerDataByte := uint64(100)
-	networkConfig := &resources.NetworkConfig{
-		GasPerDataByte: gasPerDataByte,
-		MinGasLimit:    minGasLimit,
-	}
-
-	dataField := "transaction-data"
-	options := objectsMap{
-		"data": dataField,
-	}
-
-	err := service.checkProvidedGasLimit(uint64(900), opTransfer, options, networkConfig)
-	require.Equal(t, ErrInsufficientGasLimit, errCode(err.Code))
-
-	err = service.checkProvidedGasLimit(uint64(900), opReward, options, networkConfig)
-	require.Equal(t, ErrNotImplemented, errCode(err.Code))
-
-	err = service.checkProvidedGasLimit(uint64(9000), opTransfer, options, networkConfig)
-	require.Nil(t, err)
-}
-
-func TestAdjustTxFeeWithFeeMultiplier(t *testing.T) {
-	t.Parallel()
-
-	networkProvider := testscommon.NewNetworkProviderMock()
-	service := NewConstructionService(networkProvider).(*constructionService)
-
-	options := objectsMap{
-		"feeMultiplier": 1.1,
-	}
-
-	expectedGasPrice := uint64(1100)
-	expectedFee := "1100"
-	suggestedFee := big.NewInt(1000)
-
-	suggestedFeeResult, gasPriceResult := service.adjustTxFeeWithFeeMultiplier(suggestedFee, 1000, options, 1000)
-	require.Equal(t, expectedFee, suggestedFeeResult.String())
-	require.Equal(t, expectedGasPrice, gasPriceResult)
-
-	expectedGasPrice = uint64(1000)
-	expectedFee = "1000"
-	suggestedFeeResult, gasPriceResult = service.adjustTxFeeWithFeeMultiplier(suggestedFee, 1000, make(objectsMap), 1000)
-	require.Equal(t, expectedFee, suggestedFeeResult.String())
-	require.Equal(t, expectedGasPrice, gasPriceResult)
-}
-
-func TestComputeSuggestedFeeAndGas(t *testing.T) {
-	t.Parallel()
-
-	networkProvider := testscommon.NewNetworkProviderMock()
-	service := NewConstructionService(networkProvider).(*constructionService)
-
-	minGasLimit := uint64(1000)
-	minGasPrice := uint64(10)
-	gasPerDataByte := uint64(100)
-	networkConfig := &resources.NetworkConfig{
-		GasPerDataByte: gasPerDataByte,
-		MinGasLimit:    minGasLimit,
-		MinGasPrice:    minGasPrice,
-	}
-
-	providedGasPrice := uint64(10)
-	options := objectsMap{
-		"gasPrice": providedGasPrice,
-	}
-
-	suggestedFee, gasPrice, gasLimit, err := service.computeSuggestedFeeAndGas(opTransfer, options, networkConfig)
-	require.Nil(t, err)
-	require.Equal(t, minGasLimit, gasLimit)
-	require.Equal(t, big.NewInt(10000), suggestedFee)
-	require.Equal(t, providedGasPrice, gasPrice)
-
-	// err provided gas price is too low
-	options["gasPrice"] = 1
-	_, _, _, err = service.computeSuggestedFeeAndGas(opTransfer, options, networkConfig)
-	require.Equal(t, ErrGasPriceTooLow, errCode(err.Code))
-
-	// err provided gas limit is too low
-	options["gasPrice"] = minGasPrice
-	options["gasLimit"] = 1
-	_, _, _, err = service.computeSuggestedFeeAndGas(opTransfer, options, networkConfig)
-	require.Equal(t, ErrInsufficientGasLimit, errCode(err.Code))
-
-	delete(options, "gasLimit")
-	options["gasPrice"] = minGasPrice
-	_, _, _, err = service.computeSuggestedFeeAndGas(opReward, options, networkConfig)
-	require.Equal(t, ErrNotImplemented, errCode(err.Code))
-
-	//check with fee multiplier
-	delete(options, "gasPrice")
-	delete(options, "gasLimit")
-	options["feeMultiplier"] = 1.1
-	expectedSuggestedFee := big.NewInt(11000)
-	expectedGasPrice := uint64(11)
-	suggestedFee, gasPrice, gasLimit, err = service.computeSuggestedFeeAndGas(opTransfer, options, networkConfig)
-	require.Nil(t, err)
-	require.Equal(t, minGasLimit, gasLimit)
-	require.Equal(t, expectedSuggestedFee, suggestedFee)
-	require.Equal(t, expectedGasPrice, gasPrice)
-}
-
-func TestAdjustTxFeeWithFeeMultiplier_FeeMultiplierLessThanOne(t *testing.T) {
-	t.Parallel()
-
-	networkProvider := testscommon.NewNetworkProviderMock()
-	service := NewConstructionService(networkProvider).(*constructionService)
-
-	options := objectsMap{
-		"feeMultiplier": 0.5,
-	}
-
-	expectedFee := "500"
-	suggestedFee := big.NewInt(1000)
-	gasPrice := uint64(1000)
-	minGasPrice := uint64(900)
-
-	suggestedFeeResult, gasPriceResult := service.adjustTxFeeWithFeeMultiplier(suggestedFee, gasPrice, options, minGasPrice)
-	require.Equal(t, expectedFee, suggestedFeeResult.String())
-	require.Equal(t, minGasPrice, gasPriceResult)
+	require.Equal(t, big.NewInt(50000000000000), computeFee(50000, 0, 1000000000, 0.01))
+	require.Equal(t, big.NewInt(50000000000000), computeFee(50000, 0, 1000000000, 0.02))
+	require.Equal(t, big.NewInt(100000000000000), computeFee(50000, 0, 2000000000, 0.01))
+	require.Equal(t, big.NewInt(70000000000000), computeFee(70000, 0, 1000000000, 0.01))
+	require.Equal(t, big.NewInt(60000000000000), computeFee(50000, 1000000, 1000000000, 0.01))
 }

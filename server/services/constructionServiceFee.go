@@ -1,124 +1,47 @@
 package services
 
 import (
-	"fmt"
 	"math/big"
 
-	"github.com/ElrondNetwork/rosetta/server/resources"
 	"github.com/coinbase/rosetta-sdk-go/types"
 )
 
-func (service *constructionService) computeSuggestedFeeAndGas(txType string, options objectsMap, networkConfig *resources.NetworkConfig) (*big.Int, uint64, uint64, *types.Error) {
-	var gasLimit, gasPrice uint64
+func (service *constructionService) computeFeeComponents(options *constructionOptions, computedData []byte) (*big.Int, uint64, uint64, *types.Error) {
+	networkConfig := service.provider.GetNetworkConfig()
+	minGasPrice := networkConfig.MinGasPrice
+	// TODO: Handle in a future PR
+	gasPriceModifier := float64(0.01)
 
-	if gasLimitI, ok := options["gasLimit"]; ok {
-		gasLimit = getUint64Value(gasLimitI)
-
-		err := service.checkProvidedGasLimit(gasLimit, txType, options, networkConfig)
-		if err != nil {
-			return nil, 0, 0, err
-		}
-
-	} else {
-		// if gas limit is not provided, we estimate it
-		estimatedGasLimit, err := service.estimateGasLimit(txType, networkConfig, options)
-		if err != nil {
-			return nil, 0, 0, err
-		}
-
-		gasLimit = estimatedGasLimit
+	isForNativeCurrency := service.extension.isNativeCurrencySymbol(options.CurrencySymbol)
+	isForCustomCurrency := !isForNativeCurrency
+	if isForCustomCurrency {
+		// TODO: Handle in a future PR
+		return nil, 0, 0, service.errFactory.newErr(ErrNotImplemented)
 	}
 
-	if gasPriceI, ok := options["gasPrice"]; ok {
-		gasPrice = getUint64Value(gasPriceI)
+	movementGasLimit := networkConfig.MinGasLimit + networkConfig.GasPerDataByte*uint64(len(computedData))
+	// TODO: Handle in a future PR
+	executionGasLimit := uint64(0)
+	estimatedGasLimit := movementGasLimit + executionGasLimit
 
-		if gasPrice < networkConfig.MinGasPrice {
-			return nil, 0, 0, service.errFactory.newErr(ErrGasPriceTooLow)
-		}
+	gasLimit := options.coalesceGasLimit(estimatedGasLimit)
+	gasPrice := options.coalesceGasPrice(minGasPrice)
 
-	} else {
-		// if gas price is not provided, we set it to minGasPrice
-		gasPrice = networkConfig.MinGasPrice
+	if gasLimit < estimatedGasLimit {
+		return nil, 0, 0, service.errFactory.newErr(ErrInsufficientGasLimit)
 	}
-
-	suggestedFee := big.NewInt(0).Mul(
-		big.NewInt(0).SetUint64(gasPrice),
-		big.NewInt(0).SetUint64(gasLimit),
-	)
-
-	suggestedFee, gasPrice = service.adjustTxFeeWithFeeMultiplier(suggestedFee, gasPrice, options, networkConfig.MinGasPrice)
-
-	return suggestedFee, gasPrice, gasLimit, nil
-}
-
-func (service *constructionService) adjustTxFeeWithFeeMultiplier(
-	txFee *big.Int, gasPrice uint64, options objectsMap, minGasPrice uint64,
-) (*big.Int, uint64) {
-	feeMultiplierI, ok := options["feeMultiplier"]
-	if !ok {
-		return txFee, gasPrice
-	}
-
-	feeMultiplier, ok := feeMultiplierI.(float64)
-	if !ok {
-		return txFee, gasPrice
-	}
-
-	feeMultiplierBig := big.NewFloat(feeMultiplier)
-	bigVal, ok := big.NewFloat(0).SetString(txFee.String())
-	if !ok {
-		return txFee, gasPrice
-	}
-
-	bigVal.Mul(bigVal, feeMultiplierBig)
-
-	result := new(big.Int)
-	bigVal.Int(result)
-
-	gasPrice = uint64(feeMultiplier * float64(gasPrice))
 	if gasPrice < minGasPrice {
-		gasPrice = minGasPrice
+		return nil, 0, 0, service.errFactory.newErr(ErrGasPriceTooLow)
 	}
 
-	return result, gasPrice
+	fee := computeFee(movementGasLimit, executionGasLimit, gasPrice, gasPriceModifier)
+	return fee, gasLimit, gasPrice, nil
 }
 
-func (service *constructionService) estimateGasLimit(operationType string, networkConfig *resources.NetworkConfig, options objectsMap) (uint64, *types.Error) {
-	gasForDataField := uint64(0)
-	if dataFieldI, ok := options["data"]; ok {
-		dataField := fmt.Sprintf("%v", dataFieldI)
-		gasForDataField = networkConfig.GasPerDataByte * uint64(len(dataField))
-	}
-
-	switch operationType {
-	case opTransfer:
-		return networkConfig.MinGasLimit + gasForDataField, nil
-	default:
-		//  we do not support this yet other operation types, but we might support it in the future
-		return 0, service.errFactory.newErr(ErrNotImplemented)
-	}
-}
-
-func (service *constructionService) checkProvidedGasLimit(providedGasLimit uint64, txType string, options objectsMap, networkConfig *resources.NetworkConfig) *types.Error {
-	estimatedGasLimit, err := service.estimateGasLimit(txType, networkConfig, options)
-	if err != nil {
-		return err
-	}
-
-	if providedGasLimit < estimatedGasLimit {
-		return service.errFactory.newErr(ErrInsufficientGasLimit)
-	}
-
-	return nil
-}
-
-func getUint64Value(obj interface{}) uint64 {
-	if value, ok := obj.(uint64); ok {
-		return value
-	}
-	if value, ok := obj.(float64); ok {
-		return uint64(value)
-	}
-
-	return 0
+func computeFee(movementGasLimit uint64, executionGasLimit uint64, gasPrice uint64, gasPriceModifier float64) *big.Int {
+	movementFee := multiplyUint64(movementGasLimit, gasPrice)
+	executionGasPrice := uint64(float64(gasPrice) * gasPriceModifier)
+	executionFee := multiplyUint64(executionGasLimit, executionGasPrice)
+	computedFee := addBigInt(movementFee, executionFee)
+	return computedFee
 }
