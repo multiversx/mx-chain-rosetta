@@ -207,7 +207,7 @@ func (mock *networkProviderMock) GetAccount(address string) (*resources.AccountO
 	return nil, fmt.Errorf("account %s not found", address)
 }
 
-func (mock *networkProviderMock) GetAccountNativeBalance(address string, options resources.AccountQueryOptions) (*resources.AccountNativeBalance, error) {
+func (mock *networkProviderMock) GetAccountNativeBalance(address string, _ resources.AccountQueryOptions) (*resources.AccountNativeBalance, error) {
 	if mock.MockNextError != nil {
 		return nil, mock.MockNextError
 	}
@@ -223,7 +223,7 @@ func (mock *networkProviderMock) GetAccountNativeBalance(address string, options
 	return nil, fmt.Errorf("account %s not found", address)
 }
 
-func (mock *networkProviderMock) GetAccountESDTBalance(address string, tokenIdentifier string, options resources.AccountQueryOptions) (*resources.AccountESDTBalance, error) {
+func (mock *networkProviderMock) GetAccountESDTBalance(address string, tokenIdentifier string, _ resources.AccountQueryOptions) (*resources.AccountESDTBalance, error) {
 	if mock.MockNextError != nil {
 		return nil, mock.MockNextError
 	}
@@ -279,7 +279,7 @@ func (mock *networkProviderMock) ConvertAddressToPubKey(address string) ([]byte,
 }
 
 // ComputeTransactionHash -
-func (mock *networkProviderMock) ComputeTransactionHash(tx *data.Transaction) (string, error) {
+func (mock *networkProviderMock) ComputeTransactionHash(_ *data.Transaction) (string, error) {
 	if mock.MockNextError != nil {
 		return "", mock.MockNextError
 	}
@@ -288,7 +288,7 @@ func (mock *networkProviderMock) ComputeTransactionHash(tx *data.Transaction) (s
 }
 
 // ComputeReceiptHash -
-func (mock *networkProviderMock) ComputeReceiptHash(apiReceipt *transaction.ApiReceipt) (string, error) {
+func (mock *networkProviderMock) ComputeReceiptHash(_ *transaction.ApiReceipt) (string, error) {
 	if mock.MockNextError != nil {
 		return "", mock.MockNextError
 	}
@@ -325,9 +325,9 @@ func (mock *networkProviderMock) GetMempoolTransactionByHash(hash string) (*tran
 		return nil, mock.MockNextError
 	}
 
-	transaction, ok := mock.MockMempoolTransactionsByHash[hash]
+	transactionObj, ok := mock.MockMempoolTransactionsByHash[hash]
 	if ok {
-		return transaction, nil
+		return transactionObj, nil
 	}
 
 	return nil, nil

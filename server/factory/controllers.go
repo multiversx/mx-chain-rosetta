@@ -18,7 +18,7 @@ func CreateControllers(networkProvider services.NetworkProvider) ([]server.Route
 func createOfflineControllers(networkProvider services.NetworkProvider) ([]server.Router, error) {
 	log.Info("createOfflineControllers()")
 
-	asserter, err := createAsserter(networkProvider)
+	asserterInstance, err := createAsserter(networkProvider)
 	if err != nil {
 		return nil, err
 	}
@@ -26,14 +26,14 @@ func createOfflineControllers(networkProvider services.NetworkProvider) ([]serve
 	offlineService := services.NewOfflineService()
 
 	networkService := services.NewNetworkService(networkProvider)
-	networkController := server.NewNetworkAPIController(networkService, asserter)
+	networkController := server.NewNetworkAPIController(networkService, asserterInstance)
 
-	accountController := server.NewAccountAPIController(offlineService, asserter)
-	blockController := server.NewBlockAPIController(offlineService, asserter)
-	mempoolController := server.NewMempoolAPIController(offlineService, asserter)
+	accountController := server.NewAccountAPIController(offlineService, asserterInstance)
+	blockController := server.NewBlockAPIController(offlineService, asserterInstance)
+	mempoolController := server.NewMempoolAPIController(offlineService, asserterInstance)
 
 	constructionService := services.NewConstructionService(networkProvider)
-	constructionController := server.NewConstructionAPIController(constructionService, asserter)
+	constructionController := server.NewConstructionAPIController(constructionService, asserterInstance)
 
 	return []server.Router{
 		networkController,
@@ -47,25 +47,25 @@ func createOfflineControllers(networkProvider services.NetworkProvider) ([]serve
 func createOnlineControllers(networkProvider services.NetworkProvider) ([]server.Router, error) {
 	log.Info("createOnlineControllers()")
 
-	asserter, err := createAsserter(networkProvider)
+	asserterInstance, err := createAsserter(networkProvider)
 	if err != nil {
 		return nil, err
 	}
 
 	networkService := services.NewNetworkService(networkProvider)
-	networkController := server.NewNetworkAPIController(networkService, asserter)
+	networkController := server.NewNetworkAPIController(networkService, asserterInstance)
 
 	accountService := services.NewAccountService(networkProvider)
-	accountController := server.NewAccountAPIController(accountService, asserter)
+	accountController := server.NewAccountAPIController(accountService, asserterInstance)
 
 	blockService := services.NewBlockService(networkProvider)
-	blockController := server.NewBlockAPIController(blockService, asserter)
+	blockController := server.NewBlockAPIController(blockService, asserterInstance)
 
 	mempoolService := services.NewMempoolService(networkProvider)
-	mempoolController := server.NewMempoolAPIController(mempoolService, asserter)
+	mempoolController := server.NewMempoolAPIController(mempoolService, asserterInstance)
 
 	constructionService := services.NewConstructionService(networkProvider)
-	constructionController := server.NewConstructionAPIController(constructionService, asserter)
+	constructionController := server.NewConstructionAPIController(constructionService, asserterInstance)
 
 	return []server.Router{
 		networkController,
@@ -77,12 +77,10 @@ func createOnlineControllers(networkProvider services.NetworkProvider) ([]server
 }
 
 func createAsserter(networkProvider services.NetworkProvider) (*asserter.Asserter, error) {
-	isHistoricalBalancesLookupEnabled := true
-
 	// The asserter automatically rejects incorrectly formatted requests.
 	asserterServer, err := asserter.NewServer(
 		services.SupportedOperationTypes,
-		isHistoricalBalancesLookupEnabled,
+		true, // isHistoricalBalancesLookupEnabled := true
 		[]*types.NetworkIdentifier{
 			{
 				Blockchain: networkProvider.GetBlockchainName(),

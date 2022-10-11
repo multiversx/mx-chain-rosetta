@@ -279,7 +279,7 @@ func (transformer *transactionsTransformer) mempoolMoveBalanceTxToRosettaTx(tx *
 	}
 }
 
-func (transformer *transactionsTransformer) addOperationsGivenTransactionEvents(tx *transaction.ApiTransactionResult, rosettaTx *types.Transaction) error {
+func (transformer *transactionsTransformer) addOperationsGivenTransactionEvents(_ *transaction.ApiTransactionResult, _ *types.Transaction) error {
 	// TBD: uncomment when applicable ("transferValueOnly" events duplicate the information of SCRs in most contexts)
 	// err := transformer.addOperationsGivenEventTransferValueOnly(tx, rosettaTx)
 	// if err != nil {
