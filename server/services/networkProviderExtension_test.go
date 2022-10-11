@@ -14,7 +14,7 @@ func TestNetworkProviderExtension_ValueToNativeAmount(t *testing.T) {
 	extension := newNetworkProviderExtension(networkProvider)
 
 	amount := extension.valueToNativeAmount("1")
-	expecteAmount := &types.Amount{
+	expectedAmount := &types.Amount{
 		Value: "1",
 		Currency: &types.Currency{
 			Symbol:   "EGLD",
@@ -22,7 +22,7 @@ func TestNetworkProviderExtension_ValueToNativeAmount(t *testing.T) {
 		},
 	}
 
-	require.Equal(t, expecteAmount, amount)
+	require.Equal(t, expectedAmount, amount)
 }
 
 func TestNetworkProviderExtension_ValueToCustomAmount(t *testing.T) {
@@ -30,12 +30,12 @@ func TestNetworkProviderExtension_ValueToCustomAmount(t *testing.T) {
 	extension := newNetworkProviderExtension(networkProvider)
 
 	amount := extension.valueToCustomAmount("1", "ABC-abcdef")
-	expecteAmount := &types.Amount{
+	expectedAmount := &types.Amount{
 		Value: "1",
 		Currency: &types.Currency{
 			Symbol: "ABC-abcdef",
 		},
 	}
 
-	require.Equal(t, expecteAmount, amount)
+	require.Equal(t, expectedAmount, amount)
 }

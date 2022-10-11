@@ -29,7 +29,7 @@ func newErrCannotGetTransaction(hash string, innerError error) error {
 }
 
 // In elrond-proxy-go, the function CallGetRestEndPoint() returns an error message as the JSON content of the erroneous HTTP response.
-// Here, we attept to decode that JSON and create an error with a "flat" error message.
+// Here, we attempt to decode that JSON and create an error with a "flat" error message.
 func convertStructuredApiErrToFlatErr(apiErr error) error {
 	structuredApiErr := &structuredApiError{}
 	err := json.Unmarshal([]byte(apiErr.Error()), structuredApiErr)

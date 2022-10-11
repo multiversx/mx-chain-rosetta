@@ -64,12 +64,12 @@ func (mock *observerFacadeMock) CallGetRestEndPoint(baseUrl string, path string,
 		return 0, mock.MockNextError
 	}
 
-	data, err := json.Marshal(mock.MockGetResponse)
+	marshalledData, err := json.Marshal(mock.MockGetResponse)
 	if err != nil {
 		return 500, err
 	}
 
-	err = json.Unmarshal(data, value)
+	err = json.Unmarshal(marshalledData, value)
 	if err != nil {
 		return 500, err
 	}
@@ -106,7 +106,7 @@ func (mock *observerFacadeMock) SendTransaction(tx *data.Transaction) (int, stri
 }
 
 // ComputeTransactionHash -
-func (mock *observerFacadeMock) ComputeTransactionHash(tx *data.Transaction) (string, error) {
+func (mock *observerFacadeMock) ComputeTransactionHash(_ *data.Transaction) (string, error) {
 	if mock.MockNextError != nil {
 		return "", mock.MockNextError
 	}
@@ -115,14 +115,14 @@ func (mock *observerFacadeMock) ComputeTransactionHash(tx *data.Transaction) (st
 }
 
 // GetTransactionByHashAndSenderAddress -
-func (mock *observerFacadeMock) GetTransactionByHashAndSenderAddress(hash string, sender string, withEvents bool) (*transaction.ApiTransactionResult, int, error) {
+func (mock *observerFacadeMock) GetTransactionByHashAndSenderAddress(hash string, _ string, _ bool) (*transaction.ApiTransactionResult, int, error) {
 	if mock.MockNextError != nil {
 		return nil, 0, mock.MockNextError
 	}
 
-	transaction, ok := mock.MockTransactionsByHash[hash]
+	transactionObj, ok := mock.MockTransactionsByHash[hash]
 	if ok {
-		return transaction, 0, mock.MockNextError
+		return transactionObj, 0, mock.MockNextError
 	}
 
 	return nil, 0, fmt.Errorf("transaction %s not found", hash)
