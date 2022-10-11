@@ -140,17 +140,18 @@ func (service *constructionService) ConstructionMetadata(
 		return nil, errTyped
 	}
 
-	metadata := &constructionMetadata{}
-	metadata.Nonce = account.Account.Nonce
-	metadata.Sender = requestOptions.Sender
-	metadata.Receiver = requestOptions.Receiver
-	metadata.Amount = requestOptions.Amount
-	metadata.CurrencySymbol = requestOptions.CurrencySymbol
-	metadata.GasLimit = gasLimit
-	metadata.GasPrice = gasPrice
-	metadata.Data = computedData
-	metadata.ChainID = service.provider.GetNetworkConfig().NetworkID
-	metadata.Version = transactionVersion
+	metadata := &constructionMetadata{
+		Nonce:          account.Account.Nonce,
+		Sender:         requestOptions.Sender,
+		Receiver:       requestOptions.Receiver,
+		Amount:         requestOptions.Amount,
+		CurrencySymbol: requestOptions.CurrencySymbol,
+		GasLimit:       gasLimit,
+		GasPrice:       gasPrice,
+		Data:           computedData,
+		ChainID:        service.provider.GetNetworkConfig().NetworkID,
+		Version:        transactionVersion,
+	}
 
 	metadataAsObjectsMap, err := toObjectsMap(metadata)
 	if err != nil {

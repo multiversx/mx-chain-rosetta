@@ -51,16 +51,17 @@ func (metadata *constructionMetadata) toTransaction() (*data.Transaction, error)
 		return nil, err
 	}
 
-	tx := &data.Transaction{}
-	tx.Sender = metadata.Sender
-	tx.Receiver = metadata.Receiver
-	tx.Nonce = metadata.Nonce
-	tx.Value = metadata.Amount
-	tx.GasLimit = metadata.GasLimit
-	tx.GasPrice = metadata.GasPrice
-	tx.Data = metadata.Data
-	tx.ChainID = metadata.ChainID
-	tx.Version = uint32(metadata.Version)
+	tx := &data.Transaction{
+		Sender:   metadata.Sender,
+		Receiver: metadata.Receiver,
+		Nonce:    metadata.Nonce,
+		Value:    metadata.Amount,
+		GasLimit: metadata.GasLimit,
+		GasPrice: metadata.GasPrice,
+		Data:     metadata.Data,
+		ChainID:  metadata.ChainID,
+		Version:  uint32(metadata.Version),
+	}
 
 	return tx, nil
 }
