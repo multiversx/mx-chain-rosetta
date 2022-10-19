@@ -18,7 +18,7 @@ const (
 	ErrMalformedValue
 	ErrUnableToGetNodeStatus
 	ErrMustQueryByIndexOrByHash
-	ErrConstructionCheck
+	ErrConstruction
 	ErrUnableToGetNetworkConfig
 	ErrUnsupportedCurveType
 	ErrInsufficientGasLimit
@@ -97,8 +97,8 @@ func createErrPrototypes() ([]errPrototype, map[errCode]errPrototype) {
 			retriable: false,
 		},
 		{
-			code:      ErrConstructionCheck,
-			message:   "operation construction check error",
+			code:      ErrConstruction,
+			message:   "construction error",
 			retriable: false,
 		},
 		{

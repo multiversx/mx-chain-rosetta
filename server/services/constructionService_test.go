@@ -12,58 +12,198 @@ import (
 )
 
 func TestConstructionService_ConstructionPreprocess(t *testing.T) {
+	t.Parallel()
+
 	networkProvider := testscommon.NewNetworkProviderMock()
 	extension := newNetworkProviderExtension(networkProvider)
 	service := NewConstructionService(networkProvider)
 
-	operations := []*types.Operation{
-		{
-			OperationIdentifier: indexToOperationIdentifier(0),
-			Type:                opTransfer,
-			Account:             addressToAccountIdentifier(testscommon.TestAddressAlice),
-			Amount:              extension.valueToNativeAmount("-1234"),
-		},
-		{
-			OperationIdentifier: indexToOperationIdentifier(1),
-			Type:                opTransfer,
-			Account:             addressToAccountIdentifier(testscommon.TestAddressBob),
-			Amount:              extension.valueToNativeAmount("1234"),
-		},
-	}
+	t.Run("with minimal (empty) 'metadata', 'options' being inferred from 'operations'", func(t *testing.T) {
+		t.Parallel()
 
-	feeMultiplier := 1.1
+		operations := []*types.Operation{
+			{
+				OperationIdentifier: indexToOperationIdentifier(0),
+				Type:                opTransfer,
+				Account:             addressToAccountIdentifier(testscommon.TestAddressAlice),
+				Amount:              extension.valueToNativeAmount("-1234"),
+			},
+			{
+				OperationIdentifier: indexToOperationIdentifier(1),
+				Type:                opTransfer,
+				Account:             addressToAccountIdentifier(testscommon.TestAddressBob),
+				Amount:              extension.valueToNativeAmount("1234"),
+			},
+		}
 
-	response, err := service.ConstructionPreprocess(context.Background(),
-		&types.ConstructionPreprocessRequest{
-			Operations: operations,
-			MaxFee: []*types.Amount{
-				extension.valueToNativeAmount("123"),
+		response, err := service.ConstructionPreprocess(context.Background(),
+			&types.ConstructionPreprocessRequest{
+				Operations: operations,
+				Metadata:   objectsMap{},
 			},
-			SuggestedFeeMultiplier: &feeMultiplier,
-			Metadata: objectsMap{
-				"gasPrice": 1000000000,
-				"gasLimit": 50000,
-				"data":     "hello",
+		)
+
+		expectedOptions := &constructionOptions{
+			Sender:         testscommon.TestAddressAlice,
+			Receiver:       testscommon.TestAddressBob,
+			Amount:         "1234",
+			CurrencySymbol: "XeGLD",
+		}
+
+		actualOptions := &constructionOptions{}
+		_ = fromObjectsMap(response.Options, actualOptions)
+
+		require.Nil(t, err)
+		require.Equal(t, expectedOptions, actualOptions)
+	})
+
+	t.Run("with one operation, with metadata having: 'receiver'", func(t *testing.T) {
+		t.Parallel()
+
+		operations := []*types.Operation{
+			{
+				OperationIdentifier: indexToOperationIdentifier(0),
+				Type:                opTransfer,
+				Account:             addressToAccountIdentifier(testscommon.TestAddressAlice),
+				Amount:              extension.valueToNativeAmount("-1234"),
 			},
-		},
-	)
-	require.Nil(t, err)
-	require.Equal(t, map[string]interface{}{
-		"receiver":      testscommon.TestAddressBob,
-		"sender":        testscommon.TestAddressAlice,
-		"gasPrice":      1000000000,
-		"gasLimit":      50000,
-		"feeMultiplier": feeMultiplier,
-		"data":          "hello",
-		"value":         "1234",
-		"maxFee":        "123",
-		"type":          opTransfer,
-	}, response.Options)
+		}
+
+		response, err := service.ConstructionPreprocess(context.Background(),
+			&types.ConstructionPreprocessRequest{
+				Operations: operations,
+				Metadata: objectsMap{
+					"receiver": testscommon.TestAddressBob,
+				},
+			},
+		)
+
+		expectedOptions := &constructionOptions{
+			Sender:         testscommon.TestAddressAlice,
+			Receiver:       testscommon.TestAddressBob,
+			Amount:         "1234",
+			CurrencySymbol: "XeGLD",
+		}
+
+		actualOptions := &constructionOptions{}
+		_ = fromObjectsMap(response.Options, actualOptions)
+
+		require.Nil(t, err)
+		require.Equal(t, expectedOptions, actualOptions)
+	})
+
+	t.Run("with one operation, and metadata having: 'receiver', 'amount'", func(t *testing.T) {
+		t.Parallel()
+
+		operations := []*types.Operation{
+			{
+				OperationIdentifier: indexToOperationIdentifier(0),
+				Type:                opTransfer,
+				Account:             addressToAccountIdentifier(testscommon.TestAddressAlice),
+				Amount:              extension.valueToNativeAmount("ignored"),
+			},
+		}
+
+		response, err := service.ConstructionPreprocess(context.Background(),
+			&types.ConstructionPreprocessRequest{
+				Operations: operations,
+				Metadata: objectsMap{
+					"receiver": testscommon.TestAddressBob,
+					"amount":   "1234",
+				},
+			},
+		)
+
+		expectedOptions := &constructionOptions{
+			Sender:         testscommon.TestAddressAlice,
+			Receiver:       testscommon.TestAddressBob,
+			Amount:         "1234",
+			CurrencySymbol: "XeGLD",
+		}
+
+		actualOptions := &constructionOptions{}
+		_ = fromObjectsMap(response.Options, actualOptions)
+
+		require.Nil(t, err)
+		require.Equal(t, expectedOptions, actualOptions)
+	})
+
+	t.Run("with one operation, and missing metadata: 'receiver'", func(t *testing.T) {
+		t.Parallel()
+
+		operations := []*types.Operation{
+			{
+				OperationIdentifier: indexToOperationIdentifier(0),
+				Type:                opTransfer,
+				Account:             addressToAccountIdentifier(testscommon.TestAddressAlice),
+				Amount:              extension.valueToNativeAmount("1234"),
+			},
+		}
+
+		response, err := service.ConstructionPreprocess(context.Background(),
+			&types.ConstructionPreprocessRequest{
+				Operations: operations,
+				Metadata:   objectsMap{},
+			},
+		)
+
+		require.Equal(t, int32(ErrConstruction), err.Code)
+		require.Nil(t, response)
+	})
+
+	t.Run("with maximal 'metadata', without 'operations'", func(t *testing.T) {
+		t.Parallel()
+
+		response, err := service.ConstructionPreprocess(context.Background(),
+			&types.ConstructionPreprocessRequest{
+				Metadata: objectsMap{
+					"sender":         testscommon.TestAddressAlice,
+					"receiver":       testscommon.TestAddressBob,
+					"amount":         "1234",
+					"currencySymbol": "XeGLD",
+					"gasLimit":       70000,
+					"gasPrice":       1000000000,
+					"data":           []byte("hello"),
+				},
+			},
+		)
+
+		expectedOptions := &constructionOptions{
+			Sender:         testscommon.TestAddressAlice,
+			Receiver:       testscommon.TestAddressBob,
+			Amount:         "1234",
+			CurrencySymbol: "XeGLD",
+			GasLimit:       70000,
+			GasPrice:       1000000000,
+			Data:           []byte("hello"),
+		}
+
+		actualOptions := &constructionOptions{}
+		_ = fromObjectsMap(response.Options, actualOptions)
+
+		require.Nil(t, err)
+		require.Equal(t, expectedOptions, actualOptions)
+	})
+
+	t.Run("with incomplete 'metadata', without 'operations'", func(t *testing.T) {
+		t.Parallel()
+
+		response, err := service.ConstructionPreprocess(context.Background(),
+			&types.ConstructionPreprocessRequest{
+				Metadata: objectsMap{
+					"sender":   testscommon.TestAddressAlice,
+					"receiver": testscommon.TestAddressBob,
+				},
+			},
+		)
+
+		require.Equal(t, int32(ErrConstruction), err.Code)
+		require.Nil(t, response)
+	})
 }
 
 func TestConstructionService_ConstructionMetadata(t *testing.T) {
 	networkProvider := testscommon.NewNetworkProviderMock()
-	networkProvider.MockNetworkConfig.NetworkID = "T"
 	networkProvider.MockAccountsByAddress[testscommon.TestAddressAlice] = &resources.Account{
 		Address: testscommon.TestAddressAlice,
 		Nonce:   42,
@@ -71,105 +211,128 @@ func TestConstructionService_ConstructionMetadata(t *testing.T) {
 
 	service := NewConstructionService(networkProvider)
 
-	options := map[string]interface{}{
-		"receiver":      testscommon.TestAddressBob,
-		"sender":        testscommon.TestAddressAlice,
-		"gasPrice":      uint64(1000000000),
-		"gasLimit":      uint64(57500),
-		"feeMultiplier": 1.1,
-		"data":          "hello",
-		"value":         "1234",
-		"maxFee":        "1",
-		"type":          opTransfer,
-	}
-	response, err := service.ConstructionMetadata(context.Background(),
-		&types.ConstructionMetadataRequest{
-			Options: options,
-		},
-	)
+	t.Run("with explicitly providing gas limit and price", func(t *testing.T) {
+		t.Parallel()
 
-	require.Nil(t, err)
-	require.Equal(t, "63250000000000", response.SuggestedFee[0].Value)
+		response, err := service.ConstructionMetadata(context.Background(),
+			&types.ConstructionMetadataRequest{
+				Options: objectsMap{
+					"receiver":       testscommon.TestAddressBob,
+					"sender":         testscommon.TestAddressAlice,
+					"amount":         "1234",
+					"currencySymbol": "XeGLD",
+					"gasLimit":       70000,
+					"gasPrice":       1000000000,
+					"data":           []byte("hello"),
+				},
+			},
+		)
 
-	expectedMetadata := map[string]interface{}{
-		"receiver": testscommon.TestAddressBob,
-		"sender":   testscommon.TestAddressAlice,
-		"chainID":  "T",
-		"version":  1,
-		"data":     []byte("hello"),
-		"value":    "1234",
-		"nonce":    uint64(42),
-		"gasPrice": uint64(1100000000),
-		"gasLimit": uint64(57500),
-	}
+		expectedMetadata := &constructionMetadata{
+			Sender:         testscommon.TestAddressAlice,
+			Receiver:       testscommon.TestAddressBob,
+			Nonce:          42,
+			Amount:         "1234",
+			CurrencySymbol: "XeGLD",
+			GasLimit:       70000,
+			GasPrice:       1000000000,
+			Data:           []byte("hello"),
+			ChainID:        "T",
+			Version:        1,
+		}
 
-	require.Equal(t, expectedMetadata, response.Metadata)
+		actualMetadata := &constructionMetadata{}
+		_ = fromObjectsMap(response.Metadata, actualMetadata)
+
+		require.Nil(t, err)
+		// We are suggesting the fee by considering the refund
+		require.Equal(t, "57500000000000", response.SuggestedFee[0].Value)
+		require.Equal(t, expectedMetadata, actualMetadata)
+	})
+
+	t.Run("without providing gas limit and price", func(t *testing.T) {
+		t.Parallel()
+
+		response, err := service.ConstructionMetadata(context.Background(),
+			&types.ConstructionMetadataRequest{
+				Options: objectsMap{
+					"receiver":       testscommon.TestAddressBob,
+					"sender":         testscommon.TestAddressAlice,
+					"amount":         "1234",
+					"currencySymbol": "XeGLD",
+					"data":           []byte("hello"),
+				},
+			},
+		)
+
+		expectedMetadata := &constructionMetadata{
+			Sender:         testscommon.TestAddressAlice,
+			Receiver:       testscommon.TestAddressBob,
+			Nonce:          42,
+			Amount:         "1234",
+			CurrencySymbol: "XeGLD",
+			GasLimit:       57500,
+			GasPrice:       1000000000,
+			Data:           []byte("hello"),
+			ChainID:        "T",
+			Version:        1,
+		}
+
+		actualMetadata := &constructionMetadata{}
+		_ = fromObjectsMap(response.Metadata, actualMetadata)
+
+		require.Nil(t, err)
+		require.Equal(t, "57500000000000", response.SuggestedFee[0].Value)
+		require.Equal(t, expectedMetadata, actualMetadata)
+	})
 }
 
 func TestConstructionService_ConstructionPayloads(t *testing.T) {
+	t.Parallel()
+
 	networkProvider := testscommon.NewNetworkProviderMock()
-	networkProvider.MockNetworkConfig.NetworkID = "T"
 	networkProvider.MockAccountsByAddress[testscommon.TestAddressAlice] = &resources.Account{
 		Address: testscommon.TestAddressAlice,
 		Nonce:   42,
 	}
 
-	extension := newNetworkProviderExtension(networkProvider)
 	service := NewConstructionService(networkProvider)
-
-	metadata := map[string]interface{}{
-		"receiver": testscommon.TestAddressBob,
-		"sender":   testscommon.TestAddressAlice,
-		"chainID":  "T",
-		"version":  1,
-		"data":     []byte("hello"),
-		"value":    "1234",
-		"nonce":    uint64(42),
-		"gasPrice": uint64(1100000000),
-		"gasLimit": uint64(57500),
-	}
-
-	operations := []*types.Operation{
-		{
-			OperationIdentifier: indexToOperationIdentifier(0),
-			Type:                opTransfer,
-			Account:             addressToAccountIdentifier(testscommon.TestAddressAlice),
-			Amount:              extension.valueToNativeAmount("-1234"),
-		},
-		{
-			OperationIdentifier: indexToOperationIdentifier(1),
-			Type:                opTransfer,
-			Account:             addressToAccountIdentifier(testscommon.TestAddressBob),
-			Amount:              extension.valueToNativeAmount("1234"),
-		},
-	}
 
 	response, err := service.ConstructionPayloads(context.Background(),
 		&types.ConstructionPayloadsRequest{
-			Operations: operations,
-			Metadata:   metadata,
+			Metadata: objectsMap{
+				"sender":         testscommon.TestAddressAlice,
+				"receiver":       testscommon.TestAddressBob,
+				"nonce":          42,
+				"amount":         "1234",
+				"currencySymbol": "XeGLD",
+				"gasLimit":       57500,
+				"gasPrice":       1000000000,
+				"data":           []byte("hello"),
+				"chainID":        "T",
+				"version":        1,
+			},
 		},
 	)
 
-	unsignedTx := `{"nonce":42,"value":"1234","receiver":"erd1spyavw0956vq68xj8y4tenjpq2wd5a9p2c6j8gsz7ztyrnpxrruqzu66jx","sender":"erd1qyu5wthldzr8wx5c9ucg8kjagg0jfs53s8nr3zpz3hypefsdd8ssycr6th","gasPrice":1100000000,"gasLimit":57500,"data":"aGVsbG8=","chainID":"T","version":1}`
-	unsignedTxBytes := []byte(unsignedTx)
+	expectedTxJson := `{"nonce":42,"value":"1234","receiver":"erd1spyavw0956vq68xj8y4tenjpq2wd5a9p2c6j8gsz7ztyrnpxrruqzu66jx","sender":"erd1qyu5wthldzr8wx5c9ucg8kjagg0jfs53s8nr3zpz3hypefsdd8ssycr6th","gasPrice":1000000000,"gasLimit":57500,"data":"aGVsbG8=","chainID":"T","version":1}`
 
 	require.Nil(t, err)
-	firstPayload := response.Payloads[0]
-	require.Equal(t, unsignedTx, response.UnsignedTransaction)
-	require.Equal(t, unsignedTxBytes, firstPayload.Bytes)
-	require.Equal(t, testscommon.TestAddressAlice, firstPayload.AccountIdentifier.Address)
-	require.Equal(t, types.Ed25519, firstPayload.SignatureType)
+	require.Len(t, response.Payloads, 1)
+	require.Equal(t, expectedTxJson, response.UnsignedTransaction)
+	require.Equal(t, []byte(expectedTxJson), response.Payloads[0].Bytes)
+	require.Equal(t, testscommon.TestAddressAlice, response.Payloads[0].AccountIdentifier.Address)
+	require.Equal(t, types.Ed25519, response.Payloads[0].SignatureType)
 }
 
 func TestConstructionService_ConstructionParse(t *testing.T) {
-	networkProvider := testscommon.NewNetworkProviderMock()
-	networkProvider.MockNetworkConfig.NetworkID = "T"
+	t.Parallel()
 
+	networkProvider := testscommon.NewNetworkProviderMock()
 	extension := newNetworkProviderExtension(networkProvider)
 	service := NewConstructionService(networkProvider)
 
-	unsignedTx := `{"nonce":42,"value":"1234","receiver":"erd1spyavw0956vq68xj8y4tenjpq2wd5a9p2c6j8gsz7ztyrnpxrruqzu66jx","sender":"erd1qyu5wthldzr8wx5c9ucg8kjagg0jfs53s8nr3zpz3hypefsdd8ssycr6th","gasPrice":1100000000,"gasLimit":57500,"data":"aGVsbG8=","chainID":"T","version":1}`
+	notSignedTx := `{"nonce":42,"value":"1234","receiver":"erd1spyavw0956vq68xj8y4tenjpq2wd5a9p2c6j8gsz7ztyrnpxrruqzu66jx","sender":"erd1qyu5wthldzr8wx5c9ucg8kjagg0jfs53s8nr3zpz3hypefsdd8ssycr6th","gasPrice":1100000000,"gasLimit":57500,"data":"aGVsbG8=","chainID":"T","version":1}`
 
 	operations := []*types.Operation{
 		{
@@ -189,7 +352,7 @@ func TestConstructionService_ConstructionParse(t *testing.T) {
 	response, err := service.ConstructionParse(context.Background(),
 		&types.ConstructionParseRequest{
 			Signed:      false,
-			Transaction: unsignedTx,
+			Transaction: notSignedTx,
 		},
 	)
 	require.Nil(t, err)
@@ -198,16 +361,16 @@ func TestConstructionService_ConstructionParse(t *testing.T) {
 }
 
 func TestConstructionService_ConstructionCombine(t *testing.T) {
-	networkProvider := testscommon.NewNetworkProviderMock()
-	networkProvider.MockNetworkConfig.NetworkID = "T"
+	t.Parallel()
 
+	networkProvider := testscommon.NewNetworkProviderMock()
 	service := NewConstructionService(networkProvider)
 
-	unsignedTx := `{"nonce":42,"value":"1234","receiver":"erd1spyavw0956vq68xj8y4tenjpq2wd5a9p2c6j8gsz7ztyrnpxrruqzu66jx","sender":"erd1qyu5wthldzr8wx5c9ucg8kjagg0jfs53s8nr3zpz3hypefsdd8ssycr6th","gasPrice":1100000000,"gasLimit":57500,"data":"aGVsbG8=","chainID":"T","version":1}`
+	notSignedTx := `{"nonce":42,"value":"1234","receiver":"erd1spyavw0956vq68xj8y4tenjpq2wd5a9p2c6j8gsz7ztyrnpxrruqzu66jx","sender":"erd1qyu5wthldzr8wx5c9ucg8kjagg0jfs53s8nr3zpz3hypefsdd8ssycr6th","gasPrice":1100000000,"gasLimit":57500,"data":"aGVsbG8=","chainID":"T","version":1}`
 
 	response, err := service.ConstructionCombine(context.Background(),
 		&types.ConstructionCombineRequest{
-			UnsignedTransaction: unsignedTx,
+			UnsignedTransaction: notSignedTx,
 			Signatures: []*types.Signature{
 				{
 					Bytes: []byte{0xaa, 0xbb},
@@ -222,6 +385,8 @@ func TestConstructionService_ConstructionCombine(t *testing.T) {
 }
 
 func TestConstructionService_ConstructionDerive(t *testing.T) {
+	t.Parallel()
+
 	networkProvider := testscommon.NewNetworkProviderMock()
 	service := NewConstructionService(networkProvider)
 
@@ -239,6 +404,8 @@ func TestConstructionService_ConstructionDerive(t *testing.T) {
 }
 
 func TestConstructionService_ConstructionHash(t *testing.T) {
+	t.Parallel()
+
 	networkProvider := testscommon.NewNetworkProviderMock()
 	networkProvider.MockComputedTransactionHash = "aaaa"
 	service := NewConstructionService(networkProvider)
@@ -255,6 +422,8 @@ func TestConstructionService_ConstructionHash(t *testing.T) {
 }
 
 func TestConstructionService_ConstructionSubmit(t *testing.T) {
+	t.Parallel()
+
 	networkProvider := testscommon.NewNetworkProviderMock()
 
 	var calledWithTransaction *data.Transaction
@@ -279,6 +448,8 @@ func TestConstructionService_ConstructionSubmit(t *testing.T) {
 }
 
 func TestConstructionService_CreateOperationsFromPreparedTx(t *testing.T) {
+	t.Parallel()
+
 	networkProvider := testscommon.NewNetworkProviderMock()
 	extension := newNetworkProviderExtension(networkProvider)
 	service := NewConstructionService(networkProvider).(*constructionService)

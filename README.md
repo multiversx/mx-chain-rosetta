@@ -16,7 +16,7 @@ In order to set up Rosetta using Docker, use [ElrondNetwork/rosetta-docker](http
 
 ### Setup an Observer
 
-Follow the official documentation to setup an observer:
+Follow the official documentation to set up an observer:
  - [mainnet](https://docs.elrond.com/validators/mainnet/config-scripts/)
  - [devnet](https://docs.elrond.com/validators/elrond-go-scripts/config-scripts/)
 
@@ -49,7 +49,7 @@ Furthermore, adjust `config/config.toml`, as follows:
 
 ### Setup Observer's database
 
-In order to set up a database supporting historical balances lookup, please follow the instructions in section [Setup a database](#setup-a-database).
+In order to set up a database supporting historical balances lookup, please follow the instructions in section [Set up a database](#setup-a-database).
 
 ### Setup Rosetta
 
@@ -85,7 +85,7 @@ Or, in order to start using the `offline` mode:
 
 ## Setup a database
 
-In order to support historical balances lookup, Rosetta has to connect to an Observer whose database contains _non-pruned accounts tries_. Such databases can be re-built locally or downloaded from the Elrond public archive - the URL being available [on request](https://t.me/ElrondDevelopers).
+In order to support historical balances' lookup, Rosetta has to connect to an Observer whose database contains _non-pruned accounts tries_. Such databases can be re-built locally or downloaded from the Elrond public archive - the URL being available [on request](https://t.me/ElrondDevelopers).
 
 ### Build archives
 

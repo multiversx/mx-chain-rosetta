@@ -5,9 +5,9 @@ const (
 	RosettaVersion = "v1.4.12"
 
 	// RosettaMiddlewareVersion is the version of this package (application)
-	RosettaMiddlewareVersion = "v0.2.7"
+	RosettaMiddlewareVersion = "v0.3.0"
 
 	// NodeVersion is the canonical version of the node runtime
 	// TODO: We should fetch this from node/status.
-	NodeVersion = "v1.3.42-rosetta1"
+	NodeVersion = "v1.3.44-rosetta1"
 )

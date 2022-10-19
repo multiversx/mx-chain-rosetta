@@ -31,7 +31,7 @@ func TestTransactionsTransformer_UnsignedTxToRosettaTx(t *testing.T) {
 		TransactionIdentifier: hashToTransactionIdentifier("aaaa"),
 		Operations: []*types.Operation{
 			{
-				Type:    opScResult,
+				Type:    opFeeRefundAsScResult,
 				Account: addressToAccountIdentifier(testscommon.TestAddressAlice),
 				Amount:  extension.valueToNativeAmount("1234"),
 			},
@@ -59,13 +59,14 @@ func TestTransactionsTransformer_UnsignedTxToRosettaTx(t *testing.T) {
 				Amount:  extension.valueToNativeAmount("1234"),
 			},
 		},
+		Metadata: extractTransactionMetadata(moveBalanceTx),
 	}
 
 	txsInBlock := []*transaction.ApiTransactionResult{refundTx, moveBalanceTx}
 
-	rosettaFefundTx := transformer.unsignedTxToRosettaTx(refundTx, txsInBlock)
+	rosettaRefundTx := transformer.unsignedTxToRosettaTx(refundTx, txsInBlock)
 	rosettaMoveBalanceTx := transformer.unsignedTxToRosettaTx(moveBalanceTx, txsInBlock)
-	require.Equal(t, expectedRefundTx, rosettaFefundTx)
+	require.Equal(t, expectedRefundTx, rosettaRefundTx)
 	require.Equal(t, expectedMoveBalanceTx, rosettaMoveBalanceTx)
 }
 
@@ -135,6 +136,7 @@ func TestTransactionsTransformer_TransformTxsOfBlockWithESDTIssue(t *testing.T) 
 				Status:              &opStatusSuccess,
 			},
 		},
+		Metadata: extractTransactionMetadata(tx),
 	}
 
 	require.Equal(t, expectedRefundSCR, txs[0])

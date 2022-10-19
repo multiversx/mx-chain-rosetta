@@ -74,7 +74,7 @@ type networkProvider struct {
 // NewNetworkProvider (future-to-be renamed to NewNetworkFacade) creates a new networkProvider
 func NewNetworkProvider(args ArgsNewNetworkProvider) (*networkProvider, error) {
 	// Since for each block N we also have to fetch block N-1 and block N+1 (see "simplifyBlockWithScheduledTransactions"),
-	// it makes sense to cache the block response (using a LRU cache).
+	// it makes sense to cache the block response (using an LRU cache).
 	blocksCache, err := lrucache.NewCache(blocksCacheCapacity)
 	if err != nil {
 		return nil, err
@@ -367,14 +367,14 @@ func (provider *networkProvider) ComputeReceiptHash(apiReceipt *transaction.ApiR
 		return "", err
 	}
 
-	receipt := &receipt.Receipt{
+	receiptObj := &receipt.Receipt{
 		TxHash:  txHash,
 		SndAddr: senderPubkey,
 		Value:   apiReceipt.Value,
 		Data:    []byte(apiReceipt.Data),
 	}
 
-	receiptHash, err := core.CalculateHash(provider.marshalizerForHashing, provider.hasher, receipt)
+	receiptHash, err := core.CalculateHash(provider.marshalizerForHashing, provider.hasher, receiptObj)
 	if err != nil {
 		return "", err
 	}

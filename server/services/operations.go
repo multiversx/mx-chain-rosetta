@@ -3,26 +3,30 @@ package services
 import "github.com/coinbase/rosetta-sdk-go/types"
 
 const (
-	opGenesisBalanceMovement = "GenesisBalanceMovement"
-	opTransfer               = "Transfer"
-	opFee                    = "Fee"
-	opReward                 = "Reward"
-	opScResult               = "SmartContractResult"
-	opFeeOfInvalidTx         = "FeeOfInvalidTransaction"
-	opFeeRefund              = "FeeRefund"
-	opESDTTransfer           = "ESDTTransfer"
+	opGenesisBalanceMovement     = "GenesisBalanceMovement"
+	opTransfer                   = "Transfer"
+	opFee                        = "Fee"
+	opReward                     = "Reward"
+	opScResult                   = "SmartContractResult"
+	opFeeRefundAsScResult        = "FeeRefundAsSmartContractResult"
+	opDeveloperRewardsAsScResult = "DeveloperRewardsAsSmartContractResult"
+	opFeeOfInvalidTx             = "FeeOfInvalidTransaction"
+	opFeeRefund                  = "FeeRefund"
+	opESDTTransfer               = "ESDTTransfer"
 	// TODO: perhaps other operations for burn / mint / wipe?
 )
 
 var (
-	// SupportedOperationTypes is a list of the supported operations.
+	// SupportedOperationTypes is a list of the supported operations
 	SupportedOperationTypes = []string{
+		opGenesisBalanceMovement,
 		opTransfer,
 		opFee,
 		opReward,
 		opScResult,
+		opFeeRefundAsScResult,
+		opDeveloperRewardsAsScResult,
 		opFeeOfInvalidTx,
-		opGenesisBalanceMovement,
 		opFeeRefund,
 		opESDTTransfer,
 	}
