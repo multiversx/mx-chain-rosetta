@@ -103,6 +103,7 @@ func TestTransactionsTransformer_TransformTxsOfBlockWithESDTIssue(t *testing.T) 
 				Status:              &opStatusSuccess,
 			},
 		},
+		Metadata: extractTransactionMetadata(blocks[0].MiniBlocks[0].Transactions[0]),
 	}
 
 	require.Equal(t, expectedIssueTx, txs[0])
@@ -116,7 +117,7 @@ func TestTransactionsTransformer_TransformTxsOfBlockWithESDTIssue(t *testing.T) 
 		TransactionIdentifier: hashToTransactionIdentifier("8fa82004d9eb82e34b39bbe22521a7b85a190950cd6876d2e97950de906622d7"),
 		Operations: []*types.Operation{
 			{
-				Type:                opScResult,
+				Type:                opFeeRefundAsScResult,
 				OperationIdentifier: indexToOperationIdentifier(0),
 				Account:             addressToAccountIdentifier("erd1testnlersh4z0wsv8kjx39me4rmnvjkwu8dsaea7ukdvvc9z396qykv7z7"),
 				Amount:              extension.valueToNativeAmount("497775000000000"),
@@ -136,7 +137,7 @@ func TestTransactionsTransformer_TransformTxsOfBlockWithESDTIssue(t *testing.T) 
 				Status:              &opStatusSuccess,
 			},
 		},
-		Metadata: extractTransactionMetadata(tx),
+		Metadata: extractTransactionMetadata(blocks[1].MiniBlocks[0].Transactions[1]),
 	}
 
 	require.Equal(t, expectedRefundSCR, txs[0])
