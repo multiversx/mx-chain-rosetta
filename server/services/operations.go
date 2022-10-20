@@ -1,6 +1,8 @@
 package services
 
-import "github.com/coinbase/rosetta-sdk-go/types"
+import (
+	"github.com/coinbase/rosetta-sdk-go/types"
+)
 
 const (
 	opGenesisBalanceMovement     = "GenesisBalanceMovement"

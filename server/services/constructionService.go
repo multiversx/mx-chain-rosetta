@@ -5,6 +5,9 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"errors"
+	"fmt"
+	"math/big"
+	"strings"
 
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/coinbase/rosetta-sdk-go/server"
@@ -171,8 +174,12 @@ func (service *constructionService) computeData(options *constructionOptions) []
 		return options.Data
 	}
 
-	// TODO: Handle in a future PR
-	return make([]byte, 0)
+	return service.computeDataForCustomCurrencyTransfer(options.CurrencySymbol, options.Amount)
+}
+
+func (service *constructionService) computeDataForCustomCurrencyTransfer(tokenIdentifier string, amount string) []byte {
+	data := fmt.Sprintf("%s@%s@%s", builtInFunctionESDTTransfer, utf8ToHex(tokenIdentifier), amountToHex(amount))
+	return []byte(data)
 }
 
 // ConstructionPayloads returns an unsigned transaction blob and a collection of payloads that must be signed
@@ -187,7 +194,7 @@ func (service *constructionService) ConstructionPayloads(
 		return nil, service.errFactory.newErrWithOriginal(ErrConstruction, err)
 	}
 
-	txJson, err := metadata.toTransactionJson()
+	txJson, err := metadata.toTransactionJson(service.extension.getNativeCurrencySymbol())
 	if err != nil {
 		return nil, service.errFactory.newErrWithOriginal(ErrConstruction, err)
 	}
@@ -231,22 +238,76 @@ func (service *constructionService) ConstructionParse(
 }
 
 func (service *constructionService) createOperationsFromPreparedTx(tx *data.Transaction) []*types.Operation {
-	operations := []*types.Operation{
-		{
-			Type:    opTransfer,
-			Account: addressToAccountIdentifier(tx.Sender),
-			Amount:  service.extension.valueToNativeAmount("-" + tx.Value),
-		},
-		{
-			Type:    opTransfer,
-			Account: addressToAccountIdentifier(tx.Receiver),
-			Amount:  service.extension.valueToNativeAmount(tx.Value),
-		},
+	var operations []*types.Operation
+	isCustomCurrencyTransfer := isCustomCurrencyTransfer(string(tx.Data))
+
+	if isCustomCurrencyTransfer {
+		// TODO: Handle error
+		tokenIdentifier, amount, err := parseCustomCurrencyTransfer(string(tx.Data))
+		if err != nil {
+			log.Error("error", "err", err)
+		}
+
+		operations = []*types.Operation{
+			{
+				Type:    opESDTTransfer,
+				Account: addressToAccountIdentifier(tx.Sender),
+				Amount:  service.extension.valueToCustomAmount("-"+amount, tokenIdentifier),
+			},
+			{
+				Type:    opESDTTransfer,
+				Account: addressToAccountIdentifier(tx.Receiver),
+				Amount:  service.extension.valueToCustomAmount(amount, tokenIdentifier),
+			},
+		}
+	} else {
+		operations = []*types.Operation{
+			{
+				Type:    opTransfer,
+				Account: addressToAccountIdentifier(tx.Sender),
+				Amount:  service.extension.valueToNativeAmount("-" + tx.Value),
+			},
+			{
+				Type:    opTransfer,
+				Account: addressToAccountIdentifier(tx.Receiver),
+				Amount:  service.extension.valueToNativeAmount(tx.Value),
+			},
+		}
 	}
 
 	indexOperations(operations)
 
 	return operations
+}
+
+func isCustomCurrencyTransfer(txData string) bool {
+	return strings.HasPrefix(txData, builtInFunctionESDTTransfer)
+}
+
+func parseCustomCurrencyTransfer(txData string) (string, string, error) {
+	parts := strings.Split(txData, "@")
+
+	if len(parts) != 3 {
+		return "", "", errors.New("TODO: ...")
+	}
+
+	tokenIdentifierBytes, err := hex.DecodeString(parts[1])
+	if err != nil {
+		return "", "", errors.New("TODO: ...")
+	}
+
+	// TODO: move to converters.
+	amountBytes, err := hex.DecodeString(parts[2])
+	if err != nil {
+		return "", "", errors.New("TODO: ...")
+	}
+
+	amountBig := big.NewInt(0).SetBytes(amountBytes)
+
+	tokenIdentifier := string(tokenIdentifierBytes)
+	amount := amountBig.String()
+
+	return tokenIdentifier, amount, nil
 }
 
 func getTxFromRequest(txString string) (*data.Transaction, error) {

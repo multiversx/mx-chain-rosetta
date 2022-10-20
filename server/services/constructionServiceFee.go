@@ -14,14 +14,14 @@ func (service *constructionService) computeFeeComponents(options *constructionOp
 
 	isForNativeCurrency := service.extension.isNativeCurrencySymbol(options.CurrencySymbol)
 	isForCustomCurrency := !isForNativeCurrency
-	if isForCustomCurrency {
-		// TODO: Handle in a future PR
-		return nil, 0, 0, service.errFactory.newErr(ErrNotImplemented)
-	}
 
 	movementGasLimit := networkConfig.MinGasLimit + networkConfig.GasPerDataByte*uint64(len(computedData))
-	// TODO: Handle in a future PR
 	executionGasLimit := uint64(0)
+	if isForCustomCurrency {
+		// TODO: Workaround, work in progress
+		executionGasLimit = 500000
+	}
+
 	estimatedGasLimit := movementGasLimit + executionGasLimit
 
 	gasLimit := options.coalesceGasLimit(estimatedGasLimit)

@@ -23,7 +23,7 @@ func TestConstructionMetadata_ToTransactionJson(t *testing.T) {
 	}
 
 	expectedJson := `{"nonce":42,"value":"1234","receiver":"bob","sender":"alice","gasPrice":1000000000,"gasLimit":80000,"data":"aGVsbG8=","chainID":"T","version":1}`
-	actualJson, err := options.toTransactionJson()
+	actualJson, err := options.toTransactionJson("XeGLD")
 	require.Nil(t, err)
 	require.Equal(t, expectedJson, string(actualJson))
 }

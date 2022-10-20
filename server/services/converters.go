@@ -2,6 +2,7 @@ package services
 
 import (
 	"encoding/hex"
+	"math/big"
 
 	"github.com/ElrondNetwork/elrond-go-core/data/api"
 	"github.com/ElrondNetwork/rosetta/server/resources"
@@ -69,4 +70,29 @@ func indexToOperationIdentifier(index int) *types.OperationIdentifier {
 
 func timestampInMilliseconds(timestamp int64) int64 {
 	return timestamp * 1000
+}
+
+func utf8ToHex(value string) string {
+	encoded := hex.EncodeToString([]byte(value))
+	encoded = ensureEvenLengthOfHexString(encoded)
+	return encoded
+}
+
+func amountToHex(value string) string {
+	bigAmount, ok := big.NewInt(0).SetString(value, 10)
+	if !ok {
+		return ""
+	}
+
+	encoded := hex.EncodeToString(bigAmount.Bytes())
+	encoded = ensureEvenLengthOfHexString(encoded)
+	return encoded
+}
+
+func ensureEvenLengthOfHexString(hexString string) string {
+	if len(hexString)%2 == 1 {
+		return "0" + hexString
+	}
+
+	return hexString
 }
