@@ -117,7 +117,6 @@ func TestNetworkProvider_GetNodeStatusWithSuccess(t *testing.T) {
 	require.Equal(t, "abba", nodeStatus.ObserverPublicKey)
 	require.Equal(t, expectedPeersCounts, nodeStatus.ConnectedPeersCounts)
 	require.False(t, nodeStatus.Synced)
-	require.Equal(t, uint32(11), nodeStatus.CurrentEpoch)
 	require.Equal(t, expectedSummaryOfLatest, nodeStatus.LatestBlock)
 	require.Equal(t, expectedSummaryOfOldest, nodeStatus.OldestBlockWithHistoricalState)
 }

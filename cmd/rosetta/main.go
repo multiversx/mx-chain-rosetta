@@ -53,7 +53,7 @@ func startRosetta(ctx *cli.Context) error {
 		return err
 	}
 
-	log.Info("Starting Rosetta...", "middleware", version.RosettaMiddlewareVersion, "specification", version.RosettaVersion, "node", version.NodeVersion)
+	log.Info("Starting Rosetta...", "middleware", version.RosettaMiddlewareVersion, "specification", version.RosettaVersion)
 
 	networkProvider, err := factory.CreateNetworkProvider(factory.ArgsCreateNetworkProvider{
 		IsOffline:                   cliFlags.offline,

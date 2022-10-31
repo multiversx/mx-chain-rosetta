@@ -45,7 +45,6 @@ func (provider *networkProvider) GetNodeStatus() (*resources.AggregatedNodeStatu
 		ConnectedPeersCounts:           peersCounts,
 		ObserverPublicKey:              plainNodeStatus.ObserverPublicKey,
 		Synced:                         plainNodeStatus.IsSyncing == 0,
-		CurrentEpoch:                   plainNodeStatus.CurrentEpoch,
 		LatestBlock:                    latestBlockSummary,
 		OldestBlockWithHistoricalState: oldestBlockWithHistoricalState,
 	}, nil

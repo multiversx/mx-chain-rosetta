@@ -53,7 +53,6 @@ type AggregatedNodeStatus struct {
 	ConnectedPeersCounts           map[string]int
 	ObserverPublicKey              string
 	Synced                         bool
-	CurrentEpoch                   uint32
 	LatestBlock                    BlockSummary
 	OldestBlockWithHistoricalState BlockSummary
 }
