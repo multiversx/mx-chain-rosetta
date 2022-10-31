@@ -26,7 +26,6 @@ type ArgsNewNetworkProvider struct {
 	ObservedProjectedShard      uint32
 	ObservedProjectedShardIsSet bool
 	ObserverUrl                 string
-	ObserverPubkey              string
 	NetworkID                   string
 	NetworkName                 string
 	GasPerDataByte              uint64
@@ -53,7 +52,6 @@ type networkProvider struct {
 	observedProjectedShard      uint32
 	observedProjectedShardIsSet bool
 	observerUrl                 string
-	observerPubkey              string
 	genesisBlockHash            string
 	genesisTimestamp            int64
 	firstHistoricalEpoch        uint32
@@ -89,7 +87,6 @@ func NewNetworkProvider(args ArgsNewNetworkProvider) (*networkProvider, error) {
 		observedProjectedShard:      args.ObservedProjectedShard,
 		observedProjectedShardIsSet: args.ObservedProjectedShardIsSet,
 		observerUrl:                 args.ObserverUrl,
-		observerPubkey:              args.ObserverPubkey,
 		genesisBlockHash:            args.GenesisBlockHash,
 		genesisTimestamp:            args.GenesisTimestamp,
 		firstHistoricalEpoch:        args.FirstHistoricalEpoch,
@@ -142,11 +139,6 @@ func (provider *networkProvider) GetCustomCurrencyBySymbol(symbol string) (resou
 // HasCustomCurrency checks whether a custom currency (ESDT) is enabled (supported)
 func (provider *networkProvider) HasCustomCurrency(symbol string) bool {
 	return provider.currenciesProvider.hasCustomCurrency(symbol)
-}
-
-// GetObserverPubkey gets the pubkey of the connected observer
-func (provider *networkProvider) GetObserverPubkey() string {
-	return provider.observerPubkey
 }
 
 // GetNetworkConfig gets the network config (once fetched, the network config is indefinitely held in memory)

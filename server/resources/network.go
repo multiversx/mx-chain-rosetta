@@ -22,10 +22,13 @@ type NodeStatusApiResponsePayload struct {
 
 // NodeStatus is an API resource
 type NodeStatus struct {
-	IsSyncing         int    `json:"erd_is_syncing"`
-	HighestNonce      uint64 `json:"erd_nonce"`
-	HighestFinalNonce uint64 `json:"erd_highest_final_nonce"`
-	CurrentEpoch      uint32 `json:"erd_epoch_number"`
+	Version              string `json:"erd_app_version"`
+	ConnectedPeersCounts string `json:"erd_num_connected_peers_classification"`
+	ObserverPublicKey    string `json:"erd_public_key_block_sign"`
+	IsSyncing            int    `json:"erd_is_syncing"`
+	CurrentEpoch         uint32 `json:"erd_epoch_number"`
+	HighestNonce         uint64 `json:"erd_nonce"`
+	HighestFinalNonce    uint64 `json:"erd_highest_final_nonce"`
 }
 
 // EpochStartApiResponse is an API resource
@@ -46,6 +49,9 @@ type EpochStart struct {
 
 // AggregatedNodeStatus is an aggregated resource
 type AggregatedNodeStatus struct {
+	Version                        string
+	ConnectedPeersCounts           map[string]int
+	ObserverPublicKey              string
 	Synced                         bool
 	LatestBlock                    BlockSummary
 	OldestBlockWithHistoricalState BlockSummary

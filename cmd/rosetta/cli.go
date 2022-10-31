@@ -1,8 +1,6 @@
 package main
 
 import (
-	"strings"
-
 	logger "github.com/ElrondNetwork/elrond-go-logger"
 	"github.com/urfave/cli"
 )
@@ -66,12 +64,6 @@ VERSION:
 		Name:  "observer-http-url",
 		Usage: "Specifies the URL of the observer.",
 		Value: "http://nowhere.localhost.local",
-	}
-
-	cliFlagObserverPubKey = cli.StringFlag{
-		Name:  "observer-pubkey",
-		Usage: "Specifies the public key of the observer.",
-		Value: strings.Repeat("0", 64),
 	}
 
 	cliFlagNetworkID = cli.StringFlag{
@@ -156,7 +148,6 @@ func getAllCliFlags() []cli.Flag {
 		cliFlagObserverActualShard,
 		cliFlagObserverProjectedShard,
 		cliFlagObserverHttpUrl,
-		cliFlagObserverPubKey,
 		cliFlagNetworkID,
 		cliFlagNetworkName,
 		cliFlagNumShards,
@@ -181,7 +172,6 @@ type parsedCliFlags struct {
 	observerProjectedShard      uint32
 	observerProjectedShardIsSet bool
 	observerHttpUrl             string
-	observerPubkey              string
 	networkID                   string
 	networkName                 string
 	numShards                   uint32
@@ -206,7 +196,6 @@ func getParsedCliFlags(ctx *cli.Context) parsedCliFlags {
 		observerProjectedShard:      uint32(ctx.GlobalUint(cliFlagObserverProjectedShard.Name)),
 		observerProjectedShardIsSet: ctx.GlobalIsSet(cliFlagObserverProjectedShard.Name),
 		observerHttpUrl:             ctx.GlobalString(cliFlagObserverHttpUrl.Name),
-		observerPubkey:              ctx.GlobalString(cliFlagObserverPubKey.Name),
 		networkID:                   ctx.GlobalString(cliFlagNetworkID.Name),
 		networkName:                 ctx.GlobalString(cliFlagNetworkName.Name),
 		numShards:                   uint32(ctx.GlobalUint(cliFlagNumShards.Name)),

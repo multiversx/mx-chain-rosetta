@@ -26,14 +26,16 @@ func TestNetworkService_NetworkList(t *testing.T) {
 
 func TestNetworkService_NetworkOptions(t *testing.T) {
 	networkProvider := testscommon.NewNetworkProviderMock()
+	networkProvider.MockNodeStatus.Version = "v1.2.3"
 	service := NewNetworkService(networkProvider)
 
 	networkOptions, err := service.NetworkOptions(context.Background(), nil)
 	require.Nil(t, err)
 	require.Equal(t, &types.NetworkOptionsResponse{
 		Version: &types.Version{
-			RosettaVersion: version.RosettaVersion,
-			NodeVersion:    version.NodeVersion,
+			RosettaVersion:    version.RosettaVersion,
+			MiddlewareVersion: &version.RosettaMiddlewareVersion,
+			NodeVersion:       "v1.2.3",
 		},
 		Allow: &types.Allow{
 			HistoricalBalanceLookup: true,
@@ -46,14 +48,19 @@ func TestNetworkService_NetworkOptions(t *testing.T) {
 
 func TestNetworkService_NetworkStatus(t *testing.T) {
 	networkProvider := testscommon.NewNetworkProviderMock()
-	networkProvider.MockObserverPubkey = "my-computer"
 	networkProvider.MockGenesisBlockHash = "genesisHash"
+	networkProvider.MockNodeStatus.Version = "v1.2.3"
 	networkProvider.MockNodeStatus.LatestBlock.Nonce = 42
 	networkProvider.MockNodeStatus.LatestBlock.Hash = "latestHash"
 	networkProvider.MockNodeStatus.LatestBlock.Timestamp = 123456789
 	networkProvider.MockNodeStatus.OldestBlockWithHistoricalState.Nonce = 7
 	networkProvider.MockNodeStatus.OldestBlockWithHistoricalState.Hash = "oldestHash"
 	networkProvider.MockNodeStatus.Synced = true
+	networkProvider.MockNodeStatus.ObserverPublicKey = "abba"
+	networkProvider.MockNodeStatus.ConnectedPeersCounts = map[string]int{
+		"fullObs":  2,
+		"intraObs": 3,
+	}
 
 	service := NewNetworkService(networkProvider)
 
@@ -79,7 +86,14 @@ func TestNetworkService_NetworkStatus(t *testing.T) {
 		},
 		Peers: []*types.Peer{
 			{
-				PeerID: "my-computer",
+				PeerID: "abba",
+				Metadata: objectsMap{
+					"version": "v1.2.3",
+					"connections": map[string]int{
+						"fullObs":  2,
+						"intraObs": 3,
+					},
+				},
 			},
 		},
 	}, networkStatusResponse)
