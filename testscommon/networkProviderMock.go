@@ -27,7 +27,6 @@ type networkProviderMock struct {
 	MockObservedActualShard         uint32
 	MockObservedProjectedShard      uint32
 	MockObservedProjectedShardIsSet bool
-	MockObserverPubkey              string
 	MockNativeCurrencySymbol        string
 	MockGenesisBlockHash            string
 	MockGenesisTimestamp            int64
@@ -59,7 +58,6 @@ func NewNetworkProviderMock() *networkProviderMock {
 		MockObservedActualShard:         0,
 		MockObservedProjectedShard:      0,
 		MockObservedProjectedShardIsSet: false,
-		MockObserverPubkey:              "observer",
 		MockNativeCurrencySymbol:        "XeGLD",
 		MockGenesisBlockHash:            emptyHash,
 		MockGenesisTimestamp:            genesisTimestamp,
@@ -118,11 +116,6 @@ func (mock *networkProviderMock) GetNativeCurrency() resources.NativeCurrency {
 		Symbol:   mock.MockNativeCurrencySymbol,
 		Decimals: 18,
 	}
-}
-
-// GetObserverPubkey -
-func (mock *networkProviderMock) GetObserverPubkey() string {
-	return mock.MockObserverPubkey
 }
 
 // GetNetworkConfig -

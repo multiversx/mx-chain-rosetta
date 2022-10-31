@@ -64,7 +64,10 @@ func (service *networkService) NetworkStatus(
 		},
 		Peers: []*types.Peer{
 			{
-				PeerID: service.provider.GetObserverPubkey(),
+				PeerID: nodeStatus.ObserverPublicKey,
+				Metadata: objectsMap{
+					"connections": nodeStatus.ConnectedPeersCounts,
+				},
 			},
 		},
 	}
@@ -77,10 +80,15 @@ func (service *networkService) NetworkOptions(
 	_ context.Context,
 	_ *types.NetworkRequest,
 ) (*types.NetworkOptionsResponse, *types.Error) {
+	nodeVersion, err := service.getNodeVersion()
+	if err != nil {
+		return nil, err
+	}
+
 	return &types.NetworkOptionsResponse{
 		Version: &types.Version{
 			RosettaVersion: version.RosettaVersion,
-			NodeVersion:    version.NodeVersion,
+			NodeVersion:    nodeVersion,
 		},
 		Allow: &types.Allow{
 			OperationStatuses:       supportedOperationStatuses,
@@ -89,4 +97,18 @@ func (service *networkService) NetworkOptions(
 			HistoricalBalanceLookup: true,
 		},
 	}, nil
+}
+
+func (service *networkService) getNodeVersion() (string, *types.Error) {
+	if service.provider.IsOffline() {
+		// In offline mode, Rosetta does not interact with the Node.
+		return "N / A", nil
+	}
+
+	nodeStatus, err := service.provider.GetNodeStatus()
+	if err != nil {
+		return "", service.errFactory.newErrWithOriginal(ErrUnableToGetNodeStatus, err)
+	}
+
+	return nodeStatus.Version, nil
 }

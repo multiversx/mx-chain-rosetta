@@ -20,7 +20,6 @@ func TestNewNetworkProvider(t *testing.T) {
 		ObservedProjectedShard:      42,
 		ObservedProjectedShardIsSet: true,
 		ObserverUrl:                 "http://my-observer:8080",
-		ObserverPubkey:              "abba",
 		NetworkID:                   "T",
 		NetworkName:                 "testnet",
 		GasPerDataByte:              1501,
@@ -46,7 +45,6 @@ func TestNewNetworkProvider(t *testing.T) {
 	assert.Equal(t, uint32(42), provider.observedProjectedShard)
 	assert.Equal(t, true, provider.observedProjectedShardIsSet)
 	assert.Equal(t, "http://my-observer:8080", provider.observerUrl)
-	assert.Equal(t, "abba", provider.GetObserverPubkey())
 	assert.Equal(t, "T", provider.GetNetworkConfig().NetworkID)
 	assert.Equal(t, "testnet", provider.GetNetworkConfig().NetworkName)
 	assert.Equal(t, uint64(1501), provider.GetNetworkConfig().GasPerDataByte)
@@ -173,7 +171,6 @@ func createDefaultArgsNewNetworkProvider() ArgsNewNetworkProvider {
 		ObservedProjectedShard:      0,
 		ObservedProjectedShardIsSet: false,
 		ObserverUrl:                 "http://my-observer:8080",
-		ObserverPubkey:              "MY-OBSERVER",
 		NetworkID:                   "T",
 		GasPerDataByte:              1500,
 		MinGasPrice:                 1000000000,

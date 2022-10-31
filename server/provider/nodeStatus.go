@@ -1,6 +1,11 @@
 package provider
 
-import "github.com/ElrondNetwork/rosetta/server/resources"
+import (
+	"strconv"
+	"strings"
+
+	"github.com/ElrondNetwork/rosetta/server/resources"
+)
 
 // GetNodeStatus gets an aggregated node status (e.g. current block, oldest available block etc.)
 func (provider *networkProvider) GetNodeStatus() (*resources.AggregatedNodeStatus, error) {
@@ -33,8 +38,14 @@ func (provider *networkProvider) GetNodeStatus() (*resources.AggregatedNodeStatu
 		return nil, err
 	}
 
+	peersCounts := parsePeersCounts(plainNodeStatus.ConnectedPeersCounts)
+
 	return &resources.AggregatedNodeStatus{
+		Version:                        plainNodeStatus.Version,
+		ConnectedPeersCounts:           peersCounts,
+		ObserverPublicKey:              plainNodeStatus.ObserverPublicKey,
 		Synced:                         plainNodeStatus.IsSyncing == 0,
+		CurrentEpoch:                   plainNodeStatus.CurrentEpoch,
 		LatestBlock:                    latestBlockSummary,
 		OldestBlockWithHistoricalState: oldestBlockWithHistoricalState,
 	}, nil
@@ -107,4 +118,33 @@ func (provider *networkProvider) getEpochStartInfo(epoch uint32) (*resources.Epo
 	}
 
 	return &response.Data.EpochStart, nil
+}
+
+func parsePeersCounts(csv string) map[string]int {
+	if len(csv) == 0 {
+		return map[string]int{}
+	}
+
+	peersCounts := make(map[string]int)
+	parts := strings.Split(csv, ",")
+
+	for _, part := range parts {
+		subparts := strings.Split(part, ":")
+		if len(subparts) != 2 {
+			// We do not report such an error (not important)
+			continue
+		}
+
+		key := subparts[0]
+		countAsString := subparts[1]
+		count, err := strconv.ParseInt(countAsString, 10, 32)
+		if err != nil {
+			// We do not report such an error (not important)
+			continue
+		}
+
+		peersCounts[key] = int(count)
+	}
+
+	return peersCounts
 }

@@ -29,10 +29,13 @@ func TestNetworkProvider_GetNodeStatusWithSuccess(t *testing.T) {
 		if path == "/node/status" {
 			value.(*resources.NodeStatusApiResponse).Data = resources.NodeStatusApiResponsePayload{
 				Status: resources.NodeStatus{
-					IsSyncing:         1,
-					HighestNonce:      1005,
-					HighestFinalNonce: 1000,
-					CurrentEpoch:      11,
+					Version:              "v1.2.3",
+					ObserverPublicKey:    "abba",
+					ConnectedPeersCounts: "intraVal:0,crossVal:3,intraObs:1,crossObs:3,fullObs:2,unknown:0,",
+					IsSyncing:            1,
+					HighestNonce:         1005,
+					HighestFinalNonce:    1000,
+					CurrentEpoch:         11,
 				},
 			}
 
@@ -85,6 +88,15 @@ func TestNetworkProvider_GetNodeStatusWithSuccess(t *testing.T) {
 		return nil, errors.New("unexpected request")
 	}
 
+	expectedPeersCounts := map[string]int{
+		"intraVal": 0,
+		"crossVal": 3,
+		"intraObs": 1,
+		"crossObs": 3,
+		"fullObs":  2,
+		"unknown":  0,
+	}
+
 	expectedSummaryOfLatest := resources.BlockSummary{
 		Nonce:             998,
 		Hash:              "00000998",
@@ -101,7 +113,11 @@ func TestNetworkProvider_GetNodeStatusWithSuccess(t *testing.T) {
 
 	nodeStatus, err := provider.GetNodeStatus()
 	require.Nil(t, err)
+	require.Equal(t, "v1.2.3", nodeStatus.Version)
+	require.Equal(t, "abba", nodeStatus.ObserverPublicKey)
+	require.Equal(t, expectedPeersCounts, nodeStatus.ConnectedPeersCounts)
 	require.False(t, nodeStatus.Synced)
+	require.Equal(t, uint32(11), nodeStatus.CurrentEpoch)
 	require.Equal(t, expectedSummaryOfLatest, nodeStatus.LatestBlock)
 	require.Equal(t, expectedSummaryOfOldest, nodeStatus.OldestBlockWithHistoricalState)
 }
