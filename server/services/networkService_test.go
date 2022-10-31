@@ -48,6 +48,7 @@ func TestNetworkService_NetworkOptions(t *testing.T) {
 func TestNetworkService_NetworkStatus(t *testing.T) {
 	networkProvider := testscommon.NewNetworkProviderMock()
 	networkProvider.MockGenesisBlockHash = "genesisHash"
+	networkProvider.MockNodeStatus.Version = "v1.2.3"
 	networkProvider.MockNodeStatus.LatestBlock.Nonce = 42
 	networkProvider.MockNodeStatus.LatestBlock.Hash = "latestHash"
 	networkProvider.MockNodeStatus.LatestBlock.Timestamp = 123456789
@@ -86,6 +87,7 @@ func TestNetworkService_NetworkStatus(t *testing.T) {
 			{
 				PeerID: "abba",
 				Metadata: objectsMap{
+					"version": "v1.2.3",
 					"connections": map[string]int{
 						"fullObs":  2,
 						"intraObs": 3,

@@ -66,6 +66,7 @@ func (service *networkService) NetworkStatus(
 			{
 				PeerID: nodeStatus.ObserverPublicKey,
 				Metadata: objectsMap{
+					"version":     nodeStatus.Version,
 					"connections": nodeStatus.ConnectedPeersCounts,
 				},
 			},
