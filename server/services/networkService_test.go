@@ -33,8 +33,9 @@ func TestNetworkService_NetworkOptions(t *testing.T) {
 	require.Nil(t, err)
 	require.Equal(t, &types.NetworkOptionsResponse{
 		Version: &types.Version{
-			RosettaVersion: version.RosettaVersion,
-			NodeVersion:    "v1.2.3",
+			RosettaVersion:    version.RosettaVersion,
+			MiddlewareVersion: &version.RosettaMiddlewareVersion,
+			NodeVersion:       "v1.2.3",
 		},
 		Allow: &types.Allow{
 			HistoricalBalanceLookup: true,
