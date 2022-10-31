@@ -26,7 +26,6 @@ type ArgsNewNetworkProvider struct {
 	ObservedProjectedShard      uint32
 	ObservedProjectedShardIsSet bool
 	ObserverUrl                 string
-	ObserverPubkey              string
 	NetworkID                   string
 	NetworkName                 string
 	GasPerDataByte              uint64
@@ -51,7 +50,6 @@ type networkProvider struct {
 	observedProjectedShard      uint32
 	observedProjectedShardIsSet bool
 	observerUrl                 string
-	observerPubkey              string
 	nativeCurrencySymbol        string
 	genesisBlockHash            string
 	genesisTimestamp            int64
@@ -84,7 +82,6 @@ func NewNetworkProvider(args ArgsNewNetworkProvider) (*networkProvider, error) {
 		observedProjectedShard:      args.ObservedProjectedShard,
 		observedProjectedShardIsSet: args.ObservedProjectedShardIsSet,
 		observerUrl:                 args.ObserverUrl,
-		observerPubkey:              args.ObserverPubkey,
 		nativeCurrencySymbol:        args.NativeCurrencySymbol,
 		genesisBlockHash:            args.GenesisBlockHash,
 		genesisTimestamp:            args.GenesisTimestamp,
@@ -125,11 +122,6 @@ func (provider *networkProvider) GetNativeCurrency() resources.NativeCurrency {
 		Symbol:   provider.nativeCurrencySymbol,
 		Decimals: int32(nativeCurrencyNumDecimals),
 	}
-}
-
-// GetObserverPubkey gets the pubkey of the connected observer
-func (provider *networkProvider) GetObserverPubkey() string {
-	return provider.observerPubkey
 }
 
 // GetNetworkConfig gets the network config (once fetched, the network config is indefinitely held in memory)

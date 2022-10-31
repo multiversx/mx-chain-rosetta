@@ -14,6 +14,7 @@ var (
 	refundGasMessage                             = "refundedGas"
 	sendingValueToNonPayableContractDataPrefix   = "@" + hex.EncodeToString([]byte("sending value to non payable contract"))
 	emptyHash                                    = strings.Repeat("0", 64)
+	nodeVersionForOfflineRosetta                 = "N / A"
 )
 
 var (
