@@ -298,3 +298,43 @@ func TestGetOldestEligibleEpoch(t *testing.T) {
 	epoch = provider.getOldestEligibleEpoch(100)
 	require.Equal(t, uint32(92), epoch)
 }
+
+func TestParsePeersCounts(t *testing.T) {
+	t.Parallel()
+
+	require.Equal(t,
+		map[string]int{
+			"intraVal": 0,
+			"crossVal": 3,
+			"intraObs": 1,
+			"crossObs": 3,
+			"fullObs":  2,
+			"unknown":  0,
+		},
+		parsePeersCounts("intraVal:0,crossVal:3,intraObs:1,crossObs:3,fullObs:2,unknown:0,"),
+	)
+
+	require.Equal(t,
+		map[string]int{
+			"intraObs": 1,
+			"crossObs": 3,
+			"fullObs":  2,
+			"unknown":  0,
+		},
+		parsePeersCounts("intraVal:0?crossVal:3,intraObs:1,crossObs:3,fullObs:2,unknown:0,"),
+	)
+
+	require.Equal(t,
+		map[string]int{
+			"crossObs": 3,
+			"fullObs":  2,
+			"unknown":  0,
+		},
+		parsePeersCounts("intraVal:0?crossVal:3,intraObs?1,crossObs:3,fullObs:2,unknown:0,"),
+	)
+
+	require.Equal(t,
+		map[string]int{},
+		parsePeersCounts(""),
+	)
+}
