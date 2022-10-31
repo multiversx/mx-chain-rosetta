@@ -103,7 +103,7 @@ func (service *networkService) NetworkOptions(
 func (service *networkService) getNodeVersion() (string, *types.Error) {
 	if service.provider.IsOffline() {
 		// In offline mode, Rosetta does not interact with the Node.
-		return "N / A", nil
+		return nodeVersionForOfflineRosetta, nil
 	}
 
 	nodeStatus, err := service.provider.GetNodeStatus()
