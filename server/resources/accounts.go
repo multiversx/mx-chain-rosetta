@@ -29,6 +29,7 @@ type AccountNativeBalanceApiResponse struct {
 // AccountNativeBalance defines an account resource
 type AccountNativeBalance struct {
 	Balance          string           `json:"balance"`
+	Nonce            uint64           `json:"nonce"`
 	BlockCoordinates BlockCoordinates `json:"blockInfo"`
 }
 
@@ -42,5 +43,6 @@ type AccountESDTBalanceApiResponse struct {
 type AccountESDTBalance struct {
 	Balance          string           `json:"balance"`
 	Properties       string           `json:"properties"`
+	Nonce            uint64           `json:"nonce"`
 	BlockCoordinates BlockCoordinates `json:"blockInfo"`
 }

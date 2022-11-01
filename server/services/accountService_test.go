@@ -39,6 +39,7 @@ func TestAccountService_AccountBalance(t *testing.T) {
 		}
 
 		networkProvider.MockAccountsNativeBalances["alice"] = &resources.AccountNativeBalance{
+			Nonce:   7,
 			Balance: "100",
 		}
 		networkProvider.MockNextAccountBlockCoordinates.Nonce = 42
@@ -47,6 +48,7 @@ func TestAccountService_AccountBalance(t *testing.T) {
 		response, err := service.AccountBalance(context.Background(), request)
 		require.Nil(t, err)
 		require.Equal(t, "100", response.Balances[0].Value)
+		require.Equal(t, uint64(7), response.Metadata["nonce"])
 		require.Equal(t, int64(42), response.BlockIdentifier.Index)
 		require.Equal(t, "abba", response.BlockIdentifier.Hash)
 	})
@@ -63,6 +65,7 @@ func TestAccountService_AccountBalance(t *testing.T) {
 		}
 
 		networkProvider.MockAccountsNativeBalances["alice"] = &resources.AccountNativeBalance{
+			Nonce:   7,
 			Balance: "1000",
 		}
 		networkProvider.MockNextAccountBlockCoordinates.Nonce = 42
@@ -72,6 +75,7 @@ func TestAccountService_AccountBalance(t *testing.T) {
 		require.Nil(t, err)
 		require.Equal(t, "1000", response.Balances[0].Value)
 		require.Equal(t, "XeGLD", response.Balances[0].Currency.Symbol)
+		require.Equal(t, uint64(7), response.Metadata["nonce"])
 	})
 
 	t.Run("with one custom currency (specified)", func(t *testing.T) {
@@ -86,6 +90,7 @@ func TestAccountService_AccountBalance(t *testing.T) {
 		}
 
 		networkProvider.MockAccountsESDTBalances["alice_FOO-abcdef"] = &resources.AccountESDTBalance{
+			Nonce:   8,
 			Balance: "500",
 		}
 		networkProvider.MockNextAccountBlockCoordinates.Nonce = 42
@@ -95,6 +100,7 @@ func TestAccountService_AccountBalance(t *testing.T) {
 		require.Nil(t, err)
 		require.Equal(t, "500", response.Balances[0].Value)
 		require.Equal(t, "FOO-abcdef", response.Balances[0].Currency.Symbol)
+		require.Equal(t, uint64(8), response.Metadata["nonce"])
 	})
 
 	t.Run("with more than 1 (custom or not) currencies", func(t *testing.T) {
@@ -114,9 +120,11 @@ func TestAccountService_AccountBalance(t *testing.T) {
 
 		networkProvider.MockAccountsESDTBalances["alice_FOO-abcdef"] = &resources.AccountESDTBalance{
 			Balance: "500",
+			Nonce:   42,
 		}
 		networkProvider.MockAccountsESDTBalances["alice_BAR-abcdef"] = &resources.AccountESDTBalance{
 			Balance: "700",
+			Nonce:   42,
 		}
 		networkProvider.MockNextAccountBlockCoordinates.Nonce = 42
 		networkProvider.MockNextAccountBlockCoordinates.Hash = "abba"

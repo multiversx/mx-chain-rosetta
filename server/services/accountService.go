@@ -8,6 +8,12 @@ import (
 	"github.com/coinbase/rosetta-sdk-go/types"
 )
 
+type accountWithBalance struct {
+	balance          *types.Amount
+	nonce            uint64
+	blockCoordinates resources.BlockCoordinates
+}
+
 type accountService struct {
 	provider   NetworkProvider
 	extension  *networkProviderExtension
@@ -57,38 +63,49 @@ func (service *accountService) AccountBalance(
 		return nil, service.errFactory.newErr(ErrNotImplemented)
 	}
 
-	amount, blockCoordinates, err := service.getBalance(address, currencySymbol, options)
+	account, err := service.getAccountWithBalance(address, currencySymbol, options)
 	if err != nil {
 		return nil, service.errFactory.newErrWithOriginal(ErrUnableToGetAccount, err)
 	}
 
 	response := &types.AccountBalanceResponse{
-		BlockIdentifier: accountBlockCoordinatesToIdentifier(blockCoordinates),
-		Balances:        []*types.Amount{amount},
+		BlockIdentifier: accountBlockCoordinatesToIdentifier(account.blockCoordinates),
+		Balances:        []*types.Amount{account.balance},
+		Metadata: objectsMap{
+			"nonce": account.nonce,
+		},
 	}
 
 	return response, nil
 }
 
-func (service *accountService) getBalance(address string, currencySymbol string, options resources.AccountQueryOptions) (*types.Amount, resources.BlockCoordinates, error) {
+func (service *accountService) getAccountWithBalance(address string, currencySymbol string, options resources.AccountQueryOptions) (accountWithBalance, error) {
 	isForNative := currencySymbol == service.getNativeSymbol()
 	if isForNative {
 		accountBalance, err := service.provider.GetAccountNativeBalance(address, options)
 		if err != nil {
-			return nil, resources.BlockCoordinates{}, err
+			return accountWithBalance{}, err
 		}
 
 		amount := service.extension.valueToNativeAmount(accountBalance.Balance)
-		return amount, accountBalance.BlockCoordinates, nil
+		return accountWithBalance{
+			balance:          amount,
+			nonce:            accountBalance.Nonce,
+			blockCoordinates: accountBalance.BlockCoordinates,
+		}, nil
 	}
 
 	accountBalance, err := service.provider.GetAccountESDTBalance(address, currencySymbol, options)
 	if err != nil {
-		return nil, resources.BlockCoordinates{}, err
+		return accountWithBalance{}, err
 	}
 
 	amount := service.extension.valueToCustomAmount(accountBalance.Balance, currencySymbol)
-	return amount, accountBalance.BlockCoordinates, nil
+	return accountWithBalance{
+		balance:          amount,
+		nonce:            accountBalance.Nonce,
+		blockCoordinates: accountBalance.BlockCoordinates,
+	}, nil
 }
 
 func (service *accountService) getNativeSymbol() string {

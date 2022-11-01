@@ -2,6 +2,8 @@ package provider
 
 import "github.com/ElrondNetwork/rosetta/server/resources"
 
+// TODO: Merge the methods in this file into a single method, e.g. GetAccountWithBalance(address, tokenIdentifier, options), where tokenIdentifier can be the native token or an ESDT.
+
 // GetAccount gets an account by address
 func (provider *networkProvider) GetAccount(address string) (*resources.AccountOnBlock, error) {
 	url := buildUrlGetAccount(address)
@@ -40,6 +42,7 @@ func (provider *networkProvider) GetAccountNativeBalance(address string, options
 	log.Trace("GetAccountNativeBalance()",
 		"address", address,
 		"balance", data.Balance,
+		"nonce", data.Nonce,
 		"block", data.BlockCoordinates.Nonce,
 		"blockHash", data.BlockCoordinates.Hash,
 		"blockRootHash", data.BlockCoordinates.RootHash,
@@ -63,6 +66,7 @@ func (provider *networkProvider) GetAccountESDTBalance(address string, tokenIden
 	log.Trace("GetAccountESDTBalance()",
 		"address", address,
 		"balance", data.Balance,
+		"nonce", data.Nonce,
 		"block", data.BlockCoordinates.Nonce,
 		"blockHash", data.BlockCoordinates.Hash,
 		"blockRootHash", data.BlockCoordinates.RootHash,
