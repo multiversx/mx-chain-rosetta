@@ -87,10 +87,10 @@ func (service *accountService) getAccountWithBalance(address string, currencySym
 			return accountWithBalance{}, err
 		}
 
-		amount := service.extension.valueToNativeAmount(accountBalance.Balance)
+		amount := service.extension.valueToNativeAmount(accountBalance.Account.Balance)
 		return accountWithBalance{
 			balance:          amount,
-			nonce:            accountBalance.Nonce,
+			nonce:            accountBalance.Account.Nonce,
 			blockCoordinates: accountBalance.BlockCoordinates,
 		}, nil
 	}
@@ -103,7 +103,6 @@ func (service *accountService) getAccountWithBalance(address string, currencySym
 	amount := service.extension.valueToCustomAmount(accountBalance.Balance, currencySymbol)
 	return accountWithBalance{
 		balance:          amount,
-		nonce:            accountBalance.Nonce,
 		blockCoordinates: accountBalance.BlockCoordinates,
 	}, nil
 }

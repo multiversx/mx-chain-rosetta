@@ -28,9 +28,9 @@ func (provider *networkProvider) GetAccount(address string) (*resources.AccountO
 }
 
 // GetAccountNativeBalance gets the native balance by address
-func (provider *networkProvider) GetAccountNativeBalance(address string, options resources.AccountQueryOptions) (*resources.AccountNativeBalance, error) {
+func (provider *networkProvider) GetAccountNativeBalance(address string, options resources.AccountQueryOptions) (*resources.AccountOnBlock, error) {
 	url := buildUrlGetAccountNativeBalance(address, options)
-	response := &resources.AccountNativeBalanceApiResponse{}
+	response := &resources.AccountApiResponse{}
 
 	err := provider.getResource(url, response)
 	if err != nil {
@@ -41,8 +41,8 @@ func (provider *networkProvider) GetAccountNativeBalance(address string, options
 
 	log.Trace("GetAccountNativeBalance()",
 		"address", address,
-		"balance", data.Balance,
-		"nonce", data.Nonce,
+		"balance", data.Account.Balance,
+		"nonce", data.Account.Nonce,
 		"block", data.BlockCoordinates.Nonce,
 		"blockHash", data.BlockCoordinates.Hash,
 		"blockRootHash", data.BlockCoordinates.RootHash,
@@ -52,6 +52,7 @@ func (provider *networkProvider) GetAccountNativeBalance(address string, options
 }
 
 // GetAccountESDTBalance gets the ESDT balance by address and tokenIdentifier
+// TODO: Return nonce for ESDT, as well (an additional request might be needed).
 func (provider *networkProvider) GetAccountESDTBalance(address string, tokenIdentifier string, options resources.AccountQueryOptions) (*resources.AccountESDTBalance, error) {
 	url := buildUrlGetAccountESDTBalance(address, tokenIdentifier, options)
 	response := &resources.AccountESDTBalanceApiResponse{}
@@ -66,7 +67,6 @@ func (provider *networkProvider) GetAccountESDTBalance(address string, tokenIden
 	log.Trace("GetAccountESDTBalance()",
 		"address", address,
 		"balance", data.Balance,
-		"nonce", data.Nonce,
 		"block", data.BlockCoordinates.Nonce,
 		"blockHash", data.BlockCoordinates.Hash,
 		"blockRootHash", data.BlockCoordinates.RootHash,

@@ -37,7 +37,7 @@ type networkProviderMock struct {
 	MockBlocksByHash                map[string]*api.Block
 	MockNextAccountBlockCoordinates *resources.BlockCoordinates
 	MockAccountsByAddress           map[string]*resources.Account
-	MockAccountsNativeBalances      map[string]*resources.AccountNativeBalance
+	MockAccountsNativeBalances      map[string]*resources.Account
 	MockAccountsESDTBalances        map[string]*resources.AccountESDTBalance
 	MockMempoolTransactionsByHash   map[string]*transaction.ApiTransactionResult
 	MockComputedTransactionHash     string
@@ -92,7 +92,7 @@ func NewNetworkProviderMock() *networkProviderMock {
 			RootHash: emptyHash,
 		},
 		MockAccountsByAddress:         make(map[string]*resources.Account),
-		MockAccountsNativeBalances:    make(map[string]*resources.AccountNativeBalance),
+		MockAccountsNativeBalances:    make(map[string]*resources.Account),
 		MockAccountsESDTBalances:      make(map[string]*resources.AccountESDTBalance),
 		MockMempoolTransactionsByHash: make(map[string]*transaction.ApiTransactionResult),
 		MockComputedTransactionHash:   emptyHash,
@@ -200,16 +200,18 @@ func (mock *networkProviderMock) GetAccount(address string) (*resources.AccountO
 	return nil, fmt.Errorf("account %s not found", address)
 }
 
-func (mock *networkProviderMock) GetAccountNativeBalance(address string, _ resources.AccountQueryOptions) (*resources.AccountNativeBalance, error) {
+func (mock *networkProviderMock) GetAccountNativeBalance(address string, _ resources.AccountQueryOptions) (*resources.AccountOnBlock, error) {
 	if mock.MockNextError != nil {
 		return nil, mock.MockNextError
 	}
 
 	accountBalance, ok := mock.MockAccountsNativeBalances[address]
 	if ok {
-		return &resources.AccountNativeBalance{
-			Balance:          accountBalance.Balance,
-			Nonce:            accountBalance.Nonce,
+		return &resources.AccountOnBlock{
+			Account: resources.Account{
+				Balance: accountBalance.Balance,
+				Nonce:   accountBalance.Nonce,
+			},
 			BlockCoordinates: *mock.MockNextAccountBlockCoordinates,
 		}, nil
 	}
@@ -227,7 +229,6 @@ func (mock *networkProviderMock) GetAccountESDTBalance(address string, tokenIden
 	if ok {
 		return &resources.AccountESDTBalance{
 			Balance:          accountBalance.Balance,
-			Nonce:            accountBalance.Nonce,
 			BlockCoordinates: *mock.MockNextAccountBlockCoordinates,
 		}, nil
 	}

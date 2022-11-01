@@ -38,7 +38,7 @@ func TestAccountService_AccountBalance(t *testing.T) {
 			AccountIdentifier: &types.AccountIdentifier{Address: "alice"},
 		}
 
-		networkProvider.MockAccountsNativeBalances["alice"] = &resources.AccountNativeBalance{
+		networkProvider.MockAccountsNativeBalances["alice"] = &resources.Account{
 			Nonce:   7,
 			Balance: "100",
 		}
@@ -64,7 +64,7 @@ func TestAccountService_AccountBalance(t *testing.T) {
 			},
 		}
 
-		networkProvider.MockAccountsNativeBalances["alice"] = &resources.AccountNativeBalance{
+		networkProvider.MockAccountsNativeBalances["alice"] = &resources.Account{
 			Nonce:   7,
 			Balance: "1000",
 		}
@@ -90,7 +90,6 @@ func TestAccountService_AccountBalance(t *testing.T) {
 		}
 
 		networkProvider.MockAccountsESDTBalances["alice_FOO-abcdef"] = &resources.AccountESDTBalance{
-			Nonce:   8,
 			Balance: "500",
 		}
 		networkProvider.MockNextAccountBlockCoordinates.Nonce = 42
@@ -100,7 +99,6 @@ func TestAccountService_AccountBalance(t *testing.T) {
 		require.Nil(t, err)
 		require.Equal(t, "500", response.Balances[0].Value)
 		require.Equal(t, "FOO-abcdef", response.Balances[0].Currency.Symbol)
-		require.Equal(t, uint64(8), response.Metadata["nonce"])
 	})
 
 	t.Run("with more than 1 (custom or not) currencies", func(t *testing.T) {
@@ -120,11 +118,9 @@ func TestAccountService_AccountBalance(t *testing.T) {
 
 		networkProvider.MockAccountsESDTBalances["alice_FOO-abcdef"] = &resources.AccountESDTBalance{
 			Balance: "500",
-			Nonce:   42,
 		}
 		networkProvider.MockAccountsESDTBalances["alice_BAR-abcdef"] = &resources.AccountESDTBalance{
 			Balance: "700",
-			Nonce:   42,
 		}
 		networkProvider.MockNextAccountBlockCoordinates.Nonce = 42
 		networkProvider.MockNextAccountBlockCoordinates.Hash = "abba"
