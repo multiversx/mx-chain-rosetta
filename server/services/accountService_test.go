@@ -38,7 +38,8 @@ func TestAccountService_AccountBalance(t *testing.T) {
 			AccountIdentifier: &types.AccountIdentifier{Address: "alice"},
 		}
 
-		networkProvider.MockAccountsNativeBalances["alice"] = &resources.AccountNativeBalance{
+		networkProvider.MockAccountsNativeBalances["alice"] = &resources.Account{
+			Nonce:   7,
 			Balance: "100",
 		}
 		networkProvider.MockNextAccountBlockCoordinates.Nonce = 42
@@ -47,6 +48,7 @@ func TestAccountService_AccountBalance(t *testing.T) {
 		response, err := service.AccountBalance(context.Background(), request)
 		require.Nil(t, err)
 		require.Equal(t, "100", response.Balances[0].Value)
+		require.Equal(t, uint64(7), response.Metadata["nonce"])
 		require.Equal(t, int64(42), response.BlockIdentifier.Index)
 		require.Equal(t, "abba", response.BlockIdentifier.Hash)
 	})
@@ -62,7 +64,8 @@ func TestAccountService_AccountBalance(t *testing.T) {
 			},
 		}
 
-		networkProvider.MockAccountsNativeBalances["alice"] = &resources.AccountNativeBalance{
+		networkProvider.MockAccountsNativeBalances["alice"] = &resources.Account{
+			Nonce:   7,
 			Balance: "1000",
 		}
 		networkProvider.MockNextAccountBlockCoordinates.Nonce = 42
@@ -72,6 +75,7 @@ func TestAccountService_AccountBalance(t *testing.T) {
 		require.Nil(t, err)
 		require.Equal(t, "1000", response.Balances[0].Value)
 		require.Equal(t, "XeGLD", response.Balances[0].Currency.Symbol)
+		require.Equal(t, uint64(7), response.Metadata["nonce"])
 	})
 
 	t.Run("with one custom currency (specified)", func(t *testing.T) {

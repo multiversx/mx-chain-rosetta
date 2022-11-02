@@ -14,7 +14,7 @@ var (
 	urlPathGetEpochStartInfo                    = "/node/epoch-start/%d"
 	urlPathGetGenesisBalances                   = "/network/genesis-balances"
 	urlPathGetAccount                           = "/address/%s"
-	urlPathGetAccountNativeBalance              = "/address/%s/balance"
+	urlPathGetAccountNativeBalance              = "/address/%s"
 	urlPathGetAccountESDTBalance                = "/address/%s/esdt/%s"
 	urlParameterAccountQueryOptionsOnFinalBlock = "onFinalBlock"
 	urlParameterAccountQueryOptionsBlockNonce   = "blockNonce"
