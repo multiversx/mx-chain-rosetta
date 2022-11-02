@@ -8,7 +8,7 @@ import (
 	"github.com/coinbase/rosetta-sdk-go/types"
 )
 
-type accountWithBalance struct {
+type accountOnBlock struct {
 	balance          *types.Amount
 	nonce            uint64
 	blockCoordinates resources.BlockCoordinates
@@ -63,7 +63,7 @@ func (service *accountService) AccountBalance(
 		return nil, service.errFactory.newErr(ErrNotImplemented)
 	}
 
-	account, err := service.getAccountWithBalance(address, currencySymbol, options)
+	account, err := service.getAccountOnBlock(address, currencySymbol, options)
 	if err != nil {
 		return nil, service.errFactory.newErrWithOriginal(ErrUnableToGetAccount, err)
 	}
@@ -79,16 +79,16 @@ func (service *accountService) AccountBalance(
 	return response, nil
 }
 
-func (service *accountService) getAccountWithBalance(address string, currencySymbol string, options resources.AccountQueryOptions) (accountWithBalance, error) {
+func (service *accountService) getAccountOnBlock(address string, currencySymbol string, options resources.AccountQueryOptions) (accountOnBlock, error) {
 	isForNative := currencySymbol == service.getNativeSymbol()
 	if isForNative {
 		accountBalance, err := service.provider.GetAccountNativeBalance(address, options)
 		if err != nil {
-			return accountWithBalance{}, err
+			return accountOnBlock{}, err
 		}
 
 		amount := service.extension.valueToNativeAmount(accountBalance.Account.Balance)
-		return accountWithBalance{
+		return accountOnBlock{
 			balance:          amount,
 			nonce:            accountBalance.Account.Nonce,
 			blockCoordinates: accountBalance.BlockCoordinates,
@@ -97,11 +97,11 @@ func (service *accountService) getAccountWithBalance(address string, currencySym
 
 	accountBalance, err := service.provider.GetAccountESDTBalance(address, currencySymbol, options)
 	if err != nil {
-		return accountWithBalance{}, err
+		return accountOnBlock{}, err
 	}
 
 	amount := service.extension.valueToCustomAmount(accountBalance.Balance, currencySymbol)
-	return accountWithBalance{
+	return accountOnBlock{
 		balance: amount,
 		// TODO: return nonce, as well.
 		blockCoordinates: accountBalance.BlockCoordinates,
