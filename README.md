@@ -1,8 +1,8 @@
-# Rosetta API for Elrond Network
+# Rosetta API for MultiversX
 
 ## Overview
 
-**Elrond Network runs on a sharded architecture** - transaction, data and network sharding are leveraged. 
+**MultiversX runs on a sharded architecture** - transaction, data and network sharding are leveraged. 
 
 In the Rosetta implementation, we've decided to provide a single-shard perspective to the API consumer. That is, **one Rosetta instance** would observe **a single _regular_ shard** of the network - the shard is selected by the owner of the instance.
 
@@ -85,7 +85,7 @@ Or, in order to start using the `offline` mode:
 
 ## Setup a database
 
-In order to support historical balances' lookup, Rosetta has to connect to an Observer whose database contains _non-pruned accounts tries_. Such databases can be re-built locally or downloaded from the Elrond public archive - the URL being available [on request](https://t.me/ElrondDevelopers).
+In order to support historical balances' lookup, Rosetta has to connect to an Observer whose database contains _non-pruned accounts tries_. Such databases can be re-built locally or downloaded from the public archive - the URL being available [on request](https://t.me/ElrondDevelopers).
 
 ### Build archives
 

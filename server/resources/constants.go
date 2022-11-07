@@ -1,3 +1,3 @@
 package resources
 
-var BlockchainName = "Elrond"
+var BlockchainName = "MultiversX"

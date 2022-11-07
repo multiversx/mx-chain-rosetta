@@ -111,7 +111,7 @@ func (provider *networkProvider) IsOffline() bool {
 	return provider.isOffline
 }
 
-// GetBlockchainName returns the name of the network ("Elrond")
+// GetBlockchainName returns the name of the network
 func (provider *networkProvider) GetBlockchainName() string {
 	return resources.BlockchainName
 }
