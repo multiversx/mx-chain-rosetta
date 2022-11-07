@@ -21,7 +21,7 @@ type NetworkProvider interface {
 	GetBlockByNonce(nonce uint64) (*api.Block, error)
 	GetBlockByHash(hash string) (*api.Block, error)
 	GetAccount(address string) (*resources.AccountOnBlock, error)
-	GetAccountNativeBalance(address string, options resources.AccountQueryOptions) (*resources.AccountNativeBalance, error)
+	GetAccountNativeBalance(address string, options resources.AccountQueryOptions) (*resources.AccountOnBlock, error)
 	GetAccountESDTBalance(address string, tokenIdentifier string, options resources.AccountQueryOptions) (*resources.AccountESDTBalance, error)
 	IsAddressObserved(address string) (bool, error)
 	ConvertPubKeyToAddress(pubkey []byte) string

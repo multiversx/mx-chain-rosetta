@@ -2,6 +2,8 @@ package provider
 
 import "github.com/ElrondNetwork/rosetta/server/resources"
 
+// TODO: Merge the methods in this file into a single method, e.g. GetAccountWithBalance(address, tokenIdentifier, options), where tokenIdentifier can be the native token or an ESDT.
+
 // GetAccount gets an account by address
 func (provider *networkProvider) GetAccount(address string) (*resources.AccountOnBlock, error) {
 	url := buildUrlGetAccount(address)
@@ -26,9 +28,9 @@ func (provider *networkProvider) GetAccount(address string) (*resources.AccountO
 }
 
 // GetAccountNativeBalance gets the native balance by address
-func (provider *networkProvider) GetAccountNativeBalance(address string, options resources.AccountQueryOptions) (*resources.AccountNativeBalance, error) {
+func (provider *networkProvider) GetAccountNativeBalance(address string, options resources.AccountQueryOptions) (*resources.AccountOnBlock, error) {
 	url := buildUrlGetAccountNativeBalance(address, options)
-	response := &resources.AccountNativeBalanceApiResponse{}
+	response := &resources.AccountApiResponse{}
 
 	err := provider.getResource(url, response)
 	if err != nil {
@@ -39,7 +41,8 @@ func (provider *networkProvider) GetAccountNativeBalance(address string, options
 
 	log.Trace("GetAccountNativeBalance()",
 		"address", address,
-		"balance", data.Balance,
+		"balance", data.Account.Balance,
+		"nonce", data.Account.Nonce,
 		"block", data.BlockCoordinates.Nonce,
 		"blockHash", data.BlockCoordinates.Hash,
 		"blockRootHash", data.BlockCoordinates.RootHash,
@@ -49,6 +52,7 @@ func (provider *networkProvider) GetAccountNativeBalance(address string, options
 }
 
 // GetAccountESDTBalance gets the ESDT balance by address and tokenIdentifier
+// TODO: Return nonce for ESDT, as well (an additional request might be needed).
 func (provider *networkProvider) GetAccountESDTBalance(address string, tokenIdentifier string, options resources.AccountQueryOptions) (*resources.AccountESDTBalance, error) {
 	url := buildUrlGetAccountESDTBalance(address, tokenIdentifier, options)
 	response := &resources.AccountESDTBalanceApiResponse{}
