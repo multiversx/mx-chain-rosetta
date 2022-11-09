@@ -26,6 +26,7 @@ type ArgsNewNetworkProvider struct {
 	ObservedProjectedShard      uint32
 	ObservedProjectedShardIsSet bool
 	ObserverUrl                 string
+	BlockchainName              string
 	NetworkID                   string
 	NetworkName                 string
 	GasPerDataByte              uint64
@@ -95,6 +96,7 @@ func NewNetworkProvider(args ArgsNewNetworkProvider) (*networkProvider, error) {
 		pubKeyConverter:       args.PubKeyConverter,
 
 		networkConfig: &resources.NetworkConfig{
+			BlockchainName: args.BlockchainName,
 			NetworkID:      args.NetworkID,
 			NetworkName:    args.NetworkName,
 			GasPerDataByte: args.GasPerDataByte,
@@ -113,7 +115,7 @@ func (provider *networkProvider) IsOffline() bool {
 
 // GetBlockchainName returns the name of the network
 func (provider *networkProvider) GetBlockchainName() string {
-	return resources.BlockchainName
+	return provider.networkConfig.BlockchainName
 }
 
 // GetNativeCurrency gets the native currency (EGLD, 18 decimals)
@@ -405,6 +407,8 @@ func (provider *networkProvider) ComputeTransactionFeeForMoveBalance(tx *transac
 // LogDescription writes a description of the network provider in the log output
 func (provider *networkProvider) LogDescription() {
 	log.Info("Description of network provider",
+		"blockchain", provider.networkConfig.BlockchainName,
+		"network", provider.networkConfig.NetworkName,
 		"isOffline", provider.isOffline,
 		"observerUrl", provider.observerUrl,
 		"observedActualShard", provider.observedActualShard,

@@ -31,6 +31,7 @@ type ArgsCreateNetworkProvider struct {
 	ObservedProjectedShard      uint32
 	ObservedProjectedShardIsSet bool
 	ObserverUrl                 string
+	BlockchainName              string
 	NetworkID                   string
 	NetworkName                 string
 	GasPerDataByte              uint64
@@ -116,6 +117,7 @@ func CreateNetworkProvider(args ArgsCreateNetworkProvider) (NetworkProvider, err
 		ObservedProjectedShard:      args.ObservedProjectedShard,
 		ObservedProjectedShardIsSet: args.ObservedProjectedShardIsSet,
 		ObserverUrl:                 args.ObserverUrl,
+		BlockchainName:              args.BlockchainName,
 		NetworkID:                   args.NetworkID,
 		NetworkName:                 args.NetworkName,
 		GasPerDataByte:              args.GasPerDataByte,

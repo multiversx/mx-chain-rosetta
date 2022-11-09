@@ -2,6 +2,7 @@ package resources
 
 // NetworkConfig is a resource
 type NetworkConfig struct {
+	BlockchainName string
 	NetworkID      string
 	NetworkName    string
 	GasPerDataByte uint64
