@@ -62,6 +62,7 @@ func NewNetworkProviderMock() *networkProviderMock {
 		MockGenesisBlockHash:            emptyHash,
 		MockGenesisTimestamp:            genesisTimestamp,
 		MockNetworkConfig: &resources.NetworkConfig{
+			BlockchainName: "MultiversX",
 			NetworkID:      "T",
 			NetworkName:    "testnet",
 			GasPerDataByte: 1500,
@@ -107,7 +108,7 @@ func (mock *networkProviderMock) IsOffline() bool {
 
 // GetBlockchainName -
 func (mock *networkProviderMock) GetBlockchainName() string {
-	return resources.BlockchainName
+	return mock.MockNetworkConfig.BlockchainName
 }
 
 // GetNativeCurrency -
