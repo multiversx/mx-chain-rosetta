@@ -156,12 +156,16 @@ Let's proceed with the download:
 cd ~/historical-workspace
 
 # Download "Static" folder
-wget ${URL_BASE}/Static.tar
+echo "Downloading: Static"
+wget ${URL_BASE}/Static.tar || exit 1
+echo "Downloaded: Static"
 
 # Download epochs
 for (( epoch = ${EPOCH_FIRST}; epoch <= ${EPOCH_LAST}; epoch++ )) 
 do 
-    wget ${URL_BASE}/Epoch_${epoch}.tar
+    echo "Downloading: epoch ${epoch}"
+    wget ${URL_BASE}/Epoch_${epoch}.tar || exit 1
+    echo "Downloaded: epoch ${epoch}"
 done
 ```
 
@@ -171,12 +175,14 @@ Once the download has finished, extract the archived data:
 cd ~/historical-workspace
 
 # Extract "Static" folder
-tar -xf Static.tar --directory db/${CHAIN_ID}
+tar -xf Static.tar --directory db/${CHAIN_ID} || exit 1
+echo "Extracted: Static"
 
 # Extract epochs
 for (( epoch = ${EPOCH_FIRST}; epoch <= ${EPOCH_LAST}; epoch++ )) 
 do 
-    tar -xf Epoch_${epoch}.tar --directory db/${CHAIN_ID}
+    tar -xf Epoch_${epoch}.tar --directory db/${CHAIN_ID} || exit 1
+    echo "Extracted: epoch ${epoch}"
 done
 ```
 
