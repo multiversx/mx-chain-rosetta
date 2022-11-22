@@ -18,7 +18,8 @@ var (
 )
 
 var (
-	transactionEventSignalError                 = "signalError"
-	transactionEventTransferValueOnly           = "transferValueOnly"
-	transactionEventTopicInvalidMetaTransaction = "meta transaction is invalid"
+	transactionEventSignalError                             = "signalError"
+	transactionEventTransferValueOnly                       = "transferValueOnly"
+	transactionEventTopicInvalidMetaTransaction             = "meta transaction is invalid"
+	transactionEventTopicInvalidMetaTransactionNotEnoughGas = "meta transaction is invalid: not enough gas"
 )

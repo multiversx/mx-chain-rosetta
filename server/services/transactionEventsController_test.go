@@ -46,7 +46,7 @@ func TestTransactionEventsController_HasSignalErrorOfMetaTransactionIsInvalid(t 
 		require.False(t, txMatches)
 	})
 
-	t.Run("invalid tx with event 'invalid meta transaction'", func(t *testing.T) {
+	t.Run("invalid tx with event 'meta transaction is invalid'", func(t *testing.T) {
 		tx := &transaction.ApiTransactionResult{
 			Logs: &transaction.ApiLogs{
 
@@ -55,6 +55,25 @@ func TestTransactionEventsController_HasSignalErrorOfMetaTransactionIsInvalid(t 
 						Identifier: transactionEventSignalError,
 						Topics: [][]byte{
 							[]byte(transactionEventTopicInvalidMetaTransaction),
+						},
+					},
+				},
+			},
+		}
+
+		txMatches := controller.hasSignalErrorOfMetaTransactionIsInvalid(tx)
+		require.True(t, txMatches)
+	})
+
+	t.Run("invalid tx with event 'meta transaction is invalid: not enough gas'", func(t *testing.T) {
+		tx := &transaction.ApiTransactionResult{
+			Logs: &transaction.ApiLogs{
+
+				Events: []*transaction.Events{
+					{
+						Identifier: transactionEventSignalError,
+						Topics: [][]byte{
+							[]byte(transactionEventTopicInvalidMetaTransactionNotEnoughGas),
 						},
 					},
 				},
