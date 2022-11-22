@@ -87,8 +87,10 @@ func (controller *transactionEventsController) hasSignalErrorOfMetaTransactionIs
 			continue
 		}
 
-		hasTopicInvalidMetaTransaction := eventHasTopic(event, transactionEventTopicInvalidMetaTransaction)
-		if hasTopicInvalidMetaTransaction {
+		if eventHasTopic(event, transactionEventTopicInvalidMetaTransaction) {
+			return true
+		}
+		if eventHasTopic(event, transactionEventTopicInvalidMetaTransactionNotEnoughGas) {
 			return true
 		}
 	}
