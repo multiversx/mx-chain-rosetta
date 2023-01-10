@@ -6,19 +6,19 @@
 
 In the Rosetta implementation, we've decided to provide a single-shard perspective to the API consumer. That is, **one Rosetta instance** would observe **a single _regular_ shard** of the network - the shard is selected by the owner of the instance.
 
-Currently, the Rosetta implementation only supports the native currency (EGLD), while custom currencies ([ESDTs](https://docs.elrond.com/developers/esdt-tokens)) will be supported in the near future. At that point, Rosetta would observe the _metachain_, as well.
+Currently, the Rosetta implementation only supports the native currency (EGLD), while custom currencies ([ESDTs](https://docs.multiversx.com/developers/esdt-tokens)) will be supported in the near future. At that point, Rosetta would observe the _metachain_, as well.
 
 ## Docker setup
 
-In order to set up Rosetta using Docker, use [ElrondNetwork/rosetta-docker](https://github.com/ElrondNetwork/rosetta-docker).
+In order to set up Rosetta using Docker, use [MultiversX/rosetta-docker](https://github.com/multiversx/mx-chain-rosetta-docker).
 
 ## Standalone setup
 
 ### Setup an Observer
 
 Follow the official documentation to set up an observer:
- - [mainnet](https://docs.elrond.com/validators/mainnet/config-scripts/)
- - [devnet](https://docs.elrond.com/validators/elrond-go-scripts/config-scripts/)
+ - [mainnet](https://docs.multiversx.com/validators/mainnet/config-scripts/)
+ - [devnet](https://docs.multiversx.com/validators/nodes-scripts/config-scripts/)
 
 Before starting the observer, make sure to edit the `config/prefs.toml`:
 
@@ -57,7 +57,7 @@ Clone the repository:
 
 ```
 cd $HOME
-git clone https://github.com/ElrondNetwork/rosetta.git
+git clone https://github.com/multiversx/mx-chain-rosetta
 ```
 
 Build the application:
@@ -89,7 +89,7 @@ In order to support historical balances' lookup, Rosetta has to connect to an Ob
 
 ### Build archives
 
-In order to locally re-build a database with historical lookup support, one should run [import-db](https://docs.elrond.com/validators/import-db/#docsNav), using the following configuration:
+In order to locally re-build a database with historical lookup support, one should run [import-db](https://docs.multiversx.com/validators/import-db/#docsNav), using the following configuration:
 
 #### `config.toml`
 ```
@@ -228,4 +228,4 @@ oldest_block_identifier = first block of oldest_epoch
 
 ## Implementation validation
 
-In order to validate the Rosetta implementation using `rosetta-cli`, please follow [ElrondNetwork/rosetta-checks](https://github.com/ElrondNetwork/rosetta-checks).
+In order to validate the Rosetta implementation using `rosetta-cli`, please follow [MultiversX/rosetta-checks](https://github.com/multiversx/mx-chain-rosetta-checks).
