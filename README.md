@@ -6,7 +6,7 @@
 
 In the Rosetta implementation, we've decided to provide a single-shard perspective to the API consumer. That is, **one Rosetta instance** would observe **a single _regular_ shard** of the network - the shard is selected by the owner of the instance.
 
-Currently, the Rosetta implementation only supports the native currency (EGLD), while custom currencies ([ESDTs](https://docs.multiversx.com/developers/esdt-tokens)) will be supported in the near future. At that point, Rosetta would observe the _metachain_, as well.
+Currently, the Rosetta implementation only supports the native currency (EGLD), while custom currencies ([ESDTs](https://docs.multiversx.com/tokens/esdt-tokens)) will be supported in the near future. At that point, Rosetta would observe the _metachain_, as well.
 
 ## Docker setup
 
@@ -16,9 +16,7 @@ In order to set up Rosetta using Docker, use [MultiversX/rosetta-docker](https:/
 
 ### Setup an Observer
 
-Follow the official documentation to set up an observer:
- - [mainnet](https://docs.multiversx.com/validators/mainnet/config-scripts/)
- - [devnet](https://docs.multiversx.com/validators/nodes-scripts/config-scripts/)
+Follow the official documentation to [set up an observer](https://docs.multiversx.com/validators/nodes-scripts/config-scripts/).
 
 Before starting the observer, make sure to edit the `config/prefs.toml`:
 
