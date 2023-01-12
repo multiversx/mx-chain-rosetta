@@ -83,7 +83,7 @@ Or, in order to start using the `offline` mode:
 
 ## Setup a database
 
-In order to support historical balances' lookup, Rosetta has to connect to an Observer whose database contains _non-pruned accounts tries_. Such databases can be re-built locally or downloaded from the public archive - the URL being available [on request](https://t.me/ElrondDevelopers).
+In order to support historical balances' lookup, Rosetta has to connect to an Observer whose database contains _non-pruned accounts tries_. Such databases can be re-built locally or downloaded from the public archive - the URL being available [on request](https://t.me/MultiversXDevelopers).
 
 ### Build archives
 
@@ -107,7 +107,7 @@ The **source** database (e.g. located in `./import-db/db`) should normally be a 
 
 ### Download archives
 
-An archive supporting historical lookup is available to download [on request](https://t.me/ElrondDevelopers), from a cloud-based, S3-compatible storage.
+An archive supporting historical lookup is available to download [on request](https://t.me/MultiversXDevelopers), from a cloud-based, S3-compatible storage.
 
 The archive consists of:
  - Individual files per _epoch_: `Epoch_*.tar`
