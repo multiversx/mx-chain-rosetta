@@ -3,9 +3,9 @@ package services
 import (
 	"encoding/hex"
 
-	"github.com/ElrondNetwork/elrond-go-core/data/api"
-	"github.com/ElrondNetwork/rosetta/server/resources"
 	"github.com/coinbase/rosetta-sdk-go/types"
+	"github.com/multiversx/mx-chain-core-go/data/api"
+	"github.com/multiversx/mx-chain-rosetta/server/resources"
 )
 
 func blockToIdentifier(block *api.Block) *types.BlockIdentifier {

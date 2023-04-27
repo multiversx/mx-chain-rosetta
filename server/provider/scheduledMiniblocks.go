@@ -1,9 +1,9 @@
 package provider
 
 import (
-	"github.com/ElrondNetwork/elrond-go-core/data/api"
-	dataBlock "github.com/ElrondNetwork/elrond-go-core/data/block"
-	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
+	"github.com/multiversx/mx-chain-core-go/data/api"
+	dataBlock "github.com/multiversx/mx-chain-core-go/data/block"
+	"github.com/multiversx/mx-chain-core-go/data/transaction"
 )
 
 func (provider *networkProvider) simplifyBlockWithScheduledTransactions(block *api.Block) error {

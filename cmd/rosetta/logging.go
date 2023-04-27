@@ -6,8 +6,8 @@ import (
 	"os"
 	"time"
 
-	logger "github.com/ElrondNetwork/elrond-go-logger"
-	"github.com/ElrondNetwork/elrond-go/common/logging"
+	logger "github.com/multiversx/mx-chain-logger-go"
+	fileLogging "github.com/multiversx/mx-chain-logger-go/file"
 )
 
 const (
@@ -36,7 +36,7 @@ func initializeLogger(logsFolder string, logLevel string) (io.Closer, error) {
 		return nil, err
 	}
 
-	fileLogging, err := logging.NewFileLogging(logging.ArgsFileLogging{
+	fileLogging, err := fileLogging.NewFileLogging(fileLogging.ArgsFileLogging{
 		WorkingDir:      logsFolder,
 		DefaultLogsPath: defaultLogsPath,
 		LogFilePrefix:   logFilePrefix,

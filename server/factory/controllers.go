@@ -1,10 +1,10 @@
 package factory
 
 import (
-	"github.com/ElrondNetwork/rosetta/server/services"
 	"github.com/coinbase/rosetta-sdk-go/asserter"
 	"github.com/coinbase/rosetta-sdk-go/server"
 	"github.com/coinbase/rosetta-sdk-go/types"
+	"github.com/multiversx/mx-chain-rosetta/server/services"
 )
 
 func CreateControllers(networkProvider services.NetworkProvider) ([]server.Router, error) {

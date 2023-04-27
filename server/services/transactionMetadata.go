@@ -1,6 +1,6 @@
 package services
 
-import "github.com/ElrondNetwork/elrond-go-core/data/transaction"
+import "github.com/multiversx/mx-chain-core-go/data/transaction"
 
 func extractTransactionMetadata(tx *transaction.ApiTransactionResult) objectsMap {
 	metadata := objectsMap{
