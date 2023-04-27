@@ -371,12 +371,12 @@ func (service *constructionService) ConstructionHash(
 	_ context.Context,
 	request *types.ConstructionHashRequest,
 ) (*types.TransactionIdentifierResponse, *types.Error) {
-	elrondTx, err := getTxFromRequest(request.SignedTransaction)
+	tx, err := getTxFromRequest(request.SignedTransaction)
 	if err != nil {
 		return nil, service.errFactory.newErrWithOriginal(ErrMalformedValue, err)
 	}
 
-	txHash, err := service.provider.ComputeTransactionHash(elrondTx)
+	txHash, err := service.provider.ComputeTransactionHash(tx)
 	if err != nil {
 		return nil, service.errFactory.newErrWithOriginal(ErrMalformedValue, err)
 	}
@@ -399,12 +399,12 @@ func (service *constructionService) ConstructionSubmit(
 		return nil, service.errFactory.newErr(ErrOfflineMode)
 	}
 
-	elrondTx, err := getTxFromRequest(request.SignedTransaction)
+	tx, err := getTxFromRequest(request.SignedTransaction)
 	if err != nil {
 		return nil, service.errFactory.newErrWithOriginal(ErrMalformedValue, err)
 	}
 
-	txHash, err := service.provider.SendTransaction(elrondTx)
+	txHash, err := service.provider.SendTransaction(tx)
 	if err != nil {
 		return nil, service.errFactory.newErrWithOriginal(ErrUnableToSubmitTransaction, err)
 	}

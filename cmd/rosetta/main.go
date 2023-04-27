@@ -25,14 +25,14 @@ func main() {
 
 	app := cli.NewApp()
 	cli.AppHelpTemplate = helpTemplate
-	app.Name = "Elrond Rosetta CLI App"
+	app.Name = "MultiversX Rosetta CLI App"
 	app.Version = version.RosettaMiddlewareVersion
-	app.Usage = "This is the entry point for starting a new Elrond Rosetta instance"
+	app.Usage = "This is the entry point for starting a new MultiversX Rosetta instance"
 	app.Flags = getAllCliFlags()
 	app.Authors = []cli.Author{
 		{
-			Name:  "The Elrond Team",
-			Email: "contact@elrond.com",
+			Name:  "The MultiversX Team",
+			Email: "contact@multiversx.com",
 		},
 	}
 
@@ -62,6 +62,7 @@ func startRosetta(ctx *cli.Context) error {
 		ObservedProjectedShard:      cliFlags.observerProjectedShard,
 		ObservedProjectedShardIsSet: cliFlags.observerProjectedShardIsSet,
 		ObserverUrl:                 cliFlags.observerHttpUrl,
+		BlockchainName:              cliFlags.blockchainName,
 		NetworkID:                   cliFlags.networkID,
 		NetworkName:                 cliFlags.networkName,
 		GasPerDataByte:              cliFlags.gasPerDataByte,

@@ -66,9 +66,11 @@ func TestNetworkProvider_GetAccountNativeBalance(t *testing.T) {
 
 	t.Run("with success", func(t *testing.T) {
 		observerFacade.MockNextError = nil
-		observerFacade.MockGetResponse = resources.AccountNativeBalanceApiResponse{
-			Data: resources.AccountNativeBalance{
-				Balance: "1",
+		observerFacade.MockGetResponse = resources.AccountApiResponse{
+			Data: resources.AccountOnBlock{
+				Account: resources.Account{
+					Balance: "1",
+				},
 				BlockCoordinates: resources.BlockCoordinates{
 					Nonce: 1000,
 				},
@@ -77,10 +79,10 @@ func TestNetworkProvider_GetAccountNativeBalance(t *testing.T) {
 
 		accountBalance, err := provider.GetAccountNativeBalance(testscommon.TestAddressAlice, optionsOnFinal)
 		require.Nil(t, err)
-		require.Equal(t, "1", accountBalance.Balance)
+		require.Equal(t, "1", accountBalance.Account.Balance)
 		require.Equal(t, uint64(1000), accountBalance.BlockCoordinates.Nonce)
 		require.Equal(t, args.ObserverUrl, observerFacade.RecordedBaseUrl)
-		require.Equal(t, "/address/erd1qyu5wthldzr8wx5c9ucg8kjagg0jfs53s8nr3zpz3hypefsdd8ssycr6th/balance?onFinalBlock=true", observerFacade.RecordedPath)
+		require.Equal(t, "/address/erd1qyu5wthldzr8wx5c9ucg8kjagg0jfs53s8nr3zpz3hypefsdd8ssycr6th?onFinalBlock=true", observerFacade.RecordedPath)
 	})
 
 	t.Run("with error", func(t *testing.T) {
@@ -91,7 +93,7 @@ func TestNetworkProvider_GetAccountNativeBalance(t *testing.T) {
 		require.ErrorIs(t, err, errCannotGetAccount)
 		require.Nil(t, accountBalance)
 		require.Equal(t, args.ObserverUrl, observerFacade.RecordedBaseUrl)
-		require.Equal(t, "/address/erd1qyu5wthldzr8wx5c9ucg8kjagg0jfs53s8nr3zpz3hypefsdd8ssycr6th/balance?onFinalBlock=true", observerFacade.RecordedPath)
+		require.Equal(t, "/address/erd1qyu5wthldzr8wx5c9ucg8kjagg0jfs53s8nr3zpz3hypefsdd8ssycr6th?onFinalBlock=true", observerFacade.RecordedPath)
 	})
 }
 

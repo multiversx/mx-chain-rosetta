@@ -19,7 +19,7 @@ func TestNetworkService_NetworkList(t *testing.T) {
 
 	require.Nil(t, err)
 	require.Equal(t, []*types.NetworkIdentifier{{
-		Blockchain: "Elrond",
+		Blockchain: "MultiversX",
 		Network:    "testnet",
 	}}, response.NetworkIdentifiers)
 }

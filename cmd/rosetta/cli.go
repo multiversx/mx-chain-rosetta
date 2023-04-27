@@ -66,6 +66,12 @@ VERSION:
 		Value: "http://nowhere.localhost.local",
 	}
 
+	cliFlagBlockchainName = cli.StringFlag{
+		Name:  "blockchain",
+		Usage: "Specifies the blockchain name (e.g. MultiversX).",
+		Value: "MultiversX",
+	}
+
 	cliFlagNetworkID = cli.StringFlag{
 		Name:     "network-id",
 		Usage:    "Specifies the network ID (e.g. 1, D, T)",
@@ -148,6 +154,7 @@ func getAllCliFlags() []cli.Flag {
 		cliFlagObserverActualShard,
 		cliFlagObserverProjectedShard,
 		cliFlagObserverHttpUrl,
+		cliFlagBlockchainName,
 		cliFlagNetworkID,
 		cliFlagNetworkName,
 		cliFlagNumShards,
@@ -172,6 +179,7 @@ type parsedCliFlags struct {
 	observerProjectedShard      uint32
 	observerProjectedShardIsSet bool
 	observerHttpUrl             string
+	blockchainName              string
 	networkID                   string
 	networkName                 string
 	numShards                   uint32
@@ -196,6 +204,7 @@ func getParsedCliFlags(ctx *cli.Context) parsedCliFlags {
 		observerProjectedShard:      uint32(ctx.GlobalUint(cliFlagObserverProjectedShard.Name)),
 		observerProjectedShardIsSet: ctx.GlobalIsSet(cliFlagObserverProjectedShard.Name),
 		observerHttpUrl:             ctx.GlobalString(cliFlagObserverHttpUrl.Name),
+		blockchainName:              ctx.GlobalString(cliFlagBlockchainName.Name),
 		networkID:                   ctx.GlobalString(cliFlagNetworkID.Name),
 		networkName:                 ctx.GlobalString(cliFlagNetworkName.Name),
 		numShards:                   uint32(ctx.GlobalUint(cliFlagNumShards.Name)),

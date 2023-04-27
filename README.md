@@ -1,24 +1,22 @@
-# Rosetta API for Elrond Network
+# Rosetta API for MultiversX
 
 ## Overview
 
-**Elrond Network runs on a sharded architecture** - transaction, data and network sharding are leveraged. 
+**MultiversX runs on a sharded architecture** - transaction, data and network sharding are leveraged. 
 
 In the Rosetta implementation, we've decided to provide a single-shard perspective to the API consumer. That is, **one Rosetta instance** would observe **a single _regular_ shard** of the network - the shard is selected by the owner of the instance.
 
-Currently, the Rosetta implementation only supports the native currency (EGLD), while custom currencies ([ESDTs](https://docs.elrond.com/developers/esdt-tokens)) will be supported in the near future. At that point, Rosetta would observe the _metachain_, as well.
+Currently, the Rosetta implementation only supports the native currency (EGLD), while custom currencies ([ESDTs](https://docs.multiversx.com/tokens/esdt-tokens)) will be supported in the near future. At that point, Rosetta would observe the _metachain_, as well.
 
 ## Docker setup
 
-In order to set up Rosetta using Docker, use [ElrondNetwork/rosetta-docker](https://github.com/ElrondNetwork/rosetta-docker).
+In order to set up Rosetta using Docker, use [MultiversX/rosetta-docker](https://github.com/multiversx/mx-chain-rosetta-docker).
 
 ## Standalone setup
 
 ### Setup an Observer
 
-Follow the official documentation to set up an observer:
- - [mainnet](https://docs.elrond.com/validators/mainnet/config-scripts/)
- - [devnet](https://docs.elrond.com/validators/elrond-go-scripts/config-scripts/)
+Follow the official documentation to [set up an observer](https://docs.multiversx.com/validators/nodes-scripts/config-scripts/).
 
 Before starting the observer, make sure to edit the `config/prefs.toml`:
 
@@ -57,7 +55,7 @@ Clone the repository:
 
 ```
 cd $HOME
-git clone https://github.com/ElrondNetwork/rosetta.git
+git clone https://github.com/multiversx/mx-chain-rosetta
 ```
 
 Build the application:
@@ -85,11 +83,11 @@ Or, in order to start using the `offline` mode:
 
 ## Setup a database
 
-In order to support historical balances' lookup, Rosetta has to connect to an Observer whose database contains _non-pruned accounts tries_. Such databases can be re-built locally or downloaded from the Elrond public archive - the URL being available [on request](https://t.me/ElrondDevelopers).
+In order to support historical balances' lookup, Rosetta has to connect to an Observer whose database contains _non-pruned accounts tries_. Such databases can be re-built locally or downloaded from the public archive - the URL being available [on request](https://t.me/MultiversXDevelopers).
 
 ### Build archives
 
-In order to locally re-build a database with historical lookup support, one should run [import-db](https://docs.elrond.com/validators/import-db/#docsNav), using the following configuration:
+In order to locally re-build a database with historical lookup support, one should run [import-db](https://docs.multiversx.com/validators/import-db/#docsNav), using the following configuration:
 
 #### `config.toml`
 ```
@@ -109,7 +107,7 @@ The **source** database (e.g. located in `./import-db/db`) should normally be a 
 
 ### Download archives
 
-An archive supporting historical lookup is available to download [on request](https://t.me/ElrondDevelopers), from a cloud-based, S3-compatible storage.
+An archive supporting historical lookup is available to download [on request](https://t.me/MultiversXDevelopers), from a cloud-based, S3-compatible storage.
 
 The archive consists of:
  - Individual files per _epoch_: `Epoch_*.tar`
@@ -156,12 +154,16 @@ Let's proceed with the download:
 cd ~/historical-workspace
 
 # Download "Static" folder
-wget ${URL_BASE}/Static.tar
+echo "Downloading: Static"
+wget ${URL_BASE}/Static.tar || exit 1
+echo "Downloaded: Static"
 
 # Download epochs
 for (( epoch = ${EPOCH_FIRST}; epoch <= ${EPOCH_LAST}; epoch++ )) 
 do 
-    wget ${URL_BASE}/Epoch_${epoch}.tar
+    echo "Downloading: epoch ${epoch}"
+    wget ${URL_BASE}/Epoch_${epoch}.tar || exit 1
+    echo "Downloaded: epoch ${epoch}"
 done
 ```
 
@@ -171,12 +173,14 @@ Once the download has finished, extract the archived data:
 cd ~/historical-workspace
 
 # Extract "Static" folder
-tar -xf Static.tar --directory db/${CHAIN_ID}
+tar -xf Static.tar --directory db/${CHAIN_ID} || exit 1
+echo "Extracted: Static"
 
 # Extract epochs
 for (( epoch = ${EPOCH_FIRST}; epoch <= ${EPOCH_LAST}; epoch++ )) 
 do 
-    tar -xf Epoch_${epoch}.tar --directory db/${CHAIN_ID}
+    tar -xf Epoch_${epoch}.tar --directory db/${CHAIN_ID} || exit 1
+    echo "Extracted: epoch ${epoch}"
 done
 ```
 
@@ -222,4 +226,4 @@ oldest_block_identifier = first block of oldest_epoch
 
 ## Implementation validation
 
-In order to validate the Rosetta implementation using `rosetta-cli`, please follow [ElrondNetwork/rosetta-checks](https://github.com/ElrondNetwork/rosetta-checks).
+In order to validate the Rosetta implementation using `rosetta-cli`, please follow [MultiversX/rosetta-checks](https://github.com/multiversx/mx-chain-rosetta-checks).
