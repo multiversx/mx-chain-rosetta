@@ -3,7 +3,7 @@ package services
 import (
 	"bytes"
 
-	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
+	"github.com/multiversx/mx-chain-core-go/data/transaction"
 )
 
 type transactionsFeaturesDetector struct {
@@ -16,7 +16,7 @@ func newTransactionsFeaturesDetector(provider NetworkProvider) *transactionsFeat
 	}
 }
 
-// Example SCRs can be found here: https://api.elrond.com/transactions?function=ClaimDeveloperRewards
+// Example SCRs can be found here: https://api.multiversx.com/transactions?function=ClaimDeveloperRewards
 func (extractor *transactionsFeaturesDetector) doesContractResultHoldRewardsOfClaimDeveloperRewards(
 	contractResult *transaction.ApiTransactionResult,
 	allTransactionsInBlock []*transaction.ApiTransactionResult,

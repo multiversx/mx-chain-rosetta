@@ -1,7 +1,7 @@
 package components
 
 import (
-	"github.com/ElrondNetwork/elrond-proxy-go/data"
+	"github.com/multiversx/mx-chain-proxy-go/data"
 )
 
 // DisabledExternalStorageConnector is a no-operation external storage connector

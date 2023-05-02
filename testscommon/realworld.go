@@ -1,10 +1,10 @@
 package testscommon
 
 import (
-	"github.com/ElrondNetwork/elrond-go-core/core/pubkeyConverter"
-	hasherFactory "github.com/ElrondNetwork/elrond-go-core/hashing/factory"
-	marshalFactory "github.com/ElrondNetwork/elrond-go-core/marshal/factory"
-	logger "github.com/ElrondNetwork/elrond-go-logger"
+	"github.com/multiversx/mx-chain-core-go/core/pubkeyConverter"
+	hasherFactory "github.com/multiversx/mx-chain-core-go/hashing/factory"
+	marshalFactory "github.com/multiversx/mx-chain-core-go/marshal/factory"
+	logger "github.com/multiversx/mx-chain-logger-go"
 )
 
 // RealWorldBech32PubkeyConverter is a bech32 converter, to be used in tests

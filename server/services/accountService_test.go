@@ -4,9 +4,9 @@ import (
 	"context"
 	"testing"
 
-	"github.com/ElrondNetwork/rosetta/server/resources"
-	"github.com/ElrondNetwork/rosetta/testscommon"
 	"github.com/coinbase/rosetta-sdk-go/types"
+	"github.com/multiversx/mx-chain-rosetta/server/resources"
+	"github.com/multiversx/mx-chain-rosetta/testscommon"
 	"github.com/stretchr/testify/require"
 )
 

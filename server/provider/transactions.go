@@ -1,6 +1,6 @@
 package provider
 
-import "github.com/ElrondNetwork/elrond-go-core/data/transaction"
+import "github.com/multiversx/mx-chain-core-go/data/transaction"
 
 func discardTransactions(txs []*transaction.ApiTransactionResult, txsHashesToDiscard map[string]struct{}) []*transaction.ApiTransactionResult {
 	txsToKeep := make([]*transaction.ApiTransactionResult, 0, len(txs))
