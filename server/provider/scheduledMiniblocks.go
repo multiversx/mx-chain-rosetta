@@ -140,6 +140,7 @@ func findInvalidTransactions(block *api.Block) []*transaction.ApiTransactionResu
 func deduplicatePreviouslyAppearingContractResults(previousBlock *api.Block, block *api.Block) {
 	previouslyAppearingContractResultsHashes := make(map[string]struct{})
 
+	// First, gather the hashes of SCRs in "Normal" miniblocks, in block N-1.
 	for _, miniblock := range previousBlock.MiniBlocks {
 		isResultsMiniblock := miniblock.Type == dataBlock.SmartContractResultBlock.String()
 		isNormalMiniblock := miniblock.ProcessingType == dataBlock.Normal.String()
@@ -154,6 +155,7 @@ func deduplicatePreviouslyAppearingContractResults(previousBlock *api.Block, blo
 		}
 	}
 
+	// Now, remove the duplicate entries in block N.
 	for _, miniblock := range block.MiniBlocks {
 		isResultsMiniblock := miniblock.Type == dataBlock.SmartContractResultBlock.String()
 		isNormalMiniblock := miniblock.ProcessingType == dataBlock.Normal.String()
