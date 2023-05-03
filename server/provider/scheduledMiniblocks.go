@@ -136,7 +136,7 @@ func findInvalidTransactions(block *api.Block) []*transaction.ApiTransactionResu
 
 // Sometimes, an invalid transaction processed in a scheduled miniblock
 // might have its smart contract result (if any) saved in the receipts unit of both blocks N and N+1.
-// This function removes the duplicate entries in block N.
+// This function ignores the duplicate entries in block N.
 func deduplicatePreviouslyAppearingContractResults(previousBlock *api.Block, block *api.Block) {
 	previouslyAppearingContractResultsHashes := make(map[string]struct{})
 
