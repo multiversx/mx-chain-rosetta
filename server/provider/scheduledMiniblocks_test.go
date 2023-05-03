@@ -179,3 +179,77 @@ func TestDoSimplifyBlockWithScheduledTransactions_WithRespectToConstructionState
 	doSimplifyBlockWithScheduledTransactions(previousBlock, block, nextBlock)
 	require.Len(t, block.MiniBlocks, 0)
 }
+
+func TestDeduplicatePreviouslyAppearingContractResults(t *testing.T) {
+	// Block N-1
+	previousBlock := &api.Block{
+		MiniBlocks: []*api.MiniBlock{
+			// Should not be subject to deduplication (due to "processing type")
+			{
+				ProcessingType: dataBlock.Scheduled.String(),
+				Type:           dataBlock.SmartContractResultBlock.String(),
+				Transactions: []*transaction.ApiTransactionResult{
+					{Hash: "aaaa"},
+				},
+			},
+			// Should not be subject to deduplication (due to "type")
+			{
+				ProcessingType: dataBlock.Normal.String(),
+				Type:           dataBlock.InvalidBlock.String(),
+				Transactions: []*transaction.ApiTransactionResult{
+					{Hash: "bbbb"},
+				},
+			},
+			// Should be subject to deduplication
+			{
+				ProcessingType: dataBlock.Normal.String(),
+				Type:           dataBlock.SmartContractResultBlock.String(),
+				Transactions: []*transaction.ApiTransactionResult{
+					{Hash: "cccc"},
+					{Hash: "dddd"},
+				},
+			},
+		},
+	}
+
+	// Block N
+	block := &api.Block{
+		MiniBlocks: []*api.MiniBlock{
+			// Should not be subject to deduplication (due to "processing type")
+			{
+				ProcessingType: dataBlock.Scheduled.String(),
+				Type:           dataBlock.SmartContractResultBlock.String(),
+				Transactions: []*transaction.ApiTransactionResult{
+					{Hash: "aaaa"},
+				},
+			},
+			// Should not be subject to deduplication (due to "type")
+			{
+				ProcessingType: dataBlock.Normal.String(),
+				Type:           dataBlock.InvalidBlock.String(),
+				Transactions: []*transaction.ApiTransactionResult{
+					{Hash: "bbbb"},
+				},
+			},
+			// Should be subject to deduplication
+			{
+				ProcessingType: dataBlock.Normal.String(),
+				Type:           dataBlock.SmartContractResultBlock.String(),
+				Transactions: []*transaction.ApiTransactionResult{
+					{Hash: "cccc"},
+					{Hash: "eeee"},
+				},
+			},
+		},
+	}
+
+	deduplicatePreviouslyAppearingContractResults(previousBlock, block)
+
+	require.Len(t, block.MiniBlocks, 3)
+	require.Len(t, block.MiniBlocks[0].Transactions, 1)
+	require.Len(t, block.MiniBlocks[1].Transactions, 1)
+	require.Len(t, block.MiniBlocks[2].Transactions, 1)
+	require.Equal(t, "aaaa", block.MiniBlocks[0].Transactions[0].Hash)
+	require.Equal(t, "bbbb", block.MiniBlocks[1].Transactions[0].Hash)
+	require.Equal(t, "eeee", block.MiniBlocks[2].Transactions[0].Hash)
+}

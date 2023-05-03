@@ -18,6 +18,7 @@ func (provider *networkProvider) simplifyBlockWithScheduledTransactions(block *a
 	}
 
 	doSimplifyBlockWithScheduledTransactions(previousBlock, block, nextBlock)
+	deduplicatePreviouslyAppearingContractResults(previousBlock, block)
 
 	return nil
 }
@@ -131,4 +132,46 @@ func findInvalidTransactions(block *api.Block) []*transaction.ApiTransactionResu
 	}
 
 	return invalidTxs
+}
+
+// Sometimes, an invalid transaction processed in a scheduled miniblock
+// might have its smart contract result (if any) saved in the receipts unit of both blocks N and N+1.
+// This function removes the duplicate entries in block N.
+func deduplicatePreviouslyAppearingContractResults(previousBlock *api.Block, block *api.Block) {
+	previouslyAppearingContractResultsHashes := make(map[string]struct{})
+
+	for _, miniblock := range previousBlock.MiniBlocks {
+		isResultsMiniblock := miniblock.Type == dataBlock.SmartContractResultBlock.String()
+		isNormalMiniblock := miniblock.ProcessingType == dataBlock.Normal.String()
+		shouldHandleMiniblock := isResultsMiniblock && isNormalMiniblock
+
+		if !shouldHandleMiniblock {
+			continue
+		}
+
+		for _, tx := range miniblock.Transactions {
+			previouslyAppearingContractResultsHashes[tx.Hash] = struct{}{}
+		}
+	}
+
+	for _, miniblock := range block.MiniBlocks {
+		isResultsMiniblock := miniblock.Type == dataBlock.SmartContractResultBlock.String()
+		isNormalMiniblock := miniblock.ProcessingType == dataBlock.Normal.String()
+		shouldHandleMiniblock := isResultsMiniblock && isNormalMiniblock
+
+		if !shouldHandleMiniblock {
+			continue
+		}
+
+		transactions := make([]*transaction.ApiTransactionResult, 0, len(miniblock.Transactions))
+
+		for _, tx := range miniblock.Transactions {
+			_, isDuplicated := previouslyAppearingContractResultsHashes[tx.Hash]
+			if !isDuplicated {
+				transactions = append(transactions, tx)
+			}
+		}
+
+		miniblock.Transactions = transactions
+	}
 }
