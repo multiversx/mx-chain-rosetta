@@ -138,8 +138,8 @@ func findInvalidTransactions(block *api.Block) []*transaction.ApiTransactionResu
 // might have its smart contract result (if any) saved in the receipts unit of both blocks N and N+1.
 // This function ignores the duplicate entries in block N.
 func deduplicatePreviouslyAppearingContractResultsInReceipts(previousBlock *api.Block, block *api.Block) {
-	previouslyAppearingContractResultsHashes := findContractResultsInReceipts(previousBlock)
-	removeContractResultsInReceipts(block, previouslyAppearingContractResultsHashes)
+	previouslyAppearing := findContractResultsInReceipts(previousBlock)
+	removeContractResultsInReceipts(block, previouslyAppearing)
 }
 
 func findContractResultsInReceipts(block *api.Block) map[string]struct{} {
