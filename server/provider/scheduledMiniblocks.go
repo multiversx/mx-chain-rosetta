@@ -18,7 +18,7 @@ func (provider *networkProvider) simplifyBlockWithScheduledTransactions(block *a
 	}
 
 	doSimplifyBlockWithScheduledTransactions(previousBlock, block, nextBlock)
-	deduplicatePreviouslyAppearingContractResults(previousBlock, block)
+	deduplicatePreviouslyAppearingContractResultsInReceipts(previousBlock, block)
 
 	return nil
 }
@@ -137,43 +137,37 @@ func findInvalidTransactions(block *api.Block) []*transaction.ApiTransactionResu
 // Sometimes, an invalid transaction processed in a scheduled miniblock
 // might have its smart contract result (if any) saved in the receipts unit of both blocks N and N+1.
 // This function ignores the duplicate entries in block N.
-func deduplicatePreviouslyAppearingContractResults(previousBlock *api.Block, block *api.Block) {
-	previouslyAppearingContractResultsHashes := make(map[string]struct{})
+func deduplicatePreviouslyAppearingContractResultsInReceipts(previousBlock *api.Block, block *api.Block) {
+	previouslyAppearingContractResultsHashes := findContractResultsInReceipts(previousBlock)
+	removeContractResultsInReceipts(block, previouslyAppearingContractResultsHashes)
+}
 
-	// First, gather the hashes of SCRs in "Normal" miniblocks, in block N-1.
-	for _, miniblock := range previousBlock.MiniBlocks {
-		isResultsMiniblock := miniblock.Type == dataBlock.SmartContractResultBlock.String()
-		isNormalMiniblock := miniblock.ProcessingType == dataBlock.Normal.String()
-		shouldHandleMiniblock := isResultsMiniblock && isNormalMiniblock
+func findContractResultsInReceipts(block *api.Block) map[string]struct{} {
+	txs := make(map[string]struct{})
 
-		if !shouldHandleMiniblock {
-			continue
-		}
-
-		for _, tx := range miniblock.Transactions {
-			previouslyAppearingContractResultsHashes[tx.Hash] = struct{}{}
-		}
-	}
-
-	// Now, remove the duplicate entries in block N.
 	for _, miniblock := range block.MiniBlocks {
-		isResultsMiniblock := miniblock.Type == dataBlock.SmartContractResultBlock.String()
-		isNormalMiniblock := miniblock.ProcessingType == dataBlock.Normal.String()
-		shouldHandleMiniblock := isResultsMiniblock && isNormalMiniblock
-
-		if !shouldHandleMiniblock {
+		if !isContractResultsMiniblockInReceipts(miniblock) {
 			continue
 		}
 
-		transactions := make([]*transaction.ApiTransactionResult, 0, len(miniblock.Transactions))
-
 		for _, tx := range miniblock.Transactions {
-			_, isDuplicated := previouslyAppearingContractResultsHashes[tx.Hash]
-			if !isDuplicated {
-				transactions = append(transactions, tx)
-			}
+			txs[tx.Hash] = struct{}{}
+		}
+	}
+
+	return txs
+}
+
+func removeContractResultsInReceipts(block *api.Block, txsHashes map[string]struct{}) {
+	for _, miniblock := range block.MiniBlocks {
+		if !isContractResultsMiniblockInReceipts(miniblock) {
+			continue
 		}
 
-		miniblock.Transactions = transactions
+		miniblock.Transactions = discardTransactions(miniblock.Transactions, txsHashes)
 	}
+}
+
+func isContractResultsMiniblockInReceipts(miniblock *api.MiniBlock) bool {
+	return miniblock.Type == dataBlock.SmartContractResultBlock.String() && miniblock.IsFromReceiptsStorage
 }
