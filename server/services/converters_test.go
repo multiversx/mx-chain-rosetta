@@ -3,8 +3,8 @@ package services
 import (
 	"testing"
 
-	"github.com/ElrondNetwork/rosetta/server/resources"
 	"github.com/coinbase/rosetta-sdk-go/types"
+	"github.com/multiversx/mx-chain-rosetta/server/resources"
 	"github.com/stretchr/testify/require"
 )
 

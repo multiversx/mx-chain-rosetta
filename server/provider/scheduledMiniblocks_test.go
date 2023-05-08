@@ -3,9 +3,9 @@ package provider
 import (
 	"testing"
 
-	"github.com/ElrondNetwork/elrond-go-core/data/api"
-	dataBlock "github.com/ElrondNetwork/elrond-go-core/data/block"
-	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
+	"github.com/multiversx/mx-chain-core-go/data/api"
+	dataBlock "github.com/multiversx/mx-chain-core-go/data/block"
+	"github.com/multiversx/mx-chain-core-go/data/transaction"
 	"github.com/stretchr/testify/require"
 )
 
@@ -178,4 +178,158 @@ func TestDoSimplifyBlockWithScheduledTransactions_WithRespectToConstructionState
 
 	doSimplifyBlockWithScheduledTransactions(previousBlock, block, nextBlock)
 	require.Len(t, block.MiniBlocks, 0)
+}
+
+func TestDeduplicatePreviouslyAppearingContractResultsInReceipts(t *testing.T) {
+	// Block N-1
+	previousBlock := &api.Block{
+		MiniBlocks: []*api.MiniBlock{
+			// Should not be subject to deduplication (not from receipts)
+			{
+				IsFromReceiptsStorage: false,
+				Type:                  dataBlock.SmartContractResultBlock.String(),
+				Transactions: []*transaction.ApiTransactionResult{
+					{Hash: "aaaa"},
+				},
+			},
+			// Should not be subject to deduplication (due to "type")
+			{
+				IsFromReceiptsStorage: true,
+				Type:                  dataBlock.InvalidBlock.String(),
+				Transactions: []*transaction.ApiTransactionResult{
+					{Hash: "bbbb"},
+				},
+			},
+			// Should be subject to deduplication
+			{
+				IsFromReceiptsStorage: true,
+				Type:                  dataBlock.SmartContractResultBlock.String(),
+				Transactions: []*transaction.ApiTransactionResult{
+					{Hash: "cccc"},
+					{Hash: "dddd"},
+				},
+			},
+		},
+	}
+
+	// Block N
+	block := &api.Block{
+		MiniBlocks: []*api.MiniBlock{
+			// Should not be subject to deduplication (not from receipts)
+			{
+				IsFromReceiptsStorage: false,
+				Type:                  dataBlock.SmartContractResultBlock.String(),
+				Transactions: []*transaction.ApiTransactionResult{
+					{Hash: "aaaa"},
+				},
+			},
+			// Should not be subject to deduplication (due to "type")
+			{
+				IsFromReceiptsStorage: true,
+				Type:                  dataBlock.InvalidBlock.String(),
+				Transactions: []*transaction.ApiTransactionResult{
+					{Hash: "bbbb"},
+				},
+			},
+			// Should be subject to deduplication
+			{
+				IsFromReceiptsStorage: true,
+				Type:                  dataBlock.SmartContractResultBlock.String(),
+				Transactions: []*transaction.ApiTransactionResult{
+					{Hash: "cccc"},
+					{Hash: "eeee"},
+				},
+			},
+		},
+	}
+
+	deduplicatePreviouslyAppearingContractResultsInReceipts(previousBlock, block)
+
+	require.Len(t, block.MiniBlocks, 3)
+	require.Len(t, block.MiniBlocks[0].Transactions, 1)
+	require.Len(t, block.MiniBlocks[1].Transactions, 1)
+	require.Len(t, block.MiniBlocks[2].Transactions, 1)
+	require.Equal(t, "aaaa", block.MiniBlocks[0].Transactions[0].Hash)
+	require.Equal(t, "bbbb", block.MiniBlocks[1].Transactions[0].Hash)
+	require.Equal(t, "eeee", block.MiniBlocks[2].Transactions[0].Hash)
+}
+
+func TestFindContractResultsInReceipts(t *testing.T) {
+	block := &api.Block{
+		MiniBlocks: []*api.MiniBlock{
+			{
+				IsFromReceiptsStorage: false,
+				Type:                  dataBlock.SmartContractResultBlock.String(),
+				Transactions: []*transaction.ApiTransactionResult{
+					{Hash: "aaaa"},
+					{Hash: "bbbb"},
+				},
+			},
+			{
+				IsFromReceiptsStorage: true,
+				Type:                  dataBlock.InvalidBlock.String(),
+				Transactions: []*transaction.ApiTransactionResult{
+					{Hash: "cccc"},
+					{Hash: "dddd"},
+				},
+			},
+			{
+				IsFromReceiptsStorage: true,
+				Type:                  dataBlock.SmartContractResultBlock.String(),
+				Transactions: []*transaction.ApiTransactionResult{
+					{Hash: "eeee"},
+					{Hash: "ffff"},
+				},
+			},
+		},
+	}
+
+	found := findContractResultsInReceipts(block)
+	require.Len(t, found, 2)
+	require.Contains(t, found, "eeee")
+	require.Contains(t, found, "ffff")
+}
+
+func TestRemoveContractResultsInReceipts(t *testing.T) {
+	block := &api.Block{
+		MiniBlocks: []*api.MiniBlock{
+			{
+				IsFromReceiptsStorage: false,
+				Type:                  dataBlock.SmartContractResultBlock.String(),
+				Transactions: []*transaction.ApiTransactionResult{
+					{Hash: "aaaa"},
+					{Hash: "bbbb"},
+				},
+			},
+			{
+				IsFromReceiptsStorage: true,
+				Type:                  dataBlock.InvalidBlock.String(),
+				Transactions: []*transaction.ApiTransactionResult{
+					{Hash: "cccc"},
+					{Hash: "dddd"},
+				},
+			},
+			{
+				IsFromReceiptsStorage: true,
+				Type:                  dataBlock.SmartContractResultBlock.String(),
+				Transactions: []*transaction.ApiTransactionResult{
+					{Hash: "eeee"},
+					{Hash: "ffff"},
+					{Hash: "abba"},
+					{Hash: "aabb"},
+				},
+			},
+		},
+	}
+
+	removeContractResultsInReceipts(block, map[string]struct{}{
+		"eeee": {},
+		"ffff": {},
+	})
+
+	require.Len(t, block.MiniBlocks[0].Transactions, 2)
+	require.Len(t, block.MiniBlocks[1].Transactions, 2)
+	require.Len(t, block.MiniBlocks[2].Transactions, 2)
+	require.Equal(t, "abba", block.MiniBlocks[2].Transactions[0].Hash)
+	require.Equal(t, "aabb", block.MiniBlocks[2].Transactions[1].Hash)
 }

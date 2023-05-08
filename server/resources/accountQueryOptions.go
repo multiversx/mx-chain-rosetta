@@ -1,7 +1,7 @@
 package resources
 
 import (
-	"github.com/ElrondNetwork/elrond-go-core/core"
+	"github.com/multiversx/mx-chain-core-go/core"
 )
 
 // AccountQueryOptions defines an (internal) account resource

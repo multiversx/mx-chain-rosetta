@@ -4,7 +4,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/ElrondNetwork/rosetta/testscommon"
+	"github.com/multiversx/mx-chain-rosetta/testscommon"
 	"github.com/stretchr/testify/require"
 )
 

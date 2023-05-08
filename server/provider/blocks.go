@@ -1,6 +1,6 @@
 package provider
 
-import "github.com/ElrondNetwork/elrond-go-core/data/api"
+import "github.com/multiversx/mx-chain-core-go/data/api"
 
 func removeMiniblocksFromBlock(block *api.Block, shouldRemove func(miniblock *api.MiniBlock) bool) {
 	miniblocksToKeep := make([]*api.MiniBlock, 0, len(block.MiniBlocks))

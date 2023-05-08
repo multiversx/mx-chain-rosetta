@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	logger "github.com/ElrondNetwork/elrond-go-logger"
 	"github.com/coinbase/rosetta-sdk-go/types"
+	logger "github.com/multiversx/mx-chain-logger-go"
 )
 
 var log = logger.GetOrCreate("server/services")
