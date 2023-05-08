@@ -3,9 +3,9 @@ package services
 import (
 	"context"
 
-	"github.com/ElrondNetwork/rosetta/version"
 	"github.com/coinbase/rosetta-sdk-go/server"
 	"github.com/coinbase/rosetta-sdk-go/types"
+	"github.com/multiversx/mx-chain-rosetta/version"
 )
 
 type networkService struct {

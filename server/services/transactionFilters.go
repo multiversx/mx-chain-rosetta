@@ -1,8 +1,8 @@
 package services
 
 import (
-	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
 	"github.com/coinbase/rosetta-sdk-go/types"
+	"github.com/multiversx/mx-chain-core-go/data/transaction"
 )
 
 func filterOutIntrashardContractResultsWhoseOriginalTransactionIsInInvalidMiniblock(txs []*transaction.ApiTransactionResult) []*transaction.ApiTransactionResult {

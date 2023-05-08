@@ -1,8 +1,8 @@
 package services
 
 import (
-	"github.com/ElrondNetwork/elrond-go-core/core"
 	"github.com/coinbase/rosetta-sdk-go/types"
+	"github.com/multiversx/mx-chain-core-go/core"
 )
 
 type networkProviderExtension struct {

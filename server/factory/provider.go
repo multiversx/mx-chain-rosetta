@@ -1,16 +1,16 @@
 package factory
 
 import (
-	"github.com/ElrondNetwork/elrond-go-core/core/pubkeyConverter"
-	hasherFactory "github.com/ElrondNetwork/elrond-go-core/hashing/factory"
-	marshalFactory "github.com/ElrondNetwork/elrond-go-core/marshal/factory"
-	"github.com/ElrondNetwork/elrond-go/sharding"
-	"github.com/ElrondNetwork/elrond-proxy-go/data"
-	"github.com/ElrondNetwork/elrond-proxy-go/observer"
-	"github.com/ElrondNetwork/elrond-proxy-go/process"
-	processFactory "github.com/ElrondNetwork/elrond-proxy-go/process/factory"
-	"github.com/ElrondNetwork/rosetta/server/factory/components"
-	"github.com/ElrondNetwork/rosetta/server/provider"
+	"github.com/multiversx/mx-chain-core-go/core/pubkeyConverter"
+	hasherFactory "github.com/multiversx/mx-chain-core-go/hashing/factory"
+	marshalFactory "github.com/multiversx/mx-chain-core-go/marshal/factory"
+	"github.com/multiversx/mx-chain-go/sharding"
+	"github.com/multiversx/mx-chain-proxy-go/data"
+	"github.com/multiversx/mx-chain-proxy-go/observer"
+	"github.com/multiversx/mx-chain-proxy-go/process"
+	processFactory "github.com/multiversx/mx-chain-proxy-go/process/factory"
+	"github.com/multiversx/mx-chain-rosetta/server/factory/components"
+	"github.com/multiversx/mx-chain-rosetta/server/provider"
 )
 
 const (

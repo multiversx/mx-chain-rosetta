@@ -5,12 +5,12 @@ import (
 	"io/ioutil"
 	"testing"
 
-	"github.com/ElrondNetwork/elrond-go-core/core"
-	"github.com/ElrondNetwork/elrond-go-core/data/api"
-	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
-	"github.com/ElrondNetwork/rosetta/server/resources"
-	"github.com/ElrondNetwork/rosetta/testscommon"
 	"github.com/coinbase/rosetta-sdk-go/types"
+	"github.com/multiversx/mx-chain-core-go/core"
+	"github.com/multiversx/mx-chain-core-go/data/api"
+	"github.com/multiversx/mx-chain-core-go/data/transaction"
+	"github.com/multiversx/mx-chain-rosetta/server/resources"
+	"github.com/multiversx/mx-chain-rosetta/testscommon"
 	"github.com/stretchr/testify/require"
 )
 

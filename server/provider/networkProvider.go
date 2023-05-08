@@ -5,17 +5,17 @@ import (
 	"errors"
 	"math/big"
 
-	"github.com/ElrondNetwork/elrond-go-core/core"
-	"github.com/ElrondNetwork/elrond-go-core/data/api"
-	"github.com/ElrondNetwork/elrond-go-core/data/receipt"
-	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
-	"github.com/ElrondNetwork/elrond-go-core/hashing"
-	"github.com/ElrondNetwork/elrond-go-core/marshal"
-	logger "github.com/ElrondNetwork/elrond-go-logger"
-	"github.com/ElrondNetwork/elrond-go-storage/lrucache"
-	"github.com/ElrondNetwork/elrond-proxy-go/common"
-	"github.com/ElrondNetwork/elrond-proxy-go/data"
-	"github.com/ElrondNetwork/rosetta/server/resources"
+	"github.com/multiversx/mx-chain-core-go/core"
+	"github.com/multiversx/mx-chain-core-go/data/api"
+	"github.com/multiversx/mx-chain-core-go/data/receipt"
+	"github.com/multiversx/mx-chain-core-go/data/transaction"
+	"github.com/multiversx/mx-chain-core-go/hashing"
+	"github.com/multiversx/mx-chain-core-go/marshal"
+	logger "github.com/multiversx/mx-chain-logger-go"
+	"github.com/multiversx/mx-chain-proxy-go/common"
+	"github.com/multiversx/mx-chain-proxy-go/data"
+	"github.com/multiversx/mx-chain-rosetta/server/resources"
+	"github.com/multiversx/mx-chain-storage-go/lrucache"
 )
 
 var log = logger.GetOrCreate("server/provider")

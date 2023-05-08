@@ -1,8 +1,6 @@
 package provider
 
-import (
-	"github.com/ElrondNetwork/rosetta/server/resources"
-)
+import "github.com/multiversx/mx-chain-rosetta/server/resources"
 
 // TODO: Merge the methods in this file into a single method, e.g. GetAccountWithBalance(address, tokenIdentifier, options), where tokenIdentifier can be the native token or an ESDT.
 

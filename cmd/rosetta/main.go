@@ -8,9 +8,9 @@ import (
 	"os/signal"
 	"time"
 
-	"github.com/ElrondNetwork/rosetta/server/factory"
-	"github.com/ElrondNetwork/rosetta/version"
 	"github.com/coinbase/rosetta-sdk-go/server"
+	"github.com/multiversx/mx-chain-rosetta/server/factory"
+	"github.com/multiversx/mx-chain-rosetta/version"
 	"github.com/urfave/cli"
 )
 

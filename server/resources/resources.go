@@ -1,6 +1,6 @@
 package resources
 
-import "github.com/ElrondNetwork/elrond-proxy-go/data"
+import "github.com/multiversx/mx-chain-proxy-go/data"
 
 type resourceApiResponse struct {
 	Error string          `json:"error"`

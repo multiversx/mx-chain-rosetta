@@ -3,8 +3,8 @@ package provider
 import (
 	"testing"
 
-	"github.com/ElrondNetwork/rosetta/server/resources"
-	"github.com/ElrondNetwork/rosetta/testscommon"
+	"github.com/multiversx/mx-chain-rosetta/server/resources"
+	"github.com/multiversx/mx-chain-rosetta/testscommon"
 	"github.com/stretchr/testify/require"
 )
 
