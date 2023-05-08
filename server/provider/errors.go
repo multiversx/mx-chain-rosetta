@@ -8,7 +8,7 @@ import (
 	"strings"
 	"unicode"
 
-	"github.com/ElrondNetwork/rosetta/server/resources"
+	"github.com/multiversx/mx-chain-rosetta/server/resources"
 )
 
 var errIsOffline = errors.New("server is in offline mode")

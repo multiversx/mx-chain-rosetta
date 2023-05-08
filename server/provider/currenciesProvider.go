@@ -1,6 +1,6 @@
 package provider
 
-import "github.com/ElrondNetwork/rosetta/server/resources"
+import "github.com/multiversx/mx-chain-rosetta/server/resources"
 
 type currenciesProvider struct {
 	nativeCurrency           resources.Currency
