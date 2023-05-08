@@ -28,6 +28,7 @@ type networkProviderMock struct {
 	MockObservedProjectedShard      uint32
 	MockObservedProjectedShardIsSet bool
 	MockNativeCurrencySymbol        string
+	MockCustomCurrencies            []resources.Currency
 	MockGenesisBlockHash            string
 	MockGenesisTimestamp            int64
 	MockNetworkConfig               *resources.NetworkConfig
@@ -59,6 +60,7 @@ func NewNetworkProviderMock() *networkProviderMock {
 		MockObservedProjectedShard:      0,
 		MockObservedProjectedShardIsSet: false,
 		MockNativeCurrencySymbol:        "XeGLD",
+		MockCustomCurrencies:            make([]resources.Currency, 0),
 		MockGenesisBlockHash:            emptyHash,
 		MockGenesisTimestamp:            genesisTimestamp,
 		MockNetworkConfig: &resources.NetworkConfig{
@@ -112,11 +114,33 @@ func (mock *networkProviderMock) GetBlockchainName() string {
 }
 
 // GetNativeCurrency -
-func (mock *networkProviderMock) GetNativeCurrency() resources.NativeCurrency {
-	return resources.NativeCurrency{
+func (mock *networkProviderMock) GetNativeCurrency() resources.Currency {
+	return resources.Currency{
 		Symbol:   mock.MockNativeCurrencySymbol,
 		Decimals: 18,
 	}
+}
+
+// GetCustomCurrencies -
+func (mock *networkProviderMock) GetCustomCurrencies() []resources.Currency {
+	return mock.MockCustomCurrencies
+}
+
+// GetCustomCurrencyBySymbol -
+func (mock *networkProviderMock) GetCustomCurrencyBySymbol(symbol string) (resources.Currency, bool) {
+	for _, currency := range mock.MockCustomCurrencies {
+		if currency.Symbol == symbol {
+			return currency, true
+		}
+	}
+
+	return resources.Currency{}, false
+}
+
+// HasCustomCurrency -
+func (mock *networkProviderMock) HasCustomCurrency(symbol string) bool {
+	_, has := mock.GetCustomCurrencyBySymbol(symbol)
+	return has
 }
 
 // GetNetworkConfig -

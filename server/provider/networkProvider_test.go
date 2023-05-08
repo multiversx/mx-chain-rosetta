@@ -8,6 +8,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data/api"
 	"github.com/multiversx/mx-chain-proxy-go/common"
 	"github.com/multiversx/mx-chain-proxy-go/data"
+	"github.com/multiversx/mx-chain-rosetta/server/resources"
 	"github.com/multiversx/mx-chain-rosetta/testscommon"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -26,6 +27,7 @@ func TestNewNetworkProvider(t *testing.T) {
 		MinGasPrice:                 1000000001,
 		MinGasLimit:                 50001,
 		NativeCurrencySymbol:        "XeGLD",
+		CustomCurrenciesSymbols:     []string{"FOO-abcdef", "BAR-abcdef"},
 		GenesisBlockHash:            "aaaa",
 		GenesisTimestamp:            123456789,
 		FirstHistoricalEpoch:        1000,
@@ -51,6 +53,7 @@ func TestNewNetworkProvider(t *testing.T) {
 	assert.Equal(t, uint64(1000000001), provider.GetNetworkConfig().MinGasPrice)
 	assert.Equal(t, uint64(50001), provider.GetNetworkConfig().MinGasLimit)
 	assert.Equal(t, "XeGLD", provider.GetNativeCurrency().Symbol)
+	assert.Equal(t, []resources.Currency{{Symbol: "FOO-abcdef"}, {Symbol: "BAR-abcdef"}}, provider.GetCustomCurrencies())
 	assert.Equal(t, "aaaa", provider.GetGenesisBlockSummary().Hash)
 	assert.Equal(t, int64(123456789), provider.GetGenesisTimestamp())
 	assert.Equal(t, uint32(1000), provider.firstHistoricalEpoch)
