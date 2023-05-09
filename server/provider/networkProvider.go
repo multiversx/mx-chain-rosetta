@@ -33,6 +33,7 @@ type ArgsNewNetworkProvider struct {
 	MinGasPrice                 uint64
 	MinGasLimit                 uint64
 	NativeCurrencySymbol        string
+	CustomCurrenciesSymbols     []string
 	GenesisBlockHash            string
 	GenesisTimestamp            int64
 	FirstHistoricalEpoch        uint32
@@ -45,13 +46,15 @@ type ArgsNewNetworkProvider struct {
 	PubKeyConverter       core.PubkeyConverter
 }
 
+// In the future, we might rename this to "networkFacade" (which, in turn, depends on networkProvider, currencyProvider, blocksProvider and so on).
 type networkProvider struct {
+	*currenciesProvider
+
 	isOffline                   bool
 	observedActualShard         uint32
 	observedProjectedShard      uint32
 	observedProjectedShardIsSet bool
 	observerUrl                 string
-	nativeCurrencySymbol        string
 	genesisBlockHash            string
 	genesisTimestamp            int64
 	firstHistoricalEpoch        uint32
@@ -68,6 +71,7 @@ type networkProvider struct {
 	blocksCache blocksCache
 }
 
+// NewNetworkProvider (future-to-be renamed to NewNetworkFacade) creates a new networkProvider
 func NewNetworkProvider(args ArgsNewNetworkProvider) (*networkProvider, error) {
 	// Since for each block N we also have to fetch block N-1 and block N+1 (see "simplifyBlockWithScheduledTransactions"),
 	// it makes sense to cache the block response (using an LRU cache).
@@ -76,14 +80,17 @@ func NewNetworkProvider(args ArgsNewNetworkProvider) (*networkProvider, error) {
 		return nil, err
 	}
 
+	currenciesProvider := newCurrenciesProvider(args.NativeCurrencySymbol, args.CustomCurrenciesSymbols)
+
 	return &networkProvider{
+		currenciesProvider: currenciesProvider,
+
 		isOffline: args.IsOffline,
 
 		observedActualShard:         args.ObservedActualShard,
 		observedProjectedShard:      args.ObservedProjectedShard,
 		observedProjectedShardIsSet: args.ObservedProjectedShardIsSet,
 		observerUrl:                 args.ObserverUrl,
-		nativeCurrencySymbol:        args.NativeCurrencySymbol,
 		genesisBlockHash:            args.GenesisBlockHash,
 		genesisTimestamp:            args.GenesisTimestamp,
 		firstHistoricalEpoch:        args.FirstHistoricalEpoch,
@@ -116,14 +123,6 @@ func (provider *networkProvider) IsOffline() bool {
 // GetBlockchainName returns the name of the network
 func (provider *networkProvider) GetBlockchainName() string {
 	return provider.networkConfig.BlockchainName
-}
-
-// GetNativeCurrency gets the native currency (EGLD, 18 decimals)
-func (provider *networkProvider) GetNativeCurrency() resources.NativeCurrency {
-	return resources.NativeCurrency{
-		Symbol:   provider.nativeCurrencySymbol,
-		Decimals: int32(nativeCurrencyNumDecimals),
-	}
 }
 
 // GetNetworkConfig gets the network config (once fetched, the network config is indefinitely held in memory)
@@ -414,8 +413,9 @@ func (provider *networkProvider) LogDescription() {
 		"observedActualShard", provider.observedActualShard,
 		"observedProjectedShard", provider.observedProjectedShard,
 		"observedProjectedShardIsSet", provider.observedProjectedShardIsSet,
-		"nativeCurrency", provider.nativeCurrencySymbol,
 		"firstHistoricalEpoch", provider.firstHistoricalEpoch,
 		"numHistoricalEpochs", provider.numHistoricalEpochs,
+		"nativeCurrency", provider.GetNativeCurrency().Symbol,
+		"customCurrencies", provider.GetCustomCurrenciesSymbols(),
 	)
 }

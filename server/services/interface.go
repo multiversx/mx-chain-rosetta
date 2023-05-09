@@ -12,7 +12,10 @@ import (
 type NetworkProvider interface {
 	IsOffline() bool
 	GetBlockchainName() string
-	GetNativeCurrency() resources.NativeCurrency
+	GetNativeCurrency() resources.Currency
+	GetCustomCurrencies() []resources.Currency
+	GetCustomCurrencyBySymbol(symbol string) (resources.Currency, bool)
+	HasCustomCurrency(symbol string) bool
 	GetNetworkConfig() *resources.NetworkConfig
 	GetGenesisBlockSummary() *resources.BlockSummary
 	GetGenesisTimestamp() int64

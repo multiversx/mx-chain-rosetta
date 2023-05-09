@@ -137,6 +137,12 @@ VERSION:
 		Usage:    "Provides a hint for the number of historical epochs to be kept.",
 		Required: true,
 	}
+
+	cliFlagCustomCurrenciesSymbols = cli.StringSliceFlag{
+		Name:  "custom-currencies",
+		Usage: "Specifies the symbols of enabled custom currencies (i.e. ESDT identifiers).",
+		Value: &cli.StringSlice{},
+	}
 )
 
 func getAllCliFlags() []cli.Flag {
@@ -160,6 +166,7 @@ func getAllCliFlags() []cli.Flag {
 		cliFlagNativeCurrencySymbol,
 		cliFlagFirstHistoricalEpoch,
 		cliFlagNumHistoricalEpochs,
+		cliFlagCustomCurrenciesSymbols,
 	}
 }
 
@@ -184,6 +191,7 @@ type parsedCliFlags struct {
 	nativeCurrencySymbol        string
 	firstHistoricalEpoch        uint32
 	numHistoricalEpochs         uint32
+	customCurrenciesSymbols     []string
 }
 
 func getParsedCliFlags(ctx *cli.Context) parsedCliFlags {
@@ -208,5 +216,6 @@ func getParsedCliFlags(ctx *cli.Context) parsedCliFlags {
 		nativeCurrencySymbol:        ctx.GlobalString(cliFlagNativeCurrencySymbol.Name),
 		firstHistoricalEpoch:        uint32(ctx.GlobalUint(cliFlagFirstHistoricalEpoch.Name)),
 		numHistoricalEpochs:         uint32(ctx.GlobalUint(cliFlagNumHistoricalEpochs.Name)),
+		customCurrenciesSymbols:     ctx.GlobalStringSlice(cliFlagCustomCurrenciesSymbols.Name),
 	}
 }
