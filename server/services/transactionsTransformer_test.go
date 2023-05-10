@@ -81,7 +81,7 @@ func TestTransactionsTransformer_TransformTxsOfBlockWithESDTIssue(t *testing.T) 
 	require.Nil(t, err)
 
 	// Block 27497 (issue ESDT)
-	txs, err := transformer.transformTxsOfBlock(blocks[0])
+	txs, err := transformer.transformBlockTxs(blocks[0])
 	require.Nil(t, err)
 	require.Len(t, txs, 1)
 
@@ -109,7 +109,7 @@ func TestTransactionsTransformer_TransformTxsOfBlockWithESDTIssue(t *testing.T) 
 	require.Equal(t, expectedIssueTx, txs[0])
 
 	// Block 27501 (results of issue ESDT)
-	txs, err = transformer.transformTxsOfBlock(blocks[1])
+	txs, err = transformer.transformBlockTxs(blocks[1])
 	require.Nil(t, err)
 	require.Len(t, txs, 2)
 

@@ -195,7 +195,7 @@ func (service *blockService) convertToRosettaBlock(block *api.Block) (*types.Blo
 		parentBlockIdentifier = service.extension.getGenesisBlockIdentifier()
 	}
 
-	transactions, err := service.txsTransformer.transformTxsOfBlock(block)
+	transactions, err := service.txsTransformer.transformBlockTxs(block)
 	if err != nil {
 		return nil, err
 	}
