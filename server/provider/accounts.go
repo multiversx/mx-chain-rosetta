@@ -59,14 +59,6 @@ func (provider *networkProvider) GetAccountESDTBalance(address string, tokenIden
 
 	err := provider.getResource(url, response)
 	if err != nil {
-		blockCoordinates, ok := parseBlockCoordinatesIfErrAccountNotFoundAtBlock(err)
-		if ok {
-			return &resources.AccountESDTBalance{
-				Balance:          "0",
-				BlockCoordinates: blockCoordinates,
-			}, nil
-		}
-
 		return nil, newErrCannotGetAccount(address, err)
 	}
 
