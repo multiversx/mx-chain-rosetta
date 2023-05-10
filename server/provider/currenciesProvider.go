@@ -38,24 +38,29 @@ func newCurrenciesProvider(nativeCurrencySymbol string, customCurrenciesSymbols 
 	}
 }
 
-func (provider *currenciesProvider) getNativeCurrency() resources.Currency {
+// GetNativeCurrency gets the native currency (EGLD, 18 decimals)
+func (provider *currenciesProvider) GetNativeCurrency() resources.Currency {
 	return provider.nativeCurrency
 }
 
-func (provider *currenciesProvider) getCustomCurrenciesSymbols() []string {
-	return provider.customCurrenciesSymbols
-}
-
-func (provider *currenciesProvider) getCustomCurrencies() []resources.Currency {
+// GetCustomCurrencies gets the enabled custom currencies (ESDTs)
+func (provider *currenciesProvider) GetCustomCurrencies() []resources.Currency {
 	return provider.customCurrencies
 }
 
-func (provider *currenciesProvider) getCustomCurrencyBySymbol(symbol string) (resources.Currency, bool) {
+// GetCustomCurrencyBySymbol gets a custom currency (ESDT) by symbol (identifier)
+func (provider *currenciesProvider) GetCustomCurrenciesSymbols() []string {
+	return provider.customCurrenciesSymbols
+}
+
+// GetCustomCurrencyBySymbol gets a custom currency (ESDT) by symbol (identifier)
+func (provider *currenciesProvider) GetCustomCurrencyBySymbol(symbol string) (resources.Currency, bool) {
 	currency, ok := provider.customCurrenciesBySymbol[symbol]
 	return currency, ok
 }
 
-func (provider *currenciesProvider) hasCustomCurrency(symbol string) bool {
+// HasCustomCurrency checks whether a custom currency (ESDT) is enabled (supported)
+func (provider *currenciesProvider) HasCustomCurrency(symbol string) bool {
 	_, ok := provider.customCurrenciesBySymbol[symbol]
 	return ok
 }

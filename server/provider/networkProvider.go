@@ -48,6 +48,8 @@ type ArgsNewNetworkProvider struct {
 
 // In the future, we might rename this to "networkFacade" (which, in turn, depends on networkProvider, currencyProvider, blocksProvider and so on).
 type networkProvider struct {
+	*currenciesProvider
+
 	isOffline                   bool
 	observedActualShard         uint32
 	observedProjectedShard      uint32
@@ -82,6 +84,8 @@ func NewNetworkProvider(args ArgsNewNetworkProvider) (*networkProvider, error) {
 	currenciesProvider := newCurrenciesProvider(args.NativeCurrencySymbol, args.CustomCurrenciesSymbols)
 
 	return &networkProvider{
+		currenciesProvider: currenciesProvider,
+
 		isOffline: args.IsOffline,
 
 		observedActualShard:         args.ObservedActualShard,
@@ -121,26 +125,6 @@ func (provider *networkProvider) IsOffline() bool {
 // GetBlockchainName returns the name of the network
 func (provider *networkProvider) GetBlockchainName() string {
 	return provider.networkConfig.BlockchainName
-}
-
-// GetNativeCurrency gets the native currency (EGLD, 18 decimals)
-func (provider *networkProvider) GetNativeCurrency() resources.Currency {
-	return provider.currenciesProvider.getNativeCurrency()
-}
-
-// GetCustomCurrencies gets the enabled custom currencies (ESDTs)
-func (provider *networkProvider) GetCustomCurrencies() []resources.Currency {
-	return provider.currenciesProvider.getCustomCurrencies()
-}
-
-// GetCustomCurrencyBySymbol gets a custom currency (ESDT) by symbol (identifier)
-func (provider *networkProvider) GetCustomCurrencyBySymbol(symbol string) (resources.Currency, bool) {
-	return provider.currenciesProvider.getCustomCurrencyBySymbol(symbol)
-}
-
-// HasCustomCurrency checks whether a custom currency (ESDT) is enabled (supported)
-func (provider *networkProvider) HasCustomCurrency(symbol string) bool {
-	return provider.currenciesProvider.hasCustomCurrency(symbol)
 }
 
 // GetNetworkConfig gets the network config (once fetched, the network config is indefinitely held in memory)
@@ -433,7 +417,7 @@ func (provider *networkProvider) LogDescription() {
 		"observedProjectedShardIsSet", provider.observedProjectedShardIsSet,
 		"firstHistoricalEpoch", provider.firstHistoricalEpoch,
 		"numHistoricalEpochs", provider.numHistoricalEpochs,
-		"nativeCurrency", provider.currenciesProvider.getNativeCurrency().Symbol,
-		"customCurrencies", provider.currenciesProvider.getCustomCurrenciesSymbols(),
+		"nativeCurrency", provider.GetNativeCurrency().Symbol,
+		"customCurrencies", provider.GetCustomCurrenciesSymbols(),
 	)
 }
