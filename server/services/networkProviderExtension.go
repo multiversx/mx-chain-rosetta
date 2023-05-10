@@ -61,26 +61,14 @@ func (extension *networkProviderExtension) getGenesisBlockIdentifier() *types.Bl
 	return blockSummaryToIdentifier(summary)
 }
 
-func (extension *networkProviderExtension) filterObservedOperations(operations []*types.Operation) ([]*types.Operation, error) {
-	filtered := make([]*types.Operation, 0, len(operations))
-
-	for _, operation := range operations {
-		address := operation.Account.Address
-
-		isObserved, err := extension.provider.IsAddressObserved(address)
-		if err != nil {
-			return nil, err
-		}
-
-		isUserAddress := extension.isUserAddress(address)
-
-		if isObserved && isUserAddress {
-			filtered = append(filtered, operation)
-		}
+func (extension *networkProviderExtension) isAddressObserved(address string) (bool, error) {
+	belongsToObservedShard, err := extension.provider.IsAddressObserved(address)
+	if err != nil {
+		return false, err
 	}
 
-	indexOperations(filtered)
-	return filtered, nil
+	isUserAddress := extension.isUserAddress(address)
+	return belongsToObservedShard && isUserAddress, nil
 }
 
 func (extension *networkProviderExtension) isUserAddress(address string) bool {

@@ -50,6 +50,10 @@ func isZeroAmount(amount string) bool {
 	return false
 }
 
+func isNonZeroAmount(amount string) bool {
+	return !isZeroAmount(amount)
+}
+
 func getMagnitudeOfAmount(amount string) string {
 	return strings.Trim(amount, "-")
 }
