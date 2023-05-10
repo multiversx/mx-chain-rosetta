@@ -60,8 +60,7 @@ type networkProvider struct {
 	firstHistoricalEpoch        uint32
 	numHistoricalEpochs         uint32
 
-	currenciesProvider *currenciesProvider
-	observerFacade     observerFacade
+	observerFacade observerFacade
 
 	hasher                hashing.Hasher
 	marshalizerForHashing marshal.Marshalizer
@@ -97,8 +96,7 @@ func NewNetworkProvider(args ArgsNewNetworkProvider) (*networkProvider, error) {
 		firstHistoricalEpoch:        args.FirstHistoricalEpoch,
 		numHistoricalEpochs:         args.NumHistoricalEpochs,
 
-		currenciesProvider: currenciesProvider,
-		observerFacade:     args.ObserverFacade,
+		observerFacade: args.ObserverFacade,
 
 		hasher:                args.Hasher,
 		marshalizerForHashing: args.MarshalizerForHashing,
