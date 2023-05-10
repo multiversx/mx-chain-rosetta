@@ -33,7 +33,8 @@ func TestNetworkProviderExtension_ValueToCustomAmount(t *testing.T) {
 	expectedAmount := &types.Amount{
 		Value: "1",
 		Currency: &types.Currency{
-			Symbol: "ABC-abcdef",
+			Symbol:   "ABC-abcdef",
+			Decimals: 0,
 		},
 	}
 
