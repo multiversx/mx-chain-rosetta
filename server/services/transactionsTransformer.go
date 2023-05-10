@@ -1,7 +1,6 @@
 package services
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/coinbase/rosetta-sdk-go/types"
@@ -281,42 +280,6 @@ func (transformer *transactionsTransformer) mempoolMoveBalanceTxToRosettaTx(tx *
 }
 
 func (transformer *transactionsTransformer) addOperationsGivenTransactionEvents(_ *transaction.ApiTransactionResult, _ *types.Transaction) error {
-	// TBD: uncomment when applicable ("transferValueOnly" events duplicate the information of SCRs in most contexts)
-	// err := transformer.addOperationsGivenEventTransferValueOnly(tx, rosettaTx)
-	// if err != nil {
-	// 	return err
-	// }
-
+	// TODO: implementation in next PR
 	return nil
-}
-
-func (transformer *transactionsTransformer) addOperationsGivenEventTransferValueOnly(tx *transaction.ApiTransactionResult, rosettaTx *types.Transaction) error {
-	event, err := transformer.eventsController.extractEventTransferValueOnly(tx)
-	if err != nil {
-		if errors.Is(err, errEventNotFound) {
-			return nil
-		}
-		return err
-	}
-
-	log.Debug("addOperationsGivenEventTransferValueOnly(), event found", "tx", tx.Hash, "event", event.String())
-
-	operations := transformer.eventTransferValueOnlyToOperations(event)
-	rosettaTx.Operations = append(rosettaTx.Operations, operations...)
-	return nil
-}
-
-func (transformer *transactionsTransformer) eventTransferValueOnlyToOperations(event *eventTransferValueOnly) []*types.Operation {
-	return []*types.Operation{
-		{
-			Type:    opTransfer,
-			Account: addressToAccountIdentifier(event.sender),
-			Amount:  transformer.extension.valueToNativeAmount("-" + event.value),
-		},
-		{
-			Type:    opTransfer,
-			Account: addressToAccountIdentifier(event.receiver),
-			Amount:  transformer.extension.valueToNativeAmount(event.value),
-		},
-	}
 }
