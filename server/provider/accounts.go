@@ -66,11 +66,15 @@ func (provider *networkProvider) GetAccountESDTBalance(address string, tokenIden
 
 	log.Trace("GetAccountESDTBalance()",
 		"address", address,
-		"balance", data.Balance,
+		"tokenIdentifier", tokenIdentifier,
+		"balance", data.TokenData.Balance,
 		"block", data.BlockCoordinates.Nonce,
 		"blockHash", data.BlockCoordinates.Hash,
 		"blockRootHash", data.BlockCoordinates.RootHash,
 	)
 
-	return data, nil
+	return &resources.AccountESDTBalance{
+		Balance:          data.TokenData.Balance,
+		BlockCoordinates: data.BlockCoordinates,
+	}, nil
 }

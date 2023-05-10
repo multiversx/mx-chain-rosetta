@@ -27,6 +27,9 @@ func (extension *networkProviderExtension) valueToCustomAmount(value string, cur
 		Value: value,
 		Currency: &types.Currency{
 			Symbol: currencySymbol,
+			// Currently, we hardcode numDecimals to zero for custom currencies.
+			// TODO: Fix this once we have the information available.
+			Decimals: 0,
 		},
 	}
 }
