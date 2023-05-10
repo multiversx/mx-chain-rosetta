@@ -145,7 +145,7 @@ func (service *blockService) createGenesisOperations(balances []*resources.Genes
 		operations = append(operations, operation)
 	}
 
-	operations, err := service.extension.filterObservedOperations(operations)
+	operations, err := filterOperationsByAddress(operations, service.extension.isAddressObserved)
 	if err != nil {
 		return nil, err
 	}
@@ -195,7 +195,7 @@ func (service *blockService) convertToRosettaBlock(block *api.Block) (*types.Blo
 		parentBlockIdentifier = service.extension.getGenesisBlockIdentifier()
 	}
 
-	transactions, err := service.txsTransformer.transformTxsFromBlock(block)
+	transactions, err := service.txsTransformer.transformTxsOfBlock(block)
 	if err != nil {
 		return nil, err
 	}

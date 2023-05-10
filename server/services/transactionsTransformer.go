@@ -29,7 +29,7 @@ func newTransactionsTransformer(provider NetworkProvider) *transactionsTransform
 	}
 }
 
-func (transformer *transactionsTransformer) transformTxsFromBlock(block *api.Block) ([]*types.Transaction, error) {
+func (transformer *transactionsTransformer) transformTxsOfBlock(block *api.Block) ([]*types.Transaction, error) {
 	txs := make([]*transaction.ApiTransactionResult, 0)
 	receipts := make([]*transaction.ApiReceipt, 0)
 
@@ -44,7 +44,6 @@ func (transformer *transactionsTransformer) transformTxsFromBlock(block *api.Blo
 
 	txs = filterOutIntrashardContractResultsWhoseOriginalTransactionIsInInvalidMiniblock(txs)
 	txs = filterOutIntrashardRelayedTransactionAlreadyHeldInInvalidMiniblock(txs)
-	txs = filterOutContractResultsWithNoValue(txs)
 
 	rosettaTxs := make([]*types.Transaction, 0)
 	for _, tx := range txs {
@@ -68,10 +67,12 @@ func (transformer *transactionsTransformer) transformTxsFromBlock(block *api.Blo
 	}
 
 	for _, rosettaTx := range rosettaTxs {
-		filteredOperations, err := transformer.extension.filterObservedOperations(rosettaTx.Operations)
+		filteredOperations, err := filterOperationsByAddress(rosettaTx.Operations, transformer.extension.isAddressObserved)
 		if err != nil {
 			return nil, err
 		}
+
+		filteredOperations = filterOutOperationsWithZeroAmount(filteredOperations)
 
 		applyDefaultStatusOnOperations(filteredOperations)
 		rosettaTx.Operations = filteredOperations
@@ -168,7 +169,7 @@ func (transformer *transactionsTransformer) rewardTxToRosettaTx(tx *transaction.
 }
 
 func (transformer *transactionsTransformer) moveBalanceTxToRosetta(tx *transaction.ApiTransactionResult) *types.Transaction {
-	hasValue := tx.Value != "0"
+	hasValue := isNonZeroAmount(tx.Value)
 	operations := make([]*types.Operation, 0)
 
 	if hasValue {
@@ -253,7 +254,7 @@ func (transformer *transactionsTransformer) invalidTxToRosettaTx(tx *transaction
 }
 
 func (transformer *transactionsTransformer) mempoolMoveBalanceTxToRosettaTx(tx *transaction.ApiTransactionResult) *types.Transaction {
-	hasValue := tx.Value != "0"
+	hasValue := isNonZeroAmount(tx.Value)
 	operations := make([]*types.Operation, 0)
 
 	if hasValue {
