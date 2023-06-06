@@ -172,7 +172,7 @@ func TestTransactionsTransformer_TransformBlockTxsHavingESDTIssue(t *testing.T) 
 		TransactionIdentifier: hashToTransactionIdentifier("e462e1b73b720015315d0f508d165817ba1989cb1d2c63903bd01c3b8450afb8"),
 		Operations: []*types.Operation{
 			{
-				Type:                opESDTTransfer,
+				Type:                opCustomTransfer,
 				OperationIdentifier: indexToOperationIdentifier(0),
 				Account:             addressToAccountIdentifier("erd1testnlersh4z0wsv8kjx39me4rmnvjkwu8dsaea7ukdvvc9z396qykv7z7"),
 				Amount:              extension.valueToCustomAmount("1000000000000", "FOO-6d28db"),

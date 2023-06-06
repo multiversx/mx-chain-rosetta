@@ -36,7 +36,7 @@ func (controller *transactionEventsController) hasSignalErrorOfSendingValueToNon
 	return false
 }
 
-func (controller *transactionEventsController) extractEventsESDTOrESDTNFTTransfers(tx *transaction.ApiTransactionResult) ([]*eventESDTOrESDTNFTTransfer, error) {
+func (controller *transactionEventsController) extractEventsESDTOrESDTNFTTransfers(tx *transaction.ApiTransactionResult) ([]*eventESDT, error) {
 	rawEventsESDTTransfer := controller.findManyEventsByIdentifier(tx, transactionEventESDTTransfer)
 	rawEventsESDTNFTTransfer := controller.findManyEventsByIdentifier(tx, transactionEventESDTNFTTransfer)
 	rawEventsMultiESDTNFTTransfer := controller.findManyEventsByIdentifier(tx, transactionEventMultiESDTNFTTransfer)
@@ -46,7 +46,7 @@ func (controller *transactionEventsController) extractEventsESDTOrESDTNFTTransfe
 	rawEvents = append(rawEvents, rawEventsESDTNFTTransfer...)
 	rawEvents = append(rawEvents, rawEventsMultiESDTNFTTransfer...)
 
-	typedEvents := make([]*eventESDTOrESDTNFTTransfer, 0, len(rawEvents))
+	typedEvents := make([]*eventESDT, 0, len(rawEvents))
 
 	for _, event := range rawEvents {
 		numTopics := len(event.Topics)
@@ -62,21 +62,21 @@ func (controller *transactionEventsController) extractEventsESDTOrESDTNFTTransfe
 		value := big.NewInt(0).SetBytes(valueBytes)
 		receiver := controller.provider.ConvertPubKeyToAddress(receiverPubkey)
 
-		typedEvents = append(typedEvents, &eventESDTOrESDTNFTTransfer{
-			sender:       event.Address,
-			identifier:   string(identifider),
-			nonceAsBytes: nonceAsBytes,
-			value:        value.String(),
-			receiver:     receiver,
+		typedEvents = append(typedEvents, &eventESDT{
+			senderAddress:   event.Address,
+			receiverAddress: receiver,
+			identifier:      string(identifider),
+			nonceAsBytes:    nonceAsBytes,
+			value:           value.String(),
 		})
 	}
 
 	return typedEvents, nil
 }
 
-func (controller *transactionEventsController) extractEventsESDTLocalBurn(tx *transaction.ApiTransactionResult) ([]*eventESDTLocalBurn, error) {
+func (controller *transactionEventsController) extractEventsESDTLocalBurn(tx *transaction.ApiTransactionResult) ([]*eventESDT, error) {
 	rawEvents := controller.findManyEventsByIdentifier(tx, transactionEventESDTLocalBurn)
-	typedEvents := make([]*eventESDTLocalBurn, 0, len(rawEvents))
+	typedEvents := make([]*eventESDT, 0, len(rawEvents))
 
 	for _, event := range rawEvents {
 		numTopics := len(event.Topics)
@@ -89,8 +89,8 @@ func (controller *transactionEventsController) extractEventsESDTLocalBurn(tx *tr
 		valueBytes := event.Topics[2]
 		value := big.NewInt(0).SetBytes(valueBytes)
 
-		typedEvents = append(typedEvents, &eventESDTLocalBurn{
-			address:      event.Address,
+		typedEvents = append(typedEvents, &eventESDT{
+			otherAddress: event.Address,
 			identifier:   string(identifider),
 			nonceAsBytes: nonceAsBytes,
 			value:        value.String(),
@@ -100,9 +100,9 @@ func (controller *transactionEventsController) extractEventsESDTLocalBurn(tx *tr
 	return typedEvents, nil
 }
 
-func (controller *transactionEventsController) extractEventsESDTLocalMint(tx *transaction.ApiTransactionResult) ([]*eventESDTLocalMint, error) {
+func (controller *transactionEventsController) extractEventsESDTLocalMint(tx *transaction.ApiTransactionResult) ([]*eventESDT, error) {
 	rawEvents := controller.findManyEventsByIdentifier(tx, transactionEventESDTLocalMint)
-	typedEvents := make([]*eventESDTLocalMint, 0, len(rawEvents))
+	typedEvents := make([]*eventESDT, 0, len(rawEvents))
 
 	for _, event := range rawEvents {
 		numTopics := len(event.Topics)
@@ -115,8 +115,8 @@ func (controller *transactionEventsController) extractEventsESDTLocalMint(tx *tr
 		valueBytes := event.Topics[2]
 		value := big.NewInt(0).SetBytes(valueBytes)
 
-		typedEvents = append(typedEvents, &eventESDTLocalMint{
-			address:      event.Address,
+		typedEvents = append(typedEvents, &eventESDT{
+			otherAddress: event.Address,
 			identifier:   string(identifider),
 			nonceAsBytes: nonceAsBytes,
 			value:        value.String(),
@@ -126,9 +126,9 @@ func (controller *transactionEventsController) extractEventsESDTLocalMint(tx *tr
 	return typedEvents, nil
 }
 
-func (controller *transactionEventsController) extractEventsESDTWipe(tx *transaction.ApiTransactionResult) ([]*eventESDTWipe, error) {
+func (controller *transactionEventsController) extractEventsESDTWipe(tx *transaction.ApiTransactionResult) ([]*eventESDT, error) {
 	rawEvents := controller.findManyEventsByIdentifier(tx, transactionEventESDTWipe)
-	typedEvents := make([]*eventESDTWipe, 0, len(rawEvents))
+	typedEvents := make([]*eventESDT, 0, len(rawEvents))
 
 	for _, event := range rawEvents {
 		numTopics := len(event.Topics)
@@ -144,8 +144,8 @@ func (controller *transactionEventsController) extractEventsESDTWipe(tx *transac
 		value := big.NewInt(0).SetBytes(valueBytes)
 		accountAddress := controller.provider.ConvertPubKeyToAddress(accountPubkey)
 
-		typedEvents = append(typedEvents, &eventESDTWipe{
-			address:      accountAddress,
+		typedEvents = append(typedEvents, &eventESDT{
+			otherAddress: accountAddress,
 			identifier:   string(identifider),
 			nonceAsBytes: nonceAsBytes,
 			value:        value.String(),

@@ -11,7 +11,6 @@ var (
 	transactionProcessingTypeBuiltInFunctionCall = "BuiltInFunctionCall"
 	transactionProcessingTypeMoveBalance         = "MoveBalance"
 	builtInFunctionClaimDeveloperRewards         = "ClaimDeveloperRewards"
-	builtInFunctionESDTTransfer                  = "ESDTTransfer"
 	refundGasMessage                             = "refundedGas"
 	sendingValueToNonPayableContractDataPrefix   = "@" + hex.EncodeToString([]byte("sending value to non payable contract"))
 	emptyHash                                    = strings.Repeat("0", 64)

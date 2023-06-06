@@ -308,13 +308,13 @@ func (transformer *transactionsTransformer) addOperationsGivenTransactionEvents(
 
 		operations := []*types.Operation{
 			{
-				Type:    opESDTTransfer,
-				Account: addressToAccountIdentifier(event.sender),
+				Type:    opCustomTransfer,
+				Account: addressToAccountIdentifier(event.senderAddress),
 				Amount:  transformer.extension.valueToCustomAmount("-"+event.value, event.getComposedIdentifier()),
 			},
 			{
-				Type:    opESDTTransfer,
-				Account: addressToAccountIdentifier(event.receiver),
+				Type:    opCustomTransfer,
+				Account: addressToAccountIdentifier(event.receiverAddress),
 				Amount:  transformer.extension.valueToCustomAmount(event.value, event.getComposedIdentifier()),
 			},
 		}
@@ -330,8 +330,8 @@ func (transformer *transactionsTransformer) addOperationsGivenTransactionEvents(
 
 		operations := []*types.Operation{
 			{
-				Type:    opESDTTransfer,
-				Account: addressToAccountIdentifier(event.address),
+				Type:    opCustomTransfer,
+				Account: addressToAccountIdentifier(event.otherAddress),
 				Amount:  transformer.extension.valueToCustomAmount("-"+event.value, event.getComposedIdentifier()),
 			},
 		}
@@ -347,8 +347,8 @@ func (transformer *transactionsTransformer) addOperationsGivenTransactionEvents(
 
 		operations := []*types.Operation{
 			{
-				Type:    opESDTTransfer,
-				Account: addressToAccountIdentifier(event.address),
+				Type:    opCustomTransfer,
+				Account: addressToAccountIdentifier(event.otherAddress),
 				Amount:  transformer.extension.valueToCustomAmount(event.value, event.getComposedIdentifier()),
 			},
 		}
@@ -364,8 +364,8 @@ func (transformer *transactionsTransformer) addOperationsGivenTransactionEvents(
 
 		operations := []*types.Operation{
 			{
-				Type:    opESDTTransfer,
-				Account: addressToAccountIdentifier(event.address),
+				Type:    opCustomTransfer,
+				Account: addressToAccountIdentifier(event.otherAddress),
 				Amount:  transformer.extension.valueToCustomAmount("-"+event.value, event.getComposedIdentifier()),
 			},
 		}
