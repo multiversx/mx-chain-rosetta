@@ -1,0 +1,67 @@
+[
+    {
+        "comment": "block with ESDT wipe (of fungible)",
+        "miniBlocks": [
+            {
+                "transactions": [
+                    {
+                        "type": "normal",
+                        "hash": "8fb3dc1ddc2b09de3a1e1aa477832f50f4c504c9d4ca010d6af02ddb04eef387",
+                        "value": "0",
+                        "receiver": "erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqzllls8a5w6u",
+                        "sender": "erd1kdl46yctawygtwg2k462307dmz2v55c605737dp3zkxh04sct7asqylhyv",
+                        "initiallyPaidFee": "791000000000000"
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "comment": "block with results (and refund) of ESDT wipe",
+        "miniBlocks": [
+            {
+                "transactions": [
+                    {
+                        "type": "unsigned",
+                        "hash": "8f5217a38e261e220733366ec4af471c8623042cf5a74cd0629b7a93f0ffe39c",
+                        "value": "0",
+                        "receiver": "erd1r69gk66fmedhhcg24g2c5kn2f2a5k4kvpr6jfw67dn2lyydd8cfswy6ede",
+                        "sender": "erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqzllls8a5w6u",
+                        "logs": {
+                            "address": "erd1r69gk66fmedhhcg24g2c5kn2f2a5k4kvpr6jfw67dn2lyydd8cfswy6ede",
+                            "events": [
+                                {
+                                    "address": "erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqzllls8a5w6u",
+                                    "identifier": "ESDTWipe",
+                                    "topics": [
+                                        "RlJBTkstMTVkNzBi",
+                                        "",
+                                        "Cg==",
+                                        "HoqLa0neW3vhCqoVilpqSrtLVswI9SS7XmzV8hGtPhM="
+                                    ],
+                                    "data": null
+                                },
+                                {
+                                    "address": "erd1r69gk66fmedhhcg24g2c5kn2f2a5k4kvpr6jfw67dn2lyydd8cfswy6ede",
+                                    "identifier": "completedTxEvent",
+                                    "topics": [
+                                        "j7PcHdwrCd46Hhqkd4MvUPTFBMnUygENavAt2wTu84c="
+                                    ],
+                                    "data": null
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "type": "unsigned",
+                        "hash": "c91694107f68a5f1b338036ab495f9f206c5a29d45ea68719f3c255a1788f374",
+                        "value": "100000000000000",
+                        "receiver": "erd1kdl46yctawygtwg2k462307dmz2v55c605737dp3zkxh04sct7asqylhyv",
+                        "sender": "erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqzllls8a5w6u",
+                        "isRefund": true
+                    }
+                ]
+            }
+        ]
+    }
+]
