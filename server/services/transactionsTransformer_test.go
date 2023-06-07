@@ -357,7 +357,7 @@ func TestTransactionsTransformer_TransformBlockTxsHavingESDTBurn(t *testing.T) {
 func TestTransactionsTransformer_TransformBlockTxsHavingESDTWipe(t *testing.T) {
 	networkProvider := testscommon.NewNetworkProviderMock()
 	networkProvider.MockObservedActualShard = 1
-	networkProvider.MockCustomCurrencies = []resources.Currency{{Symbol: "FRANK-15d70b"}}
+	networkProvider.MockCustomCurrencies = []resources.Currency{{Symbol: "TEST-484fa1"}}
 
 	extension := newNetworkProviderExtension(networkProvider)
 	transformer := newTransactionsTransformer(networkProvider)
@@ -398,7 +398,7 @@ func TestTransactionsTransformer_TransformBlockTxsHavingESDTWipe(t *testing.T) {
 				Type:                opCustomTransfer,
 				OperationIdentifier: indexToOperationIdentifier(0),
 				Account:             addressToAccountIdentifier("erd1r69gk66fmedhhcg24g2c5kn2f2a5k4kvpr6jfw67dn2lyydd8cfswy6ede"),
-				Amount:              extension.valueToCustomAmount("-10", "FRANK-15d70b"),
+				Amount:              extension.valueToCustomAmount("-10", "TEST-484fa1"),
 				Status:              &opStatusSuccess,
 			},
 		},
