@@ -41,20 +41,40 @@ func (controller *transactionEventsController) extractEventsESDTOrESDTNFTTransfe
 	rawEventsESDTNFTTransfer := controller.findManyEventsByIdentifier(tx, transactionEventESDTNFTTransfer)
 	rawEventsMultiESDTNFTTransfer := controller.findManyEventsByIdentifier(tx, transactionEventMultiESDTNFTTransfer)
 
-	rawEvents := make([]*transaction.Events, 0, len(rawEventsESDTTransfer)+len(rawEventsESDTNFTTransfer)+len(rawEventsMultiESDTNFTTransfer))
-	rawEvents = append(rawEvents, rawEventsESDTTransfer...)
-	rawEvents = append(rawEvents, rawEventsESDTNFTTransfer...)
-	rawEvents = append(rawEvents, rawEventsMultiESDTNFTTransfer...)
+	typedEvents := make([]*eventESDT, 0)
 
-	typedEvents := make([]*eventESDT, 0, len(rawEvents))
+	// First, handle single transfers
+	for _, event := range append(rawEventsESDTTransfer, rawEventsESDTNFTTransfer...) {
+		numTopics := len(event.Topics)
+		if numTopics != 4 {
+			return nil, fmt.Errorf("%w: bad number of topics for (ESDT|ESDTNFT)Transfer event = %d", errCannotRecognizeEvent, numTopics)
+		}
 
-	for _, event := range rawEvents {
+		identifider := event.Topics[0]
+		nonceAsBytes := event.Topics[1]
+		valueBytes := event.Topics[2]
+		receiverPubkey := event.Topics[3]
+
+		value := big.NewInt(0).SetBytes(valueBytes)
+		receiver := controller.provider.ConvertPubKeyToAddress(receiverPubkey)
+
+		typedEvents = append(typedEvents, &eventESDT{
+			senderAddress:   event.Address,
+			receiverAddress: receiver,
+			identifier:      string(identifider),
+			nonceAsBytes:    nonceAsBytes,
+			value:           value.String(),
+		})
+	}
+
+	// Then, handle multi transfers
+	for _, event := range rawEventsMultiESDTNFTTransfer {
 		numTopics := len(event.Topics)
 		numTopicsExceptLast := numTopics - 1
 		numTopicsPerTransfer := 3
 
 		if numTopicsExceptLast%numTopicsPerTransfer != 0 {
-			return nil, fmt.Errorf("%w: bad number of topics for (ESDT|ESDTNFT|MultiESDTNFT)Transfer event = %d", errCannotRecognizeEvent, numTopics)
+			return nil, fmt.Errorf("%w: bad number of topics for MultiESDTNFTTransfer event = %d", errCannotRecognizeEvent, numTopics)
 		}
 
 		numTransfers := numTopicsExceptLast / numTopicsPerTransfer
