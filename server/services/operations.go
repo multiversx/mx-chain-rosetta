@@ -14,8 +14,7 @@ const (
 	opDeveloperRewardsAsScResult = "DeveloperRewardsAsSmartContractResult"
 	opFeeOfInvalidTx             = "FeeOfInvalidTransaction"
 	opFeeRefund                  = "FeeRefund"
-	opESDTTransfer               = "ESDTTransfer"
-	// TODO: perhaps other operations for burn / mint / wipe?
+	opCustomTransfer             = "CustomTransfer"
 )
 
 var (
@@ -30,7 +29,7 @@ var (
 		opDeveloperRewardsAsScResult,
 		opFeeOfInvalidTx,
 		opFeeRefund,
-		opESDTTransfer,
+		opCustomTransfer,
 	}
 
 	opStatusSuccess = "Success"

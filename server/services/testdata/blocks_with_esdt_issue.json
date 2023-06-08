@@ -1,49 +1,15 @@
 [
     {
         "comment": "block with issue ESDT",
-        "nonce": 27497,
-        "round": 27850,
-        "epoch": 23,
-        "shard": 0,
-        "numTxs": 1,
-        "hash": "51c7af0aa903cc984eee3868e5084544d1a3a2faf1f9d4f727088478979e01cf",
-        "prevBlockHash": "9d9506486ebca4b17c9a251600bcbbcc07c88d158b49ced9d67048ec057a4d4a",
-        "stateRootHash": "606cadceb78b4492cbf9bf8a2f046a2e9b93d2f4d9e9fa649ad135d41f6d8727",
-        "accumulatedFees": "222500000000000",
-        "developerFees": "0",
-        "status": "on-chain",
-        "timestamp": 1648718700,
         "miniBlocks": [
             {
-                "hash": "cff850a400592cf8b7b73de4314548cda6299c460587dcc5616bebe79c32f194",
-                "type": "TxBlock",
-                "processingType": "Normal",
-                "constructionState": "Final",
-                "sourceShard": 0,
-                "destinationShard": 4294967295,
                 "transactions": [
                     {
                         "type": "normal",
-                        "processingTypeOnSource": "MoveBalance",
-                        "processingTypeOnDestination": "SCInvoking",
                         "hash": "851d90b7b0770c648de5945ca76d2ded62a540856467911db5e550ce6a959807",
-                        "nonce": 0,
-                        "round": 0,
-                        "epoch": 23,
                         "value": "50000000000000000",
                         "receiver": "erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqzllls8a5w6u",
                         "sender": "erd1testnlersh4z0wsv8kjx39me4rmnvjkwu8dsaea7ukdvvc9z396qykv7z7",
-                        "gasPrice": 1000000000,
-                        "gasLimit": 100000000,
-                        "data": "aXNzdWVANDY0ZjRmQDQ2NGY0ZkBlOGQ0YTUxMDAwQDA4QDYzNjE2ZTQ2NzI2NTY1N2E2NUA3NDcyNzU2NUA2MzYxNmU0ZDY5NmU3NEA3NDcyNzU2NUA2MzYxNmU1NTcwNjc3MjYxNjQ2NUA3NDcyNzU2NQ==",
-                        "signature": "19cfb7f29d42010b746aa81212fc45ae0b0184000a02eff09a311ee3147d91caae9c50612c49c80d1ec246ca73541d54eb95d40253162314434b05b3a3665704",
-                        "sourceShard": 0,
-                        "destinationShard": 4294967295,
-                        "miniblockType": "TxBlock",
-                        "miniblockHash": "cff850a400592cf8b7b73de4314548cda6299c460587dcc5616bebe79c32f194",
-                        "status": "pending",
-                        "operation": "transfer",
-                        "function": "issue",
                         "initiallyPaidFee": "1220275000000000"
                     }
                 ]
@@ -52,46 +18,15 @@
     },
     {
         "comment": "block with results of issue ESDT",
-        "nonce": 27501,
-        "round": 27854,
-        "epoch": 23,
-        "shard": 0,
-        "numTxs": 2,
-        "hash": "d29180bcfc75654ef138a3c03aff1aa6e7b532c21130fcfc1a87b021b7dfce3f",
-        "prevBlockHash": "395b0d333bb941f1d1ecb2bed83e6d41b19796350adadcf97bb4295537632c10",
-        "stateRootHash": "8235f05d5a4b767fd4c2a55ec2f25067259b3bd76a2689c5a86ca28f877b1a04",
-        "accumulatedFees": "0",
-        "developerFees": "0",
-        "status": "on-chain",
-        "timestamp": 1648718724,
         "miniBlocks": [
             {
-                "hash": "b5c97ad8d7983745d8004da85f8c317c4b2d276167bbed161a7d863367bbd8e9",
-                "type": "SmartContractResultBlock",
-                "processingType": "Normal",
-                "constructionState": "Final",
-                "sourceShard": 4294967295,
-                "destinationShard": 0,
                 "transactions": [
                     {
                         "type": "unsigned",
-                        "processingTypeOnSource": "MoveBalance",
-                        "processingTypeOnDestination": "MoveBalance",
                         "hash": "8fa82004d9eb82e34b39bbe22521a7b85a190950cd6876d2e97950de906622d7",
-                        "nonce": 1,
-                        "round": 0,
-                        "epoch": 23,
                         "value": "497775000000000",
                         "receiver": "erd1testnlersh4z0wsv8kjx39me4rmnvjkwu8dsaea7ukdvvc9z396qykv7z7",
                         "sender": "erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqzllls8a5w6u",
-                        "gasPrice": 1000000000,
-                        "data": "QDZmNmI=",
-                        "previousTransactionHash": "851d90b7b0770c648de5945ca76d2ded62a540856467911db5e550ce6a959807",
-                        "originalTransactionHash": "851d90b7b0770c648de5945ca76d2ded62a540856467911db5e550ce6a959807",
-                        "sourceShard": 4294967295,
-                        "destinationShard": 0,
-                        "miniblockType": "SmartContractResultBlock",
-                        "miniblockHash": "b5c97ad8d7983745d8004da85f8c317c4b2d276167bbed161a7d863367bbd8e9",
                         "logs": {
                             "address": "erd1testnlersh4z0wsv8kjx39me4rmnvjkwu8dsaea7ukdvvc9z396qykv7z7",
                             "events": [
@@ -105,29 +40,14 @@
                                 }
                             ]
                         },
-                        "status": "success",
-                        "operation": "transfer",
                         "isRefund": true
                     },
                     {
                         "type": "unsigned",
-                        "processingTypeOnSource": "BuiltInFunctionCall",
-                        "processingTypeOnDestination": "BuiltInFunctionCall",
                         "hash": "e462e1b73b720015315d0f508d165817ba1989cb1d2c63903bd01c3b8450afb8",
-                        "nonce": 0,
-                        "round": 0,
-                        "epoch": 23,
                         "value": "0",
                         "receiver": "erd1testnlersh4z0wsv8kjx39me4rmnvjkwu8dsaea7ukdvvc9z396qykv7z7",
                         "sender": "erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqzllls8a5w6u",
-                        "gasPrice": 1000000000,
-                        "data": "RVNEVFRyYW5zZmVyQDQ2NGY0ZjJkMzY2NDMyMzg2NDYyQGU4ZDRhNTEwMDA=",
-                        "previousTransactionHash": "851d90b7b0770c648de5945ca76d2ded62a540856467911db5e550ce6a959807",
-                        "originalTransactionHash": "851d90b7b0770c648de5945ca76d2ded62a540856467911db5e550ce6a959807",
-                        "sourceShard": 4294967295,
-                        "destinationShard": 0,
-                        "miniblockType": "SmartContractResultBlock",
-                        "miniblockHash": "b5c97ad8d7983745d8004da85f8c317c4b2d276167bbed161a7d863367bbd8e9",
                         "logs": {
                             "address": "erd1testnlersh4z0wsv8kjx39me4rmnvjkwu8dsaea7ukdvvc9z396qykv7z7",
                             "events": [
@@ -151,15 +71,7 @@
                                     "data": null
                                 }
                             ]
-                        },
-                        "status": "success",
-                        "tokens": [
-                            "FOO-6d28db"
-                        ],
-                        "esdtValues": [
-                            "1000000000000"
-                        ],
-                        "operation": "ESDTTransfer"
+                        }
                     }
                 ]
             }

@@ -1,23 +1,26 @@
 [
     {
-        "comment": "block with ESDT transfer (fungible)",
+        "comment": "block with multi ESDT transfer",
         "miniBlocks": [
             {
                 "transactions": [
                     {
                         "type": "normal",
-                        "hash": "b35680324380e8fb4c954a26190159bfc7b55463497443163b1123a6407040a7",
+                        "hash": "996487dc3fdcc648c3989a74b32fd8b33339f788a6cfd757e1f80be933b441a9",
                         "value": "0",
-                        "receiver": "erd1spyavw0956vq68xj8y4tenjpq2wd5a9p2c6j8gsz7ztyrnpxrruqzu66jx",
+                        "receiver": "erd1testnlersh4z0wsv8kjx39me4rmnvjkwu8dsaea7ukdvvc9z396qykv7z7",
                         "sender": "erd1testnlersh4z0wsv8kjx39me4rmnvjkwu8dsaea7ukdvvc9z396qykv7z7",
                         "logs": {
-                            "address": "erd1spyavw0956vq68xj8y4tenjpq2wd5a9p2c6j8gsz7ztyrnpxrruqzu66jx",
+                            "address": "erd1testnlersh4z0wsv8kjx39me4rmnvjkwu8dsaea7ukdvvc9z396qykv7z7",
                             "events": [
                                 {
                                     "address": "erd1testnlersh4z0wsv8kjx39me4rmnvjkwu8dsaea7ukdvvc9z396qykv7z7",
-                                    "identifier": "ESDTTransfer",
+                                    "identifier": "MultiESDTNFTTransfer",
                                     "topics": [
-                                        "Uk9TRVRUQS0zYTJlZGY=",
+                                        "VEVTVC1kYmM1YzA=",
+                                        "",
+                                        "ZA==",
+                                        "VEVTVC1kNjUyMjk=",
                                         "",
                                         "Mg==",
                                         "gEnWOeWmmA0c0jkqvM5BApzadKFWNSOiAvCWQcwmGPg="
@@ -25,16 +28,16 @@
                                     "data": null
                                 },
                                 {
-                                    "address": "erd1spyavw0956vq68xj8y4tenjpq2wd5a9p2c6j8gsz7ztyrnpxrruqzu66jx",
+                                    "address": "erd1testnlersh4z0wsv8kjx39me4rmnvjkwu8dsaea7ukdvvc9z396qykv7z7",
                                     "identifier": "completedTxEvent",
                                     "topics": [
-                                        "s1aAMkOA6PtMlUomGQFZv8e1VGNJdEMWOxEjpkBwQKc="
+                                        "mWSH3D/cxkjDmJp0sy/YszM594imz9dX4fgL6TO0Qak="
                                     ],
                                     "data": null
                                 }
                             ]
                         },
-                        "initiallyPaidFee": "119840000000000"
+                        "initiallyPaidFee": "283000000000000"
                     }
                 ]
             },
@@ -42,11 +45,10 @@
                 "transactions": [
                     {
                         "type": "unsigned",
-                        "hash": "1928a22522845ca82bdfebea4fd37b067d72a3219a4ccef9b523491ae8eb102b",
-                        "value": "1840000000000",
+                        "hash": "a18187de36c120cfc3e01203145490fab722f8fe52bcdc6688e435e2ccd1f934",
+                        "value": "16000000000000",
                         "receiver": "erd1testnlersh4z0wsv8kjx39me4rmnvjkwu8dsaea7ukdvvc9z396qykv7z7",
-                        "sender": "erd1spyavw0956vq68xj8y4tenjpq2wd5a9p2c6j8gsz7ztyrnpxrruqzu66jx",
-                        "operation": "transfer",
+                        "sender": "erd1testnlersh4z0wsv8kjx39me4rmnvjkwu8dsaea7ukdvvc9z396qykv7z7",
                         "isRefund": true
                     }
                 ]
