@@ -70,6 +70,48 @@ func TestTransactionsTransformer_UnsignedTxToRosettaTx(t *testing.T) {
 	require.Equal(t, expectedMoveBalanceTx, rosettaMoveBalanceTx)
 }
 
+func TestTransactionsTransformer_InvalidTxToRosettaTx(t *testing.T) {
+	networkProvider := testscommon.NewNetworkProviderMock()
+	extension := newNetworkProviderExtension(networkProvider)
+	transformer := newTransactionsTransformer(networkProvider)
+
+	tx := &transaction.ApiTransactionResult{
+		Hash:             "aaaa",
+		Sender:           testscommon.TestAddressAlice,
+		Receiver:         testscommon.TestAddressBob,
+		Value:            "1234",
+		Type:             string(transaction.TxTypeInvalid),
+		InitiallyPaidFee: "50000000000000",
+	}
+
+	expectedTx := &types.Transaction{
+		TransactionIdentifier: hashToTransactionIdentifier("aaaa"),
+		Operations: []*types.Operation{
+			{
+				Status:  &opStatusFailure,
+				Type:    opTransfer,
+				Account: addressToAccountIdentifier(testscommon.TestAddressAlice),
+				Amount:  extension.valueToNativeAmount("-1234"),
+			},
+			{
+				Status:  &opStatusFailure,
+				Type:    opTransfer,
+				Account: addressToAccountIdentifier(testscommon.TestAddressBob),
+				Amount:  extension.valueToNativeAmount("1234"),
+			},
+			{
+				Type:    opFeeOfInvalidTx,
+				Account: addressToAccountIdentifier(testscommon.TestAddressAlice),
+				Amount:  extension.valueToNativeAmount("-50000000000000"),
+			},
+		},
+		Metadata: extractTransactionMetadata(tx),
+	}
+
+	rosettaTx := transformer.invalidTxToRosettaTx(tx)
+	require.Equal(t, expectedTx, rosettaTx)
+}
+
 func TestTransactionsTransformer_TransformTxsOfBlockWithESDTIssue(t *testing.T) {
 	networkProvider := testscommon.NewNetworkProviderMock()
 	networkProvider.MockCustomCurrencies = []resources.Currency{{Symbol: "FOO-6d28db"}}
