@@ -50,25 +50,31 @@ func (controller *transactionEventsController) extractEventsESDTOrESDTNFTTransfe
 
 	for _, event := range rawEvents {
 		numTopics := len(event.Topics)
-		if numTopics != 4 {
+		numTopicsExceptLast := numTopics - 1
+		numTopicsPerTransfer := 3
+
+		if numTopicsExceptLast%numTopicsPerTransfer != 0 {
 			return nil, fmt.Errorf("%w: bad number of topics for (ESDT|ESDTNFT|MultiESDTNFT)Transfer event = %d", errCannotRecognizeEvent, numTopics)
 		}
 
-		identifider := event.Topics[0]
-		nonceAsBytes := event.Topics[1]
-		valueBytes := event.Topics[2]
-		receiverPubkey := event.Topics[3]
-
-		value := big.NewInt(0).SetBytes(valueBytes)
+		numTransfers := numTopicsExceptLast / numTopicsPerTransfer
+		receiverPubkey := event.Topics[numTopics-1]
 		receiver := controller.provider.ConvertPubKeyToAddress(receiverPubkey)
 
-		typedEvents = append(typedEvents, &eventESDT{
-			senderAddress:   event.Address,
-			receiverAddress: receiver,
-			identifier:      string(identifider),
-			nonceAsBytes:    nonceAsBytes,
-			value:           value.String(),
-		})
+		for i := 0; i < numTransfers; i++ {
+			identifier := event.Topics[i*numTopicsPerTransfer+0]
+			nonceAsBytes := event.Topics[i*numTopicsPerTransfer+1]
+			valueBytes := event.Topics[i*numTopicsPerTransfer+2]
+			value := big.NewInt(0).SetBytes(valueBytes)
+
+			typedEvents = append(typedEvents, &eventESDT{
+				senderAddress:   event.Address,
+				receiverAddress: receiver,
+				identifier:      string(identifier),
+				nonceAsBytes:    nonceAsBytes,
+				value:           value.String(),
+			})
+		}
 	}
 
 	return typedEvents, nil
