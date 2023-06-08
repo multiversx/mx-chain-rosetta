@@ -1,0 +1,56 @@
+[
+    {
+        "comment": "block with ESDT transfer (fungible)",
+        "miniBlocks": [
+            {
+                "transactions": [
+                    {
+                        "type": "normal",
+                        "hash": "b35680324380e8fb4c954a26190159bfc7b55463497443163b1123a6407040a7",
+                        "value": "0",
+                        "receiver": "erd1spyavw0956vq68xj8y4tenjpq2wd5a9p2c6j8gsz7ztyrnpxrruqzu66jx",
+                        "sender": "erd1testnlersh4z0wsv8kjx39me4rmnvjkwu8dsaea7ukdvvc9z396qykv7z7",
+                        "logs": {
+                            "address": "erd1spyavw0956vq68xj8y4tenjpq2wd5a9p2c6j8gsz7ztyrnpxrruqzu66jx",
+                            "events": [
+                                {
+                                    "address": "erd1testnlersh4z0wsv8kjx39me4rmnvjkwu8dsaea7ukdvvc9z396qykv7z7",
+                                    "identifier": "ESDTTransfer",
+                                    "topics": [
+                                        "Uk9TRVRUQS0zYTJlZGY=",
+                                        "",
+                                        "Mg==",
+                                        "gEnWOeWmmA0c0jkqvM5BApzadKFWNSOiAvCWQcwmGPg="
+                                    ],
+                                    "data": null
+                                },
+                                {
+                                    "address": "erd1spyavw0956vq68xj8y4tenjpq2wd5a9p2c6j8gsz7ztyrnpxrruqzu66jx",
+                                    "identifier": "completedTxEvent",
+                                    "topics": [
+                                        "s1aAMkOA6PtMlUomGQFZv8e1VGNJdEMWOxEjpkBwQKc="
+                                    ],
+                                    "data": null
+                                }
+                            ]
+                        },
+                        "initiallyPaidFee": "119840000000000"
+                    }
+                ]
+            },
+            {
+                "transactions": [
+                    {
+                        "type": "unsigned",
+                        "hash": "1928a22522845ca82bdfebea4fd37b067d72a3219a4ccef9b523491ae8eb102b",
+                        "value": "1840000000000",
+                        "receiver": "erd1testnlersh4z0wsv8kjx39me4rmnvjkwu8dsaea7ukdvvc9z396qykv7z7",
+                        "sender": "erd1spyavw0956vq68xj8y4tenjpq2wd5a9p2c6j8gsz7ztyrnpxrruqzu66jx",
+                        "operation": "transfer",
+                        "isRefund": true
+                    }
+                ]
+            }
+        ]
+    }
+]

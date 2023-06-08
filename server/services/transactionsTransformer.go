@@ -279,7 +279,99 @@ func (transformer *transactionsTransformer) mempoolMoveBalanceTxToRosettaTx(tx *
 	}
 }
 
-func (transformer *transactionsTransformer) addOperationsGivenTransactionEvents(_ *transaction.ApiTransactionResult, _ *types.Transaction) error {
-	// TODO: implementation in next PR
+func (transformer *transactionsTransformer) addOperationsGivenTransactionEvents(tx *transaction.ApiTransactionResult, rosettaTx *types.Transaction) error {
+	eventsESDTTransfer, err := transformer.eventsController.extractEventsESDTOrESDTNFTTransfers(tx)
+	if err != nil {
+		return err
+	}
+
+	eventsESDTLocalBurn, err := transformer.eventsController.extractEventsESDTLocalBurn(tx)
+	if err != nil {
+		return err
+	}
+
+	eventsESDTLocalMint, err := transformer.eventsController.extractEventsESDTLocalMint(tx)
+	if err != nil {
+		return err
+	}
+
+	eventsESDTWipe, err := transformer.eventsController.extractEventsESDTWipe(tx)
+	if err != nil {
+		return err
+	}
+
+	for _, event := range eventsESDTTransfer {
+		if !transformer.provider.HasCustomCurrency(event.identifier) {
+			// We are only emitting balance-changing operations for supported currencies.
+			continue
+		}
+
+		operations := []*types.Operation{
+			{
+				Type:    opCustomTransfer,
+				Account: addressToAccountIdentifier(event.senderAddress),
+				Amount:  transformer.extension.valueToCustomAmount("-"+event.value, event.getComposedIdentifier()),
+			},
+			{
+				Type:    opCustomTransfer,
+				Account: addressToAccountIdentifier(event.receiverAddress),
+				Amount:  transformer.extension.valueToCustomAmount(event.value, event.getComposedIdentifier()),
+			},
+		}
+
+		rosettaTx.Operations = append(rosettaTx.Operations, operations...)
+	}
+
+	for _, event := range eventsESDTLocalBurn {
+		if !transformer.provider.HasCustomCurrency(event.identifier) {
+			// We are only emitting balance-changing operations for supported currencies.
+			continue
+		}
+
+		operations := []*types.Operation{
+			{
+				Type:    opCustomTransfer,
+				Account: addressToAccountIdentifier(event.otherAddress),
+				Amount:  transformer.extension.valueToCustomAmount("-"+event.value, event.getComposedIdentifier()),
+			},
+		}
+
+		rosettaTx.Operations = append(rosettaTx.Operations, operations...)
+	}
+
+	for _, event := range eventsESDTLocalMint {
+		if !transformer.provider.HasCustomCurrency(event.identifier) {
+			// We are only emitting balance-changing operations for supported currencies.
+			continue
+		}
+
+		operations := []*types.Operation{
+			{
+				Type:    opCustomTransfer,
+				Account: addressToAccountIdentifier(event.otherAddress),
+				Amount:  transformer.extension.valueToCustomAmount(event.value, event.getComposedIdentifier()),
+			},
+		}
+
+		rosettaTx.Operations = append(rosettaTx.Operations, operations...)
+	}
+
+	for _, event := range eventsESDTWipe {
+		if !transformer.provider.HasCustomCurrency(event.identifier) {
+			// We are only emitting balance-changing operations for supported currencies.
+			continue
+		}
+
+		operations := []*types.Operation{
+			{
+				Type:    opCustomTransfer,
+				Account: addressToAccountIdentifier(event.otherAddress),
+				Amount:  transformer.extension.valueToCustomAmount("-"+event.value, event.getComposedIdentifier()),
+			},
+		}
+
+		rosettaTx.Operations = append(rosettaTx.Operations, operations...)
+	}
+
 	return nil
 }

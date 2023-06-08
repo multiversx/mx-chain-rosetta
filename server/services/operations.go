@@ -1,6 +1,8 @@
 package services
 
-import "github.com/coinbase/rosetta-sdk-go/types"
+import (
+	"github.com/coinbase/rosetta-sdk-go/types"
+)
 
 const (
 	opGenesisBalanceMovement     = "GenesisBalanceMovement"
@@ -12,6 +14,7 @@ const (
 	opDeveloperRewardsAsScResult = "DeveloperRewardsAsSmartContractResult"
 	opFeeOfInvalidTx             = "FeeOfInvalidTransaction"
 	opFeeRefund                  = "FeeRefund"
+	opCustomTransfer             = "CustomTransfer"
 )
 
 var (
@@ -26,6 +29,7 @@ var (
 		opDeveloperRewardsAsScResult,
 		opFeeOfInvalidTx,
 		opFeeRefund,
+		opCustomTransfer,
 	}
 
 	opStatusSuccess = "Success"
