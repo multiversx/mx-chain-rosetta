@@ -130,7 +130,7 @@ func TestTransactionsTransformer_TransformTxsOfBlockWithESDTIssue(t *testing.T) 
 		TransactionIdentifier: hashToTransactionIdentifier("e462e1b73b720015315d0f508d165817ba1989cb1d2c63903bd01c3b8450afb8"),
 		Operations: []*types.Operation{
 			{
-				Type:                opESDTTransfer,
+				Type:                opCustomTransfer,
 				OperationIdentifier: indexToOperationIdentifier(0),
 				Account:             addressToAccountIdentifier("erd1testnlersh4z0wsv8kjx39me4rmnvjkwu8dsaea7ukdvvc9z396qykv7z7"),
 				Amount:              extension.valueToCustomAmount("1000000000000", "FOO-6d28db"),
@@ -142,36 +142,6 @@ func TestTransactionsTransformer_TransformTxsOfBlockWithESDTIssue(t *testing.T) 
 
 	require.Equal(t, expectedRefundSCR, txs[0])
 	require.Equal(t, expectedTransferSCR, txs[1])
-}
-
-func readTestBlocks(filePath string) ([]*api.Block, error) {
-	var blocks []*api.Block
-
-	err := readJson(filePath, &blocks)
-	if err != nil {
-		return nil, err
-	}
-
-	return blocks, nil
-}
-
-func readJson(filePath string, value interface{}) error {
-	file, err := core.OpenFile(filePath)
-	if err != nil {
-		return err
-	}
-
-	content, err := ioutil.ReadAll(file)
-	if err != nil {
-		return err
-	}
-
-	err = json.Unmarshal(content, value)
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
 
 func TestTransactionsTransformer_TransformBlockTxsHavingESDTIssue(t *testing.T) {

@@ -250,12 +250,12 @@ func (service *constructionService) createOperationsFromPreparedTx(tx *data.Tran
 
 		operations = []*types.Operation{
 			{
-				Type:    opESDTTransfer,
+				Type:    opCustomTransfer,
 				Account: addressToAccountIdentifier(tx.Sender),
 				Amount:  service.extension.valueToCustomAmount("-"+amount, tokenIdentifier),
 			},
 			{
-				Type:    opESDTTransfer,
+				Type:    opCustomTransfer,
 				Account: addressToAccountIdentifier(tx.Receiver),
 				Amount:  service.extension.valueToCustomAmount(amount, tokenIdentifier),
 			},

@@ -219,6 +219,10 @@ func (controller *transactionEventsController) hasSignalErrorOfMetaTransactionIs
 	return false
 }
 
+func (controller *transactionEventsController) hasEvents(tx *transaction.ApiTransactionResult) bool {
+	return tx.Logs != nil && tx.Logs.Events != nil && len(tx.Logs.Events) > 0
+}
+
 func eventHasTopic(event *transaction.Events, topicToFind string) bool {
 	for _, topic := range event.Topics {
 		if string(topic) == topicToFind {
