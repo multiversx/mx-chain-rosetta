@@ -9,19 +9,17 @@ import (
 func (service *constructionService) computeFeeComponents(options *constructionOptions, computedData []byte) (*big.Int, uint64, uint64, *types.Error) {
 	networkConfig := service.provider.GetNetworkConfig()
 	minGasPrice := networkConfig.MinGasPrice
-	// TODO: Handle in a future PR
-	gasPriceModifier := float64(0.01)
+	gasPriceModifier := networkConfig.GasPriceModifier
 
 	isForNativeCurrency := service.extension.isNativeCurrencySymbol(options.CurrencySymbol)
 	isForCustomCurrency := !isForNativeCurrency
-	if isForCustomCurrency {
-		// TODO: Handle in a future PR
-		return nil, 0, 0, service.errFactory.newErr(ErrNotImplemented)
-	}
 
 	movementGasLimit := networkConfig.MinGasLimit + networkConfig.GasPerDataByte*uint64(len(computedData))
-	// TODO: Handle in a future PR
 	executionGasLimit := uint64(0)
+	if isForCustomCurrency {
+		executionGasLimit = networkConfig.GasLimitCustomTransfer
+	}
+
 	estimatedGasLimit := movementGasLimit + executionGasLimit
 
 	gasLimit := options.coalesceGasLimit(estimatedGasLimit)
