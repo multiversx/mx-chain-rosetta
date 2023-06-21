@@ -30,6 +30,8 @@ type ArgsNewNetworkProvider struct {
 	NetworkID                   string
 	NetworkName                 string
 	GasPerDataByte              uint64
+	GasPriceModifier            float64
+	GasLimitCustomTransfer      uint64
 	MinGasPrice                 uint64
 	MinGasLimit                 uint64
 	NativeCurrencySymbol        string
@@ -103,12 +105,14 @@ func NewNetworkProvider(args ArgsNewNetworkProvider) (*networkProvider, error) {
 		pubKeyConverter:       args.PubKeyConverter,
 
 		networkConfig: &resources.NetworkConfig{
-			BlockchainName: args.BlockchainName,
-			NetworkID:      args.NetworkID,
-			NetworkName:    args.NetworkName,
-			GasPerDataByte: args.GasPerDataByte,
-			MinGasPrice:    args.MinGasPrice,
-			MinGasLimit:    args.MinGasLimit,
+			BlockchainName:         args.BlockchainName,
+			NetworkID:              args.NetworkID,
+			NetworkName:            args.NetworkName,
+			GasPerDataByte:         args.GasPerDataByte,
+			GasPriceModifier:       args.GasPriceModifier,
+			GasLimitCustomTransfer: args.GasLimitCustomTransfer,
+			MinGasPrice:            args.MinGasPrice,
+			MinGasLimit:            args.MinGasLimit,
 		},
 
 		blocksCache: blocksCache,
@@ -393,7 +397,6 @@ func (provider *networkProvider) GetMempoolTransactionByHash(hash string) (*tran
 }
 
 // ComputeTransactionFeeForMoveBalance computes the fee for a move-balance transaction.
-// TODO: when freeze account feature is merged, this will need to be adapted as well, as for guarded transactions we have an additional gas (limit).
 func (provider *networkProvider) ComputeTransactionFeeForMoveBalance(tx *transaction.ApiTransactionResult) *big.Int {
 	minGasLimit := provider.networkConfig.MinGasLimit
 	gasPerDataByte := provider.networkConfig.GasPerDataByte

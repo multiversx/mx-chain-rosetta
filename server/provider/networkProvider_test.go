@@ -24,6 +24,8 @@ func TestNewNetworkProvider(t *testing.T) {
 		NetworkID:                   "T",
 		NetworkName:                 "testnet",
 		GasPerDataByte:              1501,
+		GasPriceModifier:            0.01,
+		GasLimitCustomTransfer:      200000,
 		MinGasPrice:                 1000000001,
 		MinGasLimit:                 50001,
 		NativeCurrencySymbol:        "XeGLD",
@@ -50,6 +52,8 @@ func TestNewNetworkProvider(t *testing.T) {
 	assert.Equal(t, "T", provider.GetNetworkConfig().NetworkID)
 	assert.Equal(t, "testnet", provider.GetNetworkConfig().NetworkName)
 	assert.Equal(t, uint64(1501), provider.GetNetworkConfig().GasPerDataByte)
+	assert.Equal(t, 0.01, provider.GetNetworkConfig().GasPriceModifier)
+	assert.Equal(t, uint64(200000), provider.GetNetworkConfig().GasLimitCustomTransfer)
 	assert.Equal(t, uint64(1000000001), provider.GetNetworkConfig().MinGasPrice)
 	assert.Equal(t, uint64(50001), provider.GetNetworkConfig().MinGasLimit)
 	assert.Equal(t, "XeGLD", provider.GetNativeCurrency().Symbol)
@@ -176,6 +180,8 @@ func createDefaultArgsNewNetworkProvider() ArgsNewNetworkProvider {
 		ObserverUrl:                 "http://my-observer:8080",
 		NetworkID:                   "T",
 		GasPerDataByte:              1500,
+		GasPriceModifier:            0.01,
+		GasLimitCustomTransfer:      200000,
 		MinGasPrice:                 1000000000,
 		MinGasLimit:                 50000,
 		NativeCurrencySymbol:        "XeGLD",
