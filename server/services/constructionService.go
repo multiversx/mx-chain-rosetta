@@ -194,8 +194,8 @@ func (service *constructionService) ConstructionPayloads(
 		return nil, service.errFactory.newErrWithOriginal(ErrConstruction, err)
 	}
 
-	isCustomTransfer := !service.extension.isNativeCurrencySymbol(metadata.CurrencySymbol)
-	if isCustomTransfer {
+	isCustomCurrencyTransfer := isCustomCurrencyTransfer(string(metadata.Data))
+	if isCustomCurrencyTransfer {
 		metadata.Amount = amountZero
 	}
 

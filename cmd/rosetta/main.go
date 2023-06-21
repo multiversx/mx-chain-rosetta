@@ -66,6 +66,8 @@ func startRosetta(ctx *cli.Context) error {
 		NetworkID:                   cliFlags.networkID,
 		NetworkName:                 cliFlags.networkName,
 		GasPerDataByte:              cliFlags.gasPerDataByte,
+		GasPriceModifier:            cliFlags.gasPriceModifier,
+		GasLimitCustomTransfer:      cliFlags.gasLimitCustomTransfer,
 		MinGasPrice:                 cliFlags.minGasPrice,
 		MinGasLimit:                 cliFlags.minGasLimit,
 		NativeCurrencySymbol:        cliFlags.nativeCurrencySymbol,

@@ -35,6 +35,8 @@ type ArgsCreateNetworkProvider struct {
 	NetworkID                   string
 	NetworkName                 string
 	GasPerDataByte              uint64
+	GasPriceModifier            float64
+	GasLimitCustomTransfer      uint64
 	MinGasPrice                 uint64
 	MinGasLimit                 uint64
 	NativeCurrencySymbol        string
@@ -122,6 +124,8 @@ func CreateNetworkProvider(args ArgsCreateNetworkProvider) (NetworkProvider, err
 		NetworkID:                   args.NetworkID,
 		NetworkName:                 args.NetworkName,
 		GasPerDataByte:              args.GasPerDataByte,
+		GasPriceModifier:            args.GasPriceModifier,
+		GasLimitCustomTransfer:      args.GasLimitCustomTransfer,
 		MinGasPrice:                 args.MinGasPrice,
 		MinGasLimit:                 args.MinGasLimit,
 		NativeCurrencySymbol:        args.NativeCurrencySymbol,
