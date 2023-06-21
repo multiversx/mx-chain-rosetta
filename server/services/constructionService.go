@@ -296,7 +296,7 @@ func parseCustomCurrencyTransfer(txData string) (string, string, error) {
 	parts := strings.Split(txData, "@")
 
 	if len(parts) != 3 {
-		return "", "", errors.New("cannot parse custom currency transfer data")
+		return "", "", errors.New("cannot parse data of custom currency transfer")
 	}
 
 	tokenIdentifierBytes, err := hex.DecodeString(parts[1])
