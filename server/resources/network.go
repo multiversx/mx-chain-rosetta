@@ -2,12 +2,14 @@ package resources
 
 // NetworkConfig is a resource
 type NetworkConfig struct {
-	BlockchainName string
-	NetworkID      string
-	NetworkName    string
-	GasPerDataByte uint64
-	MinGasPrice    uint64
-	MinGasLimit    uint64
+	BlockchainName         string
+	NetworkID              string
+	NetworkName            string
+	MinGasPrice            uint64
+	MinGasLimit            uint64
+	GasPerDataByte         uint64
+	GasPriceModifier       float64
+	GasLimitCustomTransfer uint64
 }
 
 // NodeStatusApiResponse is an API resource

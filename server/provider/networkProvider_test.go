@@ -24,6 +24,8 @@ func TestNewNetworkProvider(t *testing.T) {
 		NetworkID:                   "T",
 		NetworkName:                 "testnet",
 		GasPerDataByte:              1501,
+		GasPriceModifier:            0.01,
+		GasLimitCustomTransfer:      200000,
 		MinGasPrice:                 1000000001,
 		MinGasLimit:                 50001,
 		NativeCurrencySymbol:        "XeGLD",
