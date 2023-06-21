@@ -89,6 +89,7 @@ func ensureEvenLengthOfHexString(hexString string) string {
 func amountToHex(value string) string {
 	bigAmount, ok := big.NewInt(0).SetString(value, 10)
 	if !ok {
+		log.Warn("amountToHex(): amount is not a number", "amount", value)
 		return ""
 	}
 
