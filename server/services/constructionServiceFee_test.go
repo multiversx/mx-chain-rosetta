@@ -126,7 +126,7 @@ func TestConstructionService_ComputeFeeComponents_ForCustomTokenTransfers(t *tes
 		require.Equal(t, uint64(0), gasPrice)
 	})
 
-	t.Run("custom transfer (with explicit, with more gas limit than necessary)", func(t *testing.T) {
+	t.Run("custom transfer (with explicit gas limit, but insufficient)", func(t *testing.T) {
 		fee, gasLimit, gasPrice, err := service.computeFeeComponents(&constructionOptions{
 			GasLimit:       10000000,
 			GasPrice:       1000000000,
