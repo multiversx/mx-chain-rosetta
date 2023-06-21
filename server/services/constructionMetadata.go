@@ -31,8 +31,8 @@ func newConstructionMetadata(obj objectsMap) (*constructionMetadata, error) {
 	return result, nil
 }
 
-func (metadata *constructionMetadata) toTransactionJson(nativeCurrencySymbol string) ([]byte, error) {
-	tx, err := metadata.toTransaction(nativeCurrencySymbol)
+func (metadata *constructionMetadata) toTransactionJson() ([]byte, error) {
+	tx, err := metadata.toTransaction()
 	if err != nil {
 		return nil, err
 	}
@@ -45,25 +45,17 @@ func (metadata *constructionMetadata) toTransactionJson(nativeCurrencySymbol str
 	return txJson, nil
 }
 
-func (metadata *constructionMetadata) toTransaction(nativeCurrencySymbol string) (*data.Transaction, error) {
+func (metadata *constructionMetadata) toTransaction() (*data.Transaction, error) {
 	err := metadata.validate()
 	if err != nil {
 		return nil, err
-	}
-
-	// TODO: refactor, improve design
-	var value string
-	if metadata.CurrencySymbol == nativeCurrencySymbol {
-		value = metadata.Amount
-	} else {
-		value = "0"
 	}
 
 	tx := &data.Transaction{
 		Sender:   metadata.Sender,
 		Receiver: metadata.Receiver,
 		Nonce:    metadata.Nonce,
-		Value:    value,
+		Value:    metadata.Amount,
 		GasLimit: metadata.GasLimit,
 		GasPrice: metadata.GasPrice,
 		Data:     metadata.Data,

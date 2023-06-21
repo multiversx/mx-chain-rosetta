@@ -194,7 +194,12 @@ func (service *constructionService) ConstructionPayloads(
 		return nil, service.errFactory.newErrWithOriginal(ErrConstruction, err)
 	}
 
-	txJson, err := metadata.toTransactionJson(service.extension.getNativeCurrencySymbol())
+	isCustomTransfer := !service.extension.isNativeCurrencySymbol(metadata.CurrencySymbol)
+	if isCustomTransfer {
+		metadata.Amount = amountZero
+	}
+
+	txJson, err := metadata.toTransactionJson()
 	if err != nil {
 		return nil, service.errFactory.newErrWithOriginal(ErrConstruction, err)
 	}

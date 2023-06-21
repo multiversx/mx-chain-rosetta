@@ -10,6 +10,7 @@ var (
 	transactionProcessingTypeRelayed             = "RelayedTx"
 	transactionProcessingTypeBuiltInFunctionCall = "BuiltInFunctionCall"
 	transactionProcessingTypeMoveBalance         = "MoveBalance"
+	amountZero                                   = "0"
 	builtInFunctionClaimDeveloperRewards         = "ClaimDeveloperRewards"
 	builtInFunctionESDTTransfer                  = "ESDTTransfer"
 	refundGasMessage                             = "refundedGas"
