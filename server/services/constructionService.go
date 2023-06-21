@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"math/big"
 	"strings"
 
 	"github.com/coinbase/rosetta-sdk-go/server"
@@ -236,21 +235,25 @@ func (service *constructionService) ConstructionParse(
 		}
 	}
 
+	operations, err := service.createOperationsFromPreparedTx(tx)
+	if err != nil {
+		return nil, service.errFactory.newErrWithOriginal(ErrConstruction, err)
+	}
+
 	return &types.ConstructionParseResponse{
-		Operations:               service.createOperationsFromPreparedTx(tx),
+		Operations:               operations,
 		AccountIdentifierSigners: signers,
 	}, nil
 }
 
-func (service *constructionService) createOperationsFromPreparedTx(tx *data.Transaction) []*types.Operation {
+func (service *constructionService) createOperationsFromPreparedTx(tx *data.Transaction) ([]*types.Operation, error) {
 	var operations []*types.Operation
 	isCustomCurrencyTransfer := isCustomCurrencyTransfer(string(tx.Data))
 
 	if isCustomCurrencyTransfer {
-		// TODO: Handle error
 		tokenIdentifier, amount, err := parseCustomCurrencyTransfer(string(tx.Data))
 		if err != nil {
-			log.Error("error", "err", err)
+			return nil, err
 		}
 
 		operations = []*types.Operation{
@@ -282,7 +285,7 @@ func (service *constructionService) createOperationsFromPreparedTx(tx *data.Tran
 
 	indexOperations(operations)
 
-	return operations
+	return operations, nil
 }
 
 func isCustomCurrencyTransfer(txData string) bool {
@@ -293,26 +296,20 @@ func parseCustomCurrencyTransfer(txData string) (string, string, error) {
 	parts := strings.Split(txData, "@")
 
 	if len(parts) != 3 {
-		return "", "", errors.New("TODO: ...")
+		return "", "", errors.New("cannot parse custom currency transfer data")
 	}
 
 	tokenIdentifierBytes, err := hex.DecodeString(parts[1])
 	if err != nil {
-		return "", "", errors.New("TODO: ...")
+		return "", "", errors.New("cannot decode custom token identifier")
 	}
 
-	// TODO: move to converters.
-	amountBytes, err := hex.DecodeString(parts[2])
+	amount, err := hexToAmount(parts[2])
 	if err != nil {
-		return "", "", errors.New("TODO: ...")
+		return "", "", errors.New("cannot decode custom token amount")
 	}
 
-	amountBig := big.NewInt(0).SetBytes(amountBytes)
-
-	tokenIdentifier := string(tokenIdentifierBytes)
-	amount := amountBig.String()
-
-	return tokenIdentifier, amount, nil
+	return string(tokenIdentifierBytes), amount, nil
 }
 
 func getTxFromRequest(txString string) (*data.Transaction, error) {

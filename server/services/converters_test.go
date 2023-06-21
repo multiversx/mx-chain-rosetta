@@ -45,3 +45,21 @@ func TestAmountToHex(t *testing.T) {
 	require.Equal(t, "2a", amountToHex("42"))
 	require.Equal(t, "64", amountToHex("100"))
 }
+
+func TestHexToAmount(t *testing.T) {
+	amount, err := hexToAmount("00")
+	require.Nil(t, err)
+	require.Equal(t, "0", amount)
+
+	amount, err = hexToAmount("07")
+	require.Nil(t, err)
+	require.Equal(t, "7", amount)
+
+	amount, err = hexToAmount("2a")
+	require.Nil(t, err)
+	require.Equal(t, "42", amount)
+
+	amount, err = hexToAmount("64")
+	require.Nil(t, err)
+	require.Equal(t, "100", amount)
+}

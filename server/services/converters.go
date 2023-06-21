@@ -96,3 +96,14 @@ func ensureEvenLengthOfHexString(hexString string) string {
 
 	return hexString
 }
+
+func hexToAmount(hexString string) (string, error) {
+	amountBytes, err := hex.DecodeString(hexString)
+	if err != nil {
+		return "", err
+	}
+
+	amountBig := big.NewInt(0).SetBytes(amountBytes)
+	amount := amountBig.String()
+	return amount, nil
+}
