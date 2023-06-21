@@ -72,7 +72,7 @@ func timestampInMilliseconds(timestamp int64) int64 {
 	return timestamp * 1000
 }
 
-func utf8ToHex(value string) string {
+func stringToHex(value string) string {
 	encoded := hex.EncodeToString([]byte(value))
 	encoded = ensureEvenLengthOfHexString(encoded)
 	return encoded
@@ -104,6 +104,5 @@ func hexToAmount(hexString string) (string, error) {
 	}
 
 	amountBig := big.NewInt(0).SetBytes(amountBytes)
-	amount := amountBig.String()
-	return amount, nil
+	return amountBig.String(), nil
 }

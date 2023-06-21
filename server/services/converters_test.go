@@ -35,8 +35,9 @@ func TestBlockIdentifierToAccountQueryOptions(t *testing.T) {
 }
 
 func TestUtf8ToHex(t *testing.T) {
-	require.Equal(t, "68656c6c6f", utf8ToHex("hello"))
-	require.Equal(t, "776f726c64", utf8ToHex("world"))
+	require.Equal(t, "68656c6c6f", stringToHex("hello"))
+	require.Equal(t, "776f726c64", stringToHex("world"))
+	require.Equal(t, "0a", stringToHex("\n"))
 }
 
 func TestAmountToHex(t *testing.T) {
