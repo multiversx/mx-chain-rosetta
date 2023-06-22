@@ -177,7 +177,7 @@ func (service *constructionService) computeData(options *constructionOptions) []
 }
 
 func (service *constructionService) computeDataForCustomCurrencyTransfer(tokenIdentifier string, amount string) []byte {
-	data := fmt.Sprintf("%s@%s@%s", builtInFunctionESDTTransfer, utf8ToHex(tokenIdentifier), amountToHex(amount))
+	data := fmt.Sprintf("%s@%s@%s", builtInFunctionESDTTransfer, stringToHex(tokenIdentifier), amountToHex(amount))
 	return []byte(data)
 }
 
