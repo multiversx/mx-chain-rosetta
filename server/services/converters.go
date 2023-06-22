@@ -72,19 +72,8 @@ func timestampInMilliseconds(timestamp int64) int64 {
 	return timestamp * 1000
 }
 
-func utf8ToHex(value string) string {
+func stringToHex(value string) string {
 	encoded := hex.EncodeToString([]byte(value))
-	encoded = ensureEvenLengthOfHexString(encoded)
-	return encoded
-}
-
-func amountToHex(value string) string {
-	bigAmount, ok := big.NewInt(0).SetString(value, 10)
-	if !ok {
-		return ""
-	}
-
-	encoded := hex.EncodeToString(bigAmount.Bytes())
 	encoded = ensureEvenLengthOfHexString(encoded)
 	return encoded
 }
@@ -97,6 +86,18 @@ func ensureEvenLengthOfHexString(hexString string) string {
 	return hexString
 }
 
+func amountToHex(value string) string {
+	bigAmount, ok := big.NewInt(0).SetString(value, 10)
+	if !ok {
+		log.Warn("amountToHex(): amount is not a number", "amount", value)
+		return ""
+	}
+
+	encoded := hex.EncodeToString(bigAmount.Bytes())
+	encoded = ensureEvenLengthOfHexString(encoded)
+	return encoded
+}
+
 func hexToAmount(hexString string) (string, error) {
 	amountBytes, err := hex.DecodeString(hexString)
 	if err != nil {
@@ -104,6 +105,5 @@ func hexToAmount(hexString string) (string, error) {
 	}
 
 	amountBig := big.NewInt(0).SetBytes(amountBytes)
-	amount := amountBig.String()
-	return amount, nil
+	return amountBig.String(), nil
 }

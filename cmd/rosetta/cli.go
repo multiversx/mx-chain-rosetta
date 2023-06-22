@@ -129,7 +129,7 @@ VERSION:
 	cliFlagGasLimitCustomTransfer = cli.Float64Flag{
 		Name:  "gas-limit-custom-transfer",
 		Usage: "Specifies the necessary gas limit for a custom transfer (for transaction construction).",
-		Value: 0.01,
+		Value: 200000,
 	}
 
 	cliFlagNativeCurrencySymbol = cli.StringFlag{

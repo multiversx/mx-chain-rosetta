@@ -91,18 +91,6 @@ func TestConstructionService_ComputeFeeComponents_ForNativeTransfers(t *testing.
 		require.Equal(t, uint64(50000), gasLimit)
 		require.Equal(t, uint64(2000000000), gasPrice)
 	})
-
-	t.Run("custom transfer (without explicit gas limit)", func(t *testing.T) {
-		fee, gasLimit, gasPrice, err := service.computeFeeComponents(&constructionOptions{
-			GasPrice:       1000000000,
-			CurrencySymbol: "TEST-abcdef",
-		}, []byte("ESDTTransfer@544553542d616263646566@64"))
-
-		require.Nil(t, err)
-		require.Equal(t, "109000000000000", fee.String())
-		require.Equal(t, uint64(307000), gasLimit)
-		require.Equal(t, uint64(1000000000), gasPrice)
-	})
 }
 
 func TestConstructionService_ComputeFeeComponents_ForCustomTokenTransfers(t *testing.T) {
@@ -125,7 +113,7 @@ func TestConstructionService_ComputeFeeComponents_ForCustomTokenTransfers(t *tes
 		require.Equal(t, uint64(1000000000), gasPrice)
 	})
 
-	t.Run("custom transfer (with explicit, but insufficient gas limit)", func(t *testing.T) {
+	t.Run("custom transfer (with explicit gas limit, but insufficient)", func(t *testing.T) {
 		fee, gasLimit, gasPrice, err := service.computeFeeComponents(&constructionOptions{
 			GasLimit:       100000,
 			GasPrice:       1000000000,
@@ -138,7 +126,7 @@ func TestConstructionService_ComputeFeeComponents_ForCustomTokenTransfers(t *tes
 		require.Equal(t, uint64(0), gasPrice)
 	})
 
-	t.Run("custom transfer (with explicit, with more gas limit than necessary)", func(t *testing.T) {
+	t.Run("custom transfer (with explicit gas limit, more than necessary)", func(t *testing.T) {
 		fee, gasLimit, gasPrice, err := service.computeFeeComponents(&constructionOptions{
 			GasLimit:       10000000,
 			GasPrice:       1000000000,
