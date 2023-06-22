@@ -33,3 +33,34 @@ func TestBlockIdentifierToAccountQueryOptions(t *testing.T) {
 		require.ErrorContains(t, err, "encoding/hex: invalid byte")
 	})
 }
+
+func TestUtf8ToHex(t *testing.T) {
+	require.Equal(t, "68656c6c6f", stringToHex("hello"))
+	require.Equal(t, "776f726c64", stringToHex("world"))
+	require.Equal(t, "0a", stringToHex("\n"))
+}
+
+func TestAmountToHex(t *testing.T) {
+	require.Equal(t, "", amountToHex("0"))
+	require.Equal(t, "07", amountToHex("7"))
+	require.Equal(t, "2a", amountToHex("42"))
+	require.Equal(t, "64", amountToHex("100"))
+}
+
+func TestHexToAmount(t *testing.T) {
+	amount, err := hexToAmount("00")
+	require.Nil(t, err)
+	require.Equal(t, "0", amount)
+
+	amount, err = hexToAmount("07")
+	require.Nil(t, err)
+	require.Equal(t, "7", amount)
+
+	amount, err = hexToAmount("2a")
+	require.Nil(t, err)
+	require.Equal(t, "42", amount)
+
+	amount, err = hexToAmount("64")
+	require.Nil(t, err)
+	require.Equal(t, "100", amount)
+}
