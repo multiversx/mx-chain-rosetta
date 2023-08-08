@@ -116,7 +116,7 @@ VERSION:
 
 	cliFlagExtraGasLimitGuardedTx = cli.UintFlag{
 		Name:  "extra-gas-limit-guarded-tx",
-		Usage: "Specifies the extra gas limit for guarded transactions (required when computing some balance operations for fees).",
+		Usage: "Specifies the extra gas limit for guarded transactions (necessary to compute fees in some circumstances).",
 		Value: 50000,
 	}
 
