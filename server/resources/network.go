@@ -10,6 +10,7 @@ type NetworkConfig struct {
 	GasPerDataByte         uint64
 	GasPriceModifier       float64
 	GasLimitCustomTransfer uint64
+	ExtraGasLimitGuardedTx uint64
 }
 
 // NodeStatusApiResponse is an API resource

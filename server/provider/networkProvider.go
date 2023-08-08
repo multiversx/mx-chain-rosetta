@@ -34,6 +34,7 @@ type ArgsNewNetworkProvider struct {
 	GasLimitCustomTransfer      uint64
 	MinGasPrice                 uint64
 	MinGasLimit                 uint64
+	ExtraGasLimitGuardedTx      uint64
 	NativeCurrencySymbol        string
 	CustomCurrenciesSymbols     []string
 	GenesisBlockHash            string
@@ -113,6 +114,7 @@ func NewNetworkProvider(args ArgsNewNetworkProvider) (*networkProvider, error) {
 			GasLimitCustomTransfer: args.GasLimitCustomTransfer,
 			MinGasPrice:            args.MinGasPrice,
 			MinGasLimit:            args.MinGasLimit,
+			ExtraGasLimitGuardedTx: args.ExtraGasLimitGuardedTx,
 		},
 
 		blocksCache: blocksCache,
@@ -399,8 +401,14 @@ func (provider *networkProvider) GetMempoolTransactionByHash(hash string) (*tran
 // ComputeTransactionFeeForMoveBalance computes the fee for a move-balance transaction.
 func (provider *networkProvider) ComputeTransactionFeeForMoveBalance(tx *transaction.ApiTransactionResult) *big.Int {
 	minGasLimit := provider.networkConfig.MinGasLimit
+	extraGasLimitGuardedTx := provider.networkConfig.ExtraGasLimitGuardedTx
 	gasPerDataByte := provider.networkConfig.GasPerDataByte
 	gasLimit := minGasLimit + gasPerDataByte*uint64(len(tx.Data))
+
+	isGuarded := len(tx.GuardianAddr) > 0
+	if isGuarded {
+		gasLimit += extraGasLimitGuardedTx
+	}
 
 	fee := core.SafeMul(gasLimit, tx.GasPrice)
 	return fee
