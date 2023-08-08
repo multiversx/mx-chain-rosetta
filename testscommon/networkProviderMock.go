@@ -62,12 +62,13 @@ func NewNetworkProviderMock() *networkProviderMock {
 		MockGenesisBlockHash:            emptyHash,
 		MockGenesisTimestamp:            genesisTimestamp,
 		MockNetworkConfig: &resources.NetworkConfig{
-			BlockchainName: "MultiversX",
-			NetworkID:      "T",
-			NetworkName:    "testnet",
-			GasPerDataByte: 1500,
-			MinGasPrice:    1000000000,
-			MinGasLimit:    50000,
+			BlockchainName:         "MultiversX",
+			NetworkID:              "T",
+			NetworkName:            "testnet",
+			GasPerDataByte:         1500,
+			MinGasPrice:            1000000000,
+			MinGasLimit:            50000,
+			ExtraGasLimitGuardedTx: 50000,
 		},
 		MockGenesisBalances: make([]*resources.GenesisBalance, 0),
 		MockNodeStatus: &resources.AggregatedNodeStatus{
@@ -296,8 +297,14 @@ func (mock *networkProviderMock) ComputeReceiptHash(_ *transaction.ApiReceipt) (
 // ComputeTransactionFeeForMoveBalance -
 func (mock *networkProviderMock) ComputeTransactionFeeForMoveBalance(tx *transaction.ApiTransactionResult) *big.Int {
 	minGasLimit := mock.MockNetworkConfig.MinGasLimit
+	extraGasLimitGuardedTx := mock.MockNetworkConfig.ExtraGasLimitGuardedTx
 	gasPerDataByte := mock.MockNetworkConfig.GasPerDataByte
 	gasLimit := minGasLimit + gasPerDataByte*uint64(len(tx.Data))
+
+	isGuarded := len(tx.GuardianAddr) > 0
+	if isGuarded {
+		gasLimit += extraGasLimitGuardedTx
+	}
 
 	fee := core.SafeMul(gasLimit, tx.GasPrice)
 	return fee
