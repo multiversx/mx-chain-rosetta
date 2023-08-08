@@ -37,6 +37,7 @@ type ArgsCreateNetworkProvider struct {
 	GasPerDataByte              uint64
 	MinGasPrice                 uint64
 	MinGasLimit                 uint64
+	ExtraGasLimitGuardedTx      uint64
 	NativeCurrencySymbol        string
 	GenesisBlockHash            string
 	GenesisTimestamp            int64
@@ -123,6 +124,7 @@ func CreateNetworkProvider(args ArgsCreateNetworkProvider) (NetworkProvider, err
 		GasPerDataByte:              args.GasPerDataByte,
 		MinGasPrice:                 args.MinGasPrice,
 		MinGasLimit:                 args.MinGasLimit,
+		ExtraGasLimitGuardedTx:      args.ExtraGasLimitGuardedTx,
 		NativeCurrencySymbol:        args.NativeCurrencySymbol,
 		GenesisBlockHash:            args.GenesisBlockHash,
 		GenesisTimestamp:            args.GenesisTimestamp,

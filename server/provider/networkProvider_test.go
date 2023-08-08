@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/multiversx/mx-chain-core-go/data/api"
+	"github.com/multiversx/mx-chain-core-go/data/transaction"
 	"github.com/multiversx/mx-chain-proxy-go/common"
 	"github.com/multiversx/mx-chain-proxy-go/data"
 	"github.com/multiversx/mx-chain-rosetta/testscommon"
@@ -25,6 +26,7 @@ func TestNewNetworkProvider(t *testing.T) {
 		GasPerDataByte:              1501,
 		MinGasPrice:                 1000000001,
 		MinGasLimit:                 50001,
+		ExtraGasLimitGuardedTx:      50001,
 		NativeCurrencySymbol:        "XeGLD",
 		GenesisBlockHash:            "aaaa",
 		GenesisTimestamp:            123456789,
@@ -50,6 +52,7 @@ func TestNewNetworkProvider(t *testing.T) {
 	assert.Equal(t, uint64(1501), provider.GetNetworkConfig().GasPerDataByte)
 	assert.Equal(t, uint64(1000000001), provider.GetNetworkConfig().MinGasPrice)
 	assert.Equal(t, uint64(50001), provider.GetNetworkConfig().MinGasLimit)
+	assert.Equal(t, uint64(50001), provider.GetNetworkConfig().ExtraGasLimitGuardedTx)
 	assert.Equal(t, "XeGLD", provider.GetNativeCurrency().Symbol)
 	assert.Equal(t, "aaaa", provider.GetGenesisBlockSummary().Hash)
 	assert.Equal(t, int64(123456789), provider.GetGenesisTimestamp())
@@ -164,6 +167,51 @@ func TestNetworkProvider_DoGetBlockByNonce(t *testing.T) {
 	})
 }
 
+func Test_ComputeTransactionFeeForMoveBalance(t *testing.T) {
+	args := createDefaultArgsNewNetworkProvider()
+	provider, err := NewNetworkProvider(args)
+	require.Nil(t, err)
+	require.NotNil(t, provider)
+
+	t.Run("without data, not guarded", func(t *testing.T) {
+		fee := provider.ComputeTransactionFeeForMoveBalance(&transaction.ApiTransactionResult{
+			Data:     nil,
+			GasPrice: 1000000000,
+		})
+
+		assert.Equal(t, "50000000000000", fee.String())
+	})
+
+	t.Run("with data, not guarded", func(t *testing.T) {
+		fee := provider.ComputeTransactionFeeForMoveBalance(&transaction.ApiTransactionResult{
+			Data:     []byte("hello"),
+			GasPrice: 1000000000,
+		})
+
+		assert.Equal(t, "57500000000000", fee.String())
+	})
+
+	t.Run("without data, guarded", func(t *testing.T) {
+		fee := provider.ComputeTransactionFeeForMoveBalance(&transaction.ApiTransactionResult{
+			Data:         nil,
+			GasPrice:     1000000000,
+			GuardianAddr: "erd1qyu5wthldzr8wx5c9ucg8kjagg0jfs53s8nr3zpz3hypefsdd8ssycr6th",
+		})
+
+		assert.Equal(t, "100000000000000", fee.String())
+	})
+
+	t.Run("with data, guarded", func(t *testing.T) {
+		fee := provider.ComputeTransactionFeeForMoveBalance(&transaction.ApiTransactionResult{
+			Data:         []byte("world"),
+			GasPrice:     1000000000,
+			GuardianAddr: "erd1qyu5wthldzr8wx5c9ucg8kjagg0jfs53s8nr3zpz3hypefsdd8ssycr6th",
+		})
+
+		assert.Equal(t, "107500000000000", fee.String())
+	})
+}
+
 func createDefaultArgsNewNetworkProvider() ArgsNewNetworkProvider {
 	return ArgsNewNetworkProvider{
 		IsOffline:                   false,
@@ -175,6 +223,7 @@ func createDefaultArgsNewNetworkProvider() ArgsNewNetworkProvider {
 		GasPerDataByte:              1500,
 		MinGasPrice:                 1000000000,
 		MinGasLimit:                 50000,
+		ExtraGasLimitGuardedTx:      50000,
 		NativeCurrencySymbol:        "XeGLD",
 		GenesisBlockHash:            strings.Repeat("0", 64),
 		GenesisTimestamp:            123456789,
