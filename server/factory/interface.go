@@ -25,6 +25,7 @@ type NetworkProvider interface {
 	GetAccountNativeBalance(address string, options resources.AccountQueryOptions) (*resources.AccountOnBlock, error)
 	GetAccountESDTBalance(address string, tokenIdentifier string, options resources.AccountQueryOptions) (*resources.AccountESDTBalance, error)
 	IsAddressObserved(address string) (bool, error)
+	ComputeShardIdOfPubKey(pubkey []byte) uint32
 	ConvertPubKeyToAddress(pubkey []byte) string
 	ConvertAddressToPubKey(address string) ([]byte, error)
 	SendTransaction(tx *data.Transaction) (string, error)

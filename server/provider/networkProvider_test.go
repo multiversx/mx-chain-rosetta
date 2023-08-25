@@ -1,6 +1,7 @@
 package provider
 
 import (
+	"encoding/hex"
 	"errors"
 	"strings"
 	"testing"
@@ -165,6 +166,22 @@ func TestNetworkProvider_DoGetBlockByNonce(t *testing.T) {
 		require.False(t, &block == &cachedBlock)
 		require.Equal(t, 1, provider.blocksCache.Len())
 	})
+}
+
+func Test_ComputeShardIdOfPubKey(t *testing.T) {
+	args := createDefaultArgsNewNetworkProvider()
+	provider, err := NewNetworkProvider(args)
+	require.Nil(t, err)
+	require.NotNil(t, provider)
+
+	pubKey, _ := hex.DecodeString("8049d639e5a6980d1cd2392abcce41029cda74a1563523a202f09641cc2618f8")
+	require.Equal(t, uint32(0), provider.ComputeShardIdOfPubKey(pubKey))
+
+	pubKey, _ = hex.DecodeString("0139472eff6886771a982f3083da5d421f24c29181e63888228dc81ca60d69e1")
+	require.Equal(t, uint32(1), provider.ComputeShardIdOfPubKey(pubKey))
+
+	pubKey, _ = hex.DecodeString("b2a11555ce521e4944e09ab17549d85b487dcd26c84b5017a39e31a3670889ba")
+	require.Equal(t, uint32(2), provider.ComputeShardIdOfPubKey(pubKey))
 }
 
 func Test_ComputeTransactionFeeForMoveBalance(t *testing.T) {

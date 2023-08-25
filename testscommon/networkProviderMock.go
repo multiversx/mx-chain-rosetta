@@ -244,18 +244,12 @@ func (mock *networkProviderMock) IsAddressObserved(address string) (bool, error)
 		return false, mock.MockNextError
 	}
 
-	shardCoordinator, err := sharding.NewMultiShardCoordinator(mock.MockNumShards, mock.MockObservedActualShard)
-	if err != nil {
-		return false, err
-	}
-
 	pubKey, err := mock.ConvertAddressToPubKey(address)
 	if err != nil {
 		return false, err
 	}
 
-	shard := shardCoordinator.ComputeId(pubKey)
-
+	shard := mock.ComputeShardIdOfPubKey(pubKey)
 	isObservedActualShard := shard == mock.MockObservedActualShard
 	isObservedProjectedShard := pubKey[len(pubKey)-1] == byte(mock.MockObservedProjectedShard)
 
@@ -264,6 +258,17 @@ func (mock *networkProviderMock) IsAddressObserved(address string) (bool, error)
 	}
 
 	return isObservedActualShard, nil
+}
+
+// ComputeShardIdOfPubKey -
+func (mock *networkProviderMock) ComputeShardIdOfPubKey(pubKey []byte) uint32 {
+	shardCoordinator, err := sharding.NewMultiShardCoordinator(mock.MockNumShards, mock.MockObservedActualShard)
+	if err != nil {
+		return 0
+	}
+
+	shard := shardCoordinator.ComputeId(pubKey)
+	return shard
 }
 
 // ConvertPubKeyToAddress -

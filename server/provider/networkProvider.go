@@ -305,11 +305,7 @@ func (provider *networkProvider) IsAddressObserved(address string) (bool, error)
 		return false, err
 	}
 
-	shard, err := provider.observerFacade.ComputeShardId(pubKey)
-	if err != nil {
-		return false, err
-	}
-
+	shard := provider.observerFacade.ComputeShardId(pubKey)
 	isObservedActualShard := shard == provider.observedActualShard
 	isObservedProjectedShard := pubKey[len(pubKey)-1] == byte(provider.observedProjectedShard)
 
@@ -318,6 +314,12 @@ func (provider *networkProvider) IsAddressObserved(address string) (bool, error)
 	}
 
 	return isObservedActualShard, nil
+}
+
+// ComputeShardIdOfPubKey computes the shard ID of a public key
+func (provider *networkProvider) ComputeShardIdOfPubKey(pubKey []byte) uint32 {
+	shard := provider.observerFacade.ComputeShardId(pubKey)
+	return shard
 }
 
 // ConvertPubKeyToAddress converts a public key to an address
