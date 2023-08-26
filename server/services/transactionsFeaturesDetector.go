@@ -7,17 +7,19 @@ import (
 )
 
 type transactionsFeaturesDetector struct {
+	networkProvider  NetworkProvider
 	eventsController *transactionEventsController
 }
 
 func newTransactionsFeaturesDetector(provider NetworkProvider) *transactionsFeaturesDetector {
 	return &transactionsFeaturesDetector{
+		networkProvider:  provider,
 		eventsController: newTransactionEventsController(provider),
 	}
 }
 
 // Example SCRs can be found here: https://api.multiversx.com/transactions?function=ClaimDeveloperRewards
-func (extractor *transactionsFeaturesDetector) doesContractResultHoldRewardsOfClaimDeveloperRewards(
+func (detector *transactionsFeaturesDetector) doesContractResultHoldRewardsOfClaimDeveloperRewards(
 	contractResult *transaction.ApiTransactionResult,
 	allTransactionsInBlock []*transaction.ApiTransactionResult,
 ) bool {
@@ -44,7 +46,7 @@ func (extractor *transactionsFeaturesDetector) doesContractResultHoldRewardsOfCl
 // that only consume the "data movement" component of the gas:
 // - "sending value to non-payable contract"
 // - "meta transaction is invalid"
-func (extractor *transactionsFeaturesDetector) isInvalidTransactionOfTypeMoveBalanceThatOnlyConsumesDataMovementGas(tx *transaction.ApiTransactionResult) bool {
+func (detector *transactionsFeaturesDetector) isInvalidTransactionOfTypeMoveBalanceThatOnlyConsumesDataMovementGas(tx *transaction.ApiTransactionResult) bool {
 	isInvalid := tx.Type == string(transaction.TxTypeInvalid)
 	isMoveBalance := tx.ProcessingTypeOnSource == transactionProcessingTypeMoveBalance && tx.ProcessingTypeOnDestination == transactionProcessingTypeMoveBalance
 
@@ -53,7 +55,7 @@ func (extractor *transactionsFeaturesDetector) isInvalidTransactionOfTypeMoveBal
 	}
 
 	// TODO: Analyze whether we can simplify the conditions below, or possibly discard them completely / replace them with simpler ones.
-	withSendingValueToNonPayableContract := extractor.eventsController.hasSignalErrorOfSendingValueToNonPayableContract(tx)
-	withMetaTransactionIsInvalid := extractor.eventsController.hasSignalErrorOfMetaTransactionIsInvalid(tx)
+	withSendingValueToNonPayableContract := detector.eventsController.hasSignalErrorOfSendingValueToNonPayableContract(tx)
+	withMetaTransactionIsInvalid := detector.eventsController.hasSignalErrorOfMetaTransactionIsInvalid(tx)
 	return withSendingValueToNonPayableContract || withMetaTransactionIsInvalid
 }
