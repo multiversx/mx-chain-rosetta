@@ -40,10 +40,7 @@ func filterOutIntrashardRelayedTransactionAlreadyHeldInInvalidMiniblock(txs []*t
 	}
 
 	for _, tx := range txs {
-		isRelayedTransaction := (tx.Type == string(transaction.TxTypeNormal)) &&
-			(tx.ProcessingTypeOnSource == transactionProcessingTypeRelayed) &&
-			(tx.ProcessingTypeOnDestination == transactionProcessingTypeRelayed)
-
+		isRelayedTransaction := isRelayedV1Transaction(tx)
 		_, alreadyHeldInInvalidMiniblock := invalidTxs[tx.Hash]
 
 		if isRelayedTransaction && alreadyHeldInInvalidMiniblock {
