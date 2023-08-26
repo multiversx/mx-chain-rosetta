@@ -84,10 +84,14 @@ func (transformer *transactionsTransformer) transformTxsFromBlock(block *api.Blo
 
 func (transformer *transactionsTransformer) txToRosettaTx(tx *transaction.ApiTransactionResult, txsInBlock []*transaction.ApiTransactionResult) (*types.Transaction, error) {
 	var rosettaTx *types.Transaction
+	var err error
 
 	switch tx.Type {
 	case string(transaction.TxTypeNormal):
-		rosettaTx = transformer.moveBalanceTxToRosetta(tx)
+		rosettaTx, err = transformer.normalTxToRosetta(tx)
+		if err != nil {
+			return nil, err
+		}
 	case string(transaction.TxTypeReward):
 		rosettaTx = transformer.rewardTxToRosettaTx(tx)
 	case string(transaction.TxTypeUnsigned):
@@ -98,7 +102,7 @@ func (transformer *transactionsTransformer) txToRosettaTx(tx *transaction.ApiTra
 		return nil, fmt.Errorf("unknown transaction type: %s", tx.Type)
 	}
 
-	err := transformer.addOperationsGivenTransactionEvents(tx, rosettaTx)
+	err = transformer.addOperationsGivenTransactionEvents(tx, rosettaTx)
 	if err != nil {
 		return nil, err
 	}
@@ -167,7 +171,7 @@ func (transformer *transactionsTransformer) rewardTxToRosettaTx(tx *transaction.
 	}
 }
 
-func (transformer *transactionsTransformer) moveBalanceTxToRosetta(tx *transaction.ApiTransactionResult) *types.Transaction {
+func (transformer *transactionsTransformer) normalTxToRosetta(tx *transaction.ApiTransactionResult) (*types.Transaction, error) {
 	hasValue := tx.Value != "0"
 	operations := make([]*types.Operation, 0)
 
@@ -195,7 +199,7 @@ func (transformer *transactionsTransformer) moveBalanceTxToRosetta(tx *transacti
 		TransactionIdentifier: hashToTransactionIdentifier(tx.Hash),
 		Operations:            operations,
 		Metadata:              extractTransactionMetadata(tx),
-	}
+	}, nil
 }
 
 func (transformer *transactionsTransformer) refundReceiptToRosettaTx(receipt *transaction.ApiReceipt) (*types.Transaction, error) {
