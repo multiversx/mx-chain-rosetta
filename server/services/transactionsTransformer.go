@@ -172,7 +172,7 @@ func (transformer *transactionsTransformer) rewardTxToRosettaTx(tx *transaction.
 }
 
 func (transformer *transactionsTransformer) normalTxToRosetta(tx *transaction.ApiTransactionResult) (*types.Transaction, error) {
-	hasValue := tx.Value != "0"
+	hasValue := !isZeroAmount(tx.Value)
 	operations := make([]*types.Operation, 0)
 
 	if hasValue {
@@ -218,6 +218,10 @@ func (transformer *transactionsTransformer) extractInnerTxOperationsIfRelayedCom
 	innerTx, err := parseInnerTxOfRelayedV1(tx)
 	if err != nil {
 		return nil, err
+	}
+
+	if isZeroBigInt(&innerTx.Value) {
+		return nil, nil
 	}
 
 	if !transformer.featuresDetector.isRelayedTransactionCompletelyIntrashardWithSignalError(tx, innerTx) {
