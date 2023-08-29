@@ -1,10 +1,10 @@
 package services
 
 import (
-	"encoding/hex"
 	"testing"
 
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
+	"github.com/multiversx/mx-chain-rosetta/testscommon"
 	"github.com/stretchr/testify/require"
 )
 
@@ -44,7 +44,7 @@ func Test_ParseInnerTxOfRelayedV1(t *testing.T) {
 
 		require.Equal(t, uint64(7), innerTx.Nonce)
 		require.Equal(t, "1000000000000000000", innerTx.Value.String())
-		require.Equal(t, "0139472eff6886771a982f3083da5d421f24c29181e63888228dc81ca60d69e1", hex.EncodeToString(innerTx.SenderPubKey))
-		require.Equal(t, "8049d639e5a6980d1cd2392abcce41029cda74a1563523a202f09641cc2618f8", hex.EncodeToString(innerTx.ReceiverPubKey))
+		require.Equal(t, testscommon.TestPubKeyAlice, innerTx.SenderPubKey)
+		require.Equal(t, testscommon.TestPubKeyBob, innerTx.ReceiverPubKey)
 	})
 }

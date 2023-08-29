@@ -195,10 +195,43 @@ func (transformer *transactionsTransformer) normalTxToRosetta(tx *transaction.Ap
 		Amount:  transformer.extension.valueToNativeAmount("-" + tx.InitiallyPaidFee),
 	})
 
+	innerTxOperationsIfRelayedCompletelyIntrashardWithSignalError, err := transformer.extractInnerTxOperationsIfRelayedCompletelyIntrashardWithSignalError(tx)
+	if err != nil {
+		return nil, err
+	}
+
+	operations = append(operations, innerTxOperationsIfRelayedCompletelyIntrashardWithSignalError...)
+
 	return &types.Transaction{
 		TransactionIdentifier: hashToTransactionIdentifier(tx.Hash),
 		Operations:            operations,
 		Metadata:              extractTransactionMetadata(tx),
+	}, nil
+}
+
+func (transformer *transactionsTransformer) extractInnerTxOperationsIfRelayedCompletelyIntrashardWithSignalError(tx *transaction.ApiTransactionResult) ([]*types.Operation, error) {
+	isRelayedTransaction := isRelayedV1Transaction(tx)
+	if !isRelayedTransaction {
+		return nil, nil
+	}
+
+	innerTx, err := parseInnerTxOfRelayedV1(tx)
+	if err != nil {
+		return nil, err
+	}
+
+	if !transformer.featuresDetector.isRelayedTransactionCompletelyIntrashardWithSignalError(tx, innerTx) {
+		return nil, nil
+	}
+
+	senderAddress := transformer.provider.ConvertPubKeyToAddress(innerTx.SenderPubKey)
+
+	return []*types.Operation{
+		{
+			Type:    opTransfer,
+			Account: addressToAccountIdentifier(senderAddress),
+			Amount:  transformer.extension.valueToNativeAmount("-" + innerTx.Value.String()),
+		},
 	}, nil
 }
 
