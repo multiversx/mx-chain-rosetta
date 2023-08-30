@@ -50,7 +50,7 @@ func isZeroAmount(amount string) bool {
 	return false
 }
 
-func isZeroBigInt(value *big.Int) bool {
+func isZeroBigIntOrNil(value *big.Int) bool {
 	if value == nil {
 		return true
 	}

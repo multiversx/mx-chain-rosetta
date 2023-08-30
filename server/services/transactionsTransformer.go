@@ -220,7 +220,7 @@ func (transformer *transactionsTransformer) extractInnerTxOperationsIfRelayedCom
 		return nil, err
 	}
 
-	if isZeroBigInt(&innerTx.Value) {
+	if isZeroBigIntOrNil(&innerTx.Value) {
 		return nil, nil
 	}
 
