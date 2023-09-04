@@ -3,6 +3,8 @@ package services
 import (
 	"encoding/hex"
 	"strings"
+
+	"github.com/multiversx/mx-chain-core-go/core"
 )
 
 var (
@@ -10,7 +12,7 @@ var (
 	transactionProcessingTypeRelayed             = "RelayedTx"
 	transactionProcessingTypeBuiltInFunctionCall = "BuiltInFunctionCall"
 	transactionProcessingTypeMoveBalance         = "MoveBalance"
-	builtInFunctionClaimDeveloperRewards         = "ClaimDeveloperRewards"
+	builtInFunctionClaimDeveloperRewards         = core.BuiltInFunctionClaimDeveloperRewards
 	refundGasMessage                             = "refundedGas"
 	argumentsSeparator                           = "@"
 	sendingValueToNonPayableContractDataPrefix   = argumentsSeparator + hex.EncodeToString([]byte("sending value to non payable contract"))
@@ -19,7 +21,7 @@ var (
 )
 
 var (
-	transactionEventSignalError                             = "signalError"
+	transactionEventSignalError                             = core.SignalErrorOperation
 	transactionEventTransferValueOnly                       = "transferValueOnly"
 	transactionEventTopicInvalidMetaTransaction             = "meta transaction is invalid"
 	transactionEventTopicInvalidMetaTransactionNotEnoughGas = "meta transaction is invalid: not enough gas"
