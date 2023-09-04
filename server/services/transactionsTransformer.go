@@ -212,20 +212,20 @@ func (transformer *transactionsTransformer) normalTxToRosetta(tx *transaction.Ap
 func (transformer *transactionsTransformer) extractInnerTxOperationsIfRelayedCompletelyIntrashardWithSignalError(tx *transaction.ApiTransactionResult) ([]*types.Operation, error) {
 	isRelayedTransaction := isRelayedV1Transaction(tx)
 	if !isRelayedTransaction {
-		return nil, nil
+		return []*types.Operation{}, nil
 	}
 
 	innerTx, err := parseInnerTxOfRelayedV1(tx)
 	if err != nil {
-		return nil, err
+		return []*types.Operation{}, err
 	}
 
 	if isZeroBigIntOrNil(&innerTx.Value) {
-		return nil, nil
+		return []*types.Operation{}, nil
 	}
 
 	if !transformer.featuresDetector.isRelayedTransactionCompletelyIntrashardWithSignalError(tx, innerTx) {
-		return nil, nil
+		return []*types.Operation{}, nil
 	}
 
 	senderAddress := transformer.provider.ConvertPubKeyToAddress(innerTx.SenderPubKey)

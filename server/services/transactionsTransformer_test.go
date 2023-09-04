@@ -120,7 +120,7 @@ func TestTransactionsTransformer_ExtractInnerTxOperationsIfRelayedCompletelyIntr
 
 		operations, err := transformer.extractInnerTxOperationsIfRelayedCompletelyIntrashardWithSignalError(tx)
 		require.ErrorIs(t, err, errCannotParseRelayedV1)
-		require.Nil(t, operations)
+		require.Empty(t, operations)
 	})
 
 	t.Run("relayed tx, completely intrashard, with signal error, inner tx has non-zero value", func(t *testing.T) {
