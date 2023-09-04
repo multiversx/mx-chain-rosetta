@@ -42,6 +42,13 @@ func Test_IsZeroAmount(t *testing.T) {
 	require.False(t, isZeroAmount("-1"))
 }
 
+func Test_IsZeroBigInt(t *testing.T) {
+	require.True(t, isZeroBigIntOrNil(big.NewInt(0)))
+	require.True(t, isZeroBigIntOrNil(nil))
+	require.False(t, isZeroBigIntOrNil(big.NewInt(42)))
+	require.False(t, isZeroBigIntOrNil(big.NewInt(-42)))
+}
+
 func Test_GetMagnitudeOfAmount(t *testing.T) {
 	require.Equal(t, "100", getMagnitudeOfAmount("100"))
 	require.Equal(t, "100", getMagnitudeOfAmount("-100"))

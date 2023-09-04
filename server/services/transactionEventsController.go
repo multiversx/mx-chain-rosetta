@@ -58,6 +58,21 @@ func (controller *transactionEventsController) extractEventTransferValueOnly(tx 
 	}, nil
 }
 
+func (controller *transactionEventsController) hasAnySignalError(tx *transaction.ApiTransactionResult) bool {
+	if !controller.hasEvents(tx) {
+		return false
+	}
+
+	for _, event := range tx.Logs.Events {
+		isSignalError := event.Identifier == transactionEventSignalError
+		if isSignalError {
+			return true
+		}
+	}
+
+	return false
+}
+
 func (controller *transactionEventsController) hasSignalErrorOfSendingValueToNonPayableContract(tx *transaction.ApiTransactionResult) bool {
 	if !controller.hasEvents(tx) {
 		return false
