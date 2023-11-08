@@ -70,6 +70,7 @@ func startRosetta(ctx *cli.Context) error {
 		GasLimitCustomTransfer:      cliFlags.gasLimitCustomTransfer,
 		MinGasPrice:                 cliFlags.minGasPrice,
 		MinGasLimit:                 cliFlags.minGasLimit,
+		ExtraGasLimitGuardedTx:      cliFlags.extraGasLimitGuardedTx,
 		NativeCurrencySymbol:        cliFlags.nativeCurrencySymbol,
 		CustomCurrenciesSymbols:     cliFlags.customCurrenciesSymbols,
 		GenesisBlockHash:            cliFlags.genesisBlock,

@@ -3,6 +3,8 @@ package services
 import (
 	"encoding/hex"
 	"strings"
+
+	"github.com/multiversx/mx-chain-core-go/core"
 )
 
 var (
@@ -11,16 +13,17 @@ var (
 	transactionProcessingTypeBuiltInFunctionCall = "BuiltInFunctionCall"
 	transactionProcessingTypeMoveBalance         = "MoveBalance"
 	amountZero                                   = "0"
-	builtInFunctionClaimDeveloperRewards         = "ClaimDeveloperRewards"
-	builtInFunctionESDTTransfer                  = "ESDTTransfer"
+	builtInFunctionClaimDeveloperRewards         = core.BuiltInFunctionClaimDeveloperRewards
+	builtInFunctionESDTTransfer                  = core.BuiltInFunctionESDTTransfer
 	refundGasMessage                             = "refundedGas"
-	sendingValueToNonPayableContractDataPrefix   = "@" + hex.EncodeToString([]byte("sending value to non payable contract"))
+	argumentsSeparator                           = "@"
+	sendingValueToNonPayableContractDataPrefix   = argumentsSeparator + hex.EncodeToString([]byte("sending value to non payable contract"))
 	emptyHash                                    = strings.Repeat("0", 64)
 	nodeVersionForOfflineRosetta                 = "N / A"
 )
 
 var (
-	transactionEventSignalError                             = "signalError"
+	transactionEventSignalError                             = core.SignalErrorOperation
 	transactionEventESDTTransfer                            = "ESDTTransfer"
 	transactionEventESDTNFTTransfer                         = "ESDTNFTTransfer"
 	transactionEventMultiESDTNFTTransfer                    = "MultiESDTNFTTransfer"

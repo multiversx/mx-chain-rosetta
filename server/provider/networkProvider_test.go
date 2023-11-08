@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/multiversx/mx-chain-core-go/data/api"
+	"github.com/multiversx/mx-chain-core-go/data/transaction"
 	"github.com/multiversx/mx-chain-proxy-go/common"
 	"github.com/multiversx/mx-chain-proxy-go/data"
 	"github.com/multiversx/mx-chain-rosetta/server/resources"
@@ -28,6 +29,7 @@ func TestNewNetworkProvider(t *testing.T) {
 		GasLimitCustomTransfer:      200000,
 		MinGasPrice:                 1000000001,
 		MinGasLimit:                 50001,
+		ExtraGasLimitGuardedTx:      50001,
 		NativeCurrencySymbol:        "XeGLD",
 		CustomCurrenciesSymbols:     []string{"FOO-abcdef", "BAR-abcdef"},
 		GenesisBlockHash:            "aaaa",
@@ -56,6 +58,7 @@ func TestNewNetworkProvider(t *testing.T) {
 	assert.Equal(t, uint64(200000), provider.GetNetworkConfig().GasLimitCustomTransfer)
 	assert.Equal(t, uint64(1000000001), provider.GetNetworkConfig().MinGasPrice)
 	assert.Equal(t, uint64(50001), provider.GetNetworkConfig().MinGasLimit)
+	assert.Equal(t, uint64(50001), provider.GetNetworkConfig().ExtraGasLimitGuardedTx)
 	assert.Equal(t, "XeGLD", provider.GetNativeCurrency().Symbol)
 	assert.Equal(t, []resources.Currency{{Symbol: "FOO-abcdef"}, {Symbol: "BAR-abcdef"}}, provider.GetCustomCurrencies())
 	assert.Equal(t, "aaaa", provider.GetGenesisBlockSummary().Hash)
@@ -171,6 +174,62 @@ func TestNetworkProvider_DoGetBlockByNonce(t *testing.T) {
 	})
 }
 
+func Test_ComputeShardIdOfPubKey(t *testing.T) {
+	args := createDefaultArgsNewNetworkProvider()
+	provider, err := NewNetworkProvider(args)
+	require.Nil(t, err)
+	require.NotNil(t, provider)
+
+	require.Equal(t, uint32(0), provider.ComputeShardIdOfPubKey(testscommon.TestPubKeyBob))
+	require.Equal(t, uint32(1), provider.ComputeShardIdOfPubKey(testscommon.TestPubKeyAlice))
+	require.Equal(t, uint32(2), provider.ComputeShardIdOfPubKey(testscommon.TestPubKeyCarol))
+}
+
+func Test_ComputeTransactionFeeForMoveBalance(t *testing.T) {
+	args := createDefaultArgsNewNetworkProvider()
+	provider, err := NewNetworkProvider(args)
+	require.Nil(t, err)
+	require.NotNil(t, provider)
+
+	t.Run("without data, not guarded", func(t *testing.T) {
+		fee := provider.ComputeTransactionFeeForMoveBalance(&transaction.ApiTransactionResult{
+			Data:     nil,
+			GasPrice: 1000000000,
+		})
+
+		assert.Equal(t, "50000000000000", fee.String())
+	})
+
+	t.Run("with data, not guarded", func(t *testing.T) {
+		fee := provider.ComputeTransactionFeeForMoveBalance(&transaction.ApiTransactionResult{
+			Data:     []byte("hello"),
+			GasPrice: 1000000000,
+		})
+
+		assert.Equal(t, "57500000000000", fee.String())
+	})
+
+	t.Run("without data, guarded", func(t *testing.T) {
+		fee := provider.ComputeTransactionFeeForMoveBalance(&transaction.ApiTransactionResult{
+			Data:         nil,
+			GasPrice:     1000000000,
+			GuardianAddr: "erd1qyu5wthldzr8wx5c9ucg8kjagg0jfs53s8nr3zpz3hypefsdd8ssycr6th",
+		})
+
+		assert.Equal(t, "100000000000000", fee.String())
+	})
+
+	t.Run("with data, guarded", func(t *testing.T) {
+		fee := provider.ComputeTransactionFeeForMoveBalance(&transaction.ApiTransactionResult{
+			Data:         []byte("world"),
+			GasPrice:     1000000000,
+			GuardianAddr: "erd1qyu5wthldzr8wx5c9ucg8kjagg0jfs53s8nr3zpz3hypefsdd8ssycr6th",
+		})
+
+		assert.Equal(t, "107500000000000", fee.String())
+	})
+}
+
 func createDefaultArgsNewNetworkProvider() ArgsNewNetworkProvider {
 	return ArgsNewNetworkProvider{
 		IsOffline:                   false,
@@ -184,6 +243,7 @@ func createDefaultArgsNewNetworkProvider() ArgsNewNetworkProvider {
 		GasLimitCustomTransfer:      200000,
 		MinGasPrice:                 1000000000,
 		MinGasLimit:                 50000,
+		ExtraGasLimitGuardedTx:      50000,
 		NativeCurrencySymbol:        "XeGLD",
 		GenesisBlockHash:            strings.Repeat("0", 64),
 		GenesisTimestamp:            123456789,

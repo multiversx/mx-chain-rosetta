@@ -8,7 +8,7 @@ import (
 
 type observerFacade interface {
 	CallGetRestEndPoint(baseUrl string, path string, value interface{}) (int, error)
-	ComputeShardId(pubKey []byte) (uint32, error)
+	ComputeShardId(pubKey []byte) uint32
 	SendTransaction(tx *data.Transaction) (int, string, error)
 	ComputeTransactionHash(tx *data.Transaction) (string, error)
 	GetTransactionByHashAndSenderAddress(hash string, sender string, withEvents bool) (*transaction.ApiTransactionResult, int, error)

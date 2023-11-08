@@ -11,3 +11,8 @@ type ObserverFacade struct {
 	facade.TransactionProcessor
 	facade.BlockProcessor
 }
+
+// ComputeShardId computes the shard ID for a given public key
+func (facade *ObserverFacade) ComputeShardId(pubKey []byte) uint32 {
+	return facade.GetShardCoordinator().ComputeId(pubKey)
+}

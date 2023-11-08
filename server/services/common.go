@@ -54,6 +54,14 @@ func isNonZeroAmount(amount string) bool {
 	return !isZeroAmount(amount)
 }
 
+func isZeroBigIntOrNil(value *big.Int) bool {
+	if value == nil {
+		return true
+	}
+
+	return value.Sign() == 0
+}
+
 func getMagnitudeOfAmount(amount string) string {
 	return strings.Trim(amount, "-")
 }
