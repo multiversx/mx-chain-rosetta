@@ -8,6 +8,33 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestTransactionEventsController_HasAnySignalError(t *testing.T) {
+	networkProvider := testscommon.NewNetworkProviderMock()
+	controller := newTransactionEventsController(networkProvider)
+
+	t.Run("arbitrary tx", func(t *testing.T) {
+		tx := &transaction.ApiTransactionResult{}
+		txMatches := controller.hasAnySignalError(tx)
+		require.False(t, txMatches)
+	})
+
+	t.Run("tx with event 'signalError'", func(t *testing.T) {
+		tx := &transaction.ApiTransactionResult{
+			Logs: &transaction.ApiLogs{
+
+				Events: []*transaction.Events{
+					{
+						Identifier: transactionEventSignalError,
+					},
+				},
+			},
+		}
+
+		txMatches := controller.hasAnySignalError(tx)
+		require.True(t, txMatches)
+	})
+}
+
 func TestTransactionEventsController_FindManyEventsByIdentifier(t *testing.T) {
 	networkProvider := testscommon.NewNetworkProviderMock()
 	controller := newTransactionEventsController(networkProvider)

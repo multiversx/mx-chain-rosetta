@@ -78,18 +78,14 @@ func (mock *observerFacadeMock) CallGetRestEndPoint(baseUrl string, path string,
 }
 
 // ComputeShardId -
-func (mock *observerFacadeMock) ComputeShardId(pubKey []byte) (uint32, error) {
-	if mock.MockNextError != nil {
-		return 0, mock.MockNextError
-	}
-
+func (mock *observerFacadeMock) ComputeShardId(pubKey []byte) uint32 {
 	shardCoordinator, err := sharding.NewMultiShardCoordinator(mock.MockNumShards, mock.MockSelfShard)
 	if err != nil {
-		return 0, err
+		return 0
 	}
 
 	shard := shardCoordinator.ComputeId(pubKey)
-	return shard, nil
+	return shard
 }
 
 // SendTransaction -
