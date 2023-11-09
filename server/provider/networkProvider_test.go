@@ -174,6 +174,17 @@ func TestNetworkProvider_DoGetBlockByNonce(t *testing.T) {
 	})
 }
 
+func Test_ComputeShardIdOfPubKey(t *testing.T) {
+	args := createDefaultArgsNewNetworkProvider()
+	provider, err := NewNetworkProvider(args)
+	require.Nil(t, err)
+	require.NotNil(t, provider)
+
+	require.Equal(t, uint32(0), provider.ComputeShardIdOfPubKey(testscommon.TestPubKeyBob))
+	require.Equal(t, uint32(1), provider.ComputeShardIdOfPubKey(testscommon.TestPubKeyAlice))
+	require.Equal(t, uint32(2), provider.ComputeShardIdOfPubKey(testscommon.TestPubKeyCarol))
+}
+
 func Test_ComputeTransactionFeeForMoveBalance(t *testing.T) {
 	args := createDefaultArgsNewNetworkProvider()
 	provider, err := NewNetworkProvider(args)
