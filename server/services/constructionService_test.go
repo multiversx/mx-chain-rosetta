@@ -475,6 +475,7 @@ func TestConstructionService_CreateOperationsFromPreparedTx(t *testing.T) {
 		},
 	}
 
-	operations := service.createOperationsFromPreparedTx(preparedTx)
+	operations, err := service.createOperationsFromPreparedTx(preparedTx)
+	require.Nil(t, err)
 	require.Equal(t, expectedOperations, operations)
 }
