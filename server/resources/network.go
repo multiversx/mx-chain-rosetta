@@ -5,9 +5,11 @@ type NetworkConfig struct {
 	BlockchainName         string
 	NetworkID              string
 	NetworkName            string
-	GasPerDataByte         uint64
 	MinGasPrice            uint64
 	MinGasLimit            uint64
+	GasPerDataByte         uint64
+	GasPriceModifier       float64
+	GasLimitCustomTransfer uint64
 	ExtraGasLimitGuardedTx uint64
 }
 

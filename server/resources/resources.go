@@ -20,8 +20,8 @@ type BlockSummary struct {
 	Timestamp         int64
 }
 
-// NativeCurrency is an internal resource
-type NativeCurrency struct {
+// Currency is an internal resource
+type Currency struct {
 	Symbol   string
 	Decimals int32
 }

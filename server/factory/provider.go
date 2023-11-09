@@ -35,10 +35,13 @@ type ArgsCreateNetworkProvider struct {
 	NetworkID                   string
 	NetworkName                 string
 	GasPerDataByte              uint64
+	GasPriceModifier            float64
+	GasLimitCustomTransfer      uint64
 	MinGasPrice                 uint64
 	MinGasLimit                 uint64
 	ExtraGasLimitGuardedTx      uint64
 	NativeCurrencySymbol        string
+	CustomCurrenciesSymbols     []string
 	GenesisBlockHash            string
 	GenesisTimestamp            int64
 	FirstHistoricalEpoch        uint32
@@ -122,10 +125,13 @@ func CreateNetworkProvider(args ArgsCreateNetworkProvider) (NetworkProvider, err
 		NetworkID:                   args.NetworkID,
 		NetworkName:                 args.NetworkName,
 		GasPerDataByte:              args.GasPerDataByte,
+		GasPriceModifier:            args.GasPriceModifier,
+		GasLimitCustomTransfer:      args.GasLimitCustomTransfer,
 		MinGasPrice:                 args.MinGasPrice,
 		MinGasLimit:                 args.MinGasLimit,
 		ExtraGasLimitGuardedTx:      args.ExtraGasLimitGuardedTx,
 		NativeCurrencySymbol:        args.NativeCurrencySymbol,
+		CustomCurrenciesSymbols:     args.CustomCurrenciesSymbols,
 		GenesisBlockHash:            args.GenesisBlockHash,
 		GenesisTimestamp:            args.GenesisTimestamp,
 		FirstHistoricalEpoch:        args.FirstHistoricalEpoch,

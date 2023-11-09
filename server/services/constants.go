@@ -22,7 +22,12 @@ var (
 
 var (
 	transactionEventSignalError                             = core.SignalErrorOperation
-	transactionEventTransferValueOnly                       = "transferValueOnly"
+	transactionEventESDTTransfer                            = "ESDTTransfer"
+	transactionEventESDTNFTTransfer                         = "ESDTNFTTransfer"
+	transactionEventMultiESDTNFTTransfer                    = "MultiESDTNFTTransfer"
+	transactionEventESDTLocalBurn                           = "ESDTLocalBurn"
+	transactionEventESDTLocalMint                           = "ESDTLocalMint"
+	transactionEventESDTWipe                                = "ESDTWipe"
 	transactionEventTopicInvalidMetaTransaction             = "meta transaction is invalid"
 	transactionEventTopicInvalidMetaTransactionNotEnoughGas = "meta transaction is invalid: not enough gas"
 )

@@ -35,6 +35,52 @@ func TestTransactionEventsController_HasAnySignalError(t *testing.T) {
 	})
 }
 
+func TestTransactionEventsController_FindManyEventsByIdentifier(t *testing.T) {
+	networkProvider := testscommon.NewNetworkProviderMock()
+	controller := newTransactionEventsController(networkProvider)
+
+	t.Run("no matching events", func(t *testing.T) {
+		tx := &transaction.ApiTransactionResult{
+			Logs: &transaction.ApiLogs{
+				Events: []*transaction.Events{
+					{
+						Identifier: "a",
+					},
+				},
+			},
+		}
+
+		events := controller.findManyEventsByIdentifier(tx, "b")
+		require.Len(t, events, 0)
+	})
+
+	t.Run("more than one matching event", func(t *testing.T) {
+		tx := &transaction.ApiTransactionResult{
+			Logs: &transaction.ApiLogs{
+				Events: []*transaction.Events{
+					{
+						Identifier: "a",
+						Data:       []byte("1"),
+					},
+					{
+						Identifier: "a",
+						Data:       []byte("2"),
+					},
+					{
+						Identifier: "b",
+						Data:       []byte("3"),
+					},
+				},
+			},
+		}
+
+		events := controller.findManyEventsByIdentifier(tx, "a")
+		require.Len(t, events, 2)
+		require.Equal(t, []byte("1"), events[0].Data)
+		require.Equal(t, []byte("2"), events[1].Data)
+	})
+}
+
 func TestTransactionEventsController_HasSignalErrorOfSendingValueToNonPayableContract(t *testing.T) {
 	networkProvider := testscommon.NewNetworkProviderMock()
 	controller := newTransactionEventsController(networkProvider)
@@ -110,18 +156,6 @@ func TestTransactionEventsController_HasSignalErrorOfMetaTransactionIsInvalid(t 
 		txMatches := controller.hasSignalErrorOfMetaTransactionIsInvalid(tx)
 		require.True(t, txMatches)
 	})
-}
-
-func Test(t *testing.T) {
-	event := transaction.Events{
-		Identifier: transactionEventSignalError,
-		Topics: [][]byte{
-			[]byte("foo"),
-		},
-	}
-
-	require.True(t, eventHasTopic(&event, "foo"))
-	require.False(t, eventHasTopic(&event, "bar"))
 }
 
 func TestEventHasTopic(t *testing.T) {
