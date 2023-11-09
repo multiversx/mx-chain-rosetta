@@ -361,6 +361,11 @@ func (transformer *transactionsTransformer) mempoolMoveBalanceTxToRosettaTx(tx *
 }
 
 func (transformer *transactionsTransformer) addOperationsGivenTransactionEvents(tx *transaction.ApiTransactionResult, rosettaTx *types.Transaction) error {
+	eventsTransferValueOnly, err := transformer.eventsController.extractEventTransferValueOnly(tx)
+	if err != nil {
+		return err
+	}
+
 	eventsESDTTransfer, err := transformer.eventsController.extractEventsESDTOrESDTNFTTransfers(tx)
 	if err != nil {
 		return err

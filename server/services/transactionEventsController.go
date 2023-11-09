@@ -18,6 +18,37 @@ func newTransactionEventsController(provider NetworkProvider) *transactionEvents
 	}
 }
 
+func (controller *transactionEventsController) extractEventTransferValueOnly(tx *transaction.ApiTransactionResult) ([]*eventTransferValueOnly, error) {
+	rawEvents := controller.findManyEventsByIdentifier(tx, transactionEventTransferValueOnly)
+
+	typedEvents := make([]*eventTransferValueOnly, 0)
+
+	for _, event := range rawEvents {
+		numTopics := len(event.Topics)
+		if numTopics != 3 {
+			return nil, fmt.Errorf("%w: bad number of topics for 'transferValueOnly' = %d", errCannotRecognizeEvent, numTopics)
+		}
+
+		senderPubKey := event.Topics[0]
+		receiverPubKey := event.Topics[1]
+		valueBytes := event.Topics[2]
+
+		sender := controller.provider.ConvertPubKeyToAddress(senderPubKey)
+		receiver := controller.provider.ConvertPubKeyToAddress(receiverPubKey)
+		value := big.NewInt(0).SetBytes(valueBytes)
+
+		typedEvents = append(typedEvents, &eventTransferValueOnly{
+			sender:         sender,
+			senderPubKey:   senderPubKey,
+			receiver:       receiver,
+			receiverPubKey: receiverPubKey,
+			value:          value.String(),
+		})
+	}
+
+	return typedEvents, nil
+}
+
 func (controller *transactionEventsController) hasAnySignalError(tx *transaction.ApiTransactionResult) bool {
 	if !controller.hasEvents(tx) {
 		return false

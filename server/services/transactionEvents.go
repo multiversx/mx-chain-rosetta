@@ -4,6 +4,14 @@ import (
 	"fmt"
 )
 
+type eventTransferValueOnly struct {
+	sender         string
+	senderPubKey   []byte
+	receiver       string
+	receiverPubKey []byte
+	value          string
+}
+
 type eventESDT struct {
 	senderAddress   string
 	receiverAddress string

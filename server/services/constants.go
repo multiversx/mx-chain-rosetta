@@ -25,6 +25,7 @@ var (
 
 var (
 	transactionEventSignalError                             = core.SignalErrorOperation
+	transactionEventTransferValueOnly                       = "transferValueOnly"
 	transactionEventESDTTransfer                            = "ESDTTransfer"
 	transactionEventESDTNFTTransfer                         = "ESDTNFTTransfer"
 	transactionEventMultiESDTNFTTransfer                    = "MultiESDTNFTTransfer"
