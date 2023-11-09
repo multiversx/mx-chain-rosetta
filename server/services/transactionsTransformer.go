@@ -88,7 +88,7 @@ func (transformer *transactionsTransformer) txToRosettaTx(tx *transaction.ApiTra
 
 	switch tx.Type {
 	case string(transaction.TxTypeNormal):
-		rosettaTx, err = transformer.normalTxToRosetta(tx)
+		rosettaTx, err = transformer.normalTxToRosetta(tx, txsInBlock)
 		if err != nil {
 			return nil, err
 		}
@@ -115,6 +115,15 @@ func (transformer *transactionsTransformer) unsignedTxToRosettaTx(
 	txsInBlock []*transaction.ApiTransactionResult,
 ) *types.Transaction {
 	if scr.IsRefund {
+		if scr.Sender == scr.Receiver && !transformer.extension.isUserAddress(scr.Sender) {
+			log.Info("unsignedTxToRosettaTx: dismissed refund", "hash", scr.Hash, "originalTxHash", scr.OriginalTransactionHash)
+
+			return &types.Transaction{
+				TransactionIdentifier: hashToTransactionIdentifier(scr.Hash),
+				Operations:            []*types.Operation{},
+			}
+		}
+
 		return &types.Transaction{
 			TransactionIdentifier: hashToTransactionIdentifier(scr.Hash),
 			Operations: []*types.Operation{
@@ -171,7 +180,10 @@ func (transformer *transactionsTransformer) rewardTxToRosettaTx(tx *transaction.
 	}
 }
 
-func (transformer *transactionsTransformer) normalTxToRosetta(tx *transaction.ApiTransactionResult) (*types.Transaction, error) {
+func (transformer *transactionsTransformer) normalTxToRosetta(
+	tx *transaction.ApiTransactionResult,
+	allTransactionsInBlock []*transaction.ApiTransactionResult,
+) (*types.Transaction, error) {
 	hasValue := !isZeroAmount(tx.Value)
 	operations := make([]*types.Operation, 0)
 
@@ -200,7 +212,13 @@ func (transformer *transactionsTransformer) normalTxToRosetta(tx *transaction.Ap
 		return nil, err
 	}
 
+	valueRefundOperationIfContractCallWithSignalError, err := transformer.createValueReturnOperationsIfIntrashardContractCallWithSignalError(tx, allTransactionsInBlock)
+	if err != nil {
+		return nil, err
+	}
+
 	operations = append(operations, innerTxOperationsIfRelayedCompletelyIntrashardWithSignalError...)
+	operations = append(operations, valueRefundOperationIfContractCallWithSignalError...)
 
 	return &types.Transaction{
 		TransactionIdentifier: hashToTransactionIdentifier(tx.Hash),
@@ -235,6 +253,28 @@ func (transformer *transactionsTransformer) extractInnerTxOperationsIfRelayedCom
 			Type:    opTransfer,
 			Account: addressToAccountIdentifier(senderAddress),
 			Amount:  transformer.extension.valueToNativeAmount("-" + innerTx.Value.String()),
+		},
+	}, nil
+}
+
+func (transformer *transactionsTransformer) createValueReturnOperationsIfIntrashardContractCallWithSignalError(
+	tx *transaction.ApiTransactionResult,
+	allTransactionsInBlock []*transaction.ApiTransactionResult,
+) ([]*types.Operation, error) {
+	if !transformer.featuresDetector.isIntrashardContractCallWithSignalErrorButWithoutContractResultBearingRefundValue(tx, allTransactionsInBlock) {
+		return []*types.Operation{}, nil
+	}
+
+	return []*types.Operation{
+		{
+			Type:    opTransfer,
+			Account: addressToAccountIdentifier(tx.Sender),
+			Amount:  transformer.extension.valueToNativeAmount(tx.Value),
+		},
+		{
+			Type:    opTransfer,
+			Account: addressToAccountIdentifier(tx.Receiver),
+			Amount:  transformer.extension.valueToNativeAmount("-" + tx.Value),
 		},
 	}, nil
 }

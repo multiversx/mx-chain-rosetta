@@ -12,6 +12,7 @@ var (
 	transactionProcessingTypeRelayed             = "RelayedTx"
 	transactionProcessingTypeBuiltInFunctionCall = "BuiltInFunctionCall"
 	transactionProcessingTypeMoveBalance         = "MoveBalance"
+	transactionProcessingTypeContractInvoking    = "SCInvoking"
 	amountZero                                   = "0"
 	builtInFunctionClaimDeveloperRewards         = core.BuiltInFunctionClaimDeveloperRewards
 	builtInFunctionESDTTransfer                  = core.BuiltInFunctionESDTTransfer

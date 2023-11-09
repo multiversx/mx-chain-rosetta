@@ -67,8 +67,7 @@ func (extension *networkProviderExtension) isAddressObserved(address string) (bo
 		return false, err
 	}
 
-	isUserAddress := extension.isUserAddress(address)
-	return belongsToObservedShard && isUserAddress, nil
+	return belongsToObservedShard, nil
 }
 
 func (extension *networkProviderExtension) isUserAddress(address string) bool {
