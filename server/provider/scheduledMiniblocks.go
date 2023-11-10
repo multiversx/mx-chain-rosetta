@@ -17,15 +17,26 @@ func (provider *networkProvider) simplifyBlockWithScheduledTransactions(block *a
 		return err
 	}
 
+	reportScheduledMiniblock(block)
 	doSimplifyBlockWithScheduledTransactions(previousBlock, block, nextBlock)
 	deduplicatePreviouslyAppearingContractResultsInReceipts(previousBlock, block)
 
 	return nil
 }
 
+func reportScheduledMiniblock(block *api.Block) {
+	for _, miniblock := range block.MiniBlocks {
+		if miniblock.ProcessingType == dataBlock.Scheduled.String() {
+			log.Info("reportScheduledMiniblock()", "block", block.Nonce, "miniblock", miniblock)
+		}
+	}
+}
+
 func doSimplifyBlockWithScheduledTransactions(previousBlock *api.Block, block *api.Block, nextBlock *api.Block) {
 	// Discard "processed" miniblocks in block N, since they already produced effects in N-1
 	removeProcessedMiniblocksOfBlock(block)
+
+	handleContractResultsHavingOriginalTransactionInCrossShardScheduledMiniblockInPreviousBlock(previousBlock, block, nextBlock)
 
 	// Move "processed" miniblocks from N+1 to N
 	processedMiniblocksInNextBlock := findProcessedMiniblocks(nextBlock)
