@@ -90,6 +90,11 @@ func TestTransactionsTransformer_NormalTxToRosettaTx(t *testing.T) {
 					Account: addressToAccountIdentifier(testscommon.TestUserCShard0.Address),
 					Amount:  extension.valueToNativeAmount("-1000000000000000000"),
 				},
+				{
+					Type:    opTransfer,
+					Account: addressToAccountIdentifier(testscommon.TestAddressOfContract),
+					Amount:  extension.valueToNativeAmount("1000000000000000000"),
+				},
 			},
 			Metadata: extractTransactionMetadata(tx),
 		}
@@ -152,6 +157,11 @@ func TestTransactionsTransformer_ExtractInnerTxOperationsIfRelayedCompletelyIntr
 				Type:    opTransfer,
 				Account: addressToAccountIdentifier(testscommon.TestUserCShard0.Address),
 				Amount:  extension.valueToNativeAmount("-1000000000000000000"),
+			},
+			{
+				Type:    opTransfer,
+				Account: addressToAccountIdentifier(testscommon.TestAddressOfContract),
+				Amount:  extension.valueToNativeAmount("1000000000000000000"),
 			},
 		}, operations)
 	})

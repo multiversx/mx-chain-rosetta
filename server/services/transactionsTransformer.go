@@ -247,12 +247,18 @@ func (transformer *transactionsTransformer) extractInnerTxOperationsIfRelayedCom
 	}
 
 	senderAddress := transformer.provider.ConvertPubKeyToAddress(innerTx.SenderPubKey)
+	receiverAddress := transformer.provider.ConvertPubKeyToAddress(innerTx.ReceiverPubKey)
 
 	return []*types.Operation{
 		{
 			Type:    opTransfer,
 			Account: addressToAccountIdentifier(senderAddress),
 			Amount:  transformer.extension.valueToNativeAmount("-" + innerTx.Value.String()),
+		},
+		{
+			Type:    opTransfer,
+			Account: addressToAccountIdentifier(receiverAddress),
+			Amount:  transformer.extension.valueToNativeAmount(innerTx.Value.String()),
 		},
 	}, nil
 }
