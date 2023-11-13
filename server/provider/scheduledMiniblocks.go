@@ -17,168 +17,186 @@ func (provider *networkProvider) simplifyBlockWithScheduledTransactions(block *a
 		return err
 	}
 
-	reportScheduledMiniblock(block)
+	reportScheduledTransactions(block)
 	doSimplifyBlockWithScheduledTransactions(previousBlock, block, nextBlock)
-	deduplicatePreviouslyAppearingContractResultsInReceipts(previousBlock, block)
 
 	return nil
 }
 
-func reportScheduledMiniblock(block *api.Block) {
+func reportScheduledTransactions(block *api.Block) {
+	numScheduled := 0
+	numProcessed := 0
+	numInvalid := 0
+
 	for _, miniblock := range block.MiniBlocks {
 		if miniblock.ProcessingType == dataBlock.Scheduled.String() {
-			log.Info("reportScheduledMiniblock()", "block", block.Nonce, "miniblock", miniblock)
+			numScheduled += len(miniblock.Transactions)
+		} else if miniblock.ProcessingType == dataBlock.Processed.String() {
+			numProcessed += len(miniblock.Transactions)
+		} else if miniblock.Type == dataBlock.InvalidBlock.String() {
+			numInvalid += len(miniblock.Transactions)
 		}
+	}
+
+	if numScheduled > 0 || numProcessed > 0 {
+		log.Info("reportScheduledTransactions()", "scheduled", numScheduled, "processed", numProcessed, "invalid", numInvalid, "block", block.Nonce)
 	}
 }
 
 func doSimplifyBlockWithScheduledTransactions(previousBlock *api.Block, block *api.Block, nextBlock *api.Block) {
-	// Discard "processed" miniblocks in block N, since they already produced effects in N-1
-	removeProcessedMiniblocksOfBlock(block)
+	txs := gatherEffectiveTransactions(block.Shard, previousBlock, block, nextBlock)
+	receipts := gatherAllReceipts(block)
 
-	handleContractResultsHavingOriginalTransactionInCrossShardScheduledMiniblockInPreviousBlock(previousBlock, block, nextBlock)
-
-	// Move "processed" miniblocks from N+1 to N
-	processedMiniblocksInNextBlock := findProcessedMiniblocks(nextBlock)
-	appendMiniblocksToBlock(block, processedMiniblocksInNextBlock)
-
-	// Build an artificial miniblock holding the "invalid" transactions that produced their effects in block N,
-	// and replace the existing (one or two "invalid" miniblocks).
-	invalidTxs := gatherInvalidTransactions(previousBlock, block, nextBlock)
-	invalidMiniblock := &api.MiniBlock{
-		Type:         dataBlock.InvalidBlock.String(),
-		Transactions: invalidTxs,
+	block.MiniBlocks = []*api.MiniBlock{
+		{
+			Type:         "Artificial",
+			Transactions: txs,
+		},
+		{
+			Type:     "Artificial",
+			Receipts: receipts,
+		},
 	}
-	removeInvalidMiniblocks(block)
+}
 
-	if len(invalidMiniblock.Transactions) > 0 {
-		appendMiniblocksToBlock(block, []*api.MiniBlock{invalidMiniblock})
+func gatherEffectiveTransactions(selfShard uint32, previousBlock *api.Block, currentBlock *api.Block, nextBlock *api.Block) []*transaction.ApiTransactionResult {
+	txsInCurrentBlock := gatherAllTransactions(currentBlock)
+
+	scheduledTxsInPreviousBlock := gatherScheduledTransactions(previousBlock)
+	scheduledTxsInCurrentBlock := gatherScheduledTransactions(currentBlock)
+
+	if len(scheduledTxsInPreviousBlock) == 0 && len(scheduledTxsInCurrentBlock) == 0 {
+		return txsInCurrentBlock
 	}
 
-	// Discard "scheduled" miniblocks of N, since we've already brought the "processed" ones from N+1,
-	// and also handled the "invalid" ones.
-	removeScheduledMiniblocks(block)
-}
+	var previouslyExecutedResults []*transaction.ApiTransactionResult
+	var currentlyExecutedResults []*transaction.ApiTransactionResult
 
-func removeProcessedMiniblocksOfBlock(block *api.Block) {
-	removeMiniblocksFromBlock(block, func(miniblock *api.MiniBlock) bool {
-		return miniblock.ProcessingType == dataBlock.Processed.String()
-	})
-}
+	if len(scheduledTxsInPreviousBlock) > 0 {
+		previouslyExecutedResults = findImmediatelyExecutingContractResults(selfShard, scheduledTxsInPreviousBlock, txsInCurrentBlock)
+	}
+	if len(scheduledTxsInCurrentBlock) > 0 {
+		txsInNextBlock := gatherAllTransactions(nextBlock)
+		currentlyExecutedResults = findImmediatelyExecutingContractResults(selfShard, scheduledTxsInCurrentBlock, txsInNextBlock)
+	}
 
-func removeScheduledMiniblocks(block *api.Block) {
-	removeMiniblocksFromBlock(block, func(miniblock *api.MiniBlock) bool {
-		hasProcessingTypeScheduled := miniblock.ProcessingType == dataBlock.Scheduled.String()
-		hasConstructionStateNotFinal := miniblock.ConstructionState != dataBlock.Final.String()
-		shouldRemove := hasProcessingTypeScheduled && hasConstructionStateNotFinal
-		return shouldRemove
-	})
-}
+	// effectiveTxs
+	//	= txsInCurrentBlock
+	//	- txsInPreviousBlock (excludes transactions in "processed" miniblocks, for example)
+	//	- previouslyExecutedResults
+	//	+ currentlyExecutedResults
 
-func removeInvalidMiniblocks(block *api.Block) {
-	removeMiniblocksFromBlock(block, func(miniblock *api.MiniBlock) bool {
-		return miniblock.Type == dataBlock.InvalidBlock.String()
-	})
-}
+	effectiveTxs := make([]*transaction.ApiTransactionResult, 0)
+	effectiveTxsByHash := make(map[string]*transaction.ApiTransactionResult)
 
-func gatherInvalidTransactions(previousBlock *api.Block, block *api.Block, nextBlock *api.Block) []*transaction.ApiTransactionResult {
-	// Find "invalid" transactions that are "final" in N
-	invalidTxsInBlock := findInvalidTransactions(block)
-	// If also present in N-1, discard them
-	scheduledTxsHashesPreviousBlock := findScheduledTransactionsHashes(previousBlock)
-	invalidTxsInBlock = discardTransactions(invalidTxsInBlock, scheduledTxsHashesPreviousBlock)
+	for _, tx := range txsInCurrentBlock {
+		effectiveTxsByHash[tx.Hash] = tx
+	}
 
-	// Find "invalid" transactions in N+1 that are "scheduled" in N
-	invalidTxsInNextBlock := findInvalidTransactions(nextBlock)
-	scheduledTxsHashesInBlock := findScheduledTransactionsHashes(block)
-	invalidTxsScheduledInBlock := filterTransactions(invalidTxsInNextBlock, scheduledTxsHashesInBlock)
+	if len(scheduledTxsInPreviousBlock) > 0 {
+		txsInPreviousBlock := gatherAllTransactions(previousBlock)
 
-	// Duplication might occur, since a block can contain two "invalid" miniblocks,
-	// one added to block body, one saved in the receipts unit (at times, they have different content, different hashes).
-	invalidTxs := append(invalidTxsInBlock, invalidTxsScheduledInBlock...)
-	invalidTxs = deduplicateTransactions(invalidTxs)
+		for _, tx := range txsInPreviousBlock {
+			delete(effectiveTxsByHash, tx.Hash)
+		}
 
-	return invalidTxs
-}
-
-func findScheduledTransactionsHashes(block *api.Block) map[string]struct{} {
-	txs := make(map[string]struct{})
-
-	for _, miniblock := range block.MiniBlocks {
-		hasProcessingTypeScheduled := miniblock.ProcessingType == dataBlock.Scheduled.String()
-		hasConstructionStateNotFinal := miniblock.ConstructionState != dataBlock.Final.String()
-		shouldAccumulateTxs := hasProcessingTypeScheduled && hasConstructionStateNotFinal
-
-		if shouldAccumulateTxs {
-			for _, tx := range miniblock.Transactions {
-				txs[tx.Hash] = struct{}{}
-			}
+		for _, tx := range previouslyExecutedResults {
+			delete(effectiveTxsByHash, tx.Hash)
 		}
 	}
 
-	return txs
-}
-
-func findProcessedMiniblocks(block *api.Block) []*api.MiniBlock {
-	foundMiniblocks := make([]*api.MiniBlock, 0, len(block.MiniBlocks))
-
-	for _, miniblock := range block.MiniBlocks {
-		if miniblock.ProcessingType == dataBlock.Processed.String() {
-			foundMiniblocks = append(foundMiniblocks, miniblock)
+	if len(scheduledTxsInCurrentBlock) > 0 {
+		for _, tx := range currentlyExecutedResults {
+			effectiveTxsByHash[tx.Hash] = tx
 		}
 	}
 
-	return foundMiniblocks
-}
-
-func findInvalidTransactions(block *api.Block) []*transaction.ApiTransactionResult {
-	invalidTxs := make([]*transaction.ApiTransactionResult, 0)
-
-	for _, miniblock := range block.MiniBlocks {
-		if miniblock.Type == dataBlock.InvalidBlock.String() {
-			for _, tx := range miniblock.Transactions {
-				invalidTxs = append(invalidTxs, tx)
-			}
-		}
+	for _, tx := range effectiveTxsByHash {
+		effectiveTxs = append(effectiveTxs, tx)
 	}
 
-	return invalidTxs
+	return effectiveTxs
 }
 
-// Sometimes, an invalid transaction processed in a scheduled miniblock
-// might have its smart contract result (if any) saved in the receipts unit of both blocks N and N+1.
-// This function ignores the duplicate entries in block N.
-func deduplicatePreviouslyAppearingContractResultsInReceipts(previousBlock *api.Block, block *api.Block) {
-	previouslyAppearing := findContractResultsInReceipts(previousBlock)
-	removeContractResultsInReceipts(block, previouslyAppearing)
+func findImmediatelyExecutingContractResults(
+	selfShard uint32,
+	transactions []*transaction.ApiTransactionResult,
+	maybeContractResults []*transaction.ApiTransactionResult,
+) []*transaction.ApiTransactionResult {
+	immediateleyExecutingContractResults := make([]*transaction.ApiTransactionResult, 0)
+	nextContractResultsByHash := make(map[string][]*transaction.ApiTransactionResult)
+
+	for _, item := range maybeContractResults {
+		nextContractResultsByHash[item.PreviousTransactionHash] = append(nextContractResultsByHash[item.PreviousTransactionHash], item)
+	}
+
+	for _, tx := range transactions {
+		immediateleyExecutingContractResultsPart := findImmediatelyExecutingContractResultsOfTransaction(selfShard, tx, nextContractResultsByHash)
+		immediateleyExecutingContractResults = append(immediateleyExecutingContractResults, immediateleyExecutingContractResultsPart...)
+	}
+
+	return immediateleyExecutingContractResults
 }
 
-func findContractResultsInReceipts(block *api.Block) map[string]struct{} {
-	txs := make(map[string]struct{})
+func findImmediatelyExecutingContractResultsOfTransaction(
+	selfShard uint32,
+	tx *transaction.ApiTransactionResult,
+	nextContractResultsByHash map[string][]*transaction.ApiTransactionResult,
+) []*transaction.ApiTransactionResult {
+	immediatelyExecutingContractResults := make([]*transaction.ApiTransactionResult, 0)
+
+	for _, nextContractResult := range nextContractResultsByHash[tx.Hash] {
+		// Not immediately executing.
+		if nextContractResult.SourceShard != selfShard {
+			continue
+		}
+
+		immediatelyExecutingContractResults = append(immediatelyExecutingContractResults, nextContractResult)
+		// Recursive call:
+		immediatelyExecutingContractResultsPart := findImmediatelyExecutingContractResultsOfTransaction(selfShard, nextContractResult, nextContractResultsByHash)
+		immediatelyExecutingContractResults = append(immediatelyExecutingContractResults, immediatelyExecutingContractResultsPart...)
+	}
+
+	return immediatelyExecutingContractResults
+}
+
+func gatherScheduledTransactions(block *api.Block) []*transaction.ApiTransactionResult {
+	scheduledTxs := make([]*transaction.ApiTransactionResult, 0)
 
 	for _, miniblock := range block.MiniBlocks {
-		if !isContractResultsMiniblockInReceipts(miniblock) {
+		isScheduled := miniblock.ProcessingType == dataBlock.Scheduled.String()
+		if !isScheduled {
 			continue
 		}
 
 		for _, tx := range miniblock.Transactions {
-			txs[tx.Hash] = struct{}{}
+			scheduledTxs = append(scheduledTxs, tx)
+		}
+	}
+
+	return scheduledTxs
+}
+
+func gatherAllTransactions(block *api.Block) []*transaction.ApiTransactionResult {
+	txs := make([]*transaction.ApiTransactionResult, 0)
+
+	for _, miniblock := range block.MiniBlocks {
+		for _, tx := range miniblock.Transactions {
+			txs = append(txs, tx)
 		}
 	}
 
 	return txs
 }
 
-func removeContractResultsInReceipts(block *api.Block, txsHashes map[string]struct{}) {
+func gatherAllReceipts(block *api.Block) []*transaction.ApiReceipt {
+	receipts := make([]*transaction.ApiReceipt, 0)
+
 	for _, miniblock := range block.MiniBlocks {
-		if !isContractResultsMiniblockInReceipts(miniblock) {
-			continue
+		for _, receipt := range miniblock.Receipts {
+			receipts = append(receipts, receipt)
 		}
-
-		miniblock.Transactions = discardTransactions(miniblock.Transactions, txsHashes)
 	}
-}
 
-func isContractResultsMiniblockInReceipts(miniblock *api.MiniBlock) bool {
-	return miniblock.Type == dataBlock.SmartContractResultBlock.String() && miniblock.IsFromReceiptsStorage
+	return receipts
 }
