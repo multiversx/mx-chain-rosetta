@@ -49,6 +49,40 @@ func (controller *transactionEventsController) extractEventTransferValueOnly(tx 
 	return typedEvents, nil
 }
 
+func filterOutTransferValueOnlyEventsThatAreAlreadyCapturedAsContractResults(
+	events []*eventTransferValueOnly,
+	txsInBlock []*transaction.ApiTransactionResult,
+) []*eventTransferValueOnly {
+	// First, we find all contract results in this block, and we "summarize" them (in a map).
+	contractResultsSummaries := make(map[string]struct{})
+
+	for _, tx := range txsInBlock {
+		isContractResult := tx.Type == string(transaction.TxTypeUnsigned)
+		if !isContractResult {
+			continue
+		}
+
+		summary := fmt.Sprintf("%s-%s-%s", tx.Sender, tx.Receiver, tx.Value)
+		contractResultsSummaries[summary] = struct{}{}
+	}
+
+	eventsToKeep := make([]*eventTransferValueOnly, 0, len(events))
+
+	for _, event := range events {
+		summary := fmt.Sprintf("%s-%s-%s", event.sender, event.receiver, event.value)
+
+		_, isAlreadyCaptured := contractResultsSummaries[summary]
+		if isAlreadyCaptured {
+			continue
+		}
+
+		// Event not captured as contract result, so we should keep it.
+		eventsToKeep = append(eventsToKeep, event)
+	}
+
+	return eventsToKeep
+}
+
 func (controller *transactionEventsController) hasAnySignalError(tx *transaction.ApiTransactionResult) bool {
 	if !controller.hasEvents(tx) {
 		return false
@@ -96,7 +130,7 @@ func (controller *transactionEventsController) extractEventsESDTOrESDTNFTTransfe
 			return nil, fmt.Errorf("%w: bad number of topics for (ESDT|ESDTNFT)Transfer event = %d", errCannotRecognizeEvent, numTopics)
 		}
 
-		identifider := event.Topics[0]
+		identifier := event.Topics[0]
 		nonceAsBytes := event.Topics[1]
 		valueBytes := event.Topics[2]
 		receiverPubkey := event.Topics[3]
@@ -107,7 +141,7 @@ func (controller *transactionEventsController) extractEventsESDTOrESDTNFTTransfe
 		typedEvents = append(typedEvents, &eventESDT{
 			senderAddress:   event.Address,
 			receiverAddress: receiver,
-			identifier:      string(identifider),
+			identifier:      string(identifier),
 			nonceAsBytes:    nonceAsBytes,
 			value:           value.String(),
 		})

@@ -102,7 +102,7 @@ func (transformer *transactionsTransformer) txToRosettaTx(tx *transaction.ApiTra
 		return nil, fmt.Errorf("unknown transaction type: %s", tx.Type)
 	}
 
-	err = transformer.addOperationsGivenTransactionEvents(tx, rosettaTx)
+	err = transformer.addOperationsGivenTransactionEvents(tx, txsInBlock, rosettaTx)
 	if err != nil {
 		return nil, err
 	}
@@ -366,7 +366,11 @@ func (transformer *transactionsTransformer) mempoolMoveBalanceTxToRosettaTx(tx *
 	}
 }
 
-func (transformer *transactionsTransformer) addOperationsGivenTransactionEvents(tx *transaction.ApiTransactionResult, rosettaTx *types.Transaction) error {
+func (transformer *transactionsTransformer) addOperationsGivenTransactionEvents(
+	tx *transaction.ApiTransactionResult,
+	txsInBlock []*transaction.ApiTransactionResult,
+	rosettaTx *types.Transaction,
+) error {
 	eventsTransferValueOnly, err := transformer.eventsController.extractEventTransferValueOnly(tx)
 	if err != nil {
 		return err
@@ -390,6 +394,27 @@ func (transformer *transactionsTransformer) addOperationsGivenTransactionEvents(
 	eventsESDTWipe, err := transformer.eventsController.extractEventsESDTWipe(tx)
 	if err != nil {
 		return err
+	}
+
+	eventsTransferValueOnly = filterOutTransferValueOnlyEventsThatAreAlreadyCapturedAsContractResults(eventsTransferValueOnly, txsInBlock)
+
+	for _, event := range eventsTransferValueOnly {
+		log.Info("eventTransferValueOnly (effective)", "tx", tx.Hash)
+
+		operations := []*types.Operation{
+			{
+				Type:    opTransfer,
+				Account: addressToAccountIdentifier(event.sender),
+				Amount:  transformer.extension.valueToNativeAmount("-" + event.value),
+			},
+			{
+				Type:    opTransfer,
+				Account: addressToAccountIdentifier(event.receiver),
+				Amount:  transformer.extension.valueToNativeAmount(event.value),
+			},
+		}
+
+		rosettaTx.Operations = append(rosettaTx.Operations, operations...)
 	}
 
 	for _, event := range eventsESDTTransfer {
