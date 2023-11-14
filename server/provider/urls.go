@@ -16,6 +16,7 @@ var (
 	urlPathGetAccount                           = "/address/%s"
 	urlPathGetAccountNativeBalance              = "/address/%s"
 	urlPathGetAccountESDTBalance                = "/address/%s/esdt/%s"
+	urlPathGetAccountNFTBalance                 = "/address/%s/nft/%s/nonce/%d"
 	urlParameterAccountQueryOptionsOnFinalBlock = "onFinalBlock"
 	urlParameterAccountQueryOptionsBlockNonce   = "blockNonce"
 	urlParameterAccountQueryOptionsBlockHash    = "blockHash"
@@ -36,6 +37,10 @@ func buildUrlGetAccountNativeBalance(address string, options resources.AccountQu
 
 func buildUrlGetAccountESDTBalance(address string, tokenIdentifier string, options resources.AccountQueryOptions) string {
 	return buildUrlWithAccountQueryOptions(fmt.Sprintf(urlPathGetAccountESDTBalance, address, tokenIdentifier), options)
+}
+
+func buildUrlGetAccountNFTBalance(address string, tokenIdentifier string, nonce uint64, options resources.AccountQueryOptions) string {
+	return buildUrlWithAccountQueryOptions(fmt.Sprintf(urlPathGetAccountNFTBalance, address, tokenIdentifier, nonce), options)
 }
 
 func buildUrlWithAccountQueryOptions(path string, options resources.AccountQueryOptions) string {
