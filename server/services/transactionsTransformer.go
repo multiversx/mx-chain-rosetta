@@ -396,6 +396,21 @@ func (transformer *transactionsTransformer) addOperationsGivenTransactionEvents(
 		return err
 	}
 
+	eventsESDTNFTCreate, err := transformer.eventsController.extractEventsESDTNFTCreate(tx)
+	if err != nil {
+		return err
+	}
+
+	eventsESDTNFTBurn, err := transformer.eventsController.extractEventsESDTNFTBurn(tx)
+	if err != nil {
+		return err
+	}
+
+	eventsESDTNFTAddQuantity, err := transformer.eventsController.extractEventsESDTNFTAddQuantity(tx)
+	if err != nil {
+		return err
+	}
+
 	eventsTransferValueOnly = filterOutTransferValueOnlyEventsThatAreAlreadyCapturedAsContractResults(eventsTransferValueOnly, txsInBlock)
 
 	for _, event := range eventsTransferValueOnly {
@@ -427,12 +442,12 @@ func (transformer *transactionsTransformer) addOperationsGivenTransactionEvents(
 			{
 				Type:    opCustomTransfer,
 				Account: addressToAccountIdentifier(event.senderAddress),
-				Amount:  transformer.extension.valueToCustomAmount("-"+event.value, event.getComposedIdentifier()),
+				Amount:  transformer.extension.valueToCustomAmount("-"+event.value, event.getExtendedIdentifier()),
 			},
 			{
 				Type:    opCustomTransfer,
 				Account: addressToAccountIdentifier(event.receiverAddress),
-				Amount:  transformer.extension.valueToCustomAmount(event.value, event.getComposedIdentifier()),
+				Amount:  transformer.extension.valueToCustomAmount(event.value, event.getExtendedIdentifier()),
 			},
 		}
 
@@ -449,7 +464,7 @@ func (transformer *transactionsTransformer) addOperationsGivenTransactionEvents(
 			{
 				Type:    opCustomTransfer,
 				Account: addressToAccountIdentifier(event.otherAddress),
-				Amount:  transformer.extension.valueToCustomAmount("-"+event.value, event.getComposedIdentifier()),
+				Amount:  transformer.extension.valueToCustomAmount("-"+event.value, event.getExtendedIdentifier()),
 			},
 		}
 
@@ -466,7 +481,7 @@ func (transformer *transactionsTransformer) addOperationsGivenTransactionEvents(
 			{
 				Type:    opCustomTransfer,
 				Account: addressToAccountIdentifier(event.otherAddress),
-				Amount:  transformer.extension.valueToCustomAmount(event.value, event.getComposedIdentifier()),
+				Amount:  transformer.extension.valueToCustomAmount(event.value, event.getExtendedIdentifier()),
 			},
 		}
 
@@ -483,7 +498,58 @@ func (transformer *transactionsTransformer) addOperationsGivenTransactionEvents(
 			{
 				Type:    opCustomTransfer,
 				Account: addressToAccountIdentifier(event.otherAddress),
-				Amount:  transformer.extension.valueToCustomAmount("-"+event.value, event.getComposedIdentifier()),
+				Amount:  transformer.extension.valueToCustomAmount("-"+event.value, event.getExtendedIdentifier()),
+			},
+		}
+
+		rosettaTx.Operations = append(rosettaTx.Operations, operations...)
+	}
+
+	for _, event := range eventsESDTNFTCreate {
+		if !transformer.provider.HasCustomCurrency(event.identifier) {
+			// We are only emitting balance-changing operations for supported currencies.
+			continue
+		}
+
+		operations := []*types.Operation{
+			{
+				Type:    opCustomTransfer,
+				Account: addressToAccountIdentifier(event.otherAddress),
+				Amount:  transformer.extension.valueToCustomAmount(event.value, event.getExtendedIdentifier()),
+			},
+		}
+
+		rosettaTx.Operations = append(rosettaTx.Operations, operations...)
+	}
+
+	for _, event := range eventsESDTNFTBurn {
+		if !transformer.provider.HasCustomCurrency(event.identifier) {
+			// We are only emitting balance-changing operations for supported currencies.
+			continue
+		}
+
+		operations := []*types.Operation{
+			{
+				Type:    opCustomTransfer,
+				Account: addressToAccountIdentifier(event.otherAddress),
+				Amount:  transformer.extension.valueToCustomAmount("-"+event.value, event.getExtendedIdentifier()),
+			},
+		}
+
+		rosettaTx.Operations = append(rosettaTx.Operations, operations...)
+	}
+
+	for _, event := range eventsESDTNFTAddQuantity {
+		if !transformer.provider.HasCustomCurrency(event.identifier) {
+			// We are only emitting balance-changing operations for supported currencies.
+			continue
+		}
+
+		operations := []*types.Operation{
+			{
+				Type:    opCustomTransfer,
+				Account: addressToAccountIdentifier(event.otherAddress),
+				Amount:  transformer.extension.valueToCustomAmount(event.value, event.getExtendedIdentifier()),
 			},
 		}
 

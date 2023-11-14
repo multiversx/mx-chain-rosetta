@@ -261,6 +261,88 @@ func (controller *transactionEventsController) extractEventsESDTWipe(tx *transac
 	return typedEvents, nil
 }
 
+func (controller *transactionEventsController) extractEventsESDTNFTCreate(tx *transaction.ApiTransactionResult) ([]*eventESDT, error) {
+	rawEvents := controller.findManyEventsByIdentifier(tx, transactionEventESDTNFTCreate)
+	typedEvents := make([]*eventESDT, 0, len(rawEvents))
+
+	for _, event := range rawEvents {
+		numTopics := len(event.Topics)
+		if numTopics != 4 {
+			return nil, fmt.Errorf("%w: bad number of topics for %s event = %d", errCannotRecognizeEvent, transactionEventESDTNFTCreate, numTopics)
+		}
+
+		identifider := event.Topics[0]
+		nonceAsBytes := event.Topics[1]
+		valueBytes := event.Topics[2]
+		// We ignore the 4th topic.
+
+		value := big.NewInt(0).SetBytes(valueBytes)
+
+		typedEvents = append(typedEvents, &eventESDT{
+			otherAddress: event.Address,
+			identifier:   string(identifider),
+			nonceAsBytes: nonceAsBytes,
+			value:        value.String(),
+		})
+	}
+
+	return typedEvents, nil
+}
+
+func (controller *transactionEventsController) extractEventsESDTNFTBurn(tx *transaction.ApiTransactionResult) ([]*eventESDT, error) {
+	rawEvents := controller.findManyEventsByIdentifier(tx, transactionEventESDTNFTBurn)
+	typedEvents := make([]*eventESDT, 0, len(rawEvents))
+
+	for _, event := range rawEvents {
+		numTopics := len(event.Topics)
+		if numTopics != 3 {
+			return nil, fmt.Errorf("%w: bad number of topics for %s event = %d", errCannotRecognizeEvent, transactionEventESDTNFTBurn, numTopics)
+		}
+
+		identifider := event.Topics[0]
+		nonceAsBytes := event.Topics[1]
+		valueBytes := event.Topics[2]
+
+		value := big.NewInt(0).SetBytes(valueBytes)
+
+		typedEvents = append(typedEvents, &eventESDT{
+			otherAddress: event.Address,
+			identifier:   string(identifider),
+			nonceAsBytes: nonceAsBytes,
+			value:        value.String(),
+		})
+	}
+
+	return typedEvents, nil
+}
+
+func (controller *transactionEventsController) extractEventsESDTNFTAddQuantity(tx *transaction.ApiTransactionResult) ([]*eventESDT, error) {
+	rawEvents := controller.findManyEventsByIdentifier(tx, transactionEventESDTNFTAddQuantity)
+	typedEvents := make([]*eventESDT, 0, len(rawEvents))
+
+	for _, event := range rawEvents {
+		numTopics := len(event.Topics)
+		if numTopics != 3 {
+			return nil, fmt.Errorf("%w: bad number of topics for %s event = %d", errCannotRecognizeEvent, transactionEventESDTNFTAddQuantity, numTopics)
+		}
+
+		identifider := event.Topics[0]
+		nonceAsBytes := event.Topics[1]
+		valueBytes := event.Topics[2]
+
+		value := big.NewInt(0).SetBytes(valueBytes)
+
+		typedEvents = append(typedEvents, &eventESDT{
+			otherAddress: event.Address,
+			identifier:   string(identifider),
+			nonceAsBytes: nonceAsBytes,
+			value:        value.String(),
+		})
+	}
+
+	return typedEvents, nil
+}
+
 func (controller *transactionEventsController) findManyEventsByIdentifier(tx *transaction.ApiTransactionResult, identifier string) []*transaction.Events {
 	events := make([]*transaction.Events, 0)
 

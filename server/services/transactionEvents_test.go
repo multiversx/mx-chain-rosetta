@@ -16,7 +16,7 @@ func TestEventESDT(t *testing.T) {
 		}
 
 		require.Equal(t, "FOO-abcdef", event.getBaseIdentifier())
-		require.Equal(t, "FOO-abcdef", event.getComposedIdentifier())
+		require.Equal(t, "FOO-abcdef", event.getExtendedIdentifier())
 
 		event = eventESDT{
 			identifier:   "FOO-abcdef",
@@ -24,7 +24,7 @@ func TestEventESDT(t *testing.T) {
 		}
 
 		require.Equal(t, "FOO-abcdef", event.getBaseIdentifier())
-		require.Equal(t, "FOO-abcdef", event.getComposedIdentifier())
+		require.Equal(t, "FOO-abcdef", event.getExtendedIdentifier())
 	})
 
 	t.Run("with nonce (SFT, MetaESDT, NFT)", func(t *testing.T) {
@@ -34,7 +34,7 @@ func TestEventESDT(t *testing.T) {
 		}
 
 		require.Equal(t, "FOO-abcdef", event.getBaseIdentifier())
-		require.Equal(t, "FOO-abcdef-2a", event.getComposedIdentifier())
+		require.Equal(t, "FOO-abcdef-2a", event.getExtendedIdentifier())
 	})
 }
 
