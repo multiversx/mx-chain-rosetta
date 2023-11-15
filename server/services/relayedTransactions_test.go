@@ -17,8 +17,8 @@ func Test_IsRelayedV1Transaction(t *testing.T) {
 	t.Run("relayed v1 tx", func(t *testing.T) {
 		tx := &transaction.ApiTransactionResult{
 			Type:                        string(transaction.TxTypeNormal),
-			ProcessingTypeOnSource:      transactionProcessingTypeRelayed,
-			ProcessingTypeOnDestination: transactionProcessingTypeRelayed,
+			ProcessingTypeOnSource:      transactionProcessingTypeRelayedV1,
+			ProcessingTypeOnDestination: transactionProcessingTypeRelayedV1,
 		}
 
 		require.True(t, isRelayedV1Transaction(tx))
