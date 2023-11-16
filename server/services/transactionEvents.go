@@ -5,11 +5,9 @@ import (
 )
 
 type eventTransferValueOnly struct {
-	sender         string
-	senderPubKey   []byte
-	receiver       string
-	receiverPubKey []byte
-	value          string
+	sender   string
+	receiver string
+	value    string
 }
 
 type eventESDT struct {

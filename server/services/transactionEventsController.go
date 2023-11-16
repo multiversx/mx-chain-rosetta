@@ -52,33 +52,34 @@ func (controller *transactionEventsController) extractEventTransferValueOnly(tx 
 		isBeforeSirius := numTopics == 3
 		isAfterSirius := numTopics == 2
 
-		var senderPubKey []byte
-		var receiverPubKey []byte
+		var sender string
+		var receiver string
 		var valueBytes []byte
 
 		if isBeforeSirius {
-			senderPubKey = event.Topics[0]
-			receiverPubKey = event.Topics[1]
+			senderPubKey := event.Topics[0]
+			receiverPubKey := event.Topics[1]
 			valueBytes = event.Topics[2]
+
+			sender = controller.provider.ConvertPubKeyToAddress(senderPubKey)
+			receiver = controller.provider.ConvertPubKeyToAddress(receiverPubKey)
 		} else if isAfterSirius {
 			// https://github.com/multiversx/mx-specs/blob/main/releases/protocol/release-specs-v1.6.0-Sirius.md#17-logs--events-changes-5490
-			senderPubKey = []byte(event.Address)
-			receiverPubKey = event.Topics[1]
+			sender = event.Address
+			receiverPubKey := event.Topics[1]
 			valueBytes = event.Topics[0]
+
+			receiver = controller.provider.ConvertPubKeyToAddress(receiverPubKey)
 		} else {
 			return nil, fmt.Errorf("%w: bad number of topics for 'transferValueOnly' = %d", errCannotRecognizeEvent, numTopics)
 		}
 
-		sender := controller.provider.ConvertPubKeyToAddress(senderPubKey)
-		receiver := controller.provider.ConvertPubKeyToAddress(receiverPubKey)
 		value := big.NewInt(0).SetBytes(valueBytes)
 
 		typedEvents = append(typedEvents, &eventTransferValueOnly{
-			sender:         sender,
-			senderPubKey:   senderPubKey,
-			receiver:       receiver,
-			receiverPubKey: receiverPubKey,
-			value:          value.String(),
+			sender:   sender,
+			receiver: receiver,
+			value:    value.String(),
 		})
 	}
 
