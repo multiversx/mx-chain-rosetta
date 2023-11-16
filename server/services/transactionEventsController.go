@@ -25,13 +25,25 @@ func (controller *transactionEventsController) extractEventTransferValueOnly(tx 
 
 	for _, event := range rawEvents {
 		numTopics := len(event.Topics)
-		if numTopics != 3 {
+		isBeforeSirius := numTopics == 3
+		isAfterSirius := numTopics == 2
+
+		var senderPubKey []byte
+		var receiverPubKey []byte
+		var valueBytes []byte
+
+		if isBeforeSirius {
+			senderPubKey = event.Topics[0]
+			receiverPubKey = event.Topics[1]
+			valueBytes = event.Topics[2]
+		} else if isAfterSirius {
+			// https://github.com/multiversx/mx-specs/blob/main/releases/protocol/release-specs-v1.6.0-Sirius.md#17-logs--events-changes-5490
+			senderPubKey = []byte(event.Address)
+			receiverPubKey = event.Topics[0]
+			valueBytes = event.Topics[1]
+		} else {
 			return nil, fmt.Errorf("%w: bad number of topics for 'transferValueOnly' = %d", errCannotRecognizeEvent, numTopics)
 		}
-
-		senderPubKey := event.Topics[0]
-		receiverPubKey := event.Topics[1]
-		valueBytes := event.Topics[2]
 
 		sender := controller.provider.ConvertPubKeyToAddress(senderPubKey)
 		receiver := controller.provider.ConvertPubKeyToAddress(receiverPubKey)
