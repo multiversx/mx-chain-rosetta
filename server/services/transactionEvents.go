@@ -34,3 +34,8 @@ func (event *eventESDT) getExtendedIdentifier() string {
 
 	return event.identifier
 }
+
+type eventSCDeploy struct {
+	contractAddress string
+	deployerAddress string
+}

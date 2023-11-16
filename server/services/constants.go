@@ -22,10 +22,12 @@ var (
 	sendingValueToNonPayableContractDataPrefix   = argumentsSeparator + hex.EncodeToString([]byte("sending value to non payable contract"))
 	emptyHash                                    = strings.Repeat("0", 64)
 	nodeVersionForOfflineRosetta                 = "N / A"
+	systemContractDeployAddress                  = "erd1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq6gq4hu"
 )
 
 var (
 	transactionEventSignalError                             = core.SignalErrorOperation
+	transactionEventSCDeploy                                = core.SCDeployIdentifier
 	transactionEventTransferValueOnly                       = "transferValueOnly"
 	transactionEventESDTTransfer                            = "ESDTTransfer"
 	transactionEventESDTNFTTransfer                         = "ESDTNFTTransfer"
@@ -33,9 +35,9 @@ var (
 	transactionEventESDTNFTBurn                             = "ESDTNFTBurn"
 	transactionEventESDTNFTAddQuantity                      = "ESDTNFTAddQuantity"
 	transactionEventMultiESDTNFTTransfer                    = "MultiESDTNFTTransfer"
-	transactionEventESDTLocalBurn                           = "ESDTLocalBurn"
-	transactionEventESDTLocalMint                           = "ESDTLocalMint"
-	transactionEventESDTWipe                                = "ESDTWipe"
+	transactionEventESDTLocalBurn                           = core.BuiltInFunctionESDTLocalBurn
+	transactionEventESDTLocalMint                           = core.BuiltInFunctionESDTLocalMint
+	transactionEventESDTWipe                                = core.BuiltInFunctionESDTWipe
 	transactionEventTopicInvalidMetaTransaction             = "meta transaction is invalid"
 	transactionEventTopicInvalidMetaTransactionNotEnoughGas = "meta transaction is invalid: not enough gas"
 )

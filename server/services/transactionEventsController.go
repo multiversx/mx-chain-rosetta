@@ -18,6 +18,30 @@ func newTransactionEventsController(provider NetworkProvider) *transactionEvents
 	}
 }
 
+func (controller *transactionEventsController) extractEventSCDeploy(tx *transaction.ApiTransactionResult) ([]*eventSCDeploy, error) {
+	rawEvents := controller.findManyEventsByIdentifier(tx, transactionEventSCDeploy)
+
+	typedEvents := make([]*eventSCDeploy, 0, len(rawEvents))
+
+	for _, event := range rawEvents {
+		numTopics := len(event.Topics)
+		if numTopics != 2 {
+			return nil, fmt.Errorf("%w: bad number of topics for %s event = %d", errCannotRecognizeEvent, transactionEventSCDeploy, numTopics)
+		}
+
+		contractAddress := event.Address
+		deployerPubKey := event.Topics[1]
+		deployerAddress := controller.provider.ConvertPubKeyToAddress(deployerPubKey)
+
+		typedEvents = append(typedEvents, &eventSCDeploy{
+			contractAddress: contractAddress,
+			deployerAddress: deployerAddress,
+		})
+	}
+
+	return typedEvents, nil
+}
+
 func (controller *transactionEventsController) extractEventTransferValueOnly(tx *transaction.ApiTransactionResult) ([]*eventTransferValueOnly, error) {
 	rawEvents := controller.findManyEventsByIdentifier(tx, transactionEventTransferValueOnly)
 

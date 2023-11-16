@@ -398,10 +398,17 @@ func (transformer *transactionsTransformer) addOperationsGivenTransactionEvents(
 		return nil
 	}
 
+	eventsSCDeploy, err := transformer.eventsController.extractEventSCDeploy(tx)
+	if err != nil {
+		return err
+	}
+
 	eventsTransferValueOnly, err := transformer.eventsController.extractEventTransferValueOnly(tx)
 	if err != nil {
 		return err
 	}
+
+	eventsTransferValueOnly = filterOutTransferValueOnlyEventsThatAreAlreadyCapturedAsContractResults(eventsTransferValueOnly, txsInBlock)
 
 	eventsESDTTransfer, err := transformer.eventsController.extractEventsESDTOrESDTNFTTransfers(tx)
 	if err != nil {
@@ -438,7 +445,28 @@ func (transformer *transactionsTransformer) addOperationsGivenTransactionEvents(
 		return err
 	}
 
-	eventsTransferValueOnly = filterOutTransferValueOnlyEventsThatAreAlreadyCapturedAsContractResults(eventsTransferValueOnly, txsInBlock)
+	for _, event := range eventsSCDeploy {
+		log.Info("eventSCDeploy", "tx", tx.Hash, "block", tx.BlockNonce, "contract", event.contractAddress, "deployer", event.deployerAddress)
+
+		// Handle deployments with transfer of value
+
+		operations := []*types.Operation{
+			// Deployer's balance change is already captured in non-events-based operations.
+			// Let's simulate the transfer from the System deployment address to the contract address.
+			{
+				Type:    opTransfer,
+				Account: addressToAccountIdentifier(systemContractDeployAddress),
+				Amount:  transformer.extension.valueToNativeAmount("-" + tx.Value),
+			},
+			{
+				Type:    opTransfer,
+				Account: addressToAccountIdentifier(event.contractAddress),
+				Amount:  transformer.extension.valueToNativeAmount(tx.Value),
+			},
+		}
+
+		rosettaTx.Operations = append(rosettaTx.Operations, operations...)
+	}
 
 	for _, event := range eventsTransferValueOnly {
 		log.Info("eventTransferValueOnly (effective)", "tx", tx.Hash, "block", tx.BlockNonce)
