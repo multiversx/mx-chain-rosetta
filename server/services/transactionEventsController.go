@@ -25,8 +25,10 @@ func (controller *transactionEventsController) extractEventSCDeploy(tx *transact
 
 	for _, event := range rawEvents {
 		numTopics := len(event.Topics)
-		if numTopics != 2 {
-			return nil, fmt.Errorf("%w: bad number of topics for %s event = %d", errCannotRecognizeEvent, transactionEventSCDeploy, numTopics)
+		if numTopics < 2 {
+			// Before Sirius, there are 2 topics: contract address, deployer address.
+			// For Sirius, there are 3 topics: contract address, deployer address, codehash.
+			return nil, fmt.Errorf("%w: bad number of topics for %s event = '%d', tx = %s", errCannotRecognizeEvent, transactionEventSCDeploy, numTopics, tx.Hash)
 		}
 
 		contractAddress := event.Address
@@ -71,7 +73,7 @@ func (controller *transactionEventsController) extractEventTransferValueOnly(tx 
 
 			receiver = controller.provider.ConvertPubKeyToAddress(receiverPubKey)
 		} else {
-			return nil, fmt.Errorf("%w: bad number of topics for 'transferValueOnly' = %d", errCannotRecognizeEvent, numTopics)
+			return nil, fmt.Errorf("%w: bad number of topics for '%s' = %d, tx = %s", errCannotRecognizeEvent, transactionEventTransferValueOnly, numTopics, tx.Hash)
 		}
 
 		value := big.NewInt(0).SetBytes(valueBytes)
