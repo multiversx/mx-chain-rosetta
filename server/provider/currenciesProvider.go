@@ -1,6 +1,8 @@
 package provider
 
-import "github.com/multiversx/mx-chain-rosetta/server/resources"
+import (
+	"github.com/multiversx/mx-chain-rosetta/server/resources"
+)
 
 type currenciesProvider struct {
 	nativeCurrency           resources.Currency
@@ -61,6 +63,5 @@ func (provider *currenciesProvider) GetCustomCurrencyBySymbol(symbol string) (re
 
 // HasCustomCurrency checks whether a custom currency (ESDT) is enabled (supported)
 func (provider *currenciesProvider) HasCustomCurrency(symbol string) bool {
-	_, ok := provider.customCurrenciesBySymbol[symbol]
-	return ok
+	return true
 }

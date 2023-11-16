@@ -29,6 +29,9 @@ func newTransactionsTransformer(provider NetworkProvider) *transactionsTransform
 }
 
 func (transformer *transactionsTransformer) transformBlockTxs(block *api.Block) ([]*types.Transaction, error) {
+	// TODO: Remove
+	log.Info("transformBlockTxs", "block", block.Nonce, "numTxs", block.NumTxs)
+
 	txs := make([]*transaction.ApiTransactionResult, 0)
 	receipts := make([]*transaction.ApiReceipt, 0)
 
@@ -83,6 +86,13 @@ func (transformer *transactionsTransformer) transformBlockTxs(block *api.Block) 
 }
 
 func (transformer *transactionsTransformer) txToRosettaTx(tx *transaction.ApiTransactionResult, txsInBlock []*transaction.ApiTransactionResult) (*types.Transaction, error) {
+	// TODO: Remove
+	if isRelayedV1Transaction(tx) {
+		log.Info("txToRosettaTx: relayed V1", "hash", tx.Hash)
+	} else if isRelayedV2Transaction(tx) {
+		log.Info("txToRosettaTx: relayed V2", "hash", tx.Hash)
+	}
+
 	var rosettaTx *types.Transaction
 	var err error
 
@@ -217,6 +227,14 @@ func (transformer *transactionsTransformer) normalTxToRosetta(
 		return nil, err
 	}
 
+	// TODO: Remove (maybe)
+	if len(innerTxOperationsIfRelayedCompletelyIntrashardWithSignalError) > 0 {
+		log.Info("innerTxOperationsIfRelayedCompletelyIntrashardWithSignalError", "tx", tx.Hash, "block", tx.BlockNonce)
+	}
+	if len(valueRefundOperationIfContractCallWithSignalError) > 0 {
+		log.Info("valueRefundOperationIfContractCallWithSignalError", "tx", tx.Hash, "block", tx.BlockNonce)
+	}
+
 	operations = append(operations, innerTxOperationsIfRelayedCompletelyIntrashardWithSignalError...)
 	operations = append(operations, valueRefundOperationIfContractCallWithSignalError...)
 
@@ -227,7 +245,9 @@ func (transformer *transactionsTransformer) normalTxToRosetta(
 	}, nil
 }
 
+// This only handles operations for the native balance.
 func (transformer *transactionsTransformer) extractInnerTxOperationsIfRelayedCompletelyIntrashardWithSignalError(tx *transaction.ApiTransactionResult) ([]*types.Operation, error) {
+	// Only relayed V1 is handled. Relayed V2 cannot bear native value in the inner transaction.
 	isRelayedTransaction := isRelayedV1Transaction(tx)
 	if !isRelayedTransaction {
 		return []*types.Operation{}, nil
@@ -242,7 +262,7 @@ func (transformer *transactionsTransformer) extractInnerTxOperationsIfRelayedCom
 		return []*types.Operation{}, nil
 	}
 
-	if !transformer.featuresDetector.isRelayedTransactionCompletelyIntrashardWithSignalError(tx, innerTx) {
+	if !transformer.featuresDetector.isRelayedV1TransactionCompletelyIntrashardWithSignalError(tx, innerTx) {
 		return []*types.Operation{}, nil
 	}
 
@@ -371,6 +391,13 @@ func (transformer *transactionsTransformer) addOperationsGivenTransactionEvents(
 	txsInBlock []*transaction.ApiTransactionResult,
 	rosettaTx *types.Transaction,
 ) error {
+	hasSignalError := transformer.featuresDetector.eventsController.hasAnySignalError(tx)
+	if hasSignalError {
+		// TODO: Remove
+		log.Info("hasSignalError, will ignore events", "tx", tx.Hash, "block", tx.BlockNonce)
+		return nil
+	}
+
 	eventsTransferValueOnly, err := transformer.eventsController.extractEventTransferValueOnly(tx)
 	if err != nil {
 		return err
@@ -414,7 +441,7 @@ func (transformer *transactionsTransformer) addOperationsGivenTransactionEvents(
 	eventsTransferValueOnly = filterOutTransferValueOnlyEventsThatAreAlreadyCapturedAsContractResults(eventsTransferValueOnly, txsInBlock)
 
 	for _, event := range eventsTransferValueOnly {
-		log.Info("eventTransferValueOnly (effective)", "tx", tx.Hash)
+		log.Info("eventTransferValueOnly (effective)", "tx", tx.Hash, "block", tx.BlockNonce)
 
 		operations := []*types.Operation{
 			{

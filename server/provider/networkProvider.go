@@ -212,6 +212,7 @@ func (provider *networkProvider) GetBlockByNonce(nonce uint64) (*api.Block, erro
 		return nil, err
 	}
 
+	// TODO: returns a mutate copy instead.
 	err = provider.simplifyBlockWithScheduledTransactions(block)
 	if err != nil {
 		return nil, err
@@ -246,6 +247,7 @@ func (provider *networkProvider) doGetBlockByNonce(nonce uint64) (*api.Block, er
 	return createBlockCopy(block), nil
 }
 
+// TOOD: Remove this. Cache the simplified block, instead.
 func createBlockCopy(block *api.Block) *api.Block {
 	miniblocksCopy := make([]*api.MiniBlock, len(block.MiniBlocks))
 
