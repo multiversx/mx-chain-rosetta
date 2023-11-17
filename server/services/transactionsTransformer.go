@@ -449,23 +449,24 @@ func (transformer *transactionsTransformer) addOperationsGivenTransactionEvents(
 		log.Info("eventSCDeploy", "tx", tx.Hash, "block", tx.BlockNonce, "contract", event.contractAddress, "deployer", event.deployerAddress)
 
 		// Handle deployments with transfer of value
+		if tx.Receiver == systemContractDeployAddress {
+			operations := []*types.Operation{
+				// Deployer's balance change is already captured in non-events-based operations.
+				// Let's simulate the transfer from the System deployment address to the contract address.
+				{
+					Type:    opTransfer,
+					Account: addressToAccountIdentifier(tx.Receiver),
+					Amount:  transformer.extension.valueToNativeAmount("-" + tx.Value),
+				},
+				{
+					Type:    opTransfer,
+					Account: addressToAccountIdentifier(event.contractAddress),
+					Amount:  transformer.extension.valueToNativeAmount(tx.Value),
+				},
+			}
 
-		operations := []*types.Operation{
-			// Deployer's balance change is already captured in non-events-based operations.
-			// Let's simulate the transfer from the System deployment address to the contract address.
-			{
-				Type:    opTransfer,
-				Account: addressToAccountIdentifier(systemContractDeployAddress),
-				Amount:  transformer.extension.valueToNativeAmount("-" + tx.Value),
-			},
-			{
-				Type:    opTransfer,
-				Account: addressToAccountIdentifier(event.contractAddress),
-				Amount:  transformer.extension.valueToNativeAmount(tx.Value),
-			},
+			rosettaTx.Operations = append(rosettaTx.Operations, operations...)
 		}
-
-		rosettaTx.Operations = append(rosettaTx.Operations, operations...)
 	}
 
 	for _, event := range eventsTransferValueOnly {
