@@ -37,6 +37,8 @@ func (transformer *transactionsTransformer) transformBlockTxs(block *api.Block) 
 
 	for _, miniblock := range block.MiniBlocks {
 		for _, tx := range miniblock.Transactions {
+			// Make sure SCRs also have the block nonce set.
+			tx.BlockNonce = block.Nonce
 			txs = append(txs, tx)
 		}
 		for _, receipt := range miniblock.Receipts {
@@ -152,6 +154,19 @@ func (transformer *transactionsTransformer) unsignedTxToRosettaTx(
 			Operations: []*types.Operation{
 				{
 					Type:    opDeveloperRewardsAsScResult,
+					Account: addressToAccountIdentifier(scr.Receiver),
+					Amount:  transformer.extension.valueToNativeAmount(scr.Value),
+				},
+			},
+		}
+	}
+
+	if isContractResultOfOpaquelyClaimingDeveloperRewards(scr) {
+		return &types.Transaction{
+			TransactionIdentifier: hashToTransactionIdentifier(scr.Hash),
+			Operations: []*types.Operation{
+				{
+					Type:    opScResult,
 					Account: addressToAccountIdentifier(scr.Receiver),
 					Amount:  transformer.extension.valueToNativeAmount(scr.Value),
 				},
