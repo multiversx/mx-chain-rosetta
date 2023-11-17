@@ -408,7 +408,7 @@ func (transformer *transactionsTransformer) addOperationsGivenTransactionEvents(
 		return err
 	}
 
-	eventsTransferValueOnly = filterOutTransferValueOnlyEventsThatAreAlreadyCapturedAsContractResults(eventsTransferValueOnly, txsInBlock)
+	eventsTransferValueOnly = filterOutTransferValueOnlyEventsThatAreAlreadyCapturedAsContractResults(tx, eventsTransferValueOnly, txsInBlock)
 
 	eventsESDTTransfer, err := transformer.eventsController.extractEventsESDTOrESDTNFTTransfers(tx)
 	if err != nil {

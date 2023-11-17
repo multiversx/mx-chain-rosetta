@@ -88,20 +88,27 @@ func (controller *transactionEventsController) extractEventTransferValueOnly(tx 
 	return typedEvents, nil
 }
 
+// TODO: Use a cached "contractResultsSummaries" (this a must)!
 func filterOutTransferValueOnlyEventsThatAreAlreadyCapturedAsContractResults(
+	txOfInterest *transaction.ApiTransactionResult,
 	events []*eventTransferValueOnly,
 	txsInBlock []*transaction.ApiTransactionResult,
 ) []*eventTransferValueOnly {
 	// First, we find all contract results in this block, and we "summarize" them (in a map).
 	contractResultsSummaries := make(map[string]struct{})
 
-	for _, tx := range txsInBlock {
-		isContractResult := tx.Type == string(transaction.TxTypeUnsigned)
+	for _, item := range txsInBlock {
+		isContractResult := item.Type == string(transaction.TxTypeUnsigned)
 		if !isContractResult {
 			continue
 		}
 
-		summary := fmt.Sprintf("%s-%s-%s", tx.Sender, tx.Receiver, tx.Value)
+		// If not part of the same transaction graph, then skip it.
+		if !(item.OriginalTransactionHash == txOfInterest.Hash) && !(item.OriginalTransactionHash == txOfInterest.OriginalTransactionHash) {
+			continue
+		}
+
+		summary := fmt.Sprintf("%s-%s-%s", item.Sender, item.Receiver, item.Value)
 		contractResultsSummaries[summary] = struct{}{}
 	}
 
