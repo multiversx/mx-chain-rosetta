@@ -413,6 +413,13 @@ func (transformer *transactionsTransformer) addOperationsGivenTransactionEvents(
 		return nil
 	}
 
+	hasInternalVMError := transformer.featuresDetector.eventsController.hasAnyInternalVMError(tx)
+	if hasInternalVMError {
+		// TODO: Remove
+		log.Info("hasInternalVMError, will ignore events", "tx", tx.Hash, "block", tx.BlockNonce)
+		return nil
+	}
+
 	eventsSCDeploy, err := transformer.eventsController.extractEventSCDeploy(tx)
 	if err != nil {
 		return err
