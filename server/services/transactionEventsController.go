@@ -144,16 +144,23 @@ func (controller *transactionEventsController) hasAnySignalError(tx *transaction
 	return false
 }
 
-func (controller *transactionEventsController) hasAnyInternalVMError(tx *transaction.ApiTransactionResult) bool {
+func (controller *transactionEventsController) hasAnyInternalVMErrorNotOnLegacyCallback(tx *transaction.ApiTransactionResult) bool {
 	if !controller.hasEvents(tx) {
 		return false
 	}
 
 	for _, event := range tx.Logs.Events {
 		hasError := event.Identifier == transactionEventInternalVMErrors
-		if hasError {
-			return true
+		if !hasError {
+			continue
 		}
+
+		isAboutLegacyCallback := strings.Contains(string(event.Data), "[execution failed] [callBack]")
+		if isAboutLegacyCallback {
+			continue
+		}
+
+		return true
 	}
 
 	return false
