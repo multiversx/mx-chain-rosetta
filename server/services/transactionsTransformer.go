@@ -302,10 +302,9 @@ func (transformer *transactionsTransformer) createValueReturnOperationsIfIntrash
 	tx *transaction.ApiTransactionResult,
 	allTransactionsInBlock []*transaction.ApiTransactionResult,
 ) ([]*types.Operation, error) {
-	if !transformer.featuresDetector.isIntrashardContractCallWithSignalErrorButWithoutContractResultBearingRefundValue(tx, allTransactionsInBlock) {
-		return []*types.Operation{}, nil
-	}
-	if !transformer.featuresDetector.isContractDeploymentWithSignalError(tx) {
+	isContractCallWithError := transformer.featuresDetector.isIntrashardContractCallWithSignalErrorButWithoutContractResultBearingRefundValue(tx, allTransactionsInBlock)
+	isContractDeploymentWithError := transformer.featuresDetector.isContractDeploymentWithSignalError(tx)
+	if !isContractCallWithError && !isContractDeploymentWithError {
 		return []*types.Operation{}, nil
 	}
 
