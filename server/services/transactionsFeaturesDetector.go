@@ -60,7 +60,7 @@ func (detector *transactionsFeaturesDetector) isInvalidTransactionOfTypeMoveBala
 	return withSendingValueToNonPayableContract || withMetaTransactionIsInvalid
 }
 
-func (detector *transactionsFeaturesDetector) isRelayedTransactionCompletelyIntrashardWithSignalError(tx *transaction.ApiTransactionResult, innerTx *innerTransactionOfRelayedV1) bool {
+func (detector *transactionsFeaturesDetector) isRelayedV1TransactionCompletelyIntrashardWithSignalError(tx *transaction.ApiTransactionResult, innerTx *innerTransactionOfRelayedV1) bool {
 	innerTxSenderShard := detector.networkProvider.ComputeShardIdOfPubKey(innerTx.SenderPubKey)
 	innerTxReceiverShard := detector.networkProvider.ComputeShardIdOfPubKey(innerTx.ReceiverPubKey)
 
@@ -73,4 +73,46 @@ func (detector *transactionsFeaturesDetector) isRelayedTransactionCompletelyIntr
 
 	isWithSignalError := detector.eventsController.hasAnySignalError(tx)
 	return isWithSignalError
+}
+
+func (detector *transactionsFeaturesDetector) isIntrashardContractCallWithSignalErrorButWithoutContractResultBearingRefundValue(
+	txInQuestion *transaction.ApiTransactionResult,
+	allTransactionsInBlock []*transaction.ApiTransactionResult,
+) bool {
+	if !detector.isContractCallWithSignalError(txInQuestion) {
+		return false
+	}
+
+	if !detector.isIntrashard(txInQuestion) {
+		return false
+	}
+
+	for _, tx := range allTransactionsInBlock {
+		matchesTypeOnSource := tx.ProcessingTypeOnSource == transactionProcessingTypeMoveBalance
+		matchesTypeOnDestination := tx.ProcessingTypeOnDestination == transactionProcessingTypeMoveBalance
+		matchesOriginalTransactionHash := tx.OriginalTransactionHash == txInQuestion.Hash
+		matchesRefundValue := tx.Value == txInQuestion.Value
+
+		if matchesTypeOnSource && matchesTypeOnDestination && matchesOriginalTransactionHash && matchesRefundValue {
+			return false
+		}
+	}
+
+	return true
+}
+
+func (detector *transactionsFeaturesDetector) isContractCallWithSignalError(tx *transaction.ApiTransactionResult) bool {
+	return tx.ProcessingTypeOnSource == transactionProcessingTypeContractInvoking &&
+		tx.ProcessingTypeOnDestination == transactionProcessingTypeContractInvoking &&
+		detector.eventsController.hasAnySignalError(tx)
+}
+
+func (detector *transactionsFeaturesDetector) isContractDeploymentWithSignalError(tx *transaction.ApiTransactionResult) bool {
+	return tx.ProcessingTypeOnSource == transactionProcessingTypeContractDeployment &&
+		tx.ProcessingTypeOnDestination == transactionProcessingTypeContractDeployment &&
+		detector.eventsController.hasAnySignalError(tx)
+}
+
+func (detector *transactionsFeaturesDetector) isIntrashard(tx *transaction.ApiTransactionResult) bool {
+	return tx.SourceShard == tx.DestinationShard
 }

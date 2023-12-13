@@ -1,6 +1,12 @@
 package provider
 
-import "github.com/multiversx/mx-chain-rosetta/server/resources"
+import (
+	"fmt"
+	"strconv"
+	"strings"
+
+	"github.com/multiversx/mx-chain-rosetta/server/resources"
+)
 
 // TODO: Merge the methods in this file into a single method, e.g. GetAccountWithBalance(address, tokenIdentifier, options), where tokenIdentifier can be the native token or an ESDT.
 
@@ -54,10 +60,19 @@ func (provider *networkProvider) GetAccountNativeBalance(address string, options
 // GetAccountESDTBalance gets the ESDT balance by address and tokenIdentifier
 // TODO: Return nonce for ESDT, as well (an additional request might be needed).
 func (provider *networkProvider) GetAccountESDTBalance(address string, tokenIdentifier string, options resources.AccountQueryOptions) (*resources.AccountESDTBalance, error) {
+	tokenIdentifierParts, err := parseExtendedIdentifierParts(tokenIdentifier)
+	if err != nil {
+		return nil, err
+	}
+
 	url := buildUrlGetAccountESDTBalance(address, tokenIdentifier, options)
+	if tokenIdentifierParts.nonce > 0 {
+		url = buildUrlGetAccountNFTBalance(address, fmt.Sprintf("%s-%s", tokenIdentifierParts.ticker, tokenIdentifierParts.randomSequence), tokenIdentifierParts.nonce, options)
+	}
+
 	response := &resources.AccountESDTBalanceApiResponse{}
 
-	err := provider.getResource(url, response)
+	err = provider.getResource(url, response)
 	if err != nil {
 		return nil, newErrCannotGetAccount(address, err)
 	}
@@ -77,4 +92,38 @@ func (provider *networkProvider) GetAccountESDTBalance(address string, tokenIden
 		Balance:          data.TokenData.Balance,
 		BlockCoordinates: data.BlockCoordinates,
 	}, nil
+}
+
+type tokenIdentifierParts struct {
+	ticker         string
+	randomSequence string
+	nonce          uint64
+}
+
+func parseExtendedIdentifierParts(tokenIdentifier string) (*tokenIdentifierParts, error) {
+	parts := strings.Split(tokenIdentifier, "-")
+
+	if len(parts) == 2 {
+		return &tokenIdentifierParts{
+			ticker:         parts[0],
+			randomSequence: parts[1],
+			nonce:          0,
+		}, nil
+	}
+
+	if len(parts) == 3 {
+		nonceHex := parts[2]
+		nonce, err := strconv.ParseUint(nonceHex, 16, 64)
+		if err != nil {
+			return nil, newErrCannotParseTokenIdentifier(tokenIdentifier, err)
+		}
+
+		return &tokenIdentifierParts{
+			ticker:         parts[0],
+			randomSequence: parts[1],
+			nonce:          nonce,
+		}, nil
+	}
+
+	return nil, newErrCannotParseTokenIdentifier(tokenIdentifier, nil)
 }
