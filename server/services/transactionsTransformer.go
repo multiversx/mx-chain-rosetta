@@ -237,7 +237,7 @@ func (transformer *transactionsTransformer) normalTxToRosetta(
 		return nil, err
 	}
 
-	valueRefundOperationIfContractCallWithSignalError, err := transformer.createValueReturnOperationsIfIntrashardContractCallWithSignalError(tx, allTransactionsInBlock)
+	valueRefundOperationIfContractCallOrDeploymentWithSignalError, err := transformer.createValueReturnOperationsIfIntrashardContractCallOrContractDeploymentWithSignalError(tx, allTransactionsInBlock)
 	if err != nil {
 		return nil, err
 	}
@@ -246,12 +246,12 @@ func (transformer *transactionsTransformer) normalTxToRosetta(
 	if len(innerTxOperationsIfRelayedCompletelyIntrashardWithSignalError) > 0 {
 		log.Info("innerTxOperationsIfRelayedCompletelyIntrashardWithSignalError", "tx", tx.Hash, "block", tx.BlockNonce)
 	}
-	if len(valueRefundOperationIfContractCallWithSignalError) > 0 {
-		log.Info("valueRefundOperationIfContractCallWithSignalError", "tx", tx.Hash, "block", tx.BlockNonce)
+	if len(valueRefundOperationIfContractCallOrDeploymentWithSignalError) > 0 {
+		log.Info("valueRefundOperationIfContractCallOrDeploymentWithSignalError", "tx", tx.Hash, "block", tx.BlockNonce)
 	}
 
 	operations = append(operations, innerTxOperationsIfRelayedCompletelyIntrashardWithSignalError...)
-	operations = append(operations, valueRefundOperationIfContractCallWithSignalError...)
+	operations = append(operations, valueRefundOperationIfContractCallOrDeploymentWithSignalError...)
 
 	return &types.Transaction{
 		TransactionIdentifier: hashToTransactionIdentifier(tx.Hash),
@@ -298,11 +298,14 @@ func (transformer *transactionsTransformer) extractInnerTxOperationsIfRelayedCom
 	}, nil
 }
 
-func (transformer *transactionsTransformer) createValueReturnOperationsIfIntrashardContractCallWithSignalError(
+func (transformer *transactionsTransformer) createValueReturnOperationsIfIntrashardContractCallOrContractDeploymentWithSignalError(
 	tx *transaction.ApiTransactionResult,
 	allTransactionsInBlock []*transaction.ApiTransactionResult,
 ) ([]*types.Operation, error) {
 	if !transformer.featuresDetector.isIntrashardContractCallWithSignalErrorButWithoutContractResultBearingRefundValue(tx, allTransactionsInBlock) {
+		return []*types.Operation{}, nil
+	}
+	if !transformer.featuresDetector.isContractDeploymentWithSignalError(tx) {
 		return []*types.Operation{}, nil
 	}
 

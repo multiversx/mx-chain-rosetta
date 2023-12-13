@@ -14,6 +14,7 @@ var (
 	transactionProcessingTypeBuiltInFunctionCall = "BuiltInFunctionCall"
 	transactionProcessingTypeMoveBalance         = "MoveBalance"
 	transactionProcessingTypeContractInvoking    = "SCInvoking"
+	transactionProcessingTypeContractDeployment  = "SCDeployment"
 	amountZero                                   = "0"
 	builtInFunctionClaimDeveloperRewards         = core.BuiltInFunctionClaimDeveloperRewards
 	builtInFunctionESDTTransfer                  = core.BuiltInFunctionESDTTransfer
