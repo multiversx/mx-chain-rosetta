@@ -1,8 +1,6 @@
 package services
 
 import (
-	"bytes"
-
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
 )
 
@@ -28,9 +26,9 @@ func (detector *transactionsFeaturesDetector) doesContractResultHoldRewardsOfCla
 	for _, tx := range allTransactionsInBlock {
 		matchesTypeOnSource := tx.ProcessingTypeOnSource == transactionProcessingTypeBuiltInFunctionCall
 		matchesTypeOnDestination := tx.ProcessingTypeOnDestination == transactionProcessingTypeBuiltInFunctionCall
-		matchesData := bytes.Equal(tx.Data, []byte(builtInFunctionClaimDeveloperRewards))
+		matchesOperation := tx.Operation == builtInFunctionClaimDeveloperRewards
 
-		if matchesTypeOnSource && matchesTypeOnDestination && matchesData {
+		if matchesTypeOnSource && matchesTypeOnDestination && matchesOperation {
 			claimDeveloperRewardsTxs[tx.Hash] = struct{}{}
 		}
 	}
