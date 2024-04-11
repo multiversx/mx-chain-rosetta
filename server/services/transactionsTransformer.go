@@ -469,6 +469,11 @@ func (transformer *transactionsTransformer) addOperationsGivenTransactionEvents(
 		return err
 	}
 
+	eventsClaimDeveloperRewards, err := transformer.eventsController.extractEventsClaimDeveloperRewards(tx)
+	if err != nil {
+		return err
+	}
+
 	for _, event := range eventsSCDeploy {
 		log.Info("eventSCDeploy", "tx", tx.Hash, "block", tx.BlockNonce, "contract", event.contractAddress, "deployer", event.deployerAddress)
 
@@ -630,6 +635,18 @@ func (transformer *transactionsTransformer) addOperationsGivenTransactionEvents(
 				Type:    opCustomTransfer,
 				Account: addressToAccountIdentifier(event.otherAddress),
 				Amount:  transformer.extension.valueToCustomAmount(event.value, event.getExtendedIdentifier()),
+			},
+		}
+
+		rosettaTx.Operations = append(rosettaTx.Operations, operations...)
+	}
+
+	for _, event := range eventsClaimDeveloperRewards {
+		operations := []*types.Operation{
+			{
+				Type:    opDeveloperRewardsAsScResult,
+				Account: addressToAccountIdentifier(event.receiverAddress),
+				Amount:  transformer.extension.valueToNativeAmount(event.value),
 			},
 		}
 

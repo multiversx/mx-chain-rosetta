@@ -258,14 +258,14 @@ func (controller *transactionEventsController) extractEventsESDTLocalBurn(tx *tr
 			return nil, fmt.Errorf("%w: bad number of topics for ESDTLocalBurn event = %d", errCannotRecognizeEvent, numTopics)
 		}
 
-		identifider := event.Topics[0]
+		identifier := event.Topics[0]
 		nonceAsBytes := event.Topics[1]
 		valueBytes := event.Topics[2]
 		value := big.NewInt(0).SetBytes(valueBytes)
 
 		typedEvents = append(typedEvents, &eventESDT{
 			otherAddress: event.Address,
-			identifier:   string(identifider),
+			identifier:   string(identifier),
 			nonceAsBytes: nonceAsBytes,
 			value:        value.String(),
 		})
@@ -284,14 +284,14 @@ func (controller *transactionEventsController) extractEventsESDTLocalMint(tx *tr
 			return nil, fmt.Errorf("%w: bad number of topics for ESDTLocalMint event = %d", errCannotRecognizeEvent, numTopics)
 		}
 
-		identifider := event.Topics[0]
+		identifier := event.Topics[0]
 		nonceAsBytes := event.Topics[1]
 		valueBytes := event.Topics[2]
 		value := big.NewInt(0).SetBytes(valueBytes)
 
 		typedEvents = append(typedEvents, &eventESDT{
 			otherAddress: event.Address,
-			identifier:   string(identifider),
+			identifier:   string(identifier),
 			nonceAsBytes: nonceAsBytes,
 			value:        value.String(),
 		})
@@ -310,7 +310,7 @@ func (controller *transactionEventsController) extractEventsESDTWipe(tx *transac
 			return nil, fmt.Errorf("%w: bad number of topics for ESDTWipe event = %d", errCannotRecognizeEvent, numTopics)
 		}
 
-		identifider := event.Topics[0]
+		identifier := event.Topics[0]
 		nonceAsBytes := event.Topics[1]
 		valueBytes := event.Topics[2]
 		accountPubkey := event.Topics[3]
@@ -320,7 +320,7 @@ func (controller *transactionEventsController) extractEventsESDTWipe(tx *transac
 
 		typedEvents = append(typedEvents, &eventESDT{
 			otherAddress: accountAddress,
-			identifier:   string(identifider),
+			identifier:   string(identifier),
 			nonceAsBytes: nonceAsBytes,
 			value:        value.String(),
 		})
@@ -339,7 +339,7 @@ func (controller *transactionEventsController) extractEventsESDTNFTCreate(tx *tr
 			return nil, fmt.Errorf("%w: bad number of topics for %s event = %d", errCannotRecognizeEvent, transactionEventESDTNFTCreate, numTopics)
 		}
 
-		identifider := event.Topics[0]
+		identifier := event.Topics[0]
 		nonceAsBytes := event.Topics[1]
 		valueBytes := event.Topics[2]
 		// We ignore the 4th topic.
@@ -348,7 +348,7 @@ func (controller *transactionEventsController) extractEventsESDTNFTCreate(tx *tr
 
 		typedEvents = append(typedEvents, &eventESDT{
 			otherAddress: event.Address,
-			identifier:   string(identifider),
+			identifier:   string(identifier),
 			nonceAsBytes: nonceAsBytes,
 			value:        value.String(),
 		})
@@ -367,7 +367,7 @@ func (controller *transactionEventsController) extractEventsESDTNFTBurn(tx *tran
 			return nil, fmt.Errorf("%w: bad number of topics for %s event = %d", errCannotRecognizeEvent, transactionEventESDTNFTBurn, numTopics)
 		}
 
-		identifider := event.Topics[0]
+		identifier := event.Topics[0]
 		nonceAsBytes := event.Topics[1]
 		valueBytes := event.Topics[2]
 
@@ -375,7 +375,7 @@ func (controller *transactionEventsController) extractEventsESDTNFTBurn(tx *tran
 
 		typedEvents = append(typedEvents, &eventESDT{
 			otherAddress: event.Address,
-			identifier:   string(identifider),
+			identifier:   string(identifier),
 			nonceAsBytes: nonceAsBytes,
 			value:        value.String(),
 		})
@@ -394,7 +394,7 @@ func (controller *transactionEventsController) extractEventsESDTNFTAddQuantity(t
 			return nil, fmt.Errorf("%w: bad number of topics for %s event = %d", errCannotRecognizeEvent, transactionEventESDTNFTAddQuantity, numTopics)
 		}
 
-		identifider := event.Topics[0]
+		identifier := event.Topics[0]
 		nonceAsBytes := event.Topics[1]
 		valueBytes := event.Topics[2]
 
@@ -402,9 +402,34 @@ func (controller *transactionEventsController) extractEventsESDTNFTAddQuantity(t
 
 		typedEvents = append(typedEvents, &eventESDT{
 			otherAddress: event.Address,
-			identifier:   string(identifider),
+			identifier:   string(identifier),
 			nonceAsBytes: nonceAsBytes,
 			value:        value.String(),
+		})
+	}
+
+	return typedEvents, nil
+}
+
+func (controller *transactionEventsController) extractEventsClaimDeveloperRewards(tx *transaction.ApiTransactionResult) ([]*eventClaimDeveloperRewards, error) {
+	rawEvents := controller.findManyEventsByIdentifier(tx, transactionEventClaimDeveloperRewards)
+	typedEvents := make([]*eventClaimDeveloperRewards, 0, len(rawEvents))
+
+	for _, event := range rawEvents {
+		numTopics := len(event.Topics)
+		if numTopics != 2 {
+			return nil, fmt.Errorf("%w: bad number of topics for %s event = %d", errCannotRecognizeEvent, transactionEventClaimDeveloperRewards, numTopics)
+		}
+
+		valueBytes := event.Topics[0]
+		receiverPubkey := event.Topics[1]
+
+		value := big.NewInt(0).SetBytes(valueBytes)
+		receiver := controller.provider.ConvertPubKeyToAddress(receiverPubkey)
+
+		typedEvents = append(typedEvents, &eventClaimDeveloperRewards{
+			value:           value.String(),
+			receiverAddress: receiver,
 		})
 	}
 

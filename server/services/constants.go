@@ -40,6 +40,7 @@ var (
 	transactionEventESDTLocalBurn                           = core.BuiltInFunctionESDTLocalBurn
 	transactionEventESDTLocalMint                           = core.BuiltInFunctionESDTLocalMint
 	transactionEventESDTWipe                                = core.BuiltInFunctionESDTWipe
+	transactionEventClaimDeveloperRewards                   = core.BuiltInFunctionClaimDeveloperRewards
 	transactionEventTopicInvalidMetaTransaction             = "meta transaction is invalid"
 	transactionEventTopicInvalidMetaTransactionNotEnoughGas = "meta transaction is invalid: not enough gas"
 )

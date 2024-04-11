@@ -37,3 +37,8 @@ type eventSCDeploy struct {
 	contractAddress string
 	deployerAddress string
 }
+
+type eventClaimDeveloperRewards struct {
+	value           string
+	receiverAddress string
+}
