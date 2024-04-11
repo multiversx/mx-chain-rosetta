@@ -148,29 +148,31 @@ func (transformer *transactionsTransformer) unsignedTxToRosettaTx(
 		}
 	}
 
-	if transformer.featuresDetector.doesContractResultHoldRewardsOfClaimDeveloperRewards(scr, txsInBlock) {
-		return &types.Transaction{
-			TransactionIdentifier: hashToTransactionIdentifier(scr.Hash),
-			Operations: []*types.Operation{
-				{
-					Type:    opDeveloperRewardsAsScResult,
-					Account: addressToAccountIdentifier(scr.Receiver),
-					Amount:  transformer.extension.valueToNativeAmount(scr.Value),
+	if !areClaimDeveloperRewardsEventsEnabled(scr.BlockNonce) {
+		if transformer.featuresDetector.doesContractResultHoldRewardsOfClaimDeveloperRewards(scr, txsInBlock) {
+			return &types.Transaction{
+				TransactionIdentifier: hashToTransactionIdentifier(scr.Hash),
+				Operations: []*types.Operation{
+					{
+						Type:    opDeveloperRewardsAsScResult,
+						Account: addressToAccountIdentifier(scr.Receiver),
+						Amount:  transformer.extension.valueToNativeAmount(scr.Value),
+					},
 				},
-			},
+			}
 		}
-	}
 
-	if isContractResultOfOpaquelyClaimingDeveloperRewards(scr) {
-		return &types.Transaction{
-			TransactionIdentifier: hashToTransactionIdentifier(scr.Hash),
-			Operations: []*types.Operation{
-				{
-					Type:    opScResult,
-					Account: addressToAccountIdentifier(scr.Receiver),
-					Amount:  transformer.extension.valueToNativeAmount(scr.Value),
+		if isContractResultOfOpaquelyClaimingDeveloperRewards(scr) {
+			return &types.Transaction{
+				TransactionIdentifier: hashToTransactionIdentifier(scr.Hash),
+				Operations: []*types.Operation{
+					{
+						Type:    opScResult,
+						Account: addressToAccountIdentifier(scr.Receiver),
+						Amount:  transformer.extension.valueToNativeAmount(scr.Value),
+					},
 				},
-			},
+			}
 		}
 	}
 
@@ -634,16 +636,18 @@ func (transformer *transactionsTransformer) addOperationsGivenTransactionEvents(
 		rosettaTx.Operations = append(rosettaTx.Operations, operations...)
 	}
 
-	for _, event := range eventsClaimDeveloperRewards {
-		operations := []*types.Operation{
-			{
-				Type:    opDeveloperRewardsAsScResult,
-				Account: addressToAccountIdentifier(event.receiverAddress),
-				Amount:  transformer.extension.valueToNativeAmount(event.value),
-			},
-		}
+	if areClaimDeveloperRewardsEventsEnabled(tx.BlockNonce) {
+		for _, event := range eventsClaimDeveloperRewards {
+			operations := []*types.Operation{
+				{
+					Type:    opDeveloperRewardsAsScResult,
+					Account: addressToAccountIdentifier(event.receiverAddress),
+					Amount:  transformer.extension.valueToNativeAmount(event.value),
+				},
+			}
 
-		rosettaTx.Operations = append(rosettaTx.Operations, operations...)
+			rosettaTx.Operations = append(rosettaTx.Operations, operations...)
+		}
 	}
 
 	return nil
