@@ -1,0 +1,35 @@
+{
+  "network": {
+    "blockchain": "MultiversX",
+    "network": "devnet"
+  },
+  "data_directory": "",
+  "http_timeout": 200,
+  "max_retries": 3,
+  "max_online_connections": 120,
+  "max_sync_concurrency": 1,
+  "construction": {
+    "end_conditions": {
+      "transfer": 2
+    },
+    "stale_depth": 10,
+    "broadcast_limit": 5,
+    "constructor_dsl_file": "devnet-construction.ros",
+    "prefunded_accounts": [
+      {
+        "account_identifier": {
+          "address": "erd1ldjsdetjvegjdnda0qw2h62kq6rpvrklkc5pw9zxm0nwulfhtyqqtyc4vq"
+        },
+        "privkey": "3e4e89e501eb542c12403fb15c52479e8721f2f4dedc3b3ef0f3b47b37de006c",
+        "curve_type": "edwards25519",
+        "currency": {
+          "symbol": "EGLD",
+          "decimals": 18
+        }
+      }
+    ]
+  },
+  "data": {
+    "inactive_discrepancy_search_disabled": true
+  }
+}

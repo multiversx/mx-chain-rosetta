@@ -1,0 +1,37 @@
+transfer(1){
+  transfer{
+    transfer.network = {"network":"devnet", "blockchain":"MultiversX"};
+    native_currency = {"symbol":"EGLD", "decimals":18};
+    sender = {
+      "account_identifier": {
+        "address": "erd1ldjsdetjvegjdnda0qw2h62kq6rpvrklkc5pw9zxm0nwulfhtyqqtyc4vq"
+      },
+      "currency": {
+          "symbol": "EGLD",
+          "decimals": 18
+      }
+    };
+
+    max_transfer_amount = "10000000000000000";
+    recipient_amount = random_number({"minimum": "1", "maximum": {{max_transfer_amount}}});
+
+    print_message({"recipient_amount":{{recipient_amount}}});
+
+    sender_amount = 0-{{recipient_amount}};
+    transfer.confirmation_depth = "10";
+    transfer.operations = [
+      {
+        "operation_identifier":{"index":0},
+        "type":"Transfer",
+        "account":{{sender.account_identifier}},
+        "amount":{
+          "value":{{sender_amount}},
+          "currency":{{native_currency}}
+        }
+      }
+    ];
+    transfer.preprocess_metadata = {
+      "receiver": "erd1qyu5wthldzr8wx5c9ucg8kjagg0jfs53s8nr3zpz3hypefsdd8ssycr6th" 
+    };
+  }
+}

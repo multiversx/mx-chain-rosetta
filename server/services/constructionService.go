@@ -177,6 +177,7 @@ func (service *constructionService) computeData(options *constructionOptions) []
 }
 
 func (service *constructionService) computeDataForCustomCurrencyTransfer(tokenIdentifier string, amount string) []byte {
+	// Only fungible tokens are supported (at least, for now).
 	data := fmt.Sprintf("%s@%s@%s", builtInFunctionESDTTransfer, stringToHex(tokenIdentifier), amountToHex(amount))
 	return []byte(data)
 }
@@ -248,6 +249,7 @@ func (service *constructionService) ConstructionParse(
 
 func (service *constructionService) createOperationsFromPreparedTx(tx *data.Transaction) ([]*types.Operation, error) {
 	var operations []*types.Operation
+
 	isCustomCurrencyTransfer := isCustomCurrencyTransfer(string(tx.Data))
 
 	if isCustomCurrencyTransfer {
@@ -269,6 +271,7 @@ func (service *constructionService) createOperationsFromPreparedTx(tx *data.Tran
 			},
 		}
 	} else {
+		// Native currency transfer
 		operations = []*types.Operation{
 			{
 				Type:    opTransfer,
