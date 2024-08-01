@@ -17,7 +17,8 @@ jobs:
 
       - name: Install mesh-cli
         run: |
-          curl -sSfL https://raw.githubusercontent.com/coinbase/mesh-cli/master/scripts/install.sh | sh -s
+          curl -sSfL https://raw.githubusercontent.com/coinbase/mesh-cli/master/scripts/install.sh | sh -s -- -b "$HOME/.local/bin"
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
 
       - name: Build rosetta
         run: |
@@ -27,3 +28,5 @@ jobs:
         run: |
           cd cmd/rosetta && ./rosetta --version
           rosetta-cli version
+
+
