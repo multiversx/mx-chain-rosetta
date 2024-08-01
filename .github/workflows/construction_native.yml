@@ -1,0 +1,29 @@
+name: Test construction (native currency)
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  localnet:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/setup-python@v5
+        with:
+          python-version: 3.11
+
+      - uses: actions/checkout@v4
+
+      - name: Install mesh-cli
+        run: |
+          curl -sSfL https://raw.githubusercontent.com/coinbase/mesh-cli/master/scripts/install.sh | sh -s
+
+      - name: Build rosetta
+        run: |
+          cd cmd/rosetta && go build .
+
+      - name: Smoke test
+        run: |
+          cd cmd/rosetta && ./rosetta --version
+          rosetta-cli version
