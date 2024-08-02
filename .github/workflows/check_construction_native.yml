@@ -1,11 +1,11 @@
-name: Test construction (native currency)
+name: Check construction (native currency)
 
 on:
   pull_request:
   workflow_dispatch:
 
 jobs:
-  localnet:
+  test:
     runs-on: ubuntu-latest
 
     steps:
@@ -15,8 +15,9 @@ jobs:
 
       - uses: actions/checkout@v4
 
-      - name: Install mesh-cli
+      - name: Install dependencies
         run: |
+          pip3 install requests
           curl -sSfL https://raw.githubusercontent.com/coinbase/mesh-cli/master/scripts/install.sh | sh -s -- -b "$HOME/.local/bin"
           echo "$HOME/.local/bin" >> $GITHUB_PATH
 
@@ -26,6 +27,6 @@ jobs:
 
       - name: Run scenario
         run: |
-          cd systemtests && python3 ./construction_native.py --network testnet
+          cd systemtests && python3 ./check_construction_native.py --network testnet
 
 
