@@ -5,12 +5,12 @@
   },
   "data_directory": "",
   "http_timeout": 200,
-  "max_retries": 3,
+  "max_retries": 1,
   "max_online_connections": 120,
   "max_sync_concurrency": 1,
   "construction": {
     "end_conditions": {
-      "transfer": 2
+      "transfer": 1
     },
     "stale_depth": 10,
     "broadcast_limit": 5,
