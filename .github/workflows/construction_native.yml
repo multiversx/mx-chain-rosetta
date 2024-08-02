@@ -24,9 +24,8 @@ jobs:
         run: |
           cd cmd/rosetta && go build .
 
-      - name: Smoke test
+      - name: Run scenario
         run: |
-          cd cmd/rosetta && ./rosetta --version
-          rosetta-cli version
+          cd systemtests && python3 ./construction_native.py --network testnet
 
 
