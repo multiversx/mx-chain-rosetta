@@ -50,7 +50,7 @@ func main() {
 	}
 }
 
-func startAdapter(ctx *cli.Context) {
+func startAdapter(ctx *cli.Context) error {
 	adapter := adapter{
 		proxyUrl:      ctx.GlobalString(cliFlagProxyUrl.Name),
 		shard:         ctx.GlobalUint(cliFlagShard.Name),
@@ -64,7 +64,8 @@ func startAdapter(ctx *cli.Context) {
 	router.GET("/address/:address/esdt/:token", adapter.getAccountESDT)
 	router.GET("/address/:address", adapter.getAccount)
 	router.POST("/transaction/send", adapter.sendTransaction)
-	router.Run(":8080")
+
+	return router.Run(":8080")
 }
 
 type adapter struct {
