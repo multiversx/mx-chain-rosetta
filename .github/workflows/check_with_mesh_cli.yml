@@ -28,10 +28,10 @@ jobs:
 
       - name: check:data
         run: |
-          PYTHONPATH=. python3 ./systemtests/check.py --mode=data --network=testnet
+          PYTHONPATH=. python3 ./systemtests/check_with_mesh_cli.py --mode=data --network=testnet
 
       - name: check:construction
         run: |
-          PYTHONPATH=. python3 ./systemtests/check.py --mode=construction --network=testnet
+          PYTHONPATH=. python3 ./systemtests/check_with_mesh_cli.py --mode=construction --network=testnet
 
 
