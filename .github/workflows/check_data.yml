@@ -1,4 +1,4 @@
-name: Check construction (native currency)
+name: Check data
 
 on:
   pull_request:
@@ -28,6 +28,6 @@ jobs:
 
       - name: Run scenario
         run: |
-          PYTHONPATH=. python3 ./systemtests/check_construction_native.py --network testnet
+          cd systemtests && python3 ./check_data.py --network testnet
 
 

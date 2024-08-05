@@ -1,6 +1,7 @@
 cmd/rosetta/rosetta
 cmd/rosetta/logs/**
 systemtests/logs/**
+systemtests/**/check-data/**
 logs/**
 
 **/__pycache__/**
