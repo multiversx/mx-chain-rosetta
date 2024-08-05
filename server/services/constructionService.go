@@ -138,7 +138,7 @@ func (service *constructionService) ConstructionMetadata(
 	computedData := service.computeData(requestOptions)
 
 	fee, gasLimit, gasPrice, errTyped := service.computeFeeComponents(requestOptions, computedData)
-	if err != nil {
+	if errTyped != nil {
 		return nil, errTyped
 	}
 
