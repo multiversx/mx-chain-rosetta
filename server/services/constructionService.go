@@ -135,25 +135,30 @@ func (service *constructionService) ConstructionMetadata(
 		return nil, service.errFactory.newErrWithOriginal(ErrUnableToGetAccount, err)
 	}
 
-	computedData := service.computeData(requestOptions)
-
-	fee, gasLimit, gasPrice, errTyped := service.computeFeeComponents(requestOptions, computedData)
-	if errTyped != nil {
-		return nil, errTyped
-	}
-
 	metadata := &constructionMetadata{
 		Nonce:          account.Account.Nonce,
 		Sender:         requestOptions.Sender,
 		Receiver:       requestOptions.Receiver,
-		Amount:         requestOptions.Amount,
 		CurrencySymbol: requestOptions.CurrencySymbol,
-		GasLimit:       gasLimit,
-		GasPrice:       gasPrice,
-		Data:           computedData,
 		ChainID:        service.provider.GetNetworkConfig().NetworkID,
 		Version:        transactionVersion,
 	}
+
+	if service.extension.isNativeCurrencySymbol(requestOptions.CurrencySymbol) {
+		metadata.Amount = requestOptions.Amount
+		metadata.Data = requestOptions.Data
+	} else {
+		metadata.Amount = amountZero
+		metadata.Data = service.computeDataForCustomCurrencyTransfer(requestOptions.CurrencySymbol, requestOptions.Amount)
+	}
+
+	fee, gasLimit, gasPrice, errTyped := service.computeFeeComponents(requestOptions, metadata.Data)
+	if errTyped != nil {
+		return nil, errTyped
+	}
+
+	metadata.GasLimit = gasLimit
+	metadata.GasPrice = gasPrice
 
 	metadataAsObjectsMap, err := toObjectsMap(metadata)
 	if err != nil {
@@ -166,14 +171,6 @@ func (service *constructionService) ConstructionMetadata(
 			service.extension.valueToNativeAmount(fee.String()),
 		},
 	}, nil
-}
-
-func (service *constructionService) computeData(options *constructionOptions) []byte {
-	if service.extension.isNativeCurrencySymbol(options.CurrencySymbol) {
-		return options.Data
-	}
-
-	return service.computeDataForCustomCurrencyTransfer(options.CurrencySymbol, options.Amount)
 }
 
 func (service *constructionService) computeDataForCustomCurrencyTransfer(tokenIdentifier string, amount string) []byte {
@@ -192,11 +189,6 @@ func (service *constructionService) ConstructionPayloads(
 	metadata, err := newConstructionMetadata(request.Metadata)
 	if err != nil {
 		return nil, service.errFactory.newErrWithOriginal(ErrConstruction, err)
-	}
-
-	isCustomCurrencyTransfer := isCustomCurrencyTransfer(string(metadata.Data))
-	if isCustomCurrencyTransfer {
-		metadata.Amount = amountZero
 	}
 
 	txJson, err := metadata.toTransactionJson()

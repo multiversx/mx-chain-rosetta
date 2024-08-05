@@ -54,7 +54,7 @@ func TestConstructionOptions_Validate(t *testing.T) {
 		Sender:         "alice",
 		Receiver:       "bob",
 		Amount:         "1234",
-		CurrencySymbol: "FOO",
+		CurrencySymbol: "TEST-abcdef",
 		Data:           []byte("hello"),
 	}).validate("XeGLD"), "for custom currencies, option 'data' must be empty")
 
