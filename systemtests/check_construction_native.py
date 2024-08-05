@@ -3,50 +3,12 @@ import subprocess
 import sys
 import time
 from argparse import ArgumentParser
-from dataclasses import dataclass
-from pathlib import Path
 from typing import Any
 
 import requests
 
-PATH_REPOSITORY = Path(__file__).parent.parent
-PATH_ROSETTA = PATH_REPOSITORY / "cmd" / "rosetta" / "rosetta"
-PATH_PROXY_TO_OBSERVER_ADAPTER = PATH_REPOSITORY / "systemtests" / "proxy_to_observer_adapter.py"
-PORT_ROSETTA = 7091
-PORT_OBSERVER_SURROGATE = 8080
-
-
-@dataclass
-class Configuration:
-    network_shard: int
-    network_id: str
-    network_name: str
-    native_currency: str
-    num_historical_epochs: int
-    proxy_url: str
-    checker_configuration_file: str
-
-
-CONFIGURATIONS = {
-    "devnet": Configuration(
-        network_shard=0,
-        network_id="D",
-        network_name="devnet",
-        native_currency="EGLD",
-        num_historical_epochs=2,
-        proxy_url="https://devnet-gateway.multiversx.com",
-        checker_configuration_file="devnet-construction.json",
-    ),
-    "testnet": Configuration(
-        network_shard=0,
-        network_id="T",
-        network_name="testnet",
-        native_currency="EGLD",
-        num_historical_epochs=2,
-        proxy_url="https://testnet-gateway.multiversx.com",
-        checker_configuration_file="testnet-construction.json",
-    ),
-}
+from systemtests import constants
+from systemtests.config import CONFIGURATIONS, Configuration
 
 
 def main() -> int:
@@ -94,9 +56,9 @@ def run_rosetta(configuration: Configuration):
     current_epoch = get_current_epoch(configuration)
 
     command = [
-        str(PATH_ROSETTA),
-        f"--port={PORT_ROSETTA}",
-        f"--observer-http-url=http://localhost:{PORT_OBSERVER_SURROGATE}",
+        str(constants.PATH_ROSETTA),
+        f"--port={constants.PORT_ROSETTA}",
+        f"--observer-http-url=http://localhost:{constants.PORT_OBSERVER_SURROGATE}",
         f"--observer-actual-shard={configuration.network_shard}",
         f"--network-id={configuration.network_id}",
         f"--network-name={configuration.network_name}",
@@ -116,10 +78,9 @@ def get_current_epoch(configuration: Configuration) -> int:
 
 def run_proxy_to_observer_adapter(configuration: Configuration):
     command = [
-        "python3",
-        str(PATH_PROXY_TO_OBSERVER_ADAPTER),
-        f"--proxy={configuration.proxy_url}",
-        f"--shard={configuration.network_shard}",
+        str(constants.PATH_PROXY_TO_OBSERVER_ADAPTER),
+        f"{configuration.proxy_url}",
+        f"{configuration.network_shard}",
     ]
 
     return subprocess.Popen(command)
@@ -136,9 +97,9 @@ def run_rosetta_checker(configuration: Configuration):
     command = [
         "rosetta-cli",
         "check:construction",
-        f"--configuration-file={configuration.checker_configuration_file}",
-        f"--online-url=http://localhost:{PORT_ROSETTA}",
-        f"--offline-url=http://localhost:{PORT_ROSETTA}",
+        f"--configuration-file={configuration.check_construction_configuration_file}",
+        f"--online-url=http://localhost:{constants.PORT_ROSETTA}",
+        f"--offline-url=http://localhost:{constants.PORT_ROSETTA}",
     ]
 
     return subprocess.Popen(command)

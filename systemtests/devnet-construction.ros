@@ -1,6 +1,6 @@
 transfer(1){
   transfer{
-    transfer.network = {"network":"devnet", "blockchain":"MultiversX"};
+    transfer.network = {"network":"untitled", "blockchain":"MultiversX"};
     native_currency = {"symbol":"EGLD", "decimals":18};
     sender = {
       "account_identifier": {

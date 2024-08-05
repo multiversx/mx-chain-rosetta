@@ -27,6 +27,6 @@ jobs:
 
       - name: Run scenario
         run: |
-          cd systemtests && python3 ./check_construction_native.py --network testnet
+          PYTHONPATH=. python3 ./systemtests/check_construction_native.py --network testnet
 
 

@@ -1,7 +1,7 @@
 {
   "network": {
     "blockchain": "MultiversX",
-    "network": "testnet"
+    "network": "untitled"
   },
   "data_directory": "",
   "http_timeout": 200,
