@@ -36,7 +36,7 @@ type ArgsNewNetworkProvider struct {
 	MinGasLimit                 uint64
 	ExtraGasLimitGuardedTx      uint64
 	NativeCurrencySymbol        string
-	CustomCurrenciesSymbols     []string
+	CustomCurrencies            []resources.Currency
 	GenesisBlockHash            string
 	GenesisTimestamp            int64
 	FirstHistoricalEpoch        uint32
@@ -83,7 +83,7 @@ func NewNetworkProvider(args ArgsNewNetworkProvider) (*networkProvider, error) {
 		return nil, err
 	}
 
-	currenciesProvider := newCurrenciesProvider(args.NativeCurrencySymbol, args.CustomCurrenciesSymbols)
+	currenciesProvider := newCurrenciesProvider(args.NativeCurrencySymbol, args.CustomCurrencies)
 
 	return &networkProvider{
 		currenciesProvider: currenciesProvider,

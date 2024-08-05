@@ -11,20 +11,13 @@ type currenciesProvider struct {
 
 // In the future, we might extract this to a standalone component (separate sub-package).
 // For the moment, we keep it as a simple structure, with unexported (future-to-be exported) member functions.
-func newCurrenciesProvider(nativeCurrencySymbol string, customCurrenciesSymbols []string) *currenciesProvider {
-	customCurrencies := make([]resources.Currency, 0, len(customCurrenciesSymbols))
+func newCurrenciesProvider(nativeCurrencySymbol string, customCurrencies []resources.Currency) *currenciesProvider {
 	customCurrenciesBySymbol := make(map[string]resources.Currency)
+	customCurrenciesSymbols := make([]string, 0, len(customCurrencies))
 
-	for _, symbol := range customCurrenciesSymbols {
-		customCurrency := resources.Currency{
-			Symbol: symbol,
-			// At the moment, for custom currencies (ESDTs), we hardcode the number of decimals to 0.
-			// In the future, we might fetch the actual number of decimals from the metachain observer.
-			Decimals: 0,
-		}
-
-		customCurrencies = append(customCurrencies, customCurrency)
-		customCurrenciesBySymbol[symbol] = customCurrency
+	for _, customCurrency := range customCurrencies {
+		customCurrenciesBySymbol[customCurrency.Symbol] = customCurrency
+		customCurrenciesSymbols = append(customCurrenciesSymbols, customCurrency.Symbol)
 	}
 
 	return &currenciesProvider{

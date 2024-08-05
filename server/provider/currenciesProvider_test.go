@@ -3,13 +3,17 @@ package provider
 import (
 	"testing"
 
+	"github.com/multiversx/mx-chain-rosetta/server/resources"
 	"github.com/stretchr/testify/require"
 )
 
 func TestCurrenciesProvider(t *testing.T) {
 	t.Parallel()
 
-	provider := newCurrenciesProvider("XeGLD", []string{"ROSETTA-3a2edf", "ROSETTA-057ab4"})
+	provider := newCurrenciesProvider("XeGLD", []resources.Currency{
+		{Symbol: "ROSETTA-3a2edf", Decimals: 2},
+		{Symbol: "ROSETTA-057ab4", Decimals: 2},
+	})
 
 	t.Run("get native", func(t *testing.T) {
 		t.Parallel()
