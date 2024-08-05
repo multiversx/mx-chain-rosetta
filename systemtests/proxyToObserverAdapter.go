@@ -1,5 +1,6 @@
 // This is a one-file HTTP forwarder: captures requests destined to the MultiversX Observer API and transforms them into requests to the MultiversX Proxy API.
-// It handles GET and POST requests used by the MultiversX Rosetta implementation.
+// It handles GET and POST requests used by the MultiversX Rosetta implementation, so that the Rosetta implementation can be tested against the MultiversX Proxy API
+// (without it being aware).
 package main
 
 import (
