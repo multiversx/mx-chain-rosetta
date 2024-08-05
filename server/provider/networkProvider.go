@@ -83,7 +83,10 @@ func NewNetworkProvider(args ArgsNewNetworkProvider) (*networkProvider, error) {
 		return nil, err
 	}
 
-	currenciesProvider := newCurrenciesProvider(args.NativeCurrencySymbol, args.CustomCurrencies)
+	currenciesProvider, err := newCurrenciesProvider(args.NativeCurrencySymbol, args.CustomCurrencies)
+	if err != nil {
+		return nil, err
+	}
 
 	return &networkProvider{
 		currenciesProvider: currenciesProvider,

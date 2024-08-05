@@ -11,13 +11,19 @@ type currenciesProvider struct {
 
 // In the future, we might extract this to a standalone component (separate sub-package).
 // For the moment, we keep it as a simple structure, with unexported (future-to-be exported) member functions.
-func newCurrenciesProvider(nativeCurrencySymbol string, customCurrencies []resources.Currency) *currenciesProvider {
+func newCurrenciesProvider(nativeCurrencySymbol string, customCurrencies []resources.Currency) (*currenciesProvider, error) {
 	customCurrenciesBySymbol := make(map[string]resources.Currency)
 	customCurrenciesSymbols := make([]string, 0, len(customCurrencies))
 
-	for _, customCurrency := range customCurrencies {
-		customCurrenciesBySymbol[customCurrency.Symbol] = customCurrency
-		customCurrenciesSymbols = append(customCurrenciesSymbols, customCurrency.Symbol)
+	for index, customCurrency := range customCurrencies {
+		symbol := customCurrency.Symbol
+
+		if len(symbol) == 0 {
+			return nil, newInvalidCustomCurrency(index)
+		}
+
+		customCurrenciesBySymbol[symbol] = customCurrency
+		customCurrenciesSymbols = append(customCurrenciesSymbols, symbol)
 	}
 
 	return &currenciesProvider{
@@ -28,7 +34,7 @@ func newCurrenciesProvider(nativeCurrencySymbol string, customCurrencies []resou
 		customCurrenciesSymbols:  customCurrenciesSymbols,
 		customCurrencies:         customCurrencies,
 		customCurrenciesBySymbol: customCurrenciesBySymbol,
-	}
+	}, nil
 }
 
 // GetNativeCurrency gets the native currency (EGLD, 18 decimals)
