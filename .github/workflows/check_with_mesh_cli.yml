@@ -1,4 +1,4 @@
-name: Check construction (native currency)
+name: Check with Mesh CLI
 
 on:
   pull_request:
