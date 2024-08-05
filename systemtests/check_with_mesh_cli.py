@@ -23,7 +23,7 @@ def main() -> int:
 
     process_rosetta = run_rosetta(configuration)
     process_adapter = run_proxy_to_observer_adapter(configuration)
-    process_checker = run_rosetta_checker(mode, configuration)
+    process_checker = run_mesh_cli(mode, configuration)
 
     # Handle termination signals
     def signal_handler(sig: Any, frame: Any):
@@ -84,16 +84,16 @@ def run_proxy_to_observer_adapter(configuration: Configuration):
     return subprocess.Popen(command)
 
 
-def run_rosetta_checker(mode: str, configuration: Configuration):
+def run_mesh_cli(mode: str, configuration: Configuration):
     if mode == "data":
-        return run_rosetta_checker_with_check_data(configuration)
+        return run_mesh_cli_with_check_data(configuration)
     elif mode == "construction":
-        return run_rosetta_checker_with_check_construction(configuration)
+        return run_mesh_cli_with_check_construction(configuration)
     else:
         raise ValueError(f"Unknown mode: {mode}")
 
 
-def run_rosetta_checker_with_check_construction(configuration: Configuration):
+def run_mesh_cli_with_check_construction(configuration: Configuration):
     """
     E.g.
 
@@ -112,7 +112,7 @@ def run_rosetta_checker_with_check_construction(configuration: Configuration):
     return subprocess.Popen(command)
 
 
-def run_rosetta_checker_with_check_data(configuration: Configuration):
+def run_mesh_cli_with_check_data(configuration: Configuration):
     """
     E.g.
 

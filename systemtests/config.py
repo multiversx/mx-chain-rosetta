@@ -22,8 +22,8 @@ CONFIGURATIONS = {
         native_currency="EGLD",
         num_historical_epochs=2,
         proxy_url="https://devnet-gateway.multiversx.com",
-        check_construction_configuration_file="systemtests/devnet-construction.json",
-        check_data_configuration_file="systemtests/check-data.json",
+        check_construction_configuration_file="systemtests/mesh_cli_config/devnet-construction.json",
+        check_data_configuration_file="systemtests/mesh_cli_config/check-data.json",
         check_data_directory="systemtests/devnet-data",
     ),
     "testnet": Configuration(
@@ -33,8 +33,8 @@ CONFIGURATIONS = {
         native_currency="EGLD",
         num_historical_epochs=2,
         proxy_url="https://testnet-gateway.multiversx.com",
-        check_construction_configuration_file="systemtests/testnet-construction.json",
-        check_data_configuration_file="systemtests/check-data.json",
+        check_construction_configuration_file="systemtests/mesh_cli_config/testnet-construction.json",
+        check_data_configuration_file="systemtests/mesh_cli_config/check-data.json",
         check_data_directory="systemtests/testnet-data",
     ),
 }
