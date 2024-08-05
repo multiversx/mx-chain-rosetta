@@ -23,8 +23,8 @@ jobs:
 
       - name: Build
         run: |
-          cd cmd/rosetta && go build .
-          cd systemtests && go build ./proxyToObserverAdapter.go.go 
+          cd $GITHUB_WORKSPACE/cmd/rosetta && go build .
+          cd $GITHUB_WORKSPACE/systemtests && go build ./proxyToObserverAdapter.go.go 
 
       - name: Run scenario
         run: |
