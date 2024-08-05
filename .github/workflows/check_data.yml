@@ -28,6 +28,6 @@ jobs:
 
       - name: Run scenario
         run: |
-          cd systemtests && python3 ./check_data.py --network testnet
+          PYTHONPATH=. python3 ./systemtests/check_data.py --network testnet
 
 
