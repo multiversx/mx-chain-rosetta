@@ -1,4 +1,4 @@
-name: Check data
+name: Check construction (native currency)
 
 on:
   pull_request:
@@ -26,8 +26,12 @@ jobs:
           cd $GITHUB_WORKSPACE/cmd/rosetta && go build .
           cd $GITHUB_WORKSPACE/systemtests && go build ./proxyToObserverAdapter.go
 
-      - name: Run scenario
+      - name: check:data
         run: |
-          PYTHONPATH=. python3 ./systemtests/check_data.py --network testnet
+          PYTHONPATH=. python3 ./systemtests/check.py --mode=data --network=testnet
+
+      - name: check:construction
+        run: |
+          PYTHONPATH=. python3 ./systemtests/check.py --mode=construction --network=testnet
 
 
