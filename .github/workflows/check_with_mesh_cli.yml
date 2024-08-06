@@ -29,10 +29,12 @@ jobs:
       - name: check:construction (native)
         run: |
           PYTHONPATH=. python3 ./systemtests/check_with_mesh_cli.py --mode=construction-native --network=testnet
+          sleep 30
 
       - name: check:construction (custom)
         run: |
           PYTHONPATH=. python3 ./systemtests/check_with_mesh_cli.py --mode=construction-custom --network=testnet
+          sleep 30
 
       - name: check:data
         run: |
