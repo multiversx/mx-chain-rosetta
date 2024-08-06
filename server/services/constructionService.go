@@ -287,6 +287,8 @@ func isCustomCurrencyTransfer(txData string) bool {
 	return strings.HasPrefix(txData, builtInFunctionESDTTransfer)
 }
 
+// parseCustomCurrencyTransfer parses a single ESDT transfer.
+// Other kinds of ESDT transfers are not supported, for now.
 func parseCustomCurrencyTransfer(txData string) (string, string, error) {
 	parts := strings.Split(txData, "@")
 

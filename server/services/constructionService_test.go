@@ -494,33 +494,65 @@ func TestConstructionService_ConstructionParse(t *testing.T) {
 	extension := newNetworkProviderExtension(networkProvider)
 	service := NewConstructionService(networkProvider)
 
-	notSignedTx := `{"nonce":42,"value":"1234","receiver":"erd1spyavw0956vq68xj8y4tenjpq2wd5a9p2c6j8gsz7ztyrnpxrruqzu66jx","sender":"erd1qyu5wthldzr8wx5c9ucg8kjagg0jfs53s8nr3zpz3hypefsdd8ssycr6th","gasPrice":1100000000,"gasLimit":57500,"data":"aGVsbG8=","chainID":"T","version":1}`
+	t.Run("native transfer", func(t *testing.T) {
+		notSignedTx := `{"nonce":42,"value":"1234","receiver":"erd1spyavw0956vq68xj8y4tenjpq2wd5a9p2c6j8gsz7ztyrnpxrruqzu66jx","sender":"erd1qyu5wthldzr8wx5c9ucg8kjagg0jfs53s8nr3zpz3hypefsdd8ssycr6th","gasPrice":1100000000,"gasLimit":57500,"data":"aGVsbG8=","chainID":"T","version":1}`
 
-	operations := []*types.Operation{
-		{
-			OperationIdentifier: indexToOperationIdentifier(0),
-			Type:                opTransfer,
-			Account:             addressToAccountIdentifier(testscommon.TestAddressAlice),
-			Amount:              extension.valueToNativeAmount("-1234"),
-		},
-		{
-			OperationIdentifier: indexToOperationIdentifier(1),
-			Type:                opTransfer,
-			Account:             addressToAccountIdentifier(testscommon.TestAddressBob),
-			Amount:              extension.valueToNativeAmount("1234"),
-		},
-	}
+		operations := []*types.Operation{
+			{
+				OperationIdentifier: indexToOperationIdentifier(0),
+				Type:                opTransfer,
+				Account:             addressToAccountIdentifier(testscommon.TestAddressAlice),
+				Amount:              extension.valueToNativeAmount("-1234"),
+			},
+			{
+				OperationIdentifier: indexToOperationIdentifier(1),
+				Type:                opTransfer,
+				Account:             addressToAccountIdentifier(testscommon.TestAddressBob),
+				Amount:              extension.valueToNativeAmount("1234"),
+			},
+		}
 
-	response, errTyped := service.ConstructionParse(context.Background(),
-		&types.ConstructionParseRequest{
-			Signed:      false,
-			Transaction: notSignedTx,
-		},
-	)
+		response, errTyped := service.ConstructionParse(context.Background(),
+			&types.ConstructionParseRequest{
+				Signed:      false,
+				Transaction: notSignedTx,
+			},
+		)
 
-	require.Nil(t, errTyped)
-	require.Equal(t, operations, response.Operations)
-	require.Nil(t, response.AccountIdentifierSigners)
+		require.Nil(t, errTyped)
+		require.Equal(t, operations, response.Operations)
+		require.Nil(t, response.AccountIdentifierSigners)
+	})
+
+	t.Run("custom transfer", func(t *testing.T) {
+		notSignedTx := `{"nonce":42,"value":"1234","receiver":"erd1spyavw0956vq68xj8y4tenjpq2wd5a9p2c6j8gsz7ztyrnpxrruqzu66jx","sender":"erd1qyu5wthldzr8wx5c9ucg8kjagg0jfs53s8nr3zpz3hypefsdd8ssycr6th","gasPrice":1100000000,"gasLimit":57500,"data":"RVNEVFRyYW5zZmVyQDU0NDU1MzU0MmQ2MTYyNjM2NDY1NjZAMDRkMg==","chainID":"T","version":1}`
+
+		operations := []*types.Operation{
+			{
+				OperationIdentifier: indexToOperationIdentifier(0),
+				Type:                opCustomTransfer,
+				Account:             addressToAccountIdentifier(testscommon.TestAddressAlice),
+				Amount:              extension.valueToCustomAmount("-1234", "TEST-abcdef"),
+			},
+			{
+				OperationIdentifier: indexToOperationIdentifier(1),
+				Type:                opCustomTransfer,
+				Account:             addressToAccountIdentifier(testscommon.TestAddressBob),
+				Amount:              extension.valueToCustomAmount("1234", "TEST-abcdef"),
+			},
+		}
+
+		response, errTyped := service.ConstructionParse(context.Background(),
+			&types.ConstructionParseRequest{
+				Signed:      false,
+				Transaction: notSignedTx,
+			},
+		)
+
+		require.Nil(t, errTyped)
+		require.Equal(t, operations, response.Operations)
+		require.Nil(t, response.AccountIdentifierSigners)
+	})
 }
 
 func TestConstructionService_ConstructionCombine(t *testing.T) {
