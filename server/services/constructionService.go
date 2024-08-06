@@ -135,25 +135,30 @@ func (service *constructionService) ConstructionMetadata(
 		return nil, service.errFactory.newErrWithOriginal(ErrUnableToGetAccount, err)
 	}
 
-	computedData := service.computeData(requestOptions)
-
-	fee, gasLimit, gasPrice, errTyped := service.computeFeeComponents(requestOptions, computedData)
-	if err != nil {
-		return nil, errTyped
-	}
-
 	metadata := &constructionMetadata{
 		Nonce:          account.Account.Nonce,
 		Sender:         requestOptions.Sender,
 		Receiver:       requestOptions.Receiver,
-		Amount:         requestOptions.Amount,
 		CurrencySymbol: requestOptions.CurrencySymbol,
-		GasLimit:       gasLimit,
-		GasPrice:       gasPrice,
-		Data:           computedData,
 		ChainID:        service.provider.GetNetworkConfig().NetworkID,
 		Version:        transactionVersion,
 	}
+
+	if service.extension.isNativeCurrencySymbol(requestOptions.CurrencySymbol) {
+		metadata.Amount = requestOptions.Amount
+		metadata.Data = requestOptions.Data
+	} else {
+		metadata.Amount = amountZero
+		metadata.Data = service.computeDataForCustomCurrencyTransfer(requestOptions.CurrencySymbol, requestOptions.Amount)
+	}
+
+	fee, gasLimit, gasPrice, errTyped := service.computeFeeComponents(requestOptions, metadata.Data)
+	if errTyped != nil {
+		return nil, errTyped
+	}
+
+	metadata.GasLimit = gasLimit
+	metadata.GasPrice = gasPrice
 
 	metadataAsObjectsMap, err := toObjectsMap(metadata)
 	if err != nil {
@@ -168,15 +173,8 @@ func (service *constructionService) ConstructionMetadata(
 	}, nil
 }
 
-func (service *constructionService) computeData(options *constructionOptions) []byte {
-	if service.extension.isNativeCurrencySymbol(options.CurrencySymbol) {
-		return options.Data
-	}
-
-	return service.computeDataForCustomCurrencyTransfer(options.CurrencySymbol, options.Amount)
-}
-
 func (service *constructionService) computeDataForCustomCurrencyTransfer(tokenIdentifier string, amount string) []byte {
+	// Only fungible tokens are supported (at least, for now).
 	data := fmt.Sprintf("%s@%s@%s", builtInFunctionESDTTransfer, stringToHex(tokenIdentifier), amountToHex(amount))
 	return []byte(data)
 }
@@ -191,11 +189,6 @@ func (service *constructionService) ConstructionPayloads(
 	metadata, err := newConstructionMetadata(request.Metadata)
 	if err != nil {
 		return nil, service.errFactory.newErrWithOriginal(ErrConstruction, err)
-	}
-
-	isCustomCurrencyTransfer := isCustomCurrencyTransfer(string(metadata.Data))
-	if isCustomCurrencyTransfer {
-		metadata.Amount = amountZero
 	}
 
 	txJson, err := metadata.toTransactionJson()
@@ -248,6 +241,7 @@ func (service *constructionService) ConstructionParse(
 
 func (service *constructionService) createOperationsFromPreparedTx(tx *data.Transaction) ([]*types.Operation, error) {
 	var operations []*types.Operation
+
 	isCustomCurrencyTransfer := isCustomCurrencyTransfer(string(tx.Data))
 
 	if isCustomCurrencyTransfer {
@@ -269,6 +263,7 @@ func (service *constructionService) createOperationsFromPreparedTx(tx *data.Tran
 			},
 		}
 	} else {
+		// Native currency transfer
 		operations = []*types.Operation{
 			{
 				Type:    opTransfer,
@@ -292,6 +287,8 @@ func isCustomCurrencyTransfer(txData string) bool {
 	return strings.HasPrefix(txData, builtInFunctionESDTTransfer)
 }
 
+// parseCustomCurrencyTransfer parses a single ESDT transfer.
+// Other kinds of ESDT transfers are not supported, for now.
 func parseCustomCurrencyTransfer(txData string) (string, string, error) {
 	parts := strings.Split(txData, "@")
 

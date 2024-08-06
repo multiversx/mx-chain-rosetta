@@ -11,6 +11,7 @@ import (
 	processFactory "github.com/multiversx/mx-chain-proxy-go/process/factory"
 	"github.com/multiversx/mx-chain-rosetta/server/factory/components"
 	"github.com/multiversx/mx-chain-rosetta/server/provider"
+	"github.com/multiversx/mx-chain-rosetta/server/resources"
 )
 
 const (
@@ -41,7 +42,7 @@ type ArgsCreateNetworkProvider struct {
 	MinGasLimit                 uint64
 	ExtraGasLimitGuardedTx      uint64
 	NativeCurrencySymbol        string
-	CustomCurrenciesSymbols     []string
+	CustomCurrencies            []resources.Currency
 	GenesisBlockHash            string
 	GenesisTimestamp            int64
 	FirstHistoricalEpoch        uint32
@@ -131,7 +132,7 @@ func CreateNetworkProvider(args ArgsCreateNetworkProvider) (NetworkProvider, err
 		MinGasLimit:                 args.MinGasLimit,
 		ExtraGasLimitGuardedTx:      args.ExtraGasLimitGuardedTx,
 		NativeCurrencySymbol:        args.NativeCurrencySymbol,
-		CustomCurrenciesSymbols:     args.CustomCurrenciesSymbols,
+		CustomCurrencies:            args.CustomCurrencies,
 		GenesisBlockHash:            args.GenesisBlockHash,
 		GenesisTimestamp:            args.GenesisTimestamp,
 		FirstHistoricalEpoch:        args.FirstHistoricalEpoch,

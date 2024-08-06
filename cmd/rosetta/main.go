@@ -53,6 +53,11 @@ func startRosetta(ctx *cli.Context) error {
 		return err
 	}
 
+	customCurrencies, err := loadConfigOfCustomCurrencies(cliFlags.configFileCustomCurrencies)
+	if err != nil {
+		return err
+	}
+
 	log.Info("Starting Rosetta...", "middleware", version.RosettaMiddlewareVersion, "specification", version.RosettaVersion)
 
 	networkProvider, err := factory.CreateNetworkProvider(factory.ArgsCreateNetworkProvider{
@@ -72,7 +77,7 @@ func startRosetta(ctx *cli.Context) error {
 		MinGasLimit:                 cliFlags.minGasLimit,
 		ExtraGasLimitGuardedTx:      cliFlags.extraGasLimitGuardedTx,
 		NativeCurrencySymbol:        cliFlags.nativeCurrencySymbol,
-		CustomCurrenciesSymbols:     cliFlags.customCurrenciesSymbols,
+		CustomCurrencies:            customCurrencies,
 		GenesisBlockHash:            cliFlags.genesisBlock,
 		FirstHistoricalEpoch:        cliFlags.firstHistoricalEpoch,
 		NumHistoricalEpochs:         cliFlags.numHistoricalEpochs,

@@ -31,15 +31,18 @@ func TestNewNetworkProvider(t *testing.T) {
 		MinGasLimit:                 50001,
 		ExtraGasLimitGuardedTx:      50001,
 		NativeCurrencySymbol:        "XeGLD",
-		CustomCurrenciesSymbols:     []string{"FOO-abcdef", "BAR-abcdef"},
-		GenesisBlockHash:            "aaaa",
-		GenesisTimestamp:            123456789,
-		FirstHistoricalEpoch:        1000,
-		NumHistoricalEpochs:         1024,
-		ObserverFacade:              testscommon.NewObserverFacadeMock(),
-		Hasher:                      testscommon.RealWorldBlake2bHasher,
-		MarshalizerForHashing:       testscommon.MarshalizerForHashing,
-		PubKeyConverter:             testscommon.RealWorldBech32PubkeyConverter,
+		CustomCurrencies: []resources.Currency{
+			{Symbol: "FOO-abcdef", Decimals: 6},
+			{Symbol: "BAR-abcdef", Decimals: 18},
+		},
+		GenesisBlockHash:      "aaaa",
+		GenesisTimestamp:      123456789,
+		FirstHistoricalEpoch:  1000,
+		NumHistoricalEpochs:   1024,
+		ObserverFacade:        testscommon.NewObserverFacadeMock(),
+		Hasher:                testscommon.RealWorldBlake2bHasher,
+		MarshalizerForHashing: testscommon.MarshalizerForHashing,
+		PubKeyConverter:       testscommon.RealWorldBech32PubkeyConverter,
 	}
 
 	provider, err := NewNetworkProvider(args)
@@ -60,7 +63,10 @@ func TestNewNetworkProvider(t *testing.T) {
 	assert.Equal(t, uint64(50001), provider.GetNetworkConfig().MinGasLimit)
 	assert.Equal(t, uint64(50001), provider.GetNetworkConfig().ExtraGasLimitGuardedTx)
 	assert.Equal(t, "XeGLD", provider.GetNativeCurrency().Symbol)
-	assert.Equal(t, []resources.Currency{{Symbol: "FOO-abcdef"}, {Symbol: "BAR-abcdef"}}, provider.GetCustomCurrencies())
+	assert.Equal(t, []resources.Currency{
+		{Symbol: "FOO-abcdef", Decimals: 6},
+		{Symbol: "BAR-abcdef", Decimals: 18},
+	}, provider.GetCustomCurrencies())
 	assert.Equal(t, "aaaa", provider.GetGenesisBlockSummary().Hash)
 	assert.Equal(t, int64(123456789), provider.GetGenesisTimestamp())
 	assert.Equal(t, uint32(1000), provider.firstHistoricalEpoch)

@@ -22,8 +22,8 @@ type BlockSummary struct {
 
 // Currency is an internal resource
 type Currency struct {
-	Symbol   string
-	Decimals int32
+	Symbol   string `json:"symbol"`
+	Decimals int32  `json:"decimals"`
 }
 
 // BlockCoordinates is an API resource

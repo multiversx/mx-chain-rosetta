@@ -3,6 +3,7 @@ package services
 import (
 	"github.com/coinbase/rosetta-sdk-go/types"
 	"github.com/multiversx/mx-chain-core-go/core"
+	"github.com/multiversx/mx-chain-rosetta/server/resources"
 )
 
 type networkProviderExtension struct {
@@ -23,13 +24,21 @@ func (extension *networkProviderExtension) valueToNativeAmount(value string) *ty
 }
 
 func (extension *networkProviderExtension) valueToCustomAmount(value string, currencySymbol string) *types.Amount {
+	currency, ok := extension.provider.GetCustomCurrencyBySymbol(currencySymbol)
+	if !ok {
+		log.Warn("valueToCustomAmount(): unknown currency", "symbol", currencySymbol)
+
+		currency = resources.Currency{
+			Symbol:   currencySymbol,
+			Decimals: 0,
+		}
+	}
+
 	return &types.Amount{
 		Value: value,
 		Currency: &types.Currency{
-			Symbol: currencySymbol,
-			// Currently, we hardcode numDecimals to zero for custom currencies.
-			// TODO: Fix this once we have the information available.
-			Decimals: 0,
+			Symbol:   currency.Symbol,
+			Decimals: currency.Decimals,
 		},
 	}
 }
