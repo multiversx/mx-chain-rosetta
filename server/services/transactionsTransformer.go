@@ -29,9 +29,6 @@ func newTransactionsTransformer(provider NetworkProvider) *transactionsTransform
 }
 
 func (transformer *transactionsTransformer) transformBlockTxs(block *api.Block) ([]*types.Transaction, error) {
-	// TODO: Remove
-	log.Info("transformBlockTxs", "block", block.Nonce, "numTxs", block.NumTxs)
-
 	txs := make([]*transaction.ApiTransactionResult, 0)
 	receipts := make([]*transaction.ApiReceipt, 0)
 
@@ -88,13 +85,6 @@ func (transformer *transactionsTransformer) transformBlockTxs(block *api.Block) 
 }
 
 func (transformer *transactionsTransformer) txToRosettaTx(tx *transaction.ApiTransactionResult, txsInBlock []*transaction.ApiTransactionResult) (*types.Transaction, error) {
-	// TODO: Remove
-	if isRelayedV1Transaction(tx) {
-		log.Info("txToRosettaTx: relayed V1", "hash", tx.Hash)
-	} else if isRelayedV2Transaction(tx) {
-		log.Info("txToRosettaTx: relayed V2", "hash", tx.Hash)
-	}
-
 	var rosettaTx *types.Transaction
 	var err error
 
@@ -149,6 +139,7 @@ func (transformer *transactionsTransformer) unsignedTxToRosettaTx(
 	}
 
 	if !areClaimDeveloperRewardsEventsEnabled(scr.BlockNonce) {
+		// Handle developer rewards in a legacy manner (without looking at events / logs)
 		if transformer.featuresDetector.doesContractResultHoldRewardsOfClaimDeveloperRewards(scr, txsInBlock) {
 			return &types.Transaction{
 				TransactionIdentifier: hashToTransactionIdentifier(scr.Hash),
@@ -244,12 +235,11 @@ func (transformer *transactionsTransformer) normalTxToRosetta(
 		return nil, err
 	}
 
-	// TODO: Remove (maybe)
 	if len(innerTxOperationsIfRelayedCompletelyIntrashardWithSignalError) > 0 {
-		log.Info("innerTxOperationsIfRelayedCompletelyIntrashardWithSignalError", "tx", tx.Hash, "block", tx.BlockNonce)
+		log.Info("normalTxToRosetta(): innerTxOperationsIfRelayedCompletelyIntrashardWithSignalError", "tx", tx.Hash, "block", tx.BlockNonce)
 	}
 	if len(valueRefundOperationIfContractCallOrDeploymentWithSignalError) > 0 {
-		log.Info("valueRefundOperationIfContractCallOrDeploymentWithSignalError", "tx", tx.Hash, "block", tx.BlockNonce)
+		log.Info("normalTxToRosetta(): valueRefundOperationIfContractCallOrDeploymentWithSignalError", "tx", tx.Hash, "block", tx.BlockNonce)
 	}
 
 	operations = append(operations, innerTxOperationsIfRelayedCompletelyIntrashardWithSignalError...)
@@ -412,8 +402,6 @@ func (transformer *transactionsTransformer) addOperationsGivenTransactionEvents(
 ) error {
 	hasSignalError := transformer.featuresDetector.eventsController.hasAnySignalError(tx)
 	if hasSignalError {
-		// TODO: Remove
-		log.Info("hasSignalError, will ignore events", "tx", tx.Hash, "block", tx.BlockNonce)
 		return nil
 	}
 
