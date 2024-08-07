@@ -12,7 +12,9 @@ var (
 	transactionProcessingTypeRelayed             = "RelayedTx"
 	transactionProcessingTypeBuiltInFunctionCall = "BuiltInFunctionCall"
 	transactionProcessingTypeMoveBalance         = "MoveBalance"
+	amountZero                                   = "0"
 	builtInFunctionClaimDeveloperRewards         = core.BuiltInFunctionClaimDeveloperRewards
+	builtInFunctionESDTTransfer                  = core.BuiltInFunctionESDTTransfer
 	refundGasMessage                             = "refundedGas"
 	argumentsSeparator                           = "@"
 	sendingValueToNonPayableContractDataPrefix   = argumentsSeparator + hex.EncodeToString([]byte("sending value to non payable contract"))
