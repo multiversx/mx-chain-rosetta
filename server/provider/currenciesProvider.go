@@ -62,5 +62,6 @@ func (provider *currenciesProvider) GetCustomCurrencyBySymbol(symbol string) (re
 
 // HasCustomCurrency checks whether a custom currency (ESDT) is enabled (supported)
 func (provider *currenciesProvider) HasCustomCurrency(symbol string) bool {
-	return true
+	_, ok := provider.customCurrenciesBySymbol[symbol]
+	return ok
 }

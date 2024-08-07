@@ -458,8 +458,6 @@ func (transformer *transactionsTransformer) addOperationsGivenTransactionEvents(
 	}
 
 	for _, event := range eventsSCDeploy {
-		log.Info("eventSCDeploy", "tx", tx.Hash, "block", tx.BlockNonce, "contract", event.contractAddress, "deployer", event.deployerAddress)
-
 		// Handle deployments with transfer of value
 		if tx.Receiver == systemContractDeployAddress {
 			operations := []*types.Operation{
@@ -501,25 +499,38 @@ func (transformer *transactionsTransformer) addOperationsGivenTransactionEvents(
 	}
 
 	for _, event := range eventsESDTTransfer {
-		if !transformer.provider.HasCustomCurrency(event.identifier) {
+		if event.identifier == nativeAsESDTIdentifier {
+			operations := []*types.Operation{
+				{
+					Type:    opTransfer,
+					Account: addressToAccountIdentifier(event.senderAddress),
+					Amount:  transformer.extension.valueToNativeAmount("-" + event.value),
+				},
+				{
+					Type:    opTransfer,
+					Account: addressToAccountIdentifier(event.receiverAddress),
+					Amount:  transformer.extension.valueToNativeAmount(event.value),
+				},
+			}
+
+			rosettaTx.Operations = append(rosettaTx.Operations, operations...)
+		} else if transformer.provider.HasCustomCurrency(event.identifier) {
 			// We are only emitting balance-changing operations for supported currencies.
-			continue
-		}
+			operations := []*types.Operation{
+				{
+					Type:    opCustomTransfer,
+					Account: addressToAccountIdentifier(event.senderAddress),
+					Amount:  transformer.extension.valueToCustomAmount("-"+event.value, event.getExtendedIdentifier()),
+				},
+				{
+					Type:    opCustomTransfer,
+					Account: addressToAccountIdentifier(event.receiverAddress),
+					Amount:  transformer.extension.valueToCustomAmount(event.value, event.getExtendedIdentifier()),
+				},
+			}
 
-		operations := []*types.Operation{
-			{
-				Type:    opCustomTransfer,
-				Account: addressToAccountIdentifier(event.senderAddress),
-				Amount:  transformer.extension.valueToCustomAmount("-"+event.value, event.getExtendedIdentifier()),
-			},
-			{
-				Type:    opCustomTransfer,
-				Account: addressToAccountIdentifier(event.receiverAddress),
-				Amount:  transformer.extension.valueToCustomAmount(event.value, event.getExtendedIdentifier()),
-			},
+			rosettaTx.Operations = append(rosettaTx.Operations, operations...)
 		}
-
-		rosettaTx.Operations = append(rosettaTx.Operations, operations...)
 	}
 
 	for _, event := range eventsESDTLocalBurn {

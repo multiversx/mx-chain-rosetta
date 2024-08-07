@@ -24,6 +24,7 @@ var (
 	emptyHash                                    = strings.Repeat("0", 64)
 	nodeVersionForOfflineRosetta                 = "N / A"
 	systemContractDeployAddress                  = "erd1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq6gq4hu"
+	nativeAsESDTIdentifier                       = "EGLD-000000"
 )
 
 var (
