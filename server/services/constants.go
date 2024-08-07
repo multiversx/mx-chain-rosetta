@@ -12,7 +12,9 @@ var (
 	transactionProcessingTypeRelayed             = "RelayedTx"
 	transactionProcessingTypeBuiltInFunctionCall = "BuiltInFunctionCall"
 	transactionProcessingTypeMoveBalance         = "MoveBalance"
+	amountZero                                   = "0"
 	builtInFunctionClaimDeveloperRewards         = core.BuiltInFunctionClaimDeveloperRewards
+	builtInFunctionESDTTransfer                  = core.BuiltInFunctionESDTTransfer
 	refundGasMessage                             = "refundedGas"
 	argumentsSeparator                           = "@"
 	sendingValueToNonPayableContractDataPrefix   = argumentsSeparator + hex.EncodeToString([]byte("sending value to non payable contract"))
@@ -22,7 +24,12 @@ var (
 
 var (
 	transactionEventSignalError                             = core.SignalErrorOperation
-	transactionEventTransferValueOnly                       = "transferValueOnly"
+	transactionEventESDTTransfer                            = "ESDTTransfer"
+	transactionEventESDTNFTTransfer                         = "ESDTNFTTransfer"
+	transactionEventMultiESDTNFTTransfer                    = "MultiESDTNFTTransfer"
+	transactionEventESDTLocalBurn                           = "ESDTLocalBurn"
+	transactionEventESDTLocalMint                           = "ESDTLocalMint"
+	transactionEventESDTWipe                                = "ESDTWipe"
 	transactionEventTopicInvalidMetaTransaction             = "meta transaction is invalid"
 	transactionEventTopicInvalidMetaTransactionNotEnoughGas = "meta transaction is invalid: not enough gas"
 )

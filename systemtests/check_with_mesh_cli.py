@@ -14,7 +14,7 @@ from systemtests.config import CONFIGURATIONS, Configuration
 
 def main() -> int:
     parser = ArgumentParser()
-    parser.add_argument("--mode", choices=["data", "construction"], required=True)
+    parser.add_argument("--mode", choices=["data", "construction-native", "construction-custom"], required=True)
     parser.add_argument("--network", choices=CONFIGURATIONS.keys(), required=True)
     args = parser.parse_args()
 
@@ -66,6 +66,7 @@ def run_rosetta(configuration: Configuration):
         f"--network-id={configuration.network_id}",
         f"--network-name={configuration.network_name}",
         f"--native-currency={configuration.native_currency}",
+        f"--config-custom-currencies={configuration.config_file_custom_currencies}",
         f"--first-historical-epoch={current_epoch}",
         f"--num-historical-epochs={configuration.num_historical_epochs}",
     ]
@@ -87,13 +88,15 @@ def run_proxy_to_observer_adapter(configuration: Configuration):
 def run_mesh_cli(mode: str, configuration: Configuration):
     if mode == "data":
         return run_mesh_cli_with_check_data(configuration)
-    elif mode == "construction":
-        return run_mesh_cli_with_check_construction(configuration)
+    elif mode == "construction-native":
+        return run_mesh_cli_with_check_construction_native(configuration)
+    elif mode == "construction-custom":
+        return run_mesh_cli_with_check_construction_custom(configuration)
     else:
         raise ValueError(f"Unknown mode: {mode}")
 
 
-def run_mesh_cli_with_check_construction(configuration: Configuration):
+def run_mesh_cli_with_check_construction_native(configuration: Configuration):
     """
     E.g.
 
@@ -104,7 +107,19 @@ def run_mesh_cli_with_check_construction(configuration: Configuration):
     command = [
         "rosetta-cli",
         "check:construction",
-        f"--configuration-file={configuration.check_construction_configuration_file}",
+        f"--configuration-file={configuration.check_construction_native_configuration_file}",
+        f"--online-url=http://localhost:{constants.PORT_ROSETTA}",
+        f"--offline-url=http://localhost:{constants.PORT_ROSETTA}",
+    ]
+
+    return subprocess.Popen(command)
+
+
+def run_mesh_cli_with_check_construction_custom(configuration: Configuration):
+    command = [
+        "rosetta-cli",
+        "check:construction",
+        f"--configuration-file={configuration.check_construction_custom_configuration_file}",
         f"--online-url=http://localhost:{constants.PORT_ROSETTA}",
         f"--offline-url=http://localhost:{constants.PORT_ROSETTA}",
     ]

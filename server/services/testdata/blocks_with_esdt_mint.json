@@ -1,0 +1,54 @@
+[
+    {
+        "comment": "block with ESDT mint (of fungible)",
+        "miniBlocks": [
+            {
+                "transactions": [
+                    {
+                        "type": "normal",
+                        "hash": "ff2c048f3df91f9dd72a7c7472d1b72e9497814b71ae62f68cdf759b67da5796",
+                        "value": "0",
+                        "receiver": "erd1r69gk66fmedhhcg24g2c5kn2f2a5k4kvpr6jfw67dn2lyydd8cfswy6ede",
+                        "sender": "erd1r69gk66fmedhhcg24g2c5kn2f2a5k4kvpr6jfw67dn2lyydd8cfswy6ede",
+                        "logs": {
+                            "address": "erd1r69gk66fmedhhcg24g2c5kn2f2a5k4kvpr6jfw67dn2lyydd8cfswy6ede",
+                            "events": [
+                                {
+                                    "address": "erd1r69gk66fmedhhcg24g2c5kn2f2a5k4kvpr6jfw67dn2lyydd8cfswy6ede",
+                                    "identifier": "ESDTLocalMint",
+                                    "topics": [
+                                        "VEVTVC00ODRmYTE=",
+                                        "",
+                                        "yA=="
+                                    ],
+                                    "data": null
+                                },
+                                {
+                                    "address": "erd1r69gk66fmedhhcg24g2c5kn2f2a5k4kvpr6jfw67dn2lyydd8cfswy6ede",
+                                    "identifier": "completedTxEvent",
+                                    "topics": [
+                                        "/ywEjz35H53XKnx0ctG3LpSXgUtxrmL2jN91m2faV5Y="
+                                    ],
+                                    "data": null
+                                }
+                            ]
+                        },
+                        "initiallyPaidFee": "111500000000000"
+                    }
+                ]
+            },
+            {
+                "transactions": [
+                    {
+                        "type": "unsigned",
+                        "hash": "d8bf57701afcbf3a474b9bfd274f504ba786061d6157ca886cc9d29551b492d9",
+                        "value": "2500000000000",
+                        "receiver": "erd1r69gk66fmedhhcg24g2c5kn2f2a5k4kvpr6jfw67dn2lyydd8cfswy6ede",
+                        "sender": "erd1r69gk66fmedhhcg24g2c5kn2f2a5k4kvpr6jfw67dn2lyydd8cfswy6ede",
+                        "isRefund": true
+                    }
+                ]
+            }
+        ]
+    }
+]

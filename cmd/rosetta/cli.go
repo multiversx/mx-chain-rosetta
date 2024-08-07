@@ -104,13 +104,13 @@ VERSION:
 
 	cliFlagMinGasPrice = cli.Uint64Flag{
 		Name:  "min-gas-price",
-		Usage: "Specifies the minimum gas price (required in offline mode).",
+		Usage: "Specifies the minimum gas price (for transaction construction).",
 		Value: 1000000000,
 	}
 
 	cliFlagMinGasLimit = cli.UintFlag{
 		Name:  "min-gas-limit",
-		Usage: "Specifies the minimum gas limit (required in offline mode).",
+		Usage: "Specifies the minimum gas limit (for transaction construction).",
 		Value: 50000,
 	}
 
@@ -122,8 +122,20 @@ VERSION:
 
 	cliFlagGasPerDataByte = cli.UintFlag{
 		Name:  "gas-per-data-byte",
-		Usage: "Specifies the gas required per data byte (required in offline mode).",
+		Usage: "Specifies the gas required per data byte (for transaction construction).",
 		Value: 1500,
+	}
+
+	cliFlagGasPriceModifier = cli.Float64Flag{
+		Name:  "gas-price-modifier",
+		Usage: "Specifies the gas price modifier (for transaction construction).",
+		Value: 0.01,
+	}
+
+	cliFlagGasLimitCustomTransfer = cli.Float64Flag{
+		Name:  "gas-limit-custom-transfer",
+		Usage: "Specifies the necessary gas limit for a custom transfer (for transaction construction).",
+		Value: 200000,
 	}
 
 	cliFlagNativeCurrencySymbol = cli.StringFlag{
@@ -142,6 +154,12 @@ VERSION:
 		Name:     "num-historical-epochs",
 		Usage:    "Provides a hint for the number of historical epochs to be kept.",
 		Required: true,
+	}
+
+	cliFlagConfigFileCustomCurrencies = cli.StringFlag{
+		Name:     "config-custom-currencies",
+		Usage:    "Specifies the configuration file for custom currencies.",
+		Required: false,
 	}
 )
 
@@ -164,9 +182,12 @@ func getAllCliFlags() []cli.Flag {
 		cliFlagMinGasLimit,
 		cliFlagExtraGasLimitGuardedTx,
 		cliFlagGasPerDataByte,
+		cliFlagGasPriceModifier,
+		cliFlagGasLimitCustomTransfer,
 		cliFlagNativeCurrencySymbol,
 		cliFlagFirstHistoricalEpoch,
 		cliFlagNumHistoricalEpochs,
+		cliFlagConfigFileCustomCurrencies,
 	}
 }
 
@@ -189,9 +210,12 @@ type parsedCliFlags struct {
 	minGasLimit                 uint64
 	extraGasLimitGuardedTx      uint64
 	gasPerDataByte              uint64
+	gasPriceModifier            float64
+	gasLimitCustomTransfer      uint64
 	nativeCurrencySymbol        string
 	firstHistoricalEpoch        uint32
 	numHistoricalEpochs         uint32
+	configFileCustomCurrencies  string
 }
 
 func getParsedCliFlags(ctx *cli.Context) parsedCliFlags {
@@ -214,8 +238,11 @@ func getParsedCliFlags(ctx *cli.Context) parsedCliFlags {
 		minGasLimit:                 ctx.GlobalUint64(cliFlagMinGasLimit.Name),
 		extraGasLimitGuardedTx:      ctx.GlobalUint64(cliFlagExtraGasLimitGuardedTx.Name),
 		gasPerDataByte:              ctx.GlobalUint64(cliFlagGasPerDataByte.Name),
+		gasPriceModifier:            ctx.GlobalFloat64(cliFlagGasPriceModifier.Name),
+		gasLimitCustomTransfer:      ctx.GlobalUint64(cliFlagGasLimitCustomTransfer.Name),
 		nativeCurrencySymbol:        ctx.GlobalString(cliFlagNativeCurrencySymbol.Name),
 		firstHistoricalEpoch:        uint32(ctx.GlobalUint(cliFlagFirstHistoricalEpoch.Name)),
 		numHistoricalEpochs:         uint32(ctx.GlobalUint(cliFlagNumHistoricalEpochs.Name)),
+		configFileCustomCurrencies:  ctx.GlobalString(cliFlagConfigFileCustomCurrencies.Name),
 	}
 }

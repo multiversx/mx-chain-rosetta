@@ -14,7 +14,7 @@
     },
     "stale_depth": 10,
     "broadcast_limit": 5,
-    "constructor_dsl_file": "devnet-construction.ros",
+    "constructor_dsl_file": "testnet-construction-native.ros",
     "prefunded_accounts": [
       {
         "account_identifier": {

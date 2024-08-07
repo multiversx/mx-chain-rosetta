@@ -3,6 +3,7 @@ package services
 import (
 	"github.com/coinbase/rosetta-sdk-go/types"
 	"github.com/multiversx/mx-chain-core-go/core"
+	"github.com/multiversx/mx-chain-rosetta/server/resources"
 )
 
 type networkProviderExtension struct {
@@ -23,10 +24,21 @@ func (extension *networkProviderExtension) valueToNativeAmount(value string) *ty
 }
 
 func (extension *networkProviderExtension) valueToCustomAmount(value string, currencySymbol string) *types.Amount {
+	currency, ok := extension.provider.GetCustomCurrencyBySymbol(currencySymbol)
+	if !ok {
+		log.Warn("valueToCustomAmount(): unknown currency", "symbol", currencySymbol)
+
+		currency = resources.Currency{
+			Symbol:   currencySymbol,
+			Decimals: 0,
+		}
+	}
+
 	return &types.Amount{
 		Value: value,
 		Currency: &types.Currency{
-			Symbol: currencySymbol,
+			Symbol:   currency.Symbol,
+			Decimals: currency.Decimals,
 		},
 	}
 }
@@ -58,26 +70,14 @@ func (extension *networkProviderExtension) getGenesisBlockIdentifier() *types.Bl
 	return blockSummaryToIdentifier(summary)
 }
 
-func (extension *networkProviderExtension) filterObservedOperations(operations []*types.Operation) ([]*types.Operation, error) {
-	filtered := make([]*types.Operation, 0, len(operations))
-
-	for _, operation := range operations {
-		address := operation.Account.Address
-
-		isObserved, err := extension.provider.IsAddressObserved(address)
-		if err != nil {
-			return nil, err
-		}
-
-		isUserAddress := extension.isUserAddress(address)
-
-		if isObserved && isUserAddress {
-			filtered = append(filtered, operation)
-		}
+func (extension *networkProviderExtension) isAddressObserved(address string) (bool, error) {
+	belongsToObservedShard, err := extension.provider.IsAddressObserved(address)
+	if err != nil {
+		return false, err
 	}
 
-	indexOperations(filtered)
-	return filtered, nil
+	isUserAddress := extension.isUserAddress(address)
+	return belongsToObservedShard && isUserAddress, nil
 }
 
 func (extension *networkProviderExtension) isUserAddress(address string) bool {

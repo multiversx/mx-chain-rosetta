@@ -1,0 +1,80 @@
+[
+    {
+        "comment": "block with issue ESDT",
+        "miniBlocks": [
+            {
+                "transactions": [
+                    {
+                        "type": "normal",
+                        "hash": "851d90b7b0770c648de5945ca76d2ded62a540856467911db5e550ce6a959807",
+                        "value": "50000000000000000",
+                        "receiver": "erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqzllls8a5w6u",
+                        "sender": "erd1testnlersh4z0wsv8kjx39me4rmnvjkwu8dsaea7ukdvvc9z396qykv7z7",
+                        "initiallyPaidFee": "1220275000000000"
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "comment": "block with results of issue ESDT",
+        "miniBlocks": [
+            {
+                "transactions": [
+                    {
+                        "type": "unsigned",
+                        "hash": "8fa82004d9eb82e34b39bbe22521a7b85a190950cd6876d2e97950de906622d7",
+                        "value": "497775000000000",
+                        "receiver": "erd1testnlersh4z0wsv8kjx39me4rmnvjkwu8dsaea7ukdvvc9z396qykv7z7",
+                        "sender": "erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqzllls8a5w6u",
+                        "logs": {
+                            "address": "erd1testnlersh4z0wsv8kjx39me4rmnvjkwu8dsaea7ukdvvc9z396qykv7z7",
+                            "events": [
+                                {
+                                    "address": "erd1testnlersh4z0wsv8kjx39me4rmnvjkwu8dsaea7ukdvvc9z396qykv7z7",
+                                    "identifier": "completedTxEvent",
+                                    "topics": [
+                                        "hR2Qt7B3DGSN5ZRcp20t7WKlQIVkZ5EdteVQzmqVmAc="
+                                    ],
+                                    "data": null
+                                }
+                            ]
+                        },
+                        "isRefund": true
+                    },
+                    {
+                        "type": "unsigned",
+                        "hash": "e462e1b73b720015315d0f508d165817ba1989cb1d2c63903bd01c3b8450afb8",
+                        "value": "0",
+                        "receiver": "erd1testnlersh4z0wsv8kjx39me4rmnvjkwu8dsaea7ukdvvc9z396qykv7z7",
+                        "sender": "erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqzllls8a5w6u",
+                        "logs": {
+                            "address": "erd1testnlersh4z0wsv8kjx39me4rmnvjkwu8dsaea7ukdvvc9z396qykv7z7",
+                            "events": [
+                                {
+                                    "address": "erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqzllls8a5w6u",
+                                    "identifier": "ESDTTransfer",
+                                    "topics": [
+                                        "Rk9PLTZkMjhkYg==",
+                                        "",
+                                        "6NSlEAA=",
+                                        "XmC5/yOF6ie6DD2kaJd5qPc2Ss7h2w7nvuWaxmCiiXQ="
+                                    ],
+                                    "data": null
+                                },
+                                {
+                                    "address": "erd1testnlersh4z0wsv8kjx39me4rmnvjkwu8dsaea7ukdvvc9z396qykv7z7",
+                                    "identifier": "completedTxEvent",
+                                    "topics": [
+                                        "hR2Qt7B3DGSN5ZRcp20t7WKlQIVkZ5EdteVQzmqVmAc="
+                                    ],
+                                    "data": null
+                                }
+                            ]
+                        }
+                    }
+                ]
+            }
+        ]
+    }
+]

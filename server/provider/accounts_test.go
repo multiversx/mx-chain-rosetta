@@ -111,8 +111,10 @@ func TestNetworkProvider_GetAccountESDTBalance(t *testing.T) {
 	t.Run("with success", func(t *testing.T) {
 		observerFacade.MockNextError = nil
 		observerFacade.MockGetResponse = resources.AccountESDTBalanceApiResponse{
-			Data: resources.AccountESDTBalance{
-				Balance: "1",
+			Data: resources.AccountESDTBalanceApiResponsePayload{
+				TokenData: resources.AccountESDTTokenData{
+					Balance: "1",
+				},
 				BlockCoordinates: resources.BlockCoordinates{
 					Nonce: 1000,
 				},
