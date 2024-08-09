@@ -18,6 +18,117 @@ func newTransactionEventsController(provider NetworkProvider) *transactionEvents
 	}
 }
 
+func (controller *transactionEventsController) extractEventSCDeploy(tx *transaction.ApiTransactionResult) ([]*eventSCDeploy, error) {
+	rawEvents := controller.findManyEventsByIdentifier(tx, transactionEventSCDeploy)
+
+	typedEvents := make([]*eventSCDeploy, 0, len(rawEvents))
+
+	for _, event := range rawEvents {
+		numTopics := len(event.Topics)
+		if numTopics < 2 {
+			// Before Sirius, there are 2 topics: contract address, deployer address.
+			// For Sirius, there are 3 topics: contract address, deployer address, codehash.
+			return nil, fmt.Errorf("%w: bad number of topics for %s event = '%d', tx = %s", errCannotRecognizeEvent, transactionEventSCDeploy, numTopics, tx.Hash)
+		}
+
+		contractAddress := event.Address
+		deployerPubKey := event.Topics[1]
+		deployerAddress := controller.provider.ConvertPubKeyToAddress(deployerPubKey)
+
+		typedEvents = append(typedEvents, &eventSCDeploy{
+			contractAddress: contractAddress,
+			deployerAddress: deployerAddress,
+		})
+	}
+
+	return typedEvents, nil
+}
+
+func (controller *transactionEventsController) extractEventTransferValueOnly(tx *transaction.ApiTransactionResult) ([]*eventTransferValueOnly, error) {
+	rawEvents := controller.findManyEventsByIdentifier(tx, transactionEventTransferValueOnly)
+
+	typedEvents := make([]*eventTransferValueOnly, 0)
+
+	for _, event := range rawEvents {
+		numTopics := len(event.Topics)
+		isBeforeSirius := numTopics == 3
+		isAfterSirius := numTopics == 2
+
+		var sender string
+		var receiver string
+		var valueBytes []byte
+
+		if isBeforeSirius {
+			senderPubKey := event.Topics[0]
+			receiverPubKey := event.Topics[1]
+			valueBytes = event.Topics[2]
+
+			sender = controller.provider.ConvertPubKeyToAddress(senderPubKey)
+			receiver = controller.provider.ConvertPubKeyToAddress(receiverPubKey)
+		} else if isAfterSirius {
+			// https://github.com/multiversx/mx-specs/blob/main/releases/protocol/release-specs-v1.6.0-Sirius.md#17-logs--events-changes-5490
+			sender = event.Address
+			receiverPubKey := event.Topics[1]
+			valueBytes = event.Topics[0]
+
+			receiver = controller.provider.ConvertPubKeyToAddress(receiverPubKey)
+		} else {
+			return nil, fmt.Errorf("%w: bad number of topics for '%s' = %d, tx = %s", errCannotRecognizeEvent, transactionEventTransferValueOnly, numTopics, tx.Hash)
+		}
+
+		value := big.NewInt(0).SetBytes(valueBytes)
+
+		typedEvents = append(typedEvents, &eventTransferValueOnly{
+			sender:   sender,
+			receiver: receiver,
+			value:    value.String(),
+		})
+	}
+
+	return typedEvents, nil
+}
+
+// TODO: Use a cached "contractResultsSummaries" (this a must)!
+func filterOutTransferValueOnlyEventsThatAreAlreadyCapturedAsContractResults(
+	txOfInterest *transaction.ApiTransactionResult,
+	events []*eventTransferValueOnly,
+	txsInBlock []*transaction.ApiTransactionResult,
+) []*eventTransferValueOnly {
+	// First, we find all contract results in this block, and we "summarize" them (in a map).
+	contractResultsSummaries := make(map[string]struct{})
+
+	for _, item := range txsInBlock {
+		isContractResult := item.Type == string(transaction.TxTypeUnsigned)
+		if !isContractResult {
+			continue
+		}
+
+		// If not part of the same transaction graph, then skip it.
+		if !(item.OriginalTransactionHash == txOfInterest.Hash) && !(item.OriginalTransactionHash == txOfInterest.OriginalTransactionHash) {
+			continue
+		}
+
+		summary := fmt.Sprintf("%s-%s-%s", item.Sender, item.Receiver, item.Value)
+		contractResultsSummaries[summary] = struct{}{}
+	}
+
+	eventsToKeep := make([]*eventTransferValueOnly, 0, len(events))
+
+	for _, event := range events {
+		summary := fmt.Sprintf("%s-%s-%s", event.sender, event.receiver, event.value)
+
+		_, isAlreadyCaptured := contractResultsSummaries[summary]
+		if isAlreadyCaptured {
+			continue
+		}
+
+		// Event not captured as contract result, so we should keep it.
+		eventsToKeep = append(eventsToKeep, event)
+	}
+
+	return eventsToKeep
+}
+
 func (controller *transactionEventsController) hasAnySignalError(tx *transaction.ApiTransactionResult) bool {
 	if !controller.hasEvents(tx) {
 		return false
@@ -65,7 +176,7 @@ func (controller *transactionEventsController) extractEventsESDTOrESDTNFTTransfe
 			return nil, fmt.Errorf("%w: bad number of topics for (ESDT|ESDTNFT)Transfer event = %d", errCannotRecognizeEvent, numTopics)
 		}
 
-		identifider := event.Topics[0]
+		identifier := event.Topics[0]
 		nonceAsBytes := event.Topics[1]
 		valueBytes := event.Topics[2]
 		receiverPubkey := event.Topics[3]
@@ -76,7 +187,7 @@ func (controller *transactionEventsController) extractEventsESDTOrESDTNFTTransfe
 		typedEvents = append(typedEvents, &eventESDT{
 			senderAddress:   event.Address,
 			receiverAddress: receiver,
-			identifier:      string(identifider),
+			identifier:      string(identifier),
 			nonceAsBytes:    nonceAsBytes,
 			value:           value.String(),
 		})
@@ -125,14 +236,14 @@ func (controller *transactionEventsController) extractEventsESDTLocalBurn(tx *tr
 			return nil, fmt.Errorf("%w: bad number of topics for ESDTLocalBurn event = %d", errCannotRecognizeEvent, numTopics)
 		}
 
-		identifider := event.Topics[0]
+		identifier := event.Topics[0]
 		nonceAsBytes := event.Topics[1]
 		valueBytes := event.Topics[2]
 		value := big.NewInt(0).SetBytes(valueBytes)
 
 		typedEvents = append(typedEvents, &eventESDT{
 			otherAddress: event.Address,
-			identifier:   string(identifider),
+			identifier:   string(identifier),
 			nonceAsBytes: nonceAsBytes,
 			value:        value.String(),
 		})
@@ -151,14 +262,14 @@ func (controller *transactionEventsController) extractEventsESDTLocalMint(tx *tr
 			return nil, fmt.Errorf("%w: bad number of topics for ESDTLocalMint event = %d", errCannotRecognizeEvent, numTopics)
 		}
 
-		identifider := event.Topics[0]
+		identifier := event.Topics[0]
 		nonceAsBytes := event.Topics[1]
 		valueBytes := event.Topics[2]
 		value := big.NewInt(0).SetBytes(valueBytes)
 
 		typedEvents = append(typedEvents, &eventESDT{
 			otherAddress: event.Address,
-			identifier:   string(identifider),
+			identifier:   string(identifier),
 			nonceAsBytes: nonceAsBytes,
 			value:        value.String(),
 		})
@@ -177,7 +288,7 @@ func (controller *transactionEventsController) extractEventsESDTWipe(tx *transac
 			return nil, fmt.Errorf("%w: bad number of topics for ESDTWipe event = %d", errCannotRecognizeEvent, numTopics)
 		}
 
-		identifider := event.Topics[0]
+		identifier := event.Topics[0]
 		nonceAsBytes := event.Topics[1]
 		valueBytes := event.Topics[2]
 		accountPubkey := event.Topics[3]
@@ -187,9 +298,116 @@ func (controller *transactionEventsController) extractEventsESDTWipe(tx *transac
 
 		typedEvents = append(typedEvents, &eventESDT{
 			otherAddress: accountAddress,
-			identifier:   string(identifider),
+			identifier:   string(identifier),
 			nonceAsBytes: nonceAsBytes,
 			value:        value.String(),
+		})
+	}
+
+	return typedEvents, nil
+}
+
+func (controller *transactionEventsController) extractEventsESDTNFTCreate(tx *transaction.ApiTransactionResult) ([]*eventESDT, error) {
+	rawEvents := controller.findManyEventsByIdentifier(tx, transactionEventESDTNFTCreate)
+	typedEvents := make([]*eventESDT, 0, len(rawEvents))
+
+	for _, event := range rawEvents {
+		numTopics := len(event.Topics)
+		if numTopics != 4 {
+			return nil, fmt.Errorf("%w: bad number of topics for %s event = %d", errCannotRecognizeEvent, transactionEventESDTNFTCreate, numTopics)
+		}
+
+		identifier := event.Topics[0]
+		nonceAsBytes := event.Topics[1]
+		valueBytes := event.Topics[2]
+		// We ignore the 4th topic.
+
+		value := big.NewInt(0).SetBytes(valueBytes)
+
+		typedEvents = append(typedEvents, &eventESDT{
+			otherAddress: event.Address,
+			identifier:   string(identifier),
+			nonceAsBytes: nonceAsBytes,
+			value:        value.String(),
+		})
+	}
+
+	return typedEvents, nil
+}
+
+func (controller *transactionEventsController) extractEventsESDTNFTBurn(tx *transaction.ApiTransactionResult) ([]*eventESDT, error) {
+	rawEvents := controller.findManyEventsByIdentifier(tx, transactionEventESDTNFTBurn)
+	typedEvents := make([]*eventESDT, 0, len(rawEvents))
+
+	for _, event := range rawEvents {
+		numTopics := len(event.Topics)
+		if numTopics != 3 {
+			return nil, fmt.Errorf("%w: bad number of topics for %s event = %d", errCannotRecognizeEvent, transactionEventESDTNFTBurn, numTopics)
+		}
+
+		identifier := event.Topics[0]
+		nonceAsBytes := event.Topics[1]
+		valueBytes := event.Topics[2]
+
+		value := big.NewInt(0).SetBytes(valueBytes)
+
+		typedEvents = append(typedEvents, &eventESDT{
+			otherAddress: event.Address,
+			identifier:   string(identifier),
+			nonceAsBytes: nonceAsBytes,
+			value:        value.String(),
+		})
+	}
+
+	return typedEvents, nil
+}
+
+func (controller *transactionEventsController) extractEventsESDTNFTAddQuantity(tx *transaction.ApiTransactionResult) ([]*eventESDT, error) {
+	rawEvents := controller.findManyEventsByIdentifier(tx, transactionEventESDTNFTAddQuantity)
+	typedEvents := make([]*eventESDT, 0, len(rawEvents))
+
+	for _, event := range rawEvents {
+		numTopics := len(event.Topics)
+		if numTopics != 3 {
+			return nil, fmt.Errorf("%w: bad number of topics for %s event = %d", errCannotRecognizeEvent, transactionEventESDTNFTAddQuantity, numTopics)
+		}
+
+		identifier := event.Topics[0]
+		nonceAsBytes := event.Topics[1]
+		valueBytes := event.Topics[2]
+
+		value := big.NewInt(0).SetBytes(valueBytes)
+
+		typedEvents = append(typedEvents, &eventESDT{
+			otherAddress: event.Address,
+			identifier:   string(identifier),
+			nonceAsBytes: nonceAsBytes,
+			value:        value.String(),
+		})
+	}
+
+	return typedEvents, nil
+}
+
+func (controller *transactionEventsController) extractEventsClaimDeveloperRewards(tx *transaction.ApiTransactionResult) ([]*eventClaimDeveloperRewards, error) {
+	rawEvents := controller.findManyEventsByIdentifier(tx, transactionEventClaimDeveloperRewards)
+	typedEvents := make([]*eventClaimDeveloperRewards, 0, len(rawEvents))
+
+	for _, event := range rawEvents {
+		numTopics := len(event.Topics)
+		if numTopics != 2 {
+			return nil, fmt.Errorf("%w: bad number of topics for %s event = %d", errCannotRecognizeEvent, transactionEventClaimDeveloperRewards, numTopics)
+		}
+
+		valueBytes := event.Topics[0]
+		receiverPubkey := event.Topics[1]
+
+		value := big.NewInt(0).SetBytes(valueBytes)
+		receiver := controller.provider.ConvertPubKeyToAddress(receiverPubkey)
+
+		typedEvents = append(typedEvents, &eventClaimDeveloperRewards{
+			value:           value.String(),
+			receiverAddress: receiver,
 		})
 	}
 

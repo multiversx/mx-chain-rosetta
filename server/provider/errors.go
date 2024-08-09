@@ -12,6 +12,7 @@ var errCannotGetAccount = errors.New("cannot get account")
 var errCannotGetTransaction = errors.New("cannot get transaction")
 var errCannotGetLatestBlockNonce = errors.New("cannot get latest block nonce, maybe the node didn't start syncing")
 var errInvalidCustomCurrencySymbol = errors.New("invalid custom currency symbol")
+var errCannotParseTokenIdentifier = errors.New("cannot parse token identifier")
 
 func newErrCannotGetBlockByNonce(nonce uint64, innerError error) error {
 	return fmt.Errorf("%w: %v, nonce = %d", errCannotGetBlock, innerError, nonce)
@@ -31,6 +32,10 @@ func newErrCannotGetTransaction(hash string, innerError error) error {
 
 func newInvalidCustomCurrency(index int) error {
 	return fmt.Errorf("%w, index = %d", errInvalidCustomCurrencySymbol, index)
+}
+
+func newErrCannotParseTokenIdentifier(tokenIdentifier string, innerError error) error {
+	return fmt.Errorf("%w: %v, tokenIdentifier = %s", errCannotParseTokenIdentifier, innerError, tokenIdentifier)
 }
 
 // In proxy-go, the function CallGetRestEndPoint() returns an error message as the JSON content of the erroneous HTTP response.

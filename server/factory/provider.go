@@ -18,6 +18,7 @@ const (
 	hasherType                = "blake2b"
 	marshalizerForHashingType = "gogo protobuf"
 	pubKeyLength              = 32
+	bech32Prefix              = "erd"
 
 	notApplicableConfigurationFilePath   = "not applicable"
 	notApplicableFullHistoryNodesMessage = "not applicable"
@@ -56,7 +57,7 @@ func CreateNetworkProvider(args ArgsCreateNetworkProvider) (NetworkProvider, err
 		return nil, err
 	}
 
-	pubKeyConverter, err := pubkeyConverter.NewBech32PubkeyConverter(pubKeyLength, log)
+	pubKeyConverter, err := pubkeyConverter.NewBech32PubkeyConverter(pubKeyLength, bech32Prefix)
 	if err != nil {
 		return nil, err
 	}

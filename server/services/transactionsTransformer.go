@@ -34,6 +34,8 @@ func (transformer *transactionsTransformer) transformBlockTxs(block *api.Block) 
 
 	for _, miniblock := range block.MiniBlocks {
 		for _, tx := range miniblock.Transactions {
+			// Make sure SCRs also have the block nonce set.
+			tx.BlockNonce = block.Nonce
 			txs = append(txs, tx)
 		}
 		for _, receipt := range miniblock.Receipts {
@@ -88,7 +90,7 @@ func (transformer *transactionsTransformer) txToRosettaTx(tx *transaction.ApiTra
 
 	switch tx.Type {
 	case string(transaction.TxTypeNormal):
-		rosettaTx, err = transformer.normalTxToRosetta(tx)
+		rosettaTx, err = transformer.normalTxToRosetta(tx, txsInBlock)
 		if err != nil {
 			return nil, err
 		}
@@ -102,7 +104,7 @@ func (transformer *transactionsTransformer) txToRosettaTx(tx *transaction.ApiTra
 		return nil, fmt.Errorf("unknown transaction type: %s", tx.Type)
 	}
 
-	err = transformer.addOperationsGivenTransactionEvents(tx, rosettaTx)
+	err = transformer.addOperationsGivenTransactionEvents(tx, txsInBlock, rosettaTx)
 	if err != nil {
 		return nil, err
 	}
@@ -115,6 +117,15 @@ func (transformer *transactionsTransformer) unsignedTxToRosettaTx(
 	txsInBlock []*transaction.ApiTransactionResult,
 ) *types.Transaction {
 	if scr.IsRefund {
+		if scr.Sender == scr.Receiver && !transformer.extension.isUserAddress(scr.Sender) {
+			log.Info("unsignedTxToRosettaTx: dismissed refund", "hash", scr.Hash, "originalTxHash", scr.OriginalTransactionHash)
+
+			return &types.Transaction{
+				TransactionIdentifier: hashToTransactionIdentifier(scr.Hash),
+				Operations:            []*types.Operation{},
+			}
+		}
+
 		return &types.Transaction{
 			TransactionIdentifier: hashToTransactionIdentifier(scr.Hash),
 			Operations: []*types.Operation{
@@ -127,16 +138,19 @@ func (transformer *transactionsTransformer) unsignedTxToRosettaTx(
 		}
 	}
 
-	if transformer.featuresDetector.doesContractResultHoldRewardsOfClaimDeveloperRewards(scr, txsInBlock) {
-		return &types.Transaction{
-			TransactionIdentifier: hashToTransactionIdentifier(scr.Hash),
-			Operations: []*types.Operation{
-				{
-					Type:    opDeveloperRewardsAsScResult,
-					Account: addressToAccountIdentifier(scr.Receiver),
-					Amount:  transformer.extension.valueToNativeAmount(scr.Value),
+	if !areClaimDeveloperRewardsEventsEnabled(scr.BlockNonce) {
+		// Handle developer rewards in a legacy manner (without looking at events / logs)
+		if transformer.featuresDetector.doesContractResultHoldRewardsOfClaimDeveloperRewards(scr, txsInBlock) {
+			return &types.Transaction{
+				TransactionIdentifier: hashToTransactionIdentifier(scr.Hash),
+				Operations: []*types.Operation{
+					{
+						Type:    opDeveloperRewardsAsScResult,
+						Account: addressToAccountIdentifier(scr.Receiver),
+						Amount:  transformer.extension.valueToNativeAmount(scr.Value),
+					},
 				},
-			},
+			}
 		}
 	}
 
@@ -171,7 +185,10 @@ func (transformer *transactionsTransformer) rewardTxToRosettaTx(tx *transaction.
 	}
 }
 
-func (transformer *transactionsTransformer) normalTxToRosetta(tx *transaction.ApiTransactionResult) (*types.Transaction, error) {
+func (transformer *transactionsTransformer) normalTxToRosetta(
+	tx *transaction.ApiTransactionResult,
+	allTransactionsInBlock []*transaction.ApiTransactionResult,
+) (*types.Transaction, error) {
 	hasValue := !isZeroAmount(tx.Value)
 	operations := make([]*types.Operation, 0)
 
@@ -200,7 +217,20 @@ func (transformer *transactionsTransformer) normalTxToRosetta(tx *transaction.Ap
 		return nil, err
 	}
 
+	valueRefundOperationIfContractCallOrDeploymentWithSignalError, err := transformer.createValueReturnOperationsIfIntrashardContractCallOrContractDeploymentWithSignalError(tx, allTransactionsInBlock)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(innerTxOperationsIfRelayedCompletelyIntrashardWithSignalError) > 0 {
+		log.Info("normalTxToRosetta(): innerTxOperationsIfRelayedCompletelyIntrashardWithSignalError", "tx", tx.Hash, "block", tx.BlockNonce)
+	}
+	if len(valueRefundOperationIfContractCallOrDeploymentWithSignalError) > 0 {
+		log.Info("normalTxToRosetta(): valueRefundOperationIfContractCallOrDeploymentWithSignalError", "tx", tx.Hash, "block", tx.BlockNonce)
+	}
+
 	operations = append(operations, innerTxOperationsIfRelayedCompletelyIntrashardWithSignalError...)
+	operations = append(operations, valueRefundOperationIfContractCallOrDeploymentWithSignalError...)
 
 	return &types.Transaction{
 		TransactionIdentifier: hashToTransactionIdentifier(tx.Hash),
@@ -209,7 +239,9 @@ func (transformer *transactionsTransformer) normalTxToRosetta(tx *transaction.Ap
 	}, nil
 }
 
+// This only handles operations for the native balance.
 func (transformer *transactionsTransformer) extractInnerTxOperationsIfRelayedCompletelyIntrashardWithSignalError(tx *transaction.ApiTransactionResult) ([]*types.Operation, error) {
+	// Only relayed V1 is handled. Relayed V2 cannot bear native value in the inner transaction.
 	isRelayedTransaction := isRelayedV1Transaction(tx)
 	if !isRelayedTransaction {
 		return []*types.Operation{}, nil
@@ -224,17 +256,47 @@ func (transformer *transactionsTransformer) extractInnerTxOperationsIfRelayedCom
 		return []*types.Operation{}, nil
 	}
 
-	if !transformer.featuresDetector.isRelayedTransactionCompletelyIntrashardWithSignalError(tx, innerTx) {
+	if !transformer.featuresDetector.isRelayedV1TransactionCompletelyIntrashardWithSignalError(tx, innerTx) {
 		return []*types.Operation{}, nil
 	}
 
 	senderAddress := transformer.provider.ConvertPubKeyToAddress(innerTx.SenderPubKey)
+	receiverAddress := transformer.provider.ConvertPubKeyToAddress(innerTx.ReceiverPubKey)
 
 	return []*types.Operation{
 		{
 			Type:    opTransfer,
 			Account: addressToAccountIdentifier(senderAddress),
 			Amount:  transformer.extension.valueToNativeAmount("-" + innerTx.Value.String()),
+		},
+		{
+			Type:    opTransfer,
+			Account: addressToAccountIdentifier(receiverAddress),
+			Amount:  transformer.extension.valueToNativeAmount(innerTx.Value.String()),
+		},
+	}, nil
+}
+
+func (transformer *transactionsTransformer) createValueReturnOperationsIfIntrashardContractCallOrContractDeploymentWithSignalError(
+	tx *transaction.ApiTransactionResult,
+	allTransactionsInBlock []*transaction.ApiTransactionResult,
+) ([]*types.Operation, error) {
+	isContractCallWithError := transformer.featuresDetector.isIntrashardContractCallWithSignalErrorButWithoutContractResultBearingRefundValue(tx, allTransactionsInBlock)
+	isContractDeploymentWithError := transformer.featuresDetector.isContractDeploymentWithSignalError(tx)
+	if !isContractCallWithError && !isContractDeploymentWithError {
+		return []*types.Operation{}, nil
+	}
+
+	return []*types.Operation{
+		{
+			Type:    opTransfer,
+			Account: addressToAccountIdentifier(tx.Sender),
+			Amount:  transformer.extension.valueToNativeAmount(tx.Value),
+		},
+		{
+			Type:    opTransfer,
+			Account: addressToAccountIdentifier(tx.Receiver),
+			Amount:  transformer.extension.valueToNativeAmount("-" + tx.Value),
 		},
 	}, nil
 }
@@ -320,7 +382,28 @@ func (transformer *transactionsTransformer) mempoolMoveBalanceTxToRosettaTx(tx *
 	}
 }
 
-func (transformer *transactionsTransformer) addOperationsGivenTransactionEvents(tx *transaction.ApiTransactionResult, rosettaTx *types.Transaction) error {
+func (transformer *transactionsTransformer) addOperationsGivenTransactionEvents(
+	tx *transaction.ApiTransactionResult,
+	txsInBlock []*transaction.ApiTransactionResult,
+	rosettaTx *types.Transaction,
+) error {
+	hasSignalError := transformer.featuresDetector.eventsController.hasAnySignalError(tx)
+	if hasSignalError {
+		return nil
+	}
+
+	eventsSCDeploy, err := transformer.eventsController.extractEventSCDeploy(tx)
+	if err != nil {
+		return err
+	}
+
+	eventsTransferValueOnly, err := transformer.eventsController.extractEventTransferValueOnly(tx)
+	if err != nil {
+		return err
+	}
+
+	eventsTransferValueOnly = filterOutTransferValueOnlyEventsThatAreAlreadyCapturedAsContractResults(tx, eventsTransferValueOnly, txsInBlock)
+
 	eventsESDTTransfer, err := transformer.eventsController.extractEventsESDTOrESDTNFTTransfers(tx)
 	if err != nil {
 		return err
@@ -341,26 +424,100 @@ func (transformer *transactionsTransformer) addOperationsGivenTransactionEvents(
 		return err
 	}
 
-	for _, event := range eventsESDTTransfer {
-		if !transformer.provider.HasCustomCurrency(event.identifier) {
-			// We are only emitting balance-changing operations for supported currencies.
-			continue
+	eventsESDTNFTCreate, err := transformer.eventsController.extractEventsESDTNFTCreate(tx)
+	if err != nil {
+		return err
+	}
+
+	eventsESDTNFTBurn, err := transformer.eventsController.extractEventsESDTNFTBurn(tx)
+	if err != nil {
+		return err
+	}
+
+	eventsESDTNFTAddQuantity, err := transformer.eventsController.extractEventsESDTNFTAddQuantity(tx)
+	if err != nil {
+		return err
+	}
+
+	eventsClaimDeveloperRewards, err := transformer.eventsController.extractEventsClaimDeveloperRewards(tx)
+	if err != nil {
+		return err
+	}
+
+	for _, event := range eventsSCDeploy {
+		// Handle deployments with transfer of value
+		if tx.Receiver == systemContractDeployAddress {
+			operations := []*types.Operation{
+				// Deployer's balance change is already captured in non-events-based operations.
+				// Let's simulate the transfer from the System deployment address to the contract address.
+				{
+					Type:    opTransfer,
+					Account: addressToAccountIdentifier(tx.Receiver),
+					Amount:  transformer.extension.valueToNativeAmount("-" + tx.Value),
+				},
+				{
+					Type:    opTransfer,
+					Account: addressToAccountIdentifier(event.contractAddress),
+					Amount:  transformer.extension.valueToNativeAmount(tx.Value),
+				},
+			}
+
+			rosettaTx.Operations = append(rosettaTx.Operations, operations...)
 		}
+	}
+
+	for _, event := range eventsTransferValueOnly {
+		log.Info("eventTransferValueOnly (effective)", "tx", tx.Hash, "block", tx.BlockNonce)
 
 		operations := []*types.Operation{
 			{
-				Type:    opCustomTransfer,
-				Account: addressToAccountIdentifier(event.senderAddress),
-				Amount:  transformer.extension.valueToCustomAmount("-"+event.value, event.getComposedIdentifier()),
+				Type:    opTransfer,
+				Account: addressToAccountIdentifier(event.sender),
+				Amount:  transformer.extension.valueToNativeAmount("-" + event.value),
 			},
 			{
-				Type:    opCustomTransfer,
-				Account: addressToAccountIdentifier(event.receiverAddress),
-				Amount:  transformer.extension.valueToCustomAmount(event.value, event.getComposedIdentifier()),
+				Type:    opTransfer,
+				Account: addressToAccountIdentifier(event.receiver),
+				Amount:  transformer.extension.valueToNativeAmount(event.value),
 			},
 		}
 
 		rosettaTx.Operations = append(rosettaTx.Operations, operations...)
+	}
+
+	for _, event := range eventsESDTTransfer {
+		if event.identifier == nativeAsESDTIdentifier {
+			operations := []*types.Operation{
+				{
+					Type:    opTransfer,
+					Account: addressToAccountIdentifier(event.senderAddress),
+					Amount:  transformer.extension.valueToNativeAmount("-" + event.value),
+				},
+				{
+					Type:    opTransfer,
+					Account: addressToAccountIdentifier(event.receiverAddress),
+					Amount:  transformer.extension.valueToNativeAmount(event.value),
+				},
+			}
+
+			rosettaTx.Operations = append(rosettaTx.Operations, operations...)
+		} else if transformer.provider.HasCustomCurrency(event.identifier) {
+			// We are only emitting balance-changing operations for supported currencies.
+			operations := []*types.Operation{
+				{
+					Type:    opCustomTransfer,
+					Account: addressToAccountIdentifier(event.senderAddress),
+					Amount:  transformer.extension.valueToCustomAmount("-"+event.value, event.getExtendedIdentifier()),
+				},
+				{
+					Type:    opCustomTransfer,
+					Account: addressToAccountIdentifier(event.receiverAddress),
+					Amount:  transformer.extension.valueToCustomAmount(event.value, event.getExtendedIdentifier()),
+				},
+			}
+
+			rosettaTx.Operations = append(rosettaTx.Operations, operations...)
+		}
 	}
 
 	for _, event := range eventsESDTLocalBurn {
@@ -373,7 +530,7 @@ func (transformer *transactionsTransformer) addOperationsGivenTransactionEvents(
 			{
 				Type:    opCustomTransfer,
 				Account: addressToAccountIdentifier(event.otherAddress),
-				Amount:  transformer.extension.valueToCustomAmount("-"+event.value, event.getComposedIdentifier()),
+				Amount:  transformer.extension.valueToCustomAmount("-"+event.value, event.getExtendedIdentifier()),
 			},
 		}
 
@@ -390,7 +547,7 @@ func (transformer *transactionsTransformer) addOperationsGivenTransactionEvents(
 			{
 				Type:    opCustomTransfer,
 				Account: addressToAccountIdentifier(event.otherAddress),
-				Amount:  transformer.extension.valueToCustomAmount(event.value, event.getComposedIdentifier()),
+				Amount:  transformer.extension.valueToCustomAmount(event.value, event.getExtendedIdentifier()),
 			},
 		}
 
@@ -407,11 +564,76 @@ func (transformer *transactionsTransformer) addOperationsGivenTransactionEvents(
 			{
 				Type:    opCustomTransfer,
 				Account: addressToAccountIdentifier(event.otherAddress),
-				Amount:  transformer.extension.valueToCustomAmount("-"+event.value, event.getComposedIdentifier()),
+				Amount:  transformer.extension.valueToCustomAmount("-"+event.value, event.getExtendedIdentifier()),
 			},
 		}
 
 		rosettaTx.Operations = append(rosettaTx.Operations, operations...)
+	}
+
+	for _, event := range eventsESDTNFTCreate {
+		if !transformer.provider.HasCustomCurrency(event.identifier) {
+			// We are only emitting balance-changing operations for supported currencies.
+			continue
+		}
+
+		operations := []*types.Operation{
+			{
+				Type:    opCustomTransfer,
+				Account: addressToAccountIdentifier(event.otherAddress),
+				Amount:  transformer.extension.valueToCustomAmount(event.value, event.getExtendedIdentifier()),
+			},
+		}
+
+		rosettaTx.Operations = append(rosettaTx.Operations, operations...)
+	}
+
+	for _, event := range eventsESDTNFTBurn {
+		if !transformer.provider.HasCustomCurrency(event.identifier) {
+			// We are only emitting balance-changing operations for supported currencies.
+			continue
+		}
+
+		operations := []*types.Operation{
+			{
+				Type:    opCustomTransfer,
+				Account: addressToAccountIdentifier(event.otherAddress),
+				Amount:  transformer.extension.valueToCustomAmount("-"+event.value, event.getExtendedIdentifier()),
+			},
+		}
+
+		rosettaTx.Operations = append(rosettaTx.Operations, operations...)
+	}
+
+	for _, event := range eventsESDTNFTAddQuantity {
+		if !transformer.provider.HasCustomCurrency(event.identifier) {
+			// We are only emitting balance-changing operations for supported currencies.
+			continue
+		}
+
+		operations := []*types.Operation{
+			{
+				Type:    opCustomTransfer,
+				Account: addressToAccountIdentifier(event.otherAddress),
+				Amount:  transformer.extension.valueToCustomAmount(event.value, event.getExtendedIdentifier()),
+			},
+		}
+
+		rosettaTx.Operations = append(rosettaTx.Operations, operations...)
+	}
+
+	if areClaimDeveloperRewardsEventsEnabled(tx.BlockNonce) {
+		for _, event := range eventsClaimDeveloperRewards {
+			operations := []*types.Operation{
+				{
+					Type:    opDeveloperRewardsAsScResult,
+					Account: addressToAccountIdentifier(event.receiverAddress),
+					Amount:  transformer.extension.valueToNativeAmount(event.value),
+				},
+			}
+
+			rosettaTx.Operations = append(rosettaTx.Operations, operations...)
+		}
 	}
 
 	return nil

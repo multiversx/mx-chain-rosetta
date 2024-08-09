@@ -4,6 +4,12 @@ import (
 	"fmt"
 )
 
+type eventTransferValueOnly struct {
+	sender   string
+	receiver string
+	value    string
+}
+
 type eventESDT struct {
 	senderAddress   string
 	receiverAddress string
@@ -18,11 +24,21 @@ func (event *eventESDT) getBaseIdentifier() string {
 	return event.identifier
 }
 
-// getComposedIdentifier returns the "full" token identifier for all types of ESDTs
-func (event *eventESDT) getComposedIdentifier() string {
+// getExtendedIdentifier returns the "full" token identifier for all types of ESDTs
+func (event *eventESDT) getExtendedIdentifier() string {
 	if len(event.nonceAsBytes) > 0 {
 		return fmt.Sprintf("%s-%x", event.identifier, event.nonceAsBytes)
 	}
 
 	return event.identifier
+}
+
+type eventSCDeploy struct {
+	contractAddress string
+	deployerAddress string
+}
+
+type eventClaimDeveloperRewards struct {
+	value           string
+	receiverAddress string
 }

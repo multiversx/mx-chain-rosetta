@@ -57,7 +57,8 @@ func startAdapter(ctx *cli.Context) error {
 		sleepDuration: ctx.GlobalUint(cliFlagSleep.Name),
 	}
 
-	router := gin.Default()
+	router := gin.New()
+	router.Use(gin.Recovery())
 	router.GET("/node/status", adapter.getNodeStatus)
 	router.GET("/node/epoch-start/:epoch", adapter.getEpochStart)
 	router.GET("/block/by-nonce/:nonce", adapter.getBlockByNonce)
