@@ -11,6 +11,7 @@ var (
 	transactionVersion                           = 1
 	transactionProcessingTypeRelayedV1           = "RelayedTx"
 	transactionProcessingTypeRelayedV2           = "RelayedTxV2"
+	transactionProcessingTypeRelayedV3           = "RelayedTxV3"
 	transactionProcessingTypeBuiltInFunctionCall = "BuiltInFunctionCall"
 	transactionProcessingTypeMoveBalance         = "MoveBalance"
 	transactionProcessingTypeContractInvoking    = "SCInvoking"

@@ -17,7 +17,6 @@ class Configuration:
     check_construction_custom_configuration_file: str
     check_data_configuration_file: str
     check_data_directory: str
-    legacy_delegation_contract: str
     known_contracts: List[str]
     explorer_url: str
     sponsor_secret_key: bytes = bytes.fromhex(os.environ.get("SPONSOR_SECRET_KEY", ""))
@@ -38,8 +37,11 @@ CONFIGURATIONS = {
         check_construction_custom_configuration_file="systemtests/mesh_cli_config/devnet-construction-custom.json",
         check_data_configuration_file="systemtests/mesh_cli_config/check-data.json",
         check_data_directory="systemtests/devnet-data",
-        legacy_delegation_contract="erd1qqqqqqqqqqqqqpgq97wezxw6l7lgg7k9rxvycrz66vn92ksh2tssxwf7ep",
-        known_contracts=[],
+        known_contracts=[
+            "erd1qqqqqqqqqqqqqpgqagjekf5mxv86hy5c62vvtug5vc6jmgcsq6uq8reras",
+            "erd1qqqqqqqqqqqqqpgq89t5xm4x04tnt9lv747wdrsaycf3rcwcggzsa7crse",
+            "erd1qqqqqqqqqqqqqpgqeesfamasje5zru7ku79m8p4xqfqnywvqxj0qhtyzdr"
+        ],
         explorer_url="https://devnet-explorer.multiversx.com",
     ),
     "testnet": Configuration(
@@ -60,7 +62,26 @@ CONFIGURATIONS = {
             "erd1qqqqqqqqqqqqqpgq89t5xm4x04tnt9lv747wdrsaycf3rcwcggzsa7crse",
             "erd1qqqqqqqqqqqqqpgqeesfamasje5zru7ku79m8p4xqfqnywvqxj0qhtyzdr"
         ],
-        legacy_delegation_contract="erd1qqqqqqqqqqqqqpgq97wezxw6l7lgg7k9rxvycrz66vn92ksh2tssxwf7ep",
         explorer_url="https://testnet-explorer.multiversx.com",
+    ),
+    "localnet": Configuration(
+        network_shard=0,
+        network_id="localnet",
+        network_name="untitled",
+        native_currency="EGLD",
+        config_file_custom_currencies="systemtests/rosetta_config/localnet-custom-currencies.json",
+        num_historical_epochs=2,
+        observer_url="",
+        proxy_url="http://localhost:7950",
+        check_construction_native_configuration_file="systemtests/mesh_cli_config/localnet-construction-native.json",
+        check_construction_custom_configuration_file="systemtests/mesh_cli_config/localnet-construction-custom.json",
+        check_data_configuration_file="systemtests/mesh_cli_config/check-data.json",
+        check_data_directory="systemtests/localnet-data",
+        known_contracts=[
+            "erd1qqqqqqqqqqqqqpgqagjekf5mxv86hy5c62vvtug5vc6jmgcsq6uq8reras",
+            "erd1qqqqqqqqqqqqqpgq89t5xm4x04tnt9lv747wdrsaycf3rcwcggzsa7crse",
+            "erd1qqqqqqqqqqqqqpgqeesfamasje5zru7ku79m8p4xqfqnywvqxj0qhtyzdr"
+        ],
+        explorer_url="https://localnet-explorer.multiversx.com",
     ),
 }
