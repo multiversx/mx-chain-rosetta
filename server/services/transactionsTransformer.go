@@ -152,19 +152,6 @@ func (transformer *transactionsTransformer) unsignedTxToRosettaTx(
 				},
 			}
 		}
-
-		if isContractResultOfOpaquelyClaimingDeveloperRewards(scr) {
-			return &types.Transaction{
-				TransactionIdentifier: hashToTransactionIdentifier(scr.Hash),
-				Operations: []*types.Operation{
-					{
-						Type:    opScResult,
-						Account: addressToAccountIdentifier(scr.Receiver),
-						Amount:  transformer.extension.valueToNativeAmount(scr.Value),
-					},
-				},
-			}
-		}
 	}
 
 	return &types.Transaction{

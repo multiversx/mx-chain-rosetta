@@ -61,7 +61,7 @@ def run_rosetta(configuration: Configuration):
     command = [
         str(constants.PATH_ROSETTA),
         f"--port={constants.PORT_ROSETTA}",
-        f"--observer-http-url=http://localhost:{constants.PORT_OBSERVER_SURROGATE}",
+        f"--observer-http-url={constants.URL_OBSERVER_SURROGATE}",
         f"--observer-actual-shard={configuration.network_shard}",
         f"--network-id={configuration.network_id}",
         f"--network-name={configuration.network_name}",
