@@ -57,7 +57,7 @@ func CreateNetworkProvider(args ArgsCreateNetworkProvider) (NetworkProvider, err
 		return nil, err
 	}
 
-	pubKeyConverter, err := pubkeyConverter.NewBech32PubkeyConverter(pubKeyLength, log)
+	pubKeyConverter, err := pubkeyConverter.NewBech32PubkeyConverter(pubKeyLength, bech32Prefix)
 	if err != nil {
 		return nil, err
 	}

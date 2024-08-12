@@ -21,7 +21,6 @@ func isRelayedV1Transaction(tx *transaction.ApiTransactionResult) bool {
 		(tx.ProcessingTypeOnSource == transactionProcessingTypeRelayedV1) &&
 		(tx.ProcessingTypeOnDestination == transactionProcessingTypeRelayedV1)
 }
-}
 
 func parseInnerTxOfRelayedV1(tx *transaction.ApiTransactionResult) (*innerTransactionOfRelayedV1, error) {
 	subparts := strings.Split(string(tx.Data), argumentsSeparator)
