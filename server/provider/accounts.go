@@ -88,6 +88,7 @@ func (provider *networkProvider) getCustomTokenBalance(address string, tokenIden
 		"blockHash", data.BlockCoordinates.Hash,
 	)
 
+	// Here, we do not return the account nonce (not available without a second API call).
 	return &resources.AccountBalanceOnBlock{
 		Balance:          data.TokenData.Balance,
 		BlockCoordinates: data.BlockCoordinates,
