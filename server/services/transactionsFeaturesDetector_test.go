@@ -75,7 +75,7 @@ func TestTransactionsFeaturesDetector_IsInvalidTransactionOfTypeMoveBalanceThatO
 	})
 }
 
-func TestTransactionsFeaturesDetector_IsRelayedTransactionCompletelyIntrashardWithSignalError(t *testing.T) {
+func TestTransactionsFeaturesDetector_isRelayedV1TransactionCompletelyIntrashardWithSignalError(t *testing.T) {
 	networkProvider := testscommon.NewNetworkProviderMock()
 	detector := newTransactionsFeaturesDetector(networkProvider)
 
@@ -90,7 +90,7 @@ func TestTransactionsFeaturesDetector_IsRelayedTransactionCompletelyIntrashardWi
 			ReceiverPubKey: testscommon.TestUserShard2.PubKey,
 		}
 
-		featureDetected := detector.isRelayedTransactionCompletelyIntrashardWithSignalError(tx, innerTx)
+		featureDetected := detector.isRelayedV1TransactionCompletelyIntrashardWithSignalError(tx, innerTx)
 		require.False(t, featureDetected)
 	})
 
@@ -105,7 +105,7 @@ func TestTransactionsFeaturesDetector_IsRelayedTransactionCompletelyIntrashardWi
 			ReceiverPubKey: testscommon.TestUserBShard0.PubKey,
 		}
 
-		featureDetected := detector.isRelayedTransactionCompletelyIntrashardWithSignalError(tx, innerTx)
+		featureDetected := detector.isRelayedV1TransactionCompletelyIntrashardWithSignalError(tx, innerTx)
 		require.False(t, featureDetected)
 	})
 
@@ -127,7 +127,7 @@ func TestTransactionsFeaturesDetector_IsRelayedTransactionCompletelyIntrashardWi
 			ReceiverPubKey: testscommon.TestUserBShard0.PubKey,
 		}
 
-		featureDetected := detector.isRelayedTransactionCompletelyIntrashardWithSignalError(tx, innerTx)
+		featureDetected := detector.isRelayedV1TransactionCompletelyIntrashardWithSignalError(tx, innerTx)
 		require.True(t, featureDetected)
 	})
 }

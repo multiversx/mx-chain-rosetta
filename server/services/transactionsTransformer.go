@@ -209,7 +209,9 @@ func (transformer *transactionsTransformer) normalTxToRosetta(tx *transaction.Ap
 	}, nil
 }
 
+// This only handles operations for the native balance.
 func (transformer *transactionsTransformer) extractInnerTxOperationsIfRelayedCompletelyIntrashardWithSignalError(tx *transaction.ApiTransactionResult) ([]*types.Operation, error) {
+	// Only relayed V1 is handled. Relayed V2 cannot bear native value in the inner transaction.
 	isRelayedTransaction := isRelayedV1Transaction(tx)
 	if !isRelayedTransaction {
 		return []*types.Operation{}, nil
@@ -224,7 +226,7 @@ func (transformer *transactionsTransformer) extractInnerTxOperationsIfRelayedCom
 		return []*types.Operation{}, nil
 	}
 
-	if !transformer.featuresDetector.isRelayedTransactionCompletelyIntrashardWithSignalError(tx, innerTx) {
+	if !transformer.featuresDetector.isRelayedV1TransactionCompletelyIntrashardWithSignalError(tx, innerTx) {
 		return []*types.Operation{}, nil
 	}
 

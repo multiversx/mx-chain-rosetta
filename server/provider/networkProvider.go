@@ -330,7 +330,13 @@ func (provider *networkProvider) ComputeShardIdOfPubKey(pubKey []byte) uint32 {
 
 // ConvertPubKeyToAddress converts a public key to an address
 func (provider *networkProvider) ConvertPubKeyToAddress(pubkey []byte) string {
-	return provider.pubKeyConverter.Encode(pubkey)
+	address, err := provider.pubKeyConverter.Encode(pubkey)
+	if err != nil {
+		log.Warn("networkProvider.ConvertPubKeyToAddress()", "pubkey", pubkey, "err", err)
+		return ""
+	}
+
+	return address
 }
 
 // ConvertAddressToPubKey converts an address to a pubkey

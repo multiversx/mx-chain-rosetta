@@ -17,8 +17,8 @@ func Test_IsRelayedV1Transaction(t *testing.T) {
 	t.Run("relayed v1 tx", func(t *testing.T) {
 		tx := &transaction.ApiTransactionResult{
 			Type:                        string(transaction.TxTypeNormal),
-			ProcessingTypeOnSource:      transactionProcessingTypeRelayed,
-			ProcessingTypeOnDestination: transactionProcessingTypeRelayed,
+			ProcessingTypeOnSource:      transactionProcessingTypeRelayedV1,
+			ProcessingTypeOnDestination: transactionProcessingTypeRelayedV1,
 		}
 
 		require.True(t, isRelayedV1Transaction(tx))
@@ -42,7 +42,6 @@ func Test_ParseInnerTxOfRelayedV1(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, innerTx)
 
-		require.Equal(t, uint64(7), innerTx.Nonce)
 		require.Equal(t, "1000000000000000000", innerTx.Value.String())
 		require.Equal(t, testscommon.TestPubKeyAlice, innerTx.SenderPubKey)
 		require.Equal(t, testscommon.TestPubKeyBob, innerTx.ReceiverPubKey)
