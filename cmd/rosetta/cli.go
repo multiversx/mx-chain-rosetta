@@ -166,12 +166,6 @@ VERSION:
 		Usage:    "Specifies the configuration file for custom currencies.",
 		Required: false,
 	}
-
-	cliFlagConfigFileNodeFeatures = cli.StringFlag{
-		Name:     "config-node-features",
-		Usage:    "Specifies the configuration file for features activation on Node's side.",
-		Required: false,
-	}
 )
 
 func getAllCliFlags() []cli.Flag {
@@ -200,7 +194,6 @@ func getAllCliFlags() []cli.Flag {
 		cliFlagNumHistoricalEpochs,
 		cliFlagShouldHandleContracts,
 		cliFlagConfigFileCustomCurrencies,
-		cliFlagConfigFileNodeFeatures,
 	}
 }
 
@@ -230,7 +223,6 @@ type parsedCliFlags struct {
 	numHistoricalEpochs         uint32
 	shouldHandleContracts       bool
 	configFileCustomCurrencies  string
-	configFileNodeFeatures      string
 }
 
 func getParsedCliFlags(ctx *cli.Context) parsedCliFlags {
@@ -260,6 +252,5 @@ func getParsedCliFlags(ctx *cli.Context) parsedCliFlags {
 		numHistoricalEpochs:         uint32(ctx.GlobalUint(cliFlagNumHistoricalEpochs.Name)),
 		shouldHandleContracts:       ctx.GlobalBool(cliFlagShouldHandleContracts.Name),
 		configFileCustomCurrencies:  ctx.GlobalString(cliFlagConfigFileCustomCurrencies.Name),
-		configFileNodeFeatures:      ctx.GlobalString(cliFlagConfigFileNodeFeatures.Name),
 	}
 }
