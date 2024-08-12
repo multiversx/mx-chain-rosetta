@@ -81,6 +81,7 @@ func startRosetta(ctx *cli.Context) error {
 		GenesisBlockHash:            cliFlags.genesisBlock,
 		FirstHistoricalEpoch:        cliFlags.firstHistoricalEpoch,
 		NumHistoricalEpochs:         cliFlags.numHistoricalEpochs,
+		ShouldHandleContracts:       cliFlags.shouldHandleContracts,
 	})
 	if err != nil {
 		return err

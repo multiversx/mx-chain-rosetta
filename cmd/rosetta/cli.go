@@ -156,9 +156,20 @@ VERSION:
 		Required: true,
 	}
 
+	cliFlagShouldHandleContracts = cli.BoolFlag{
+		Name:  "handle-contracts",
+		Usage: "Whether to handle balance changes of smart contracts or not.",
+	}
+
 	cliFlagConfigFileCustomCurrencies = cli.StringFlag{
 		Name:     "config-custom-currencies",
 		Usage:    "Specifies the configuration file for custom currencies.",
+		Required: false,
+	}
+
+	cliFlagConfigFileNodeFeatures = cli.StringFlag{
+		Name:     "config-node-features",
+		Usage:    "Specifies the configuration file for features activation on Node's side.",
 		Required: false,
 	}
 )
@@ -187,7 +198,9 @@ func getAllCliFlags() []cli.Flag {
 		cliFlagNativeCurrencySymbol,
 		cliFlagFirstHistoricalEpoch,
 		cliFlagNumHistoricalEpochs,
+		cliFlagShouldHandleContracts,
 		cliFlagConfigFileCustomCurrencies,
+		cliFlagConfigFileNodeFeatures,
 	}
 }
 
@@ -215,7 +228,9 @@ type parsedCliFlags struct {
 	nativeCurrencySymbol        string
 	firstHistoricalEpoch        uint32
 	numHistoricalEpochs         uint32
+	shouldHandleContracts       bool
 	configFileCustomCurrencies  string
+	configFileNodeFeatures      string
 }
 
 func getParsedCliFlags(ctx *cli.Context) parsedCliFlags {
@@ -243,6 +258,8 @@ func getParsedCliFlags(ctx *cli.Context) parsedCliFlags {
 		nativeCurrencySymbol:        ctx.GlobalString(cliFlagNativeCurrencySymbol.Name),
 		firstHistoricalEpoch:        uint32(ctx.GlobalUint(cliFlagFirstHistoricalEpoch.Name)),
 		numHistoricalEpochs:         uint32(ctx.GlobalUint(cliFlagNumHistoricalEpochs.Name)),
+		shouldHandleContracts:       ctx.GlobalBool(cliFlagShouldHandleContracts.Name),
 		configFileCustomCurrencies:  ctx.GlobalString(cliFlagConfigFileCustomCurrencies.Name),
+		configFileNodeFeatures:      ctx.GlobalString(cliFlagConfigFileNodeFeatures.Name),
 	}
 }

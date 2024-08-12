@@ -68,7 +68,7 @@ func (transformer *transactionsTransformer) transformBlockTxs(block *api.Block) 
 	}
 
 	for _, rosettaTx := range rosettaTxs {
-		filteredOperations, err := filterOperationsByAddress(rosettaTx.Operations, transformer.extension.isAddressObserved)
+		filteredOperations, err := filterOperationsByAddress(rosettaTx.Operations, transformer.provider.IsAddressObserved)
 		if err != nil {
 			return nil, err
 		}
