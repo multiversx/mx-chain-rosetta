@@ -79,7 +79,7 @@ func TestAccountService_AccountBalance(t *testing.T) {
 		require.Equal(t, uint64(7), response.Metadata["nonce"])
 	})
 
-	t.Run("with one custom currency (specified)", func(t *testing.T) {
+	t.Run("with one custom currency (fungible, specified)", func(t *testing.T) {
 		request := &types.AccountBalanceRequest{
 			AccountIdentifier: &types.AccountIdentifier{Address: "alice"},
 			Currencies: []*types.Currency{
@@ -100,6 +100,28 @@ func TestAccountService_AccountBalance(t *testing.T) {
 		require.Nil(t, err)
 		require.Equal(t, "500", response.Balances[0].Value)
 		require.Equal(t, "FOO-abcdef", response.Balances[0].Currency.Symbol)
+	})
+
+	t.Run("with one custom currency (non-fungible, specified)", func(t *testing.T) {
+		request := &types.AccountBalanceRequest{
+			AccountIdentifier: &types.AccountIdentifier{Address: "alice"},
+			Currencies: []*types.Currency{
+				{
+					Symbol: "FOO-abcdef-0a",
+				},
+			},
+		}
+
+		networkProvider.MockAccountsCustomBalances["alice_FOO-abcdef-0a"] = &resources.AccountBalanceOnBlock{
+			Balance: "1",
+		}
+		networkProvider.MockNextAccountBlockCoordinates.Nonce = 42
+		networkProvider.MockNextAccountBlockCoordinates.Hash = "abba"
+
+		response, err := service.AccountBalance(context.Background(), request)
+		require.Nil(t, err)
+		require.Equal(t, "1", response.Balances[0].Value)
+		require.Equal(t, "FOO-abcdef-0a", response.Balances[0].Currency.Symbol)
 	})
 
 	t.Run("with more than 1 (custom or not) currencies", func(t *testing.T) {
