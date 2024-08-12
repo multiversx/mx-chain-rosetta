@@ -31,7 +31,7 @@ func TestBuildUrlGetAccountNativeBalance(t *testing.T) {
 	require.Equal(t, "/address/erd1qyu5wthldzr8wx5c9ucg8kjagg0jfs53s8nr3zpz3hypefsdd8ssycr6th", url)
 }
 
-func TestBuildUrlGetAccountESDTBalance(t *testing.T) {
+func TestBuildUrlGetAccountFungibleTokenBalance(t *testing.T) {
 	optionsOnFinal := resources.NewAccountQueryOptionsOnFinalBlock()
 	optionsAtBlockNonce := resources.NewAccountQueryOptionsWithBlockNonce(7)
 	optionsAtBlockHash := resources.NewAccountQueryOptionsWithBlockHash([]byte{0xaa, 0xbb, 0xcc, 0xdd})
@@ -47,4 +47,22 @@ func TestBuildUrlGetAccountESDTBalance(t *testing.T) {
 
 	url = buildUrlGetAccountFungibleTokenBalance(testscommon.TestAddressAlice, "ABC-abcdef", resources.AccountQueryOptions{})
 	require.Equal(t, "/address/erd1qyu5wthldzr8wx5c9ucg8kjagg0jfs53s8nr3zpz3hypefsdd8ssycr6th/esdt/ABC-abcdef", url)
+}
+
+func TestBuildUrlGetAccountNonFungibleTokenBalance(t *testing.T) {
+	optionsOnFinal := resources.NewAccountQueryOptionsOnFinalBlock()
+	optionsAtBlockNonce := resources.NewAccountQueryOptionsWithBlockNonce(7)
+	optionsAtBlockHash := resources.NewAccountQueryOptionsWithBlockHash([]byte{0xaa, 0xbb, 0xcc, 0xdd})
+
+	url := buildUrlGetAccountNonFungibleTokenBalance(testscommon.TestAddressAlice, "ABC-abcdef", 10, optionsOnFinal)
+	require.Equal(t, "/address/erd1qyu5wthldzr8wx5c9ucg8kjagg0jfs53s8nr3zpz3hypefsdd8ssycr6th/nft/ABC-abcdef/nonce/10?onFinalBlock=true", url)
+
+	url = buildUrlGetAccountNonFungibleTokenBalance(testscommon.TestAddressAlice, "ABC-abcdef", 10, optionsAtBlockNonce)
+	require.Equal(t, "/address/erd1qyu5wthldzr8wx5c9ucg8kjagg0jfs53s8nr3zpz3hypefsdd8ssycr6th/nft/ABC-abcdef/nonce/10?blockNonce=7", url)
+
+	url = buildUrlGetAccountNonFungibleTokenBalance(testscommon.TestAddressAlice, "ABC-abcdef", 10, optionsAtBlockHash)
+	require.Equal(t, "/address/erd1qyu5wthldzr8wx5c9ucg8kjagg0jfs53s8nr3zpz3hypefsdd8ssycr6th/nft/ABC-abcdef/nonce/10?blockHash=aabbccdd", url)
+
+	url = buildUrlGetAccountNonFungibleTokenBalance(testscommon.TestAddressAlice, "ABC-abcdef", 10, resources.AccountQueryOptions{})
+	require.Equal(t, "/address/erd1qyu5wthldzr8wx5c9ucg8kjagg0jfs53s8nr3zpz3hypefsdd8ssycr6th/nft/ABC-abcdef/nonce/10", url)
 }
