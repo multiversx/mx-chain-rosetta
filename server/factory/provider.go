@@ -48,6 +48,7 @@ type ArgsCreateNetworkProvider struct {
 	GenesisTimestamp            int64
 	FirstHistoricalEpoch        uint32
 	NumHistoricalEpochs         uint32
+	ShouldHandleContracts       bool
 }
 
 // CreateNetworkProvider creates a network provider
@@ -138,6 +139,7 @@ func CreateNetworkProvider(args ArgsCreateNetworkProvider) (NetworkProvider, err
 		GenesisTimestamp:            args.GenesisTimestamp,
 		FirstHistoricalEpoch:        args.FirstHistoricalEpoch,
 		NumHistoricalEpochs:         args.NumHistoricalEpochs,
+		ShouldHandleContracts:       args.ShouldHandleContracts,
 
 		ObserverFacade: &components.ObserverFacade{
 			Processor:            baseProcessor,

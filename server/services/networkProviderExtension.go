@@ -70,22 +70,16 @@ func (extension *networkProviderExtension) getGenesisBlockIdentifier() *types.Bl
 	return blockSummaryToIdentifier(summary)
 }
 
-func (extension *networkProviderExtension) isAddressObserved(address string) (bool, error) {
-	belongsToObservedShard, err := extension.provider.IsAddressObserved(address)
-	if err != nil {
-		return false, err
-	}
-
-	isUserAddress := extension.isUserAddress(address)
-	return belongsToObservedShard && isUserAddress, nil
-}
-
 func (extension *networkProviderExtension) isUserAddress(address string) bool {
-	pubkey, err := extension.provider.ConvertAddressToPubKey(address)
+	pubKey, err := extension.provider.ConvertAddressToPubKey(address)
 	if err != nil {
 		// E.g., when address = "metachain"
 		return false
 	}
 
-	return !core.IsSmartContractAddress(pubkey)
+	return extension.isUserPubKey(pubKey)
+}
+
+func (extension *networkProviderExtension) isUserPubKey(pubKey []byte) bool {
+	return !core.IsSmartContractAddress(pubKey)
 }

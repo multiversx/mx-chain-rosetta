@@ -145,7 +145,7 @@ func (service *blockService) createGenesisOperations(balances []*resources.Genes
 		operations = append(operations, operation)
 	}
 
-	operations, err := filterOperationsByAddress(operations, service.extension.isAddressObserved)
+	operations, err := filterOperationsByAddress(operations, service.provider.IsAddressObserved)
 	if err != nil {
 		return nil, err
 	}

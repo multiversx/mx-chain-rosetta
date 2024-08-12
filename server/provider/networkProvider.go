@@ -41,6 +41,7 @@ type ArgsNewNetworkProvider struct {
 	GenesisTimestamp            int64
 	FirstHistoricalEpoch        uint32
 	NumHistoricalEpochs         uint32
+	ShouldHandleContracts       bool
 
 	ObserverFacade observerFacade
 
@@ -62,6 +63,7 @@ type networkProvider struct {
 	genesisTimestamp            int64
 	firstHistoricalEpoch        uint32
 	numHistoricalEpochs         uint32
+	shouldHandleContracts       bool
 
 	observerFacade observerFacade
 
@@ -101,6 +103,7 @@ func NewNetworkProvider(args ArgsNewNetworkProvider) (*networkProvider, error) {
 		genesisTimestamp:            args.GenesisTimestamp,
 		firstHistoricalEpoch:        args.FirstHistoricalEpoch,
 		numHistoricalEpochs:         args.NumHistoricalEpochs,
+		shouldHandleContracts:       args.ShouldHandleContracts,
 
 		observerFacade: args.ObserverFacade,
 
@@ -312,14 +315,15 @@ func (provider *networkProvider) IsAddressObserved(address string) (bool, error)
 	}
 
 	shard := provider.observerFacade.ComputeShardId(pubKey)
-	isObservedActualShard := shard == provider.observedActualShard
-	isObservedProjectedShard := pubKey[len(pubKey)-1] == byte(provider.observedProjectedShard)
 
-	if provider.observedProjectedShardIsSet {
-		return isObservedProjectedShard, nil
-	}
+	noConstraintAboutProjectedShard := !provider.observedProjectedShardIsSet
+	noConstraintAboutHandlingContracts := provider.shouldHandleContracts
 
-	return isObservedActualShard, nil
+	passesConstraintAboutObservedActualShard := shard == provider.observedActualShard
+	passesConstraintAboutObservedProjectedShard := noConstraintAboutProjectedShard || pubKey[len(pubKey)-1] == byte(provider.observedProjectedShard)
+	passesConstraintAboutHandlingContracts := noConstraintAboutHandlingContracts || !core.IsSmartContractAddress(pubKey)
+
+	return passesConstraintAboutObservedActualShard && passesConstraintAboutObservedProjectedShard && passesConstraintAboutHandlingContracts, nil
 }
 
 // ComputeShardIdOfPubKey computes the shard ID of a public key

@@ -39,6 +39,7 @@ func TestNewNetworkProvider(t *testing.T) {
 		GenesisTimestamp:      123456789,
 		FirstHistoricalEpoch:  1000,
 		NumHistoricalEpochs:   1024,
+		ShouldHandleContracts: true,
 		ObserverFacade:        testscommon.NewObserverFacadeMock(),
 		Hasher:                testscommon.RealWorldBlake2bHasher,
 		MarshalizerForHashing: testscommon.MarshalizerForHashing,
@@ -71,6 +72,7 @@ func TestNewNetworkProvider(t *testing.T) {
 	assert.Equal(t, int64(123456789), provider.GetGenesisTimestamp())
 	assert.Equal(t, uint32(1000), provider.firstHistoricalEpoch)
 	assert.Equal(t, uint32(1024), provider.numHistoricalEpochs)
+	assert.Equal(t, true, provider.shouldHandleContracts)
 }
 
 func TestNetworkProvider_DoGetBlockByNonce(t *testing.T) {
@@ -233,6 +235,98 @@ func Test_ComputeTransactionFeeForMoveBalance(t *testing.T) {
 		})
 
 		assert.Equal(t, "107500000000000", fee.String())
+	})
+}
+
+func TestNetworkProvider_IsAddressObserved(t *testing.T) {
+	t.Run("no projected shard, do not handle contracts", func(t *testing.T) {
+		args := createDefaultArgsNewNetworkProvider()
+		args.ObservedActualShard = 0
+		args.ShouldHandleContracts = false
+
+		provider, err := NewNetworkProvider(args)
+		require.Nil(t, err)
+		require.NotNil(t, provider)
+
+		isObserved, err := provider.IsAddressObserved("erd1qyu5wthldzr8wx5c9ucg8kjagg0jfs53s8nr3zpz3hypefsdd8ssycr6th")
+		require.NoError(t, err)
+		require.False(t, isObserved)
+
+		isObserved, err = provider.IsAddressObserved("erd1spyavw0956vq68xj8y4tenjpq2wd5a9p2c6j8gsz7ztyrnpxrruqzu66jx")
+		require.NoError(t, err)
+		require.True(t, isObserved)
+
+		isObserved, err = provider.IsAddressObserved("erd1k2s324ww2g0yj38qn2ch2jwctdy8mnfxep94q9arncc6xecg3xaq6mjse8")
+		require.NoError(t, err)
+		require.False(t, isObserved)
+
+		isObserved, err = provider.IsAddressObserved("erd1qqqqqqqqqqqqqpgqws44xjx2t056nn79fn29q0rjwfrd3m43396ql35kxy")
+		require.NoError(t, err)
+		require.False(t, isObserved)
+	})
+
+	t.Run("with projected shard, do not handle contracts", func(t *testing.T) {
+		args := createDefaultArgsNewNetworkProvider()
+		args.ObservedActualShard = 0
+		args.ObservedProjectedShard = 0
+		args.ObservedProjectedShardIsSet = true
+		args.ShouldHandleContracts = false
+
+		provider, err := NewNetworkProvider(args)
+		require.Nil(t, err)
+		require.NotNil(t, provider)
+
+		isObserved, err := provider.IsAddressObserved("erd1ldjsdetjvegjdnda0qw2h62kq6rpvrklkc5pw9zxm0nwulfhtyqqtyc4vq")
+		require.NoError(t, err)
+		require.True(t, isObserved)
+
+		isObserved, err = provider.IsAddressObserved("erd1spyavw0956vq68xj8y4tenjpq2wd5a9p2c6j8gsz7ztyrnpxrruqzu66jx")
+		require.NoError(t, err)
+		require.False(t, isObserved)
+
+		isObserved, err = provider.IsAddressObserved("erd1qqqqqqqqqqqqqpgqws44xjx2t056nn79fn29q0rjwfrd3m43396ql35kxy")
+		require.NoError(t, err)
+		require.False(t, isObserved)
+	})
+
+	t.Run("no projected shard, handle contracts", func(t *testing.T) {
+		args := createDefaultArgsNewNetworkProvider()
+		args.ObservedActualShard = 0
+		args.ShouldHandleContracts = true
+
+		provider, err := NewNetworkProvider(args)
+		require.Nil(t, err)
+		require.NotNil(t, provider)
+
+		isObserved, err := provider.IsAddressObserved("erd1qyu5wthldzr8wx5c9ucg8kjagg0jfs53s8nr3zpz3hypefsdd8ssycr6th")
+		require.NoError(t, err)
+		require.False(t, isObserved)
+
+		isObserved, err = provider.IsAddressObserved("erd1spyavw0956vq68xj8y4tenjpq2wd5a9p2c6j8gsz7ztyrnpxrruqzu66jx")
+		require.NoError(t, err)
+		require.True(t, isObserved)
+
+		isObserved, err = provider.IsAddressObserved("erd1k2s324ww2g0yj38qn2ch2jwctdy8mnfxep94q9arncc6xecg3xaq6mjse8")
+		require.NoError(t, err)
+		require.False(t, isObserved)
+
+		isObserved, err = provider.IsAddressObserved("erd1qqqqqqqqqqqqqpgqws44xjx2t056nn79fn29q0rjwfrd3m43396ql35kxy")
+		require.NoError(t, err)
+		require.True(t, isObserved)
+	})
+
+	t.Run("with error", func(t *testing.T) {
+		args := createDefaultArgsNewNetworkProvider()
+		args.ObservedActualShard = 0
+		args.ShouldHandleContracts = true
+
+		provider, err := NewNetworkProvider(args)
+		require.Nil(t, err)
+		require.NotNil(t, provider)
+
+		isObserved, err := provider.IsAddressObserved("erd1test")
+		require.Error(t, err)
+		require.False(t, isObserved)
 	})
 }
 
