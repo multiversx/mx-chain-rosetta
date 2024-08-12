@@ -22,13 +22,13 @@ def main() -> int:
     configuration = CONFIGURATIONS[args.network]
 
     process_rosetta = run_rosetta(configuration)
-    process_adapter = run_proxy_to_observer_adapter(configuration)
+    process_adapter = optionally_run_proxy_to_observer_adapter(configuration)
     process_checker = run_mesh_cli(mode, configuration)
 
     # Handle termination signals
     def signal_handler(sig: Any, frame: Any):
         process_rosetta.kill()
-        process_adapter.kill()
+        process_adapter.kill() if process_adapter else None
         process_checker.kill()
         sys.exit(1)
 
@@ -39,7 +39,7 @@ def main() -> int:
     exit_code = process_checker.wait()
 
     process_rosetta.kill()
-    process_adapter.kill()
+    process_adapter.kill() if process_adapter else None
 
     time.sleep(1)
 
@@ -74,7 +74,11 @@ def run_rosetta(configuration: Configuration):
     return subprocess.Popen(command)
 
 
-def run_proxy_to_observer_adapter(configuration: Configuration):
+def optionally_run_proxy_to_observer_adapter(configuration: Configuration) -> Any:
+    if configuration.observer_url:
+        # If observer URL is provided, we don't need the adapter.
+        return None
+
     command = [
         str(constants.PATH_PROXY_TO_OBSERVER_ADAPTER),
         f"--proxy={configuration.proxy_url}",
