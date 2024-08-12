@@ -18,8 +18,8 @@ func (event *eventESDT) getBaseIdentifier() string {
 	return event.identifier
 }
 
-// getComposedIdentifier returns the "full" token identifier for all types of ESDTs
-func (event *eventESDT) getComposedIdentifier() string {
+// getExtendedIdentifier returns the "full" token identifier for all types of ESDTs
+func (event *eventESDT) getExtendedIdentifier() string {
 	if len(event.nonceAsBytes) > 0 {
 		return fmt.Sprintf("%s-%x", event.identifier, event.nonceAsBytes)
 	}

@@ -1,8 +1,9 @@
 package provider
 
-import "github.com/multiversx/mx-chain-rosetta/server/resources"
-
-// TODO: Merge the methods in this file into a single method, e.g. GetAccountWithBalance(address, tokenIdentifier, options), where tokenIdentifier can be the native token or an ESDT.
+import (
+	"github.com/multiversx/mx-chain-core-go/core"
+	"github.com/multiversx/mx-chain-rosetta/server/resources"
+)
 
 // GetAccount gets an account by address
 func (provider *networkProvider) GetAccount(address string) (*resources.AccountOnBlock, error) {
@@ -18,17 +19,26 @@ func (provider *networkProvider) GetAccount(address string) (*resources.AccountO
 
 	log.Trace("GetAccount()",
 		"address", data.Account.Address,
-		"balance", data.Account.Balance,
+		"native balance", data.Account.Balance,
+		"nonce", data.Account.Nonce,
 		"block", data.BlockCoordinates.Nonce,
 		"blockHash", data.BlockCoordinates.Hash,
-		"blockRootHash", data.BlockCoordinates.RootHash,
 	)
 
 	return data, nil
 }
 
 // GetAccountNativeBalance gets the native balance by address
-func (provider *networkProvider) GetAccountNativeBalance(address string, options resources.AccountQueryOptions) (*resources.AccountOnBlock, error) {
+func (provider *networkProvider) GetAccountBalance(address string, tokenIdentifier string, options resources.AccountQueryOptions) (*resources.AccountBalanceOnBlock, error) {
+	isNativeBalance := tokenIdentifier == provider.nativeCurrency.Symbol
+	if isNativeBalance {
+		return provider.getNativeBalance(address, options)
+	}
+
+	return provider.getCustomTokenBalance(address, tokenIdentifier, options)
+}
+
+func (provider *networkProvider) getNativeBalance(address string, options resources.AccountQueryOptions) (*resources.AccountBalanceOnBlock, error) {
 	url := buildUrlGetAccountNativeBalance(address, options)
 	response := &resources.AccountApiResponse{}
 
@@ -39,42 +49,61 @@ func (provider *networkProvider) GetAccountNativeBalance(address string, options
 
 	data := &response.Data
 
-	log.Trace("GetAccountNativeBalance()",
+	log.Trace("networkProvider.getNativeBalance()",
 		"address", address,
 		"balance", data.Account.Balance,
 		"nonce", data.Account.Nonce,
 		"block", data.BlockCoordinates.Nonce,
 		"blockHash", data.BlockCoordinates.Hash,
-		"blockRootHash", data.BlockCoordinates.RootHash,
 	)
 
-	return data, nil
+	// Here, we also return the account nonce (directly available).
+	return &resources.AccountBalanceOnBlock{
+		Balance:          data.Account.Balance,
+		Nonce:            core.OptionalUint64{Value: data.Account.Nonce, HasValue: true},
+		BlockCoordinates: data.BlockCoordinates,
+	}, nil
 }
 
-// GetAccountESDTBalance gets the ESDT balance by address and tokenIdentifier
-// TODO: Return nonce for ESDT, as well (an additional request might be needed).
-func (provider *networkProvider) GetAccountESDTBalance(address string, tokenIdentifier string, options resources.AccountQueryOptions) (*resources.AccountESDTBalance, error) {
-	url := buildUrlGetAccountESDTBalance(address, tokenIdentifier, options)
+func (provider *networkProvider) getCustomTokenBalance(address string, tokenIdentifier string, options resources.AccountQueryOptions) (*resources.AccountBalanceOnBlock, error) {
+	url, err := decideCustomTokenBalanceUrl(address, tokenIdentifier, options)
+	if err != nil {
+		return nil, err
+	}
+
 	response := &resources.AccountESDTBalanceApiResponse{}
 
-	err := provider.getResource(url, response)
+	err = provider.getResource(url, response)
 	if err != nil {
 		return nil, newErrCannotGetAccount(address, err)
 	}
 
 	data := &response.Data
 
-	log.Trace("GetAccountESDTBalance()",
+	log.Trace("networkProvider.getCustomTokenBalance()",
 		"address", address,
 		"tokenIdentifier", tokenIdentifier,
 		"balance", data.TokenData.Balance,
 		"block", data.BlockCoordinates.Nonce,
 		"blockHash", data.BlockCoordinates.Hash,
-		"blockRootHash", data.BlockCoordinates.RootHash,
 	)
 
-	return &resources.AccountESDTBalance{
+	return &resources.AccountBalanceOnBlock{
 		Balance:          data.TokenData.Balance,
 		BlockCoordinates: data.BlockCoordinates,
 	}, nil
+}
+
+func decideCustomTokenBalanceUrl(address string, tokenIdentifier string, options resources.AccountQueryOptions) (string, error) {
+	tokenIdentifierParts, err := parseTokenIdentifierIntoParts(tokenIdentifier)
+	if err != nil {
+		return "", err
+	}
+
+	isFungible := tokenIdentifierParts.nonce == 0
+	if isFungible {
+		return buildUrlGetAccountFungibleTokenBalance(address, tokenIdentifier, options), nil
+	}
+
+	return buildUrlGetAccountNonFungibleTokenBalance(address, tokenIdentifierParts.tickerWithRandomSequence, tokenIdentifierParts.nonce, options), nil
 }

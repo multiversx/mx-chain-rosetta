@@ -28,7 +28,6 @@ type Currency struct {
 
 // BlockCoordinates is an API resource
 type BlockCoordinates struct {
-	Nonce    uint64 `json:"nonce"`
-	Hash     string `json:"hash"`
-	RootHash string `json:"rootHash"`
+	Nonce uint64 `json:"nonce"`
+	Hash  string `json:"hash"`
 }

@@ -16,6 +16,14 @@ func newNetworkProviderExtension(provider NetworkProvider) *networkProviderExten
 	}
 }
 
+func (extension *networkProviderExtension) valueToAmount(value string, currencySymbol string) *types.Amount {
+	if extension.isNativeCurrencySymbol(currencySymbol) {
+		return extension.valueToNativeAmount(value)
+	}
+
+	return extension.valueToCustomAmount(value, currencySymbol)
+}
+
 func (extension *networkProviderExtension) valueToNativeAmount(value string) *types.Amount {
 	return &types.Amount{
 		Value:    value,

@@ -53,7 +53,7 @@ func TestNetworkProvider_GetAccount(t *testing.T) {
 	})
 }
 
-func TestNetworkProvider_GetAccountNativeBalance(t *testing.T) {
+func TestNetworkProvider_GetAccountBalance(t *testing.T) {
 	observerFacade := testscommon.NewObserverFacadeMock()
 	args := createDefaultArgsNewNetworkProvider()
 	args.ObserverFacade = observerFacade
@@ -64,7 +64,7 @@ func TestNetworkProvider_GetAccountNativeBalance(t *testing.T) {
 
 	optionsOnFinal := resources.NewAccountQueryOptionsOnFinalBlock()
 
-	t.Run("with success", func(t *testing.T) {
+	t.Run("native balance, with success", func(t *testing.T) {
 		observerFacade.MockNextError = nil
 		observerFacade.MockGetResponse = resources.AccountApiResponse{
 			Data: resources.AccountOnBlock{
@@ -77,38 +77,26 @@ func TestNetworkProvider_GetAccountNativeBalance(t *testing.T) {
 			},
 		}
 
-		accountBalance, err := provider.GetAccountNativeBalance(testscommon.TestAddressAlice, optionsOnFinal)
+		accountBalance, err := provider.GetAccountBalance(testscommon.TestAddressAlice, "XeGLD", optionsOnFinal)
 		require.Nil(t, err)
-		require.Equal(t, "1", accountBalance.Account.Balance)
+		require.Equal(t, "1", accountBalance.Balance)
 		require.Equal(t, uint64(1000), accountBalance.BlockCoordinates.Nonce)
 		require.Equal(t, args.ObserverUrl, observerFacade.RecordedBaseUrl)
 		require.Equal(t, "/address/erd1qyu5wthldzr8wx5c9ucg8kjagg0jfs53s8nr3zpz3hypefsdd8ssycr6th?onFinalBlock=true", observerFacade.RecordedPath)
 	})
 
-	t.Run("with error", func(t *testing.T) {
+	t.Run("native balance, with error", func(t *testing.T) {
 		observerFacade.MockNextError = errors.New("arbitrary error")
 		observerFacade.MockGetResponse = nil
 
-		accountBalance, err := provider.GetAccountNativeBalance(testscommon.TestAddressAlice, optionsOnFinal)
+		accountBalance, err := provider.GetAccountBalance(testscommon.TestAddressAlice, "XeGLD", optionsOnFinal)
 		require.ErrorIs(t, err, errCannotGetAccount)
 		require.Nil(t, accountBalance)
 		require.Equal(t, args.ObserverUrl, observerFacade.RecordedBaseUrl)
 		require.Equal(t, "/address/erd1qyu5wthldzr8wx5c9ucg8kjagg0jfs53s8nr3zpz3hypefsdd8ssycr6th?onFinalBlock=true", observerFacade.RecordedPath)
 	})
-}
 
-func TestNetworkProvider_GetAccountESDTBalance(t *testing.T) {
-	observerFacade := testscommon.NewObserverFacadeMock()
-	args := createDefaultArgsNewNetworkProvider()
-	args.ObserverFacade = observerFacade
-
-	provider, err := NewNetworkProvider(args)
-	require.Nil(t, err)
-	require.NotNil(t, provider)
-
-	optionsOnFinal := resources.NewAccountQueryOptionsOnFinalBlock()
-
-	t.Run("with success", func(t *testing.T) {
+	t.Run("fungible token, with success", func(t *testing.T) {
 		observerFacade.MockNextError = nil
 		observerFacade.MockGetResponse = resources.AccountESDTBalanceApiResponse{
 			Data: resources.AccountESDTBalanceApiResponsePayload{
@@ -121,7 +109,7 @@ func TestNetworkProvider_GetAccountESDTBalance(t *testing.T) {
 			},
 		}
 
-		accountBalance, err := provider.GetAccountESDTBalance(testscommon.TestAddressAlice, "ABC-abcdef", optionsOnFinal)
+		accountBalance, err := provider.GetAccountBalance(testscommon.TestAddressAlice, "ABC-abcdef", optionsOnFinal)
 		require.Nil(t, err)
 		require.Equal(t, "1", accountBalance.Balance)
 		require.Equal(t, uint64(1000), accountBalance.BlockCoordinates.Nonce)
@@ -129,11 +117,11 @@ func TestNetworkProvider_GetAccountESDTBalance(t *testing.T) {
 		require.Equal(t, "/address/erd1qyu5wthldzr8wx5c9ucg8kjagg0jfs53s8nr3zpz3hypefsdd8ssycr6th/esdt/ABC-abcdef?onFinalBlock=true", observerFacade.RecordedPath)
 	})
 
-	t.Run("with error", func(t *testing.T) {
+	t.Run("fungible token, with error", func(t *testing.T) {
 		observerFacade.MockNextError = errors.New("arbitrary error")
 		observerFacade.MockGetResponse = nil
 
-		accountBalance, err := provider.GetAccountESDTBalance(testscommon.TestAddressAlice, "ABC-abcdef", optionsOnFinal)
+		accountBalance, err := provider.GetAccountBalance(testscommon.TestAddressAlice, "ABC-abcdef", optionsOnFinal)
 		require.ErrorIs(t, err, errCannotGetAccount)
 		require.Nil(t, accountBalance)
 		require.Equal(t, args.ObserverUrl, observerFacade.RecordedBaseUrl)
