@@ -9,7 +9,7 @@ import (
 
 var (
 	transactionVersion                           = 1
-	transactionProcessingTypeRelayed             = "RelayedTx"
+	transactionProcessingTypeRelayedV1           = "RelayedTx"
 	transactionProcessingTypeBuiltInFunctionCall = "BuiltInFunctionCall"
 	transactionProcessingTypeMoveBalance         = "MoveBalance"
 	amountZero                                   = "0"

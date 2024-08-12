@@ -11,7 +11,6 @@ import (
 
 // innerTransactionOfRelayedV1 is used to parse the inner transaction of a relayed V1 transaction, and holds only the fields handled by Rosetta.
 type innerTransactionOfRelayedV1 struct {
-	Nonce          uint64  `json:"nonce"`
 	Value          big.Int `json:"value"`
 	ReceiverPubKey []byte  `json:"receiver"`
 	SenderPubKey   []byte  `json:"sender"`
@@ -19,8 +18,9 @@ type innerTransactionOfRelayedV1 struct {
 
 func isRelayedV1Transaction(tx *transaction.ApiTransactionResult) bool {
 	return (tx.Type == string(transaction.TxTypeNormal)) &&
-		(tx.ProcessingTypeOnSource == transactionProcessingTypeRelayed) &&
-		(tx.ProcessingTypeOnDestination == transactionProcessingTypeRelayed)
+		(tx.ProcessingTypeOnSource == transactionProcessingTypeRelayedV1) &&
+		(tx.ProcessingTypeOnDestination == transactionProcessingTypeRelayedV1)
+}
 }
 
 func parseInnerTxOfRelayedV1(tx *transaction.ApiTransactionResult) (*innerTransactionOfRelayedV1, error) {

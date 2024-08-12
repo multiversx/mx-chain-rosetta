@@ -50,7 +50,7 @@ type networkProviderMock struct {
 
 // NewNetworkProviderMock -
 func NewNetworkProviderMock() *networkProviderMock {
-	pubKeyConverter, _ := pubkeyConverter.NewBech32PubkeyConverter(32, log)
+	pubKeyConverter, _ := pubkeyConverter.NewBech32PubkeyConverter(32, "erd")
 
 	return &networkProviderMock{
 		pubKeyConverter:                 pubKeyConverter,
@@ -299,7 +299,13 @@ func (mock *networkProviderMock) ComputeShardIdOfPubKey(pubKey []byte) uint32 {
 
 // ConvertPubKeyToAddress -
 func (mock *networkProviderMock) ConvertPubKeyToAddress(pubkey []byte) string {
-	return mock.pubKeyConverter.Encode(pubkey)
+	address, err := mock.pubKeyConverter.Encode(pubkey)
+	if err != nil {
+		log.Error("networkProviderMock.ConvertPubKeyToAddress() failed", "pubkey", pubkey, "error", err)
+		return ""
+	}
+
+	return address
 }
 
 // ConvertAddressToPubKey -

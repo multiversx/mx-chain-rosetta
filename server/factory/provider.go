@@ -18,6 +18,7 @@ const (
 	hasherType                = "blake2b"
 	marshalizerForHashingType = "gogo protobuf"
 	pubKeyLength              = 32
+	bech32Prefix              = "erd"
 
 	notApplicableConfigurationFilePath   = "not applicable"
 	notApplicableFullHistoryNodesMessage = "not applicable"

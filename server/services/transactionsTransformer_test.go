@@ -58,8 +58,8 @@ func TestTransactionsTransformer_NormalTxToRosettaTx(t *testing.T) {
 	t.Run("relayed tx, completely intrashard, with signal error", func(t *testing.T) {
 		tx := &transaction.ApiTransactionResult{
 			Type:                        string(transaction.TxTypeNormal),
-			ProcessingTypeOnSource:      transactionProcessingTypeRelayed,
-			ProcessingTypeOnDestination: transactionProcessingTypeRelayed,
+			ProcessingTypeOnSource:      transactionProcessingTypeRelayedV1,
+			ProcessingTypeOnDestination: transactionProcessingTypeRelayedV1,
 			Hash:                        "aaaa",
 			Sender:                      testscommon.TestUserAShard0.Address,
 			Receiver:                    testscommon.TestUserBShard0.Address,
@@ -118,8 +118,8 @@ func TestTransactionsTransformer_ExtractInnerTxOperationsIfRelayedCompletelyIntr
 	t.Run("relayed tx (badly formatted)", func(t *testing.T) {
 		tx := &transaction.ApiTransactionResult{
 			Type:                        string(transaction.TxTypeNormal),
-			ProcessingTypeOnSource:      transactionProcessingTypeRelayed,
-			ProcessingTypeOnDestination: transactionProcessingTypeRelayed,
+			ProcessingTypeOnSource:      transactionProcessingTypeRelayedV1,
+			ProcessingTypeOnDestination: transactionProcessingTypeRelayedV1,
 			Data:                        []byte("bad"),
 		}
 
@@ -131,8 +131,8 @@ func TestTransactionsTransformer_ExtractInnerTxOperationsIfRelayedCompletelyIntr
 	t.Run("relayed tx, completely intrashard, with signal error, inner tx has non-zero value", func(t *testing.T) {
 		tx := &transaction.ApiTransactionResult{
 			Type:                        string(transaction.TxTypeNormal),
-			ProcessingTypeOnSource:      transactionProcessingTypeRelayed,
-			ProcessingTypeOnDestination: transactionProcessingTypeRelayed,
+			ProcessingTypeOnSource:      transactionProcessingTypeRelayedV1,
+			ProcessingTypeOnDestination: transactionProcessingTypeRelayedV1,
 			SourceShard:                 0,
 			DestinationShard:            0,
 			Data:                        []byte("relayedTx@7b226e6f6e6365223a372c2273656e646572223a226e69424758747949504349644a78793373796c6c455a474c78506a503148734a45646e43732b6d726577413d222c227265636569766572223a224141414141414141414141464145356c3079623173734a3933504433672f4b396f48384579366d576958513d222c2276616c7565223a313030303030303030303030303030303030302c226761735072696365223a313030303030303030302c226761734c696d6974223a35303030302c2264617461223a22222c227369676e6174757265223a226e6830743338585a77614b6a725878446969716f6d364d6a5671724d612f6b70767474696a33692b5a6d43492f3778626830596762363548424151445744396f7036575567674541755430756e5253595736455341413d3d222c22636861696e4944223a224d513d3d222c2276657273696f6e223a327d"),
@@ -159,8 +159,8 @@ func TestTransactionsTransformer_ExtractInnerTxOperationsIfRelayedCompletelyIntr
 	t.Run("relayed tx, completely intrashard, with signal error, inner tx has zero value", func(t *testing.T) {
 		tx := &transaction.ApiTransactionResult{
 			Type:                        string(transaction.TxTypeNormal),
-			ProcessingTypeOnSource:      transactionProcessingTypeRelayed,
-			ProcessingTypeOnDestination: transactionProcessingTypeRelayed,
+			ProcessingTypeOnSource:      transactionProcessingTypeRelayedV1,
+			ProcessingTypeOnDestination: transactionProcessingTypeRelayedV1,
 			SourceShard:                 0,
 			DestinationShard:            0,
 			Data:                        []byte("relayedTx@7b226e6f6e6365223a372c2273656e646572223a226e69424758747949504349644a78793373796c6c455a474c78506a503148734a45646e43732b6d726577413d222c227265636569766572223a224141414141414141414141464145356c3079623173734a3933504433672f4b396f48384579366d576958513d222c2276616c7565223a302c226761735072696365223a313030303030303030302c226761734c696d6974223a35303030302c2264617461223a22222c227369676e6174757265223a22336c644e7a32435734416143675069495863636c466b4654324149586a4a4757316a526a306c542b4f3161736b6241394a744e365a764173396e394f58716d343130574a49665332332b4168666e48793267446c41773d3d222c22636861696e4944223a224d513d3d222c2276657273696f6e223a327d"),
