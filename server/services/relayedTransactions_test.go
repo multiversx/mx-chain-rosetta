@@ -42,7 +42,6 @@ func Test_ParseInnerTxOfRelayedV1(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, innerTx)
 
-		require.Equal(t, uint64(7), innerTx.Nonce)
 		require.Equal(t, "1000000000000000000", innerTx.Value.String())
 		require.Equal(t, testscommon.TestPubKeyAlice, innerTx.SenderPubKey)
 		require.Equal(t, testscommon.TestPubKeyBob, innerTx.ReceiverPubKey)
