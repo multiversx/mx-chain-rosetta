@@ -91,6 +91,62 @@ def main():
             receiver=accounts.contracts_by_shard[1][0],
         ))
 
+        # Intra-shard, relayed v1 transaction with MoveBalance
+        controller.send(controller.create_relayed_v1_with_move_balance(
+            relayer=accounts.get_user(shard=0, index=0),
+            sender=accounts.get_user(shard=0, index=1),
+            receiver=accounts.get_user(shard=0, index=2).address,
+            amount=42
+        ))
+
+        # Relayed v3, senders and receivers in same shard
+        controller.send(controller.create_relayed_v3_with_a_few_inner_move_balances(
+            relayer=accounts.get_user(shard=0, index=0),
+            senders=accounts.users_by_shard[0][1:3],
+            receivers=[account.address for account in accounts.users_by_shard[0][3:5]],
+            amount=42
+        ))
+
+        # Relayed v3, senders and receivers in different shards
+        controller.send(controller.create_relayed_v3_with_a_few_inner_move_balances(
+            relayer=accounts.get_user(shard=0, index=0),
+            senders=accounts.users_by_shard[0][1:3],
+            receivers=[account.address for account in accounts.users_by_shard[1][3:5]],
+            amount=42
+        ))
+
+        # Relayed v3, senders and receivers in same shard (insufficient balance)
+        controller.send(controller.create_relayed_v3_with_a_few_inner_move_balances(
+            relayer=accounts.get_user(shard=0, index=0),
+            senders=accounts.users_by_shard[0][1:3],
+            receivers=[account.address for account in accounts.users_by_shard[0][3:5]],
+            amount=1000000000000000000000
+        ))
+
+        # Relayed v3, senders and receivers in different shards (insufficient balance)
+        controller.send(controller.create_relayed_v3_with_a_few_inner_move_balances(
+            relayer=accounts.get_user(shard=0, index=0),
+            senders=accounts.users_by_shard[0][1:3],
+            receivers=[account.address for account in accounts.users_by_shard[1][3:5]],
+            amount=1000000000000000000000
+        ))
+
+        # Relayed v3, senders and receivers in same shard, sending to non-payable contract
+        controller.send(controller.create_relayed_v3_with_a_few_inner_move_balances(
+            relayer=accounts.get_user(shard=0, index=0),
+            senders=[accounts.get_user(shard=0, index=5)],
+            receivers=[accounts.contracts_by_shard[0][0]],
+            amount=1000000000000000000
+        ))
+
+        # Intra-shard, relayed v1 transaction with MoveBalance
+        controller.send(controller.create_relayed_v1_with_move_balance(
+            relayer=accounts.get_user(shard=1, index=0),
+            sender=accounts.get_user(shard=1, index=9),
+            receiver=Address.from_bech32("erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqzllls8a5w6u"),
+            amount=1000000000000000000
+        ))
+
 
 class BunchOfAccounts:
     def __init__(self, configuration: Configuration) -> None:
@@ -157,7 +213,7 @@ class Controller:
             transaction = self.transfer_transactions_factory.create_transaction_for_native_token_transfer(
                 sender=self.accounts.sponsor.address,
                 receiver=user.address,
-                native_amount=10000000000000000
+                native_amount=1000000000000000000
             )
 
             transaction = self.transfer_transactions_factory.create_transaction_for_esdt_token_transfer(
@@ -227,28 +283,107 @@ class Controller:
 
         return transaction
 
+    def create_relayed_v1_with_move_balance(self, relayer: "Account", sender: "Account", receiver: Address, amount: int) -> Transaction:
+        inner_transaction = self.transfer_transactions_factory.create_transaction_for_native_token_transfer(
+            sender=sender.address,
+            receiver=receiver,
+            native_amount=amount
+        )
+
+        self._apply_nonce(inner_transaction)
+        self._sign(inner_transaction)
+
+        transaction = self.relayed_transactions_factory.create_relayed_v1_transaction(
+            inner_transaction=inner_transaction,
+            relayer_address=relayer.address,
+        )
+
+        return transaction
+
+    def create_relayed_v1_with_esdt_transfer(self, relayer: "Account", sender: "Account", receiver: Address, amount: int) -> Transaction:
+        inner_transaction = self.transfer_transactions_factory.create_transaction_for_esdt_token_transfer(
+            sender=sender.address,
+            receiver=receiver,
+            token_transfers=[TokenTransfer(Token(self.custom_currencies.currency), amount)]
+        )
+
+        self._apply_nonce(inner_transaction)
+        self._sign(inner_transaction)
+
+        transaction = self.relayed_transactions_factory.create_relayed_v1_transaction(
+            inner_transaction=inner_transaction,
+            relayer_address=relayer.address,
+        )
+
+        return transaction
+
+    def create_relayed_v2_with_move_balance(self, relayer: "Account", sender: "Account", receiver: Address, amount: int) -> Transaction:
+        inner_transaction = self.transfer_transactions_factory.create_transaction_for_native_token_transfer(
+            sender=sender.address,
+            receiver=receiver,
+            native_amount=amount
+        )
+
+        inner_transaction.gas_limit = 0
+
+        self._apply_nonce(inner_transaction)
+        self._sign(inner_transaction)
+
+        transaction = self.relayed_transactions_factory.create_relayed_v2_transaction(
+            inner_transaction=inner_transaction,
+            inner_transaction_gas_limit=100000,
+            relayer_address=relayer.address,
+        )
+
+        return transaction
+
+    def create_relayed_v3_with_a_few_inner_move_balances(self, relayer: "Account", senders: List["Account"], receivers: List[Address], amount: int) -> Transaction:
+        if len(senders) != len(receivers):
+            raise ValueError("senders and receivers must have the same length", len(senders), len(receivers))
+
+        inner_transactions: List[Transaction] = []
+
+        for sender, receiver in zip(senders, receivers):
+            inner_transaction = self.transfer_transactions_factory.create_transaction_for_native_token_transfer(
+                sender=sender.address,
+                receiver=receiver,
+                native_amount=amount,
+            )
+
+            inner_transaction.relayer = relayer.address.to_bech32()
+            self._apply_nonce(inner_transaction)
+            self._sign(inner_transaction)
+            inner_transactions.append(inner_transaction)
+
+        transaction = self.relayed_transactions_factory.create_relayed_v3_transaction(
+            relayer_address=relayer.address,
+            inner_transactions=inner_transactions,
+        )
+
+        return transaction
+
     def send_multiple(self, transactions: List[Transaction]):
         for transaction in transactions:
-            sender = self.accounts.get_account_by_bech32(transaction.sender)
-            self._apply_nonce(transaction, sender)
-            self._sign(transaction, sender)
+            self._apply_nonce(transaction)
+            self._sign(transaction)
 
         self.network_provider.send_transactions(transactions)
 
     def send(self, transaction: Transaction):
-        sender = self.accounts.get_account_by_bech32(transaction.sender)
-        self._apply_nonce(transaction, sender)
-        self._sign(transaction, sender)
+        self._apply_nonce(transaction)
+        self._sign(transaction)
         transaction_hash = self.network_provider.send_transaction(transaction)
         print(f"{self.configuration.explorer_url}/transactions/{transaction_hash}")
 
-    def _apply_nonce(self, transaction: Transaction, user: "Account"):
-        transaction.nonce = self.nonces_tracker.get_then_increment_nonce(user.address)
+    def _apply_nonce(self, transaction: Transaction):
+        sender = self.accounts.get_account_by_bech32(transaction.sender)
+        transaction.nonce = self.nonces_tracker.get_then_increment_nonce(sender.address)
 
-    def _sign(self, transaction: Transaction, user: "Account"):
+    def _sign(self, transaction: Transaction):
+        sender = self.accounts.get_account_by_bech32(transaction.sender)
         computer = TransactionComputer()
         bytes_for_signing = computer.compute_bytes_for_signing(transaction)
-        transaction.signature = user.signer.sign(bytes_for_signing)
+        transaction.signature = sender.signer.sign(bytes_for_signing)
 
 
 class Account:
