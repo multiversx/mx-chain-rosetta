@@ -15,8 +15,8 @@ var (
 	urlPathGetGenesisBalances                   = "/network/genesis-balances"
 	urlPathGetAccount                           = "/address/%s"
 	urlPathGetAccountNativeBalance              = "/address/%s"
-	urlPathGetAccountESDTBalance                = "/address/%s/esdt/%s"
-	urlPathGetAccountNFTBalance                 = "/address/%s/nft/%s/nonce/%d"
+	urlPathGetAccountFungibleTokenBalance       = "/address/%s/esdt/%s"
+	urlPathGetAccountNonFungibleTokenBalance    = "/address/%s/nft/%s/nonce/%d"
 	urlParameterAccountQueryOptionsOnFinalBlock = "onFinalBlock"
 	urlParameterAccountQueryOptionsBlockNonce   = "blockNonce"
 	urlParameterAccountQueryOptionsBlockHash    = "blockHash"
@@ -35,12 +35,12 @@ func buildUrlGetAccountNativeBalance(address string, options resources.AccountQu
 	return buildUrlWithAccountQueryOptions(fmt.Sprintf(urlPathGetAccountNativeBalance, address), options)
 }
 
-func buildUrlGetAccountESDTBalance(address string, tokenIdentifier string, options resources.AccountQueryOptions) string {
-	return buildUrlWithAccountQueryOptions(fmt.Sprintf(urlPathGetAccountESDTBalance, address, tokenIdentifier), options)
+func buildUrlGetAccountFungibleTokenBalance(address string, tokenIdentifier string, options resources.AccountQueryOptions) string {
+	return buildUrlWithAccountQueryOptions(fmt.Sprintf(urlPathGetAccountFungibleTokenBalance, address, tokenIdentifier), options)
 }
 
-func buildUrlGetAccountNFTBalance(address string, tokenIdentifier string, nonce uint64, options resources.AccountQueryOptions) string {
-	return buildUrlWithAccountQueryOptions(fmt.Sprintf(urlPathGetAccountNFTBalance, address, tokenIdentifier, nonce), options)
+func buildUrlGetAccountNonFungibleTokenBalance(address string, tokenIdentifier string, nonce uint64, options resources.AccountQueryOptions) string {
+	return buildUrlWithAccountQueryOptions(fmt.Sprintf(urlPathGetAccountNonFungibleTokenBalance, address, tokenIdentifier, nonce), options)
 }
 
 func buildUrlWithAccountQueryOptions(path string, options resources.AccountQueryOptions) string {
