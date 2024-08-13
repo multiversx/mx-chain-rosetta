@@ -170,7 +170,7 @@ func TestEventHasTopic(t *testing.T) {
 	require.False(t, eventHasTopic(&event, "bar"))
 }
 
-func TestTransactionEventsController(t *testing.T) {
+func TestTransactionEventsController_ExtractEvents(t *testing.T) {
 	networkProvider := testscommon.NewNetworkProviderMock()
 	controller := newTransactionEventsController(networkProvider)
 
