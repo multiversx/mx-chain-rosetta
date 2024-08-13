@@ -26,6 +26,9 @@ var (
 	transactionEventSignalError                             = core.SignalErrorOperation
 	transactionEventESDTTransfer                            = "ESDTTransfer"
 	transactionEventESDTNFTTransfer                         = "ESDTNFTTransfer"
+	transactionEventESDTNFTCreate                           = "ESDTNFTCreate"
+	transactionEventESDTNFTBurn                             = "ESDTNFTBurn"
+	transactionEventESDTNFTAddQuantity                      = "ESDTNFTAddQuantity"
 	transactionEventMultiESDTNFTTransfer                    = "MultiESDTNFTTransfer"
 	transactionEventESDTLocalBurn                           = "ESDTLocalBurn"
 	transactionEventESDTLocalMint                           = "ESDTLocalMint"
