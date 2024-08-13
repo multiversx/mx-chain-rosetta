@@ -353,12 +353,12 @@ func (transformer *transactionsTransformer) addOperationsGivenTransactionEvents(
 			{
 				Type:    opCustomTransfer,
 				Account: addressToAccountIdentifier(event.senderAddress),
-				Amount:  transformer.extension.valueToCustomAmount("-"+event.value, event.getComposedIdentifier()),
+				Amount:  transformer.extension.valueToCustomAmount("-"+event.value, event.getExtendedIdentifier()),
 			},
 			{
 				Type:    opCustomTransfer,
 				Account: addressToAccountIdentifier(event.receiverAddress),
-				Amount:  transformer.extension.valueToCustomAmount(event.value, event.getComposedIdentifier()),
+				Amount:  transformer.extension.valueToCustomAmount(event.value, event.getExtendedIdentifier()),
 			},
 		}
 
@@ -375,7 +375,7 @@ func (transformer *transactionsTransformer) addOperationsGivenTransactionEvents(
 			{
 				Type:    opCustomTransfer,
 				Account: addressToAccountIdentifier(event.otherAddress),
-				Amount:  transformer.extension.valueToCustomAmount("-"+event.value, event.getComposedIdentifier()),
+				Amount:  transformer.extension.valueToCustomAmount("-"+event.value, event.getExtendedIdentifier()),
 			},
 		}
 
@@ -392,7 +392,7 @@ func (transformer *transactionsTransformer) addOperationsGivenTransactionEvents(
 			{
 				Type:    opCustomTransfer,
 				Account: addressToAccountIdentifier(event.otherAddress),
-				Amount:  transformer.extension.valueToCustomAmount(event.value, event.getComposedIdentifier()),
+				Amount:  transformer.extension.valueToCustomAmount(event.value, event.getExtendedIdentifier()),
 			},
 		}
 
@@ -409,7 +409,7 @@ func (transformer *transactionsTransformer) addOperationsGivenTransactionEvents(
 			{
 				Type:    opCustomTransfer,
 				Account: addressToAccountIdentifier(event.otherAddress),
-				Amount:  transformer.extension.valueToCustomAmount("-"+event.value, event.getComposedIdentifier()),
+				Amount:  transformer.extension.valueToCustomAmount("-"+event.value, event.getExtendedIdentifier()),
 			},
 		}
 

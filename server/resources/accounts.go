@@ -1,6 +1,10 @@
 package resources
 
-// AccountApiResponse defines an account resource
+import (
+	"github.com/multiversx/mx-chain-core-go/core"
+)
+
+// AccountApiResponse is an API resource
 type AccountApiResponse struct {
 	resourceApiResponse
 	Data AccountOnBlock `json:"data"`
@@ -14,13 +18,12 @@ type AccountOnBlock struct {
 
 // Account defines an account resource
 type Account struct {
-	Address  string `json:"address"`
-	Nonce    uint64 `json:"nonce"`
-	Balance  string `json:"balance"`
-	Username string `json:"username"`
+	Address string `json:"address"`
+	Nonce   uint64 `json:"nonce"`
+	Balance string `json:"balance"`
 }
 
-// AccountESDTBalanceApiResponse defines an account resource
+// AccountESDTBalanceApiResponse is an API resource
 type AccountESDTBalanceApiResponse struct {
 	resourceApiResponse
 	Data AccountESDTBalanceApiResponsePayload `json:"data"`
@@ -32,15 +35,15 @@ type AccountESDTBalanceApiResponsePayload struct {
 	BlockCoordinates BlockCoordinates     `json:"blockInfo"`
 }
 
-// AccountESDTTokenData defines an account resource
+// AccountESDTTokenData is an API resource
 type AccountESDTTokenData struct {
 	Identifier string `json:"tokenIdentifier"`
 	Balance    string `json:"balance"`
-	Properties string `json:"properties"`
 }
 
-// AccountESDTBalance defines an account resource
-type AccountESDTBalance struct {
+// AccountBalanceOnBlock defines an account resource
+type AccountBalanceOnBlock struct {
 	Balance          string
+	Nonce            core.OptionalUint64
 	BlockCoordinates BlockCoordinates
 }

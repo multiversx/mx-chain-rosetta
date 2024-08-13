@@ -38,8 +38,8 @@ type networkProviderMock struct {
 	MockBlocksByHash                map[string]*api.Block
 	MockNextAccountBlockCoordinates *resources.BlockCoordinates
 	MockAccountsByAddress           map[string]*resources.Account
-	MockAccountsNativeBalances      map[string]*resources.Account
-	MockAccountsESDTBalances        map[string]*resources.AccountESDTBalance
+	MockAccountsNativeBalances      map[string]*resources.AccountBalanceOnBlock
+	MockAccountsCustomBalances      map[string]*resources.AccountBalanceOnBlock
 	MockMempoolTransactionsByHash   map[string]*transaction.ApiTransactionResult
 	MockComputedTransactionHash     string
 	MockComputedReceiptHash         string
@@ -93,13 +93,12 @@ func NewNetworkProviderMock() *networkProviderMock {
 		MockBlocksByNonce: make(map[uint64]*api.Block),
 		MockBlocksByHash:  make(map[string]*api.Block),
 		MockNextAccountBlockCoordinates: &resources.BlockCoordinates{
-			Nonce:    0,
-			Hash:     emptyHash,
-			RootHash: emptyHash,
+			Nonce: 0,
+			Hash:  emptyHash,
 		},
 		MockAccountsByAddress:         make(map[string]*resources.Account),
-		MockAccountsNativeBalances:    make(map[string]*resources.Account),
-		MockAccountsESDTBalances:      make(map[string]*resources.AccountESDTBalance),
+		MockAccountsNativeBalances:    make(map[string]*resources.AccountBalanceOnBlock),
+		MockAccountsCustomBalances:    make(map[string]*resources.AccountBalanceOnBlock),
 		MockMempoolTransactionsByHash: make(map[string]*transaction.ApiTransactionResult),
 		MockComputedTransactionHash:   emptyHash,
 		MockNextError:                 nil,
@@ -228,40 +227,30 @@ func (mock *networkProviderMock) GetAccount(address string) (*resources.AccountO
 	return nil, fmt.Errorf("account %s not found", address)
 }
 
-func (mock *networkProviderMock) GetAccountNativeBalance(address string, _ resources.AccountQueryOptions) (*resources.AccountOnBlock, error) {
+func (mock *networkProviderMock) GetAccountBalance(address string, tokenIdentifier string, _ resources.AccountQueryOptions) (*resources.AccountBalanceOnBlock, error) {
 	if mock.MockNextError != nil {
 		return nil, mock.MockNextError
 	}
 
-	accountBalance, ok := mock.MockAccountsNativeBalances[address]
+	isNativeBalance := tokenIdentifier == mock.MockNativeCurrencySymbol
+	if isNativeBalance {
+		accountBalance, ok := mock.MockAccountsNativeBalances[address]
+		if ok {
+			accountBalance.BlockCoordinates = *mock.MockNextAccountBlockCoordinates
+			return accountBalance, nil
+		}
+
+		return nil, fmt.Errorf("account %s not found (for native balance)", address)
+	}
+
+	customTokenBalanceKey := fmt.Sprintf("%s_%s", address, tokenIdentifier)
+	accountBalance, ok := mock.MockAccountsCustomBalances[customTokenBalanceKey]
 	if ok {
-		return &resources.AccountOnBlock{
-			Account: resources.Account{
-				Balance: accountBalance.Balance,
-				Nonce:   accountBalance.Nonce,
-			},
-			BlockCoordinates: *mock.MockNextAccountBlockCoordinates,
-		}, nil
+		accountBalance.BlockCoordinates = *mock.MockNextAccountBlockCoordinates
+		return accountBalance, nil
 	}
 
-	return nil, fmt.Errorf("account %s not found", address)
-}
-
-func (mock *networkProviderMock) GetAccountESDTBalance(address string, tokenIdentifier string, _ resources.AccountQueryOptions) (*resources.AccountESDTBalance, error) {
-	if mock.MockNextError != nil {
-		return nil, mock.MockNextError
-	}
-
-	key := fmt.Sprintf("%s_%s", address, tokenIdentifier)
-	accountBalance, ok := mock.MockAccountsESDTBalances[key]
-	if ok {
-		return &resources.AccountESDTBalance{
-			Balance:          accountBalance.Balance,
-			BlockCoordinates: *mock.MockNextAccountBlockCoordinates,
-		}, nil
-	}
-
-	return nil, fmt.Errorf("account %s not found", address)
+	return nil, fmt.Errorf("account %s not found (for custom token balance)", address)
 }
 
 // IsAddressObserved -
