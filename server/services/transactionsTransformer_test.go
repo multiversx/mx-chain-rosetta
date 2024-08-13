@@ -664,6 +664,61 @@ func TestTransactionsTransformer_TransformBlockTxsHavingESDTWipe(t *testing.T) {
 	require.Equal(t, expectedRefundSCR, txs[1])
 }
 
+func TestTransactionsTransformer_TransformBlockTxsHavingNFTCreate(t *testing.T) {
+	networkProvider := testscommon.NewNetworkProviderMock()
+	networkProvider.MockObservedActualShard = 1
+	networkProvider.MockCustomCurrencies = []resources.Currency{{Symbol: "FRANK-73523d"}}
+
+	extension := newNetworkProviderExtension(networkProvider)
+	transformer := newTransactionsTransformer(networkProvider)
+
+	blocks, err := readTestBlocks("testdata/blocks_with_nft_create.json")
+	require.Nil(t, err)
+
+	// Block 0 (NFT create and refund)
+	txs, err := transformer.transformBlockTxs(blocks[0])
+	require.Nil(t, err)
+	require.Len(t, txs, 2)
+
+	expectedNftCreateTx := &types.Transaction{
+		TransactionIdentifier: hashToTransactionIdentifier("8f404c670dc857e0158b86ba02c50426fff0eefa708b9e161455ece0e604030c"),
+		Operations: []*types.Operation{
+			{
+				Type:                opFee,
+				OperationIdentifier: indexToOperationIdentifier(0),
+				Account:             addressToAccountIdentifier("erd1r69gk66fmedhhcg24g2c5kn2f2a5k4kvpr6jfw67dn2lyydd8cfswy6ede"),
+				Amount:              extension.valueToNativeAmount("-212500000000000"),
+				Status:              &opStatusSuccess,
+			},
+			{
+				Type:                opCustomTransfer,
+				OperationIdentifier: indexToOperationIdentifier(1),
+				Account:             addressToAccountIdentifier("erd1r69gk66fmedhhcg24g2c5kn2f2a5k4kvpr6jfw67dn2lyydd8cfswy6ede"),
+				Amount:              extension.valueToCustomAmount("30", "FRANK-73523d-03"),
+				Status:              &opStatusSuccess,
+			},
+		},
+		Metadata: extractTransactionMetadata(blocks[0].MiniBlocks[0].Transactions[0]),
+	}
+
+	require.Equal(t, expectedNftCreateTx, txs[0])
+
+	expectedRefundSCR := &types.Transaction{
+		TransactionIdentifier: hashToTransactionIdentifier("d2eca235c07837b05838ebeb18cc71d6eb99ce5292e8db889f3b6b41e81ef8ae"),
+		Operations: []*types.Operation{
+			{
+				Type:                opFeeRefundAsScResult,
+				OperationIdentifier: indexToOperationIdentifier(0),
+				Account:             addressToAccountIdentifier("erd1r69gk66fmedhhcg24g2c5kn2f2a5k4kvpr6jfw67dn2lyydd8cfswy6ede"),
+				Amount:              extension.valueToNativeAmount("33400000000000"),
+				Status:              &opStatusSuccess,
+			},
+		},
+	}
+
+	require.Equal(t, expectedRefundSCR, txs[1])
+}
+
 func readTestBlocks(filePath string) ([]*api.Block, error) {
 	var blocks []*api.Block
 
