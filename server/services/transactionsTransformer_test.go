@@ -719,6 +719,46 @@ func TestTransactionsTransformer_TransformBlockTxsHavingNFTCreate(t *testing.T) 
 	require.Equal(t, expectedRefundSCR, txs[1])
 }
 
+func TestTransactionsTransformer_TransformBlockTxsHavingNFTAddQuantity(t *testing.T) {
+	networkProvider := testscommon.NewNetworkProviderMock()
+	networkProvider.MockObservedActualShard = 1
+	networkProvider.MockCustomCurrencies = []resources.Currency{{Symbol: "FRANK-ad3529"}}
+
+	extension := newNetworkProviderExtension(networkProvider)
+	transformer := newTransactionsTransformer(networkProvider)
+
+	blocks, err := readTestBlocks("testdata/blocks_with_nft_add_quantity.json")
+	require.Nil(t, err)
+
+	// Block 0 (NFT add quantity, all gas taken)
+	txs, err := transformer.transformBlockTxs(blocks[0])
+	require.Nil(t, err)
+	require.Len(t, txs, 1)
+
+	expectedNftAddQuantityTx := &types.Transaction{
+		TransactionIdentifier: hashToTransactionIdentifier("01fd564ee984e601fba3e683ea8d7fc4b58089a28931059da7f7f2210f798263"),
+		Operations: []*types.Operation{
+			{
+				Type:                opFee,
+				OperationIdentifier: indexToOperationIdentifier(0),
+				Account:             addressToAccountIdentifier("erd1r69gk66fmedhhcg24g2c5kn2f2a5k4kvpr6jfw67dn2lyydd8cfswy6ede"),
+				Amount:              extension.valueToNativeAmount("-133500000000000"),
+				Status:              &opStatusSuccess,
+			},
+			{
+				Type:                opCustomTransfer,
+				OperationIdentifier: indexToOperationIdentifier(1),
+				Account:             addressToAccountIdentifier("erd1r69gk66fmedhhcg24g2c5kn2f2a5k4kvpr6jfw67dn2lyydd8cfswy6ede"),
+				Amount:              extension.valueToCustomAmount("3", "FRANK-ad3529-01"),
+				Status:              &opStatusSuccess,
+			},
+		},
+		Metadata: extractTransactionMetadata(blocks[0].MiniBlocks[0].Transactions[0]),
+	}
+
+	require.Equal(t, expectedNftAddQuantityTx, txs[0])
+}
+
 func readTestBlocks(filePath string) ([]*api.Block, error) {
 	var blocks []*api.Block
 

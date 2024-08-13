@@ -1,0 +1,54 @@
+[
+    {
+        "comment": "block with NFT add quantity",
+        "miniBlocks": [
+            {
+                "transactions": [
+                    {
+                        "type": "normal",
+                        "hash": "01fd564ee984e601fba3e683ea8d7fc4b58089a28931059da7f7f2210f798263",
+                        "value": "0",
+                        "receiver": "erd1r69gk66fmedhhcg24g2c5kn2f2a5k4kvpr6jfw67dn2lyydd8cfswy6ede",
+                        "sender": "erd1r69gk66fmedhhcg24g2c5kn2f2a5k4kvpr6jfw67dn2lyydd8cfswy6ede",
+                        "logs": {
+                            "address": "erd1r69gk66fmedhhcg24g2c5kn2f2a5k4kvpr6jfw67dn2lyydd8cfswy6ede",
+                            "events": [
+                                {
+                                    "address": "erd1r69gk66fmedhhcg24g2c5kn2f2a5k4kvpr6jfw67dn2lyydd8cfswy6ede",
+                                    "identifier": "ESDTNFTAddQuantity",
+                                    "topics": [
+                                        "RlJBTkstYWQzNTI5",
+                                        "AQ==",
+                                        "Aw=="
+                                    ],
+                                    "data": null,
+                                    "additionalData": null
+                                },
+                                {
+                                    "address": "erd1r69gk66fmedhhcg24g2c5kn2f2a5k4kvpr6jfw67dn2lyydd8cfswy6ede",
+                                    "identifier": "writeLog",
+                                    "topics": [
+                                        "HoqLa0neW3vhCqoVilpqSrtLVswI9SS7XmzV8hGtPhM=",
+                                        "QHRvbyBtdWNoIGdhcyBwcm92aWRlZCBmb3IgcHJvY2Vzc2luZzogZ2FzIHByb3ZpZGVkID0gMTAwMDAwMCwgZ2FzIHVzZWQgPSA1MDAwMA=="
+                                    ],
+                                    "data": "QDZmNmI=",
+                                    "additionalData": ["QDZmNmI="]
+                                },
+                                {
+                                    "address": "erd1r69gk66fmedhhcg24g2c5kn2f2a5k4kvpr6jfw67dn2lyydd8cfswy6ede",
+                                    "identifier": "completedTxEvent",
+                                    "topics": [
+                                        "Af1WTumE5gH7o+aD6o1/xLWAiaKJMQWdp/fyIQ95gmM="
+                                    ],
+                                    "data": null,
+                                    "additionalData": null
+                                }
+                            ]
+                        },
+                        "initiallyPaidFee": "133500000000000"
+                    }
+                ]
+            }
+        ]
+    }
+]
