@@ -1,0 +1,57 @@
+[
+    {
+        "comment": "block with NFT create",
+        "miniBlocks": [
+            {
+                "transactions": [
+                    {
+                        "type": "normal",
+                        "hash": "8f404c670dc857e0158b86ba02c50426fff0eefa708b9e161455ece0e604030c",
+                        "value": "0",
+                        "receiver": "erd1r69gk66fmedhhcg24g2c5kn2f2a5k4kvpr6jfw67dn2lyydd8cfswy6ede",
+                        "sender": "erd1r69gk66fmedhhcg24g2c5kn2f2a5k4kvpr6jfw67dn2lyydd8cfswy6ede",
+                        "logs": {
+                            "address": "erd1r69gk66fmedhhcg24g2c5kn2f2a5k4kvpr6jfw67dn2lyydd8cfswy6ede",
+                            "events": [
+                                {
+                                    "address": "erd1r69gk66fmedhhcg24g2c5kn2f2a5k4kvpr6jfw67dn2lyydd8cfswy6ede",
+                                    "identifier": "ESDTNFTCreate",
+                                    "topics": [
+                                        "RlJBTkstNzM1MjNk",
+                                        "Aw==",
+                                        "Hg==",
+                                        "CAQSAgAeIkEIAxIGdGVzdC0zGiAeiotrSd5be+EKqhWKWmpKu0tWzAj1JLtebNXyEa0+EyDoByoEYWJiYTIBYTIBYjoEdGVzdA=="
+                                    ],
+                                    "data": null,
+                                    "additionalData": null
+                                },
+                                {
+                                    "address": "erd1r69gk66fmedhhcg24g2c5kn2f2a5k4kvpr6jfw67dn2lyydd8cfswy6ede",
+                                    "identifier": "completedTxEvent",
+                                    "topics": [
+                                        "j0BMZw3IV+AVi4a6AsUEJv/w7vpwi54WFFXs4OYEAww="
+                                    ],
+                                    "data": null,
+                                    "additionalData": null
+                                }
+                            ]
+                        },
+                        "initiallyPaidFee": "212500000000000"
+                    }
+                ]
+            },
+            {
+                "transactions": [
+                    {
+                        "type": "unsigned",
+                        "hash": "d2eca235c07837b05838ebeb18cc71d6eb99ce5292e8db889f3b6b41e81ef8ae",
+                        "value": "33400000000000",
+                        "receiver": "erd1r69gk66fmedhhcg24g2c5kn2f2a5k4kvpr6jfw67dn2lyydd8cfswy6ede",
+                        "sender": "erd1r69gk66fmedhhcg24g2c5kn2f2a5k4kvpr6jfw67dn2lyydd8cfswy6ede",
+                        "isRefund": true
+                    }
+                ]
+            }
+        ]
+    }
+]

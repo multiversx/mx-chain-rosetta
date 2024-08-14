@@ -2,7 +2,6 @@ package services
 
 import (
 	"fmt"
-	"math/big"
 	"strings"
 
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
@@ -61,32 +60,26 @@ func (controller *transactionEventsController) extractEventsESDTOrESDTNFTTransfe
 	// First, handle single transfers
 	for _, event := range append(rawEventsESDTTransfer, rawEventsESDTNFTTransfer...) {
 		numTopics := len(event.Topics)
-		if numTopics != 4 {
+		if numTopics != numTopicsOfEventESDTTransfer {
 			return nil, fmt.Errorf("%w: bad number of topics for (ESDT|ESDTNFT)Transfer event = %d", errCannotRecognizeEvent, numTopics)
 		}
 
-		identifier := event.Topics[0]
-		nonceAsBytes := event.Topics[1]
-		valueBytes := event.Topics[2]
+		typedEvent, err := newEventESDTFromBasicTopics(event.Topics)
+		if err != nil {
+			return nil, err
+		}
+
 		receiverPubkey := event.Topics[3]
-
-		value := big.NewInt(0).SetBytes(valueBytes)
-		receiver := controller.provider.ConvertPubKeyToAddress(receiverPubkey)
-
-		typedEvents = append(typedEvents, &eventESDT{
-			senderAddress:   event.Address,
-			receiverAddress: receiver,
-			identifier:      string(identifier),
-			nonceAsBytes:    nonceAsBytes,
-			value:           value.String(),
-		})
+		typedEvent.receiverAddress = controller.provider.ConvertPubKeyToAddress(receiverPubkey)
+		typedEvent.senderAddress = event.Address
+		typedEvents = append(typedEvents, typedEvent)
 	}
 
 	// Then, handle multi transfers
 	for _, event := range rawEventsMultiESDTNFTTransfer {
 		numTopics := len(event.Topics)
 		numTopicsExceptLast := numTopics - 1
-		numTopicsPerTransfer := 3
+		numTopicsPerTransfer := numTopicsPerTransferOfEventMultiESDTNFTTransfer
 
 		if numTopicsExceptLast%numTopicsPerTransfer != 0 {
 			return nil, fmt.Errorf("%w: bad number of topics for MultiESDTNFTTransfer event = %d", errCannotRecognizeEvent, numTopics)
@@ -97,18 +90,14 @@ func (controller *transactionEventsController) extractEventsESDTOrESDTNFTTransfe
 		receiver := controller.provider.ConvertPubKeyToAddress(receiverPubkey)
 
 		for i := 0; i < numTransfers; i++ {
-			identifier := event.Topics[i*numTopicsPerTransfer+0]
-			nonceAsBytes := event.Topics[i*numTopicsPerTransfer+1]
-			valueBytes := event.Topics[i*numTopicsPerTransfer+2]
-			value := big.NewInt(0).SetBytes(valueBytes)
+			typedEvent, err := newEventESDTFromBasicTopics(event.Topics[i*numTopicsPerTransfer+0 : i*numTopicsPerTransfer+3])
+			if err != nil {
+				return nil, err
+			}
 
-			typedEvents = append(typedEvents, &eventESDT{
-				senderAddress:   event.Address,
-				receiverAddress: receiver,
-				identifier:      string(identifier),
-				nonceAsBytes:    nonceAsBytes,
-				value:           value.String(),
-			})
+			typedEvent.receiverAddress = receiver
+			typedEvent.senderAddress = event.Address
+			typedEvents = append(typedEvents, typedEvent)
 		}
 	}
 
@@ -121,21 +110,17 @@ func (controller *transactionEventsController) extractEventsESDTLocalBurn(tx *tr
 
 	for _, event := range rawEvents {
 		numTopics := len(event.Topics)
-		if numTopics != 3 {
+		if numTopics != numTopicsOfEventESDTLocalBurn {
 			return nil, fmt.Errorf("%w: bad number of topics for ESDTLocalBurn event = %d", errCannotRecognizeEvent, numTopics)
 		}
 
-		identifier := event.Topics[0]
-		nonceAsBytes := event.Topics[1]
-		valueBytes := event.Topics[2]
-		value := big.NewInt(0).SetBytes(valueBytes)
+		typedEvent, err := newEventESDTFromBasicTopics(event.Topics)
+		if err != nil {
+			return nil, err
+		}
 
-		typedEvents = append(typedEvents, &eventESDT{
-			otherAddress: event.Address,
-			identifier:   string(identifier),
-			nonceAsBytes: nonceAsBytes,
-			value:        value.String(),
-		})
+		typedEvent.otherAddress = event.Address
+		typedEvents = append(typedEvents, typedEvent)
 	}
 
 	return typedEvents, nil
@@ -147,21 +132,17 @@ func (controller *transactionEventsController) extractEventsESDTLocalMint(tx *tr
 
 	for _, event := range rawEvents {
 		numTopics := len(event.Topics)
-		if numTopics != 3 {
+		if numTopics != numTopicsOfEventESDTLocalMint {
 			return nil, fmt.Errorf("%w: bad number of topics for ESDTLocalMint event = %d", errCannotRecognizeEvent, numTopics)
 		}
 
-		identifier := event.Topics[0]
-		nonceAsBytes := event.Topics[1]
-		valueBytes := event.Topics[2]
-		value := big.NewInt(0).SetBytes(valueBytes)
+		typedEvent, err := newEventESDTFromBasicTopics(event.Topics)
+		if err != nil {
+			return nil, err
+		}
 
-		typedEvents = append(typedEvents, &eventESDT{
-			otherAddress: event.Address,
-			identifier:   string(identifier),
-			nonceAsBytes: nonceAsBytes,
-			value:        value.String(),
-		})
+		typedEvent.otherAddress = event.Address
+		typedEvents = append(typedEvents, typedEvent)
 	}
 
 	return typedEvents, nil
@@ -173,24 +154,84 @@ func (controller *transactionEventsController) extractEventsESDTWipe(tx *transac
 
 	for _, event := range rawEvents {
 		numTopics := len(event.Topics)
-		if numTopics != 4 {
+		if numTopics != numTopicsOfEventESDTWipe {
 			return nil, fmt.Errorf("%w: bad number of topics for ESDTWipe event = %d", errCannotRecognizeEvent, numTopics)
 		}
 
-		identifier := event.Topics[0]
-		nonceAsBytes := event.Topics[1]
-		valueBytes := event.Topics[2]
+		typedEvent, err := newEventESDTFromBasicTopics(event.Topics)
+		if err != nil {
+			return nil, err
+		}
+
 		accountPubkey := event.Topics[3]
+		typedEvent.otherAddress = controller.provider.ConvertPubKeyToAddress(accountPubkey)
+		typedEvents = append(typedEvents, typedEvent)
+	}
 
-		value := big.NewInt(0).SetBytes(valueBytes)
-		accountAddress := controller.provider.ConvertPubKeyToAddress(accountPubkey)
+	return typedEvents, nil
+}
 
-		typedEvents = append(typedEvents, &eventESDT{
-			otherAddress: accountAddress,
-			identifier:   string(identifier),
-			nonceAsBytes: nonceAsBytes,
-			value:        value.String(),
-		})
+func (controller *transactionEventsController) extractEventsESDTNFTCreate(tx *transaction.ApiTransactionResult) ([]*eventESDT, error) {
+	rawEvents := controller.findManyEventsByIdentifier(tx, transactionEventESDTNFTCreate)
+	typedEvents := make([]*eventESDT, 0, len(rawEvents))
+
+	for _, event := range rawEvents {
+		numTopics := len(event.Topics)
+		if numTopics != numTopicsOfEventESDTNFTCreate {
+			return nil, fmt.Errorf("%w: bad number of topics for %s event = %d", errCannotRecognizeEvent, transactionEventESDTNFTCreate, numTopics)
+		}
+
+		typedEvent, err := newEventESDTFromBasicTopics(event.Topics)
+		if err != nil {
+			return nil, err
+		}
+
+		typedEvent.otherAddress = event.Address
+		typedEvents = append(typedEvents, typedEvent)
+	}
+
+	return typedEvents, nil
+}
+
+func (controller *transactionEventsController) extractEventsESDTNFTBurn(tx *transaction.ApiTransactionResult) ([]*eventESDT, error) {
+	rawEvents := controller.findManyEventsByIdentifier(tx, transactionEventESDTNFTBurn)
+	typedEvents := make([]*eventESDT, 0, len(rawEvents))
+
+	for _, event := range rawEvents {
+		numTopics := len(event.Topics)
+		if numTopics != numTopicsOfEventESDTNFTBurn {
+			return nil, fmt.Errorf("%w: bad number of topics for %s event = %d", errCannotRecognizeEvent, transactionEventESDTNFTBurn, numTopics)
+		}
+
+		typedEvent, err := newEventESDTFromBasicTopics(event.Topics)
+		if err != nil {
+			return nil, err
+		}
+
+		typedEvent.otherAddress = event.Address
+		typedEvents = append(typedEvents, typedEvent)
+	}
+
+	return typedEvents, nil
+}
+
+func (controller *transactionEventsController) extractEventsESDTNFTAddQuantity(tx *transaction.ApiTransactionResult) ([]*eventESDT, error) {
+	rawEvents := controller.findManyEventsByIdentifier(tx, transactionEventESDTNFTAddQuantity)
+	typedEvents := make([]*eventESDT, 0, len(rawEvents))
+
+	for _, event := range rawEvents {
+		numTopics := len(event.Topics)
+		if numTopics != numTopicsOfEventESDTNFTAddQuantity {
+			return nil, fmt.Errorf("%w: bad number of topics for %s event = %d", errCannotRecognizeEvent, transactionEventESDTNFTAddQuantity, numTopics)
+		}
+
+		typedEvent, err := newEventESDTFromBasicTopics(event.Topics)
+		if err != nil {
+			return nil, err
+		}
+
+		typedEvent.otherAddress = event.Address
+		typedEvents = append(typedEvents, typedEvent)
 	}
 
 	return typedEvents, nil
