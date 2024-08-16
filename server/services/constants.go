@@ -20,6 +20,7 @@ var (
 	sendingValueToNonPayableContractDataPrefix   = argumentsSeparator + hex.EncodeToString([]byte("sending value to non payable contract"))
 	emptyHash                                    = strings.Repeat("0", 64)
 	nodeVersionForOfflineRosetta                 = "N / A"
+	nativeAsESDTIdentifier                       = "EGLD-000000"
 )
 
 var (
