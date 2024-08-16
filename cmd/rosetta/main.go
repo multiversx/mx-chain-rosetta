@@ -53,7 +53,7 @@ func startRosetta(ctx *cli.Context) error {
 		return err
 	}
 
-	customCurrencies, err := loadConfigOfCustomCurrencies(cliFlags.configFileCustomCurrencies)
+	customCurrencies, err := decideCustomCurrencies(cliFlags.configFileCustomCurrencies)
 	if err != nil {
 		return err
 	}
