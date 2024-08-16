@@ -46,3 +46,14 @@ var (
 	transactionEventTopicInvalidMetaTransaction             = "meta transaction is invalid"
 	transactionEventTopicInvalidMetaTransactionNotEnoughGas = "meta transaction is invalid: not enough gas"
 )
+
+var (
+	numTopicsOfEventESDTTransfer                    = 4
+	numTopicsPerTransferOfEventMultiESDTNFTTransfer = 3
+	numTopicsOfEventESDTLocalBurn                   = 3
+	numTopicsOfEventESDTLocalMint                   = 3
+	numTopicsOfEventESDTWipe                        = 4
+	numTopicsOfEventESDTNFTCreate                   = 4
+	numTopicsOfEventESDTNFTBurn                     = 3
+	numTopicsOfEventESDTNFTAddQuantity              = 3
+)
