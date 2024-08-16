@@ -8,6 +8,14 @@ import (
 	"github.com/multiversx/mx-chain-rosetta/server/resources"
 )
 
+func decideCustomCurrencies(configFileCustomCurrencies string) ([]resources.Currency, error) {
+	if len(configFileCustomCurrencies) == 0 {
+		return make([]resources.Currency, 0), nil
+	}
+
+	return loadConfigOfCustomCurrencies(configFileCustomCurrencies)
+}
+
 func loadConfigOfCustomCurrencies(configFile string) ([]resources.Currency, error) {
 	fileContent, err := os.ReadFile(configFile)
 	if err != nil {
