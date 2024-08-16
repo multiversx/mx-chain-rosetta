@@ -359,38 +359,8 @@ func (transformer *transactionsTransformer) addOperationsGivenTransactionEvents(
 	}
 
 	for _, event := range eventsESDTTransfer {
-		if event.identifier == nativeAsESDTIdentifier {
-			operations := []*types.Operation{
-				{
-					Type:    opTransfer,
-					Account: addressToAccountIdentifier(event.senderAddress),
-					Amount:  transformer.extension.valueToNativeAmount("-" + event.value),
-				},
-				{
-					Type:    opTransfer,
-					Account: addressToAccountIdentifier(event.receiverAddress),
-					Amount:  transformer.extension.valueToNativeAmount(event.value),
-				},
-			}
-
-			rosettaTx.Operations = append(rosettaTx.Operations, operations...)
-		} else if transformer.provider.HasCustomCurrency(event.identifier) {
-			// We are only emitting balance-changing operations for supported currencies.
-			operations := []*types.Operation{
-				{
-					Type:    opCustomTransfer,
-					Account: addressToAccountIdentifier(event.senderAddress),
-					Amount:  transformer.extension.valueToCustomAmount("-"+event.value, event.getExtendedIdentifier()),
-				},
-				{
-					Type:    opCustomTransfer,
-					Account: addressToAccountIdentifier(event.receiverAddress),
-					Amount:  transformer.extension.valueToCustomAmount(event.value, event.getExtendedIdentifier()),
-				},
-			}
-
-			rosettaTx.Operations = append(rosettaTx.Operations, operations...)
-		}
+		operations := transformer.extractOperationsFromEventESDT(event)
+		rosettaTx.Operations = append(rosettaTx.Operations, operations...)
 	}
 
 	for _, event := range eventsESDTLocalBurn {
@@ -496,4 +466,39 @@ func (transformer *transactionsTransformer) addOperationsGivenTransactionEvents(
 	}
 
 	return nil
+}
+
+func (transformer *transactionsTransformer) extractOperationsFromEventESDT(event *eventESDT) []*types.Operation {
+	if event.identifier == nativeAsESDTIdentifier {
+		return []*types.Operation{
+			{
+				Type:    opTransfer,
+				Account: addressToAccountIdentifier(event.senderAddress),
+				Amount:  transformer.extension.valueToNativeAmount("-" + event.value),
+			},
+			{
+				Type:    opTransfer,
+				Account: addressToAccountIdentifier(event.receiverAddress),
+				Amount:  transformer.extension.valueToNativeAmount(event.value),
+			},
+		}
+	}
+
+	if transformer.provider.HasCustomCurrency(event.identifier) {
+		// We are only emitting balance-changing operations for supported currencies.
+		return []*types.Operation{
+			{
+				Type:    opCustomTransfer,
+				Account: addressToAccountIdentifier(event.senderAddress),
+				Amount:  transformer.extension.valueToCustomAmount("-"+event.value, event.getExtendedIdentifier()),
+			},
+			{
+				Type:    opCustomTransfer,
+				Account: addressToAccountIdentifier(event.receiverAddress),
+				Amount:  transformer.extension.valueToCustomAmount(event.value, event.getExtendedIdentifier()),
+			},
+		}
+	}
+
+	return make([]*types.Operation, 0)
 }
