@@ -10,6 +10,7 @@ import (
 
 	"github.com/coinbase/rosetta-sdk-go/server"
 	"github.com/multiversx/mx-chain-rosetta/server/factory"
+	"github.com/multiversx/mx-chain-rosetta/server/resources"
 	"github.com/multiversx/mx-chain-rosetta/version"
 	"github.com/urfave/cli"
 )
@@ -53,7 +54,7 @@ func startRosetta(ctx *cli.Context) error {
 		return err
 	}
 
-	customCurrencies, err := loadConfigOfCustomCurrencies(cliFlags.configFileCustomCurrencies)
+	customCurrencies, err := decideCustomCurrencies(cliFlags.configFileCustomCurrencies)
 	if err != nil {
 		return err
 	}
@@ -121,6 +122,14 @@ func startRosetta(ctx *cli.Context) error {
 	_ = fileLogging.Close()
 
 	return nil
+}
+
+func decideCustomCurrencies(configFileCustomCurrencies string) ([]resources.Currency, error) {
+	if len(configFileCustomCurrencies) == 0 {
+		return make([]resources.Currency, 0), nil
+	}
+
+	return loadConfigOfCustomCurrencies(configFileCustomCurrencies)
 }
 
 func createHttpServer(port int, routers ...server.Router) (*http.Server, error) {

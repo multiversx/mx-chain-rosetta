@@ -26,11 +26,11 @@ func TestLoadConfigOfCustomCurrencies(t *testing.T) {
 
 	t.Run("with error (missing file)", func(t *testing.T) {
 		_, err := loadConfigOfCustomCurrencies("testdata/missing-file.json")
-		require.Error(t, err)
+		require.ErrorContains(t, err, "error when reading custom currencies config file")
 	})
 
 	t.Run("with error (invalid file)", func(t *testing.T) {
 		_, err := loadConfigOfCustomCurrencies("testdata/custom-currencies-bad.json")
-		require.Error(t, err)
+		require.ErrorContains(t, err, "error when loading custom currencies from file")
 	})
 }
