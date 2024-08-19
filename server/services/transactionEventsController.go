@@ -20,17 +20,17 @@ func newTransactionEventsController(provider NetworkProvider) *transactionEvents
 
 func (controller *transactionEventsController) extractEventSCDeploy(tx *transaction.ApiTransactionResult) ([]*eventSCDeploy, error) {
 	rawEvents := controller.findManyEventsByIdentifier(tx, transactionEventSCDeploy)
-
 	typedEvents := make([]*eventSCDeploy, 0, len(rawEvents))
 
 	for _, event := range rawEvents {
 		numTopics := len(event.Topics)
-		if numTopics < 2 {
+		if numTopics < numTopicsOfEventSCDeployBeforeSirius {
 			// Before Sirius, there are 2 topics: contract address, deployer address.
-			// For Sirius, there are 3 topics: contract address, deployer address, codehash.
-			return nil, fmt.Errorf("%w: bad number of topics for %s event = '%d', tx = %s", errCannotRecognizeEvent, transactionEventSCDeploy, numTopics, tx.Hash)
+			// For Sirius, there are 3 topics: contract address, deployer address, codehash (not used).
+			return nil, fmt.Errorf("%w: bad number of topics for SCdeploy event = %d", errCannotRecognizeEvent, numTopics)
 		}
 
+		// "event.Address" is same as "event.Topics[0]"" (the address of the deployed contract).
 		contractAddress := event.Address
 		deployerPubKey := event.Topics[1]
 		deployerAddress := controller.provider.ConvertPubKeyToAddress(deployerPubKey)
@@ -73,7 +73,7 @@ func (controller *transactionEventsController) extractEventTransferValueOnly(tx 
 
 			receiver = controller.provider.ConvertPubKeyToAddress(receiverPubKey)
 		} else {
-			return nil, fmt.Errorf("%w: bad number of topics for '%s' = %d, tx = %s", errCannotRecognizeEvent, transactionEventTransferValueOnly, numTopics, tx.Hash)
+			return nil, fmt.Errorf("%w: bad number of topics for '%s' = %d", errCannotRecognizeEvent, transactionEventTransferValueOnly, numTopics)
 		}
 
 		value := big.NewInt(0).SetBytes(valueBytes)
