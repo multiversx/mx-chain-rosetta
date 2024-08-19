@@ -445,11 +445,11 @@ func (transformer *transactionsTransformer) addOperationsGivenTransactionEvents(
 	}
 
 	for _, event := range eventsSCDeploy {
-		// Handle deployments with transfer of value
+		// Handle direct deployments with transfer of value (indirect deployments are currently excluded to prevent any potential misinterpretations)..
 		if tx.Receiver == systemContractDeployAddress {
 			operations := []*types.Operation{
-				// Deployer's balance change is already captured in non-events-based operations.
-				// Let's simulate the transfer from the System deployment address to the contract address.
+				// Deployer's balance change is already captured in operations recovered not from logs / events, but from the transaction itself.
+				// It remains to "simulate" the transfer from the System deployment address to the contract address.
 				{
 					Type:    opTransfer,
 					Account: addressToAccountIdentifier(tx.Receiver),

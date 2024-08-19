@@ -13,6 +13,7 @@ from multiversx_sdk import (Address, AddressComputer, Mnemonic,  # type: ignore
 from systemtests.config import CONFIGURATIONS, Configuration
 
 CONTRACT_PATH_ADDER = Path(__file__).parent / "adder.wasm"
+CONTRACT_PATH_DUMMY = Path(__file__).parent / "dummy.wasm"
 
 
 def main():
@@ -145,6 +146,12 @@ def main():
             sender=accounts.get_user(shard=1, index=9),
             receiver=Address.from_bech32("erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqzllls8a5w6u"),
             amount=1000000000000000000
+        ))
+
+        # Direct contract deployment with MoveBalance
+        controller.send(controller.create_contract_deployment_with_move_balance(
+            sender=accounts.get_user(shard=0, index=0),
+            amount=10000000000000000
         ))
 
 
@@ -358,6 +365,17 @@ class Controller:
         transaction = self.relayed_transactions_factory.create_relayed_v3_transaction(
             relayer_address=relayer.address,
             inner_transactions=inner_transactions,
+        )
+
+        return transaction
+
+    def create_contract_deployment_with_move_balance(self, sender: "Account", amount: int) -> Transaction:
+        transaction = self.contracts_transactions_factory.create_transaction_for_deploy(
+            sender=sender.address,
+            bytecode=CONTRACT_PATH_DUMMY,
+            gas_limit=5000000,
+            arguments=[0],
+            native_transfer_amount=amount
         )
 
         return transaction
