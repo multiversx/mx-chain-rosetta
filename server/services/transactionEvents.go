@@ -5,6 +5,12 @@ import (
 	"math/big"
 )
 
+type eventTransferValueOnly struct {
+	sender   string
+	receiver string
+	value    string
+}
+
 type eventESDT struct {
 	senderAddress   string
 	receiverAddress string
@@ -47,4 +53,14 @@ func (event *eventESDT) getExtendedIdentifier() string {
 	}
 
 	return event.identifier
+}
+
+type eventSCDeploy struct {
+	contractAddress string
+	deployerAddress string
+}
+
+type eventClaimDeveloperRewards struct {
+	value           string
+	receiverAddress string
 }
