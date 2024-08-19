@@ -361,6 +361,76 @@ func TestTransactionsTransformer_TransformBlockTxsHavingESDTIssue(t *testing.T) 
 	require.Equal(t, expectedTransferSCR, txs[1])
 }
 
+func TestTransactionsTransformer_ExtractOperationsFromEventESDT(t *testing.T) {
+	networkProvider := testscommon.NewNetworkProviderMock()
+	networkProvider.MockCustomCurrencies = []resources.Currency{{Symbol: "ROSETTA-3a2edf"}}
+
+	extension := newNetworkProviderExtension(networkProvider)
+	transformer := newTransactionsTransformer(networkProvider)
+
+	t.Run("with custom currency (known)", func(t *testing.T) {
+		event := &eventESDT{
+			identifier:      "ROSETTA-3a2edf",
+			senderAddress:   testscommon.TestAddressAlice,
+			receiverAddress: testscommon.TestAddressBob,
+			value:           "1234",
+		}
+
+		expectedOperations := []*types.Operation{
+			{
+				Type:    opCustomTransfer,
+				Account: addressToAccountIdentifier(testscommon.TestAddressAlice),
+				Amount:  extension.valueToCustomAmount("-1234", "ROSETTA-3a2edf"),
+			},
+			{
+				Type:    opCustomTransfer,
+				Account: addressToAccountIdentifier(testscommon.TestAddressBob),
+				Amount:  extension.valueToCustomAmount("1234", "ROSETTA-3a2edf"),
+			},
+		}
+
+		operations := transformer.extractOperationsFromEventESDT(event)
+		require.Equal(t, expectedOperations, operations)
+	})
+
+	t.Run("with custom currency (unknown)", func(t *testing.T) {
+		event := &eventESDT{
+			identifier:      "UNKNOWN-3a2edf",
+			senderAddress:   testscommon.TestAddressAlice,
+			receiverAddress: testscommon.TestAddressBob,
+			value:           "1234",
+		}
+
+		operations := transformer.extractOperationsFromEventESDT(event)
+		require.Len(t, operations, 0)
+	})
+
+	t.Run("with native currency", func(t *testing.T) {
+		event := &eventESDT{
+			identifier:      nativeAsESDTIdentifier,
+			senderAddress:   testscommon.TestAddressAlice,
+			receiverAddress: testscommon.TestAddressBob,
+			value:           "1234",
+		}
+
+		expectedOperations := []*types.Operation{
+			{
+				Type:    opTransfer,
+				Account: addressToAccountIdentifier(testscommon.TestAddressAlice),
+				Amount:  extension.valueToNativeAmount("-1234"),
+			},
+			{
+				Type:    opTransfer,
+				Account: addressToAccountIdentifier(testscommon.TestAddressBob),
+				Amount:  extension.valueToNativeAmount("1234"),
+			},
+		}
+
+		operations := transformer.extractOperationsFromEventESDT(event)
+		require.Equal(t, expectedOperations, operations)
+	})
+}
+
 func TestTransactionsTransformer_TransformBlockTxsHavingESDTTransfer(t *testing.T) {
 	networkProvider := testscommon.NewNetworkProviderMock()
 	networkProvider.MockCustomCurrencies = []resources.Currency{{Symbol: "ROSETTA-3a2edf"}}
