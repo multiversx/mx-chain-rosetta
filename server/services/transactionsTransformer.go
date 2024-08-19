@@ -368,7 +368,7 @@ func (transformer *transactionsTransformer) addOperationsGivenTransactionEvents(
 		if tx.Receiver == systemContractDeployAddress {
 			operations := []*types.Operation{
 				// Deployer's balance change is already captured in operations recovered not from logs / events, but from the transaction itself.
-				// It remains to "simulate" the transfer from the System deployment address to the contract address.
+				// It remains to "simulate" the transfer from the system deployment address to the contract address.
 				{
 					Type:    opTransfer,
 					Account: addressToAccountIdentifier(tx.Receiver),

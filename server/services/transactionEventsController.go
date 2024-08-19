@@ -25,7 +25,7 @@ func (controller *transactionEventsController) extractEventSCDeploy(tx *transact
 		numTopics := len(event.Topics)
 		if numTopics < numTopicsOfEventSCDeployBeforeSirius {
 			// Before Sirius, there are 2 topics: contract address, deployer address.
-			// For Sirius, there are 3 topics: contract address, deployer address, codehash (not used).
+			// After Sirius, there are 3 topics: contract address, deployer address, codehash (not used).
 			return nil, fmt.Errorf("%w: bad number of topics for SCdeploy event = %d", errCannotRecognizeEvent, numTopics)
 		}
 
