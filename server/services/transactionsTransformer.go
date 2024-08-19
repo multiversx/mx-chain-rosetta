@@ -323,6 +323,11 @@ func (transformer *transactionsTransformer) mempoolMoveBalanceTxToRosettaTx(tx *
 }
 
 func (transformer *transactionsTransformer) addOperationsGivenTransactionEvents(tx *transaction.ApiTransactionResult, rosettaTx *types.Transaction) error {
+	eventsSCDeploy, err := transformer.eventsController.extractEventSCDeploy(tx)
+	if err != nil {
+		return err
+	}
+
 	eventsESDTTransfer, err := transformer.eventsController.extractEventsESDTOrESDTNFTTransfers(tx)
 	if err != nil {
 		return err
@@ -356,6 +361,28 @@ func (transformer *transactionsTransformer) addOperationsGivenTransactionEvents(
 	eventsESDTNFTAddQuantity, err := transformer.eventsController.extractEventsESDTNFTAddQuantity(tx)
 	if err != nil {
 		return err
+	}
+
+	for _, event := range eventsSCDeploy {
+		// Handle direct deployments with transfer of value (indirect deployments are currently excluded to prevent any potential misinterpretations)..
+		if tx.Receiver == systemContractDeployAddress {
+			operations := []*types.Operation{
+				// Deployer's balance change is already captured in operations recovered not from logs / events, but from the transaction itself.
+				// It remains to "simulate" the transfer from the system deployment address to the contract address.
+				{
+					Type:    opTransfer,
+					Account: addressToAccountIdentifier(tx.Receiver),
+					Amount:  transformer.extension.valueToNativeAmount("-" + tx.Value),
+				},
+				{
+					Type:    opTransfer,
+					Account: addressToAccountIdentifier(event.contractAddress),
+					Amount:  transformer.extension.valueToNativeAmount(tx.Value),
+				},
+			}
+
+			rosettaTx.Operations = append(rosettaTx.Operations, operations...)
+		}
 	}
 
 	for _, event := range eventsESDTTransfer {
