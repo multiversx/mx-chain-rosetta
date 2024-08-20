@@ -24,6 +24,23 @@ class Configuration:
 
 
 CONFIGURATIONS = {
+    "mainnet": Configuration(
+        network_shard=0,
+        network_id="1",
+        network_name="untitled",
+        native_currency="EGLD",
+        config_file_custom_currencies="systemtests/rosetta_config/mainnet-custom-currencies.json",
+        num_historical_epochs=2,
+        observer_url="",
+        proxy_url="https://gateway.multiversx.com",
+        check_construction_native_configuration_file="",
+        check_construction_custom_configuration_file="",
+        check_data_configuration_file="systemtests/mesh_cli_config/check-data.json",
+        check_data_directory="systemtests/mainnet-data",
+        known_contracts=[
+        ],
+        explorer_url="https://explorer.multiversx.com",
+    ),
     "devnet": Configuration(
         network_shard=0,
         network_id="D",
