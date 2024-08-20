@@ -1,3 +1,4 @@
+import json
 from argparse import ArgumentParser
 from pathlib import Path
 from typing import Dict, List
@@ -29,40 +30,40 @@ def main():
     controller = Controller(configuration, accounts)
 
     if mode == "setup":
-        controller.send_multiple(controller.create_airdrops())
+        # controller.send_multiple(controller.create_airdrops())
         controller.send_multiple(controller.create_contract_deployments())
     elif mode == "run":
-        # Intra-shard
+        print("Intra-shard, simple MoveBalance with refund")
         controller.send(controller.create_simple_move_balance_with_refund(
             sender=accounts.get_user(shard=0, index=0),
             receiver=accounts.get_user(shard=0, index=1).address,
         ))
 
-        # Cross-shard
+        print("Cross-shard, simple MoveBalance with refund")
         controller.send(controller.create_simple_move_balance_with_refund(
             sender=accounts.get_user(shard=0, index=1),
             receiver=accounts.get_user(shard=1, index=0).address,
         ))
 
-        # Intrashard
+        print("Intra-shard, invalid MoveBalance with refund")
         controller.send(controller.create_invalid_move_balance_with_refund(
             sender=accounts.get_user(shard=0, index=2),
             receiver=accounts.get_user(shard=0, index=3).address,
         ))
 
-        # Cross-shard
+        print("Cross-shard, invalid MoveBalance with refund")
         controller.send(controller.create_invalid_move_balance_with_refund(
             sender=accounts.get_user(shard=0, index=4),
             receiver=accounts.get_user(shard=1, index=1).address,
         ))
 
-        # Intra-shard, sending value to non-payable contract
+        print("Intra-shard, sending value to non-payable contract")
         controller.send(controller.create_simple_move_balance_with_refund(
             sender=accounts.get_user(shard=0, index=0),
             receiver=accounts.contracts_by_shard[0][0],
         ))
 
-        # Cross-shard, sending value to non-payable contract
+        print("Cross-shard, sending value to non-payable contract")
         controller.send(controller.create_simple_move_balance_with_refund(
             sender=accounts.get_user(shard=0, index=1),
             receiver=accounts.contracts_by_shard[1][0],
@@ -74,25 +75,25 @@ def main():
             receiver=accounts.get_user(shard=0, index=1).address,
         ))
 
-        # Cross-shard, native transfer within MultiESDTTransfer
+        print("Cross-shard, native transfer within MultiESDTTransfer")
         controller.send(controller.create_native_transfer_within_multiesdt(
             sender=accounts.get_user(shard=0, index=1),
             receiver=accounts.get_user(shard=1, index=0).address,
         ))
 
-        # Intra-shard, native transfer within MultiESDTTransfer, towards non-payable contract
+        print("Intra-shard, native transfer within MultiESDTTransfer, towards non-payable contract")
         controller.send(controller.create_native_transfer_within_multiesdt(
             sender=accounts.get_user(shard=0, index=0),
             receiver=accounts.contracts_by_shard[0][0],
         ))
 
-        # Cross-shard, native transfer within MultiESDTTransfer, towards non-payable contract
+        print("Cross-shard, native transfer within MultiESDTTransfer, towards non-payable contract")
         controller.send(controller.create_native_transfer_within_multiesdt(
             sender=accounts.get_user(shard=0, index=1),
             receiver=accounts.contracts_by_shard[1][0],
         ))
 
-        # Intra-shard, relayed v1 transaction with MoveBalance
+        print("Intra-shard, relayed v1 transaction with MoveBalance")
         controller.send(controller.create_relayed_v1_with_move_balance(
             relayer=accounts.get_user(shard=0, index=0),
             sender=accounts.get_user(shard=0, index=1),
@@ -100,7 +101,7 @@ def main():
             amount=42
         ))
 
-        # Relayed v3, senders and receivers in same shard
+        print("Relayed v3, senders and receivers in same shard")
         controller.send(controller.create_relayed_v3_with_a_few_inner_move_balances(
             relayer=accounts.get_user(shard=0, index=0),
             senders=accounts.users_by_shard[0][1:3],
@@ -108,7 +109,7 @@ def main():
             amount=42
         ))
 
-        # Relayed v3, senders and receivers in different shards
+        print("Relayed v3, senders and receivers in different shards")
         controller.send(controller.create_relayed_v3_with_a_few_inner_move_balances(
             relayer=accounts.get_user(shard=0, index=0),
             senders=accounts.users_by_shard[0][1:3],
@@ -116,7 +117,7 @@ def main():
             amount=42
         ))
 
-        # Relayed v3, senders and receivers in same shard (insufficient balance)
+        print("Relayed v3, senders and receivers in same shard (insufficient balance)")
         controller.send(controller.create_relayed_v3_with_a_few_inner_move_balances(
             relayer=accounts.get_user(shard=0, index=0),
             senders=accounts.users_by_shard[0][1:3],
@@ -124,7 +125,7 @@ def main():
             amount=1000000000000000000000
         ))
 
-        # Relayed v3, senders and receivers in different shards (insufficient balance)
+        print("Relayed v3, senders and receivers in different shards (insufficient balance)")
         controller.send(controller.create_relayed_v3_with_a_few_inner_move_balances(
             relayer=accounts.get_user(shard=0, index=0),
             senders=accounts.users_by_shard[0][1:3],
@@ -132,7 +133,7 @@ def main():
             amount=1000000000000000000000
         ))
 
-        # Relayed v3, senders and receivers in same shard, sending to non-payable contract
+        print("Relayed v3, senders and receivers in same shard, sending to non-payable contract")
         controller.send(controller.create_relayed_v3_with_a_few_inner_move_balances(
             relayer=accounts.get_user(shard=0, index=0),
             senders=[accounts.get_user(shard=0, index=5)],
@@ -140,7 +141,7 @@ def main():
             amount=1000000000000000000
         ))
 
-        # Intra-shard, relayed v1 transaction with MoveBalance
+        print("Intra-shard, relayed v1 transaction with MoveBalance")
         controller.send(controller.create_relayed_v1_with_move_balance(
             relayer=accounts.get_user(shard=1, index=0),
             sender=accounts.get_user(shard=1, index=9),
@@ -148,11 +149,13 @@ def main():
             amount=1000000000000000000
         ))
 
-        # Direct contract deployment with MoveBalance
+        print("Direct contract deployment with MoveBalance")
         controller.send(controller.create_contract_deployment_with_move_balance(
             sender=accounts.get_user(shard=0, index=0),
             amount=10000000000000000
         ))
+
+        # TODO isIntrashardContractCallWithSignalErrorButWithoutContractResultBearingRefundValue
 
 
 class BunchOfAccounts:
@@ -436,7 +439,9 @@ class NoncesTracker:
 
 class CustomCurrencies:
     def __init__(self, configuration: Configuration) -> None:
-        self.currency = "ROSETTA-7783de"
+        file_content = Path(configuration.config_file_custom_currencies).read_text()
+        data = json.loads(file_content)
+        self.currency = data[0].get("symbol")
 
 
 if __name__ == '__main__':
