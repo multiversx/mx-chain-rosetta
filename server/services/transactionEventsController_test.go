@@ -1,6 +1,7 @@
 package services
 
 import (
+	"encoding/hex"
 	"testing"
 
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
@@ -173,6 +174,34 @@ func TestEventHasTopic(t *testing.T) {
 func TestTransactionEventsController_ExtractEvents(t *testing.T) {
 	networkProvider := testscommon.NewNetworkProviderMock()
 	controller := newTransactionEventsController(networkProvider)
+
+	t.Run("SCDeploy", func(t *testing.T) {
+		topic0, _ := hex.DecodeString("00000000000000000500def8dad1161f8f0c38f3e6e73515ed81058f0b5606b8")
+		topic1, _ := hex.DecodeString("5cf4abc83e50c5309d807fc3f676988759a1e301001bc9a0265804f42af806b8")
+		topic2, _ := hex.DecodeString("be5560e0d7d3857d438a3678269039f8f80ded90dcbc2cda268a0847ba9cb379")
+
+		tx := &transaction.ApiTransactionResult{
+			Logs: &transaction.ApiLogs{
+				Events: []*transaction.Events{
+					{
+						Identifier: "SCDeploy",
+						Address:    "erd1qqqqqqqqqqqqqpgqmmud45gkr78scw8numnn290dsyzc7z6kq6uqw2jcza",
+						Topics: [][]byte{
+							topic0,
+							topic1,
+							topic2,
+						},
+					},
+				},
+			},
+		}
+
+		events, err := controller.extractEventSCDeploy(tx)
+		require.NoError(t, err)
+		require.Len(t, events, 1)
+		require.Equal(t, "erd1qqqqqqqqqqqqqpgqmmud45gkr78scw8numnn290dsyzc7z6kq6uqw2jcza", events[0].contractAddress)
+		require.Equal(t, "erd1tn62hjp72rznp8vq0lplva5csav6rccpqqdungpxtqz0g2hcq6uq9k4cc6", events[0].deployerAddress)
+	})
 
 	t.Run("ESDTNFTCreate", func(t *testing.T) {
 		tx := &transaction.ApiTransactionResult{
