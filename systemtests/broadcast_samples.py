@@ -155,7 +155,25 @@ def main():
             amount=10000000000000000
         ))
 
-        # TODO isIntrashardContractCallWithSignalErrorButWithoutContractResultBearingRefundValue
+        print("Intra-shard, contract call with MoveBalance, with signal error")
+        controller.send(controller.create_contract_call_with_move_balance_with_signal_error(
+            sender=accounts.get_user(shard=0, index=0),
+            contract=accounts.contracts_by_shard[0][0],
+            amount=10000000000000000
+        ))
+
+        print("Cross-shard, contract call with MoveBalance, with signal error")
+        controller.send(controller.create_contract_call_with_move_balance_with_signal_error(
+            sender=accounts.get_user(shard=0, index=0),
+            contract=accounts.contracts_by_shard[1][0],
+            amount=10000000000000000
+        ))
+
+        print("Direct contract deployment with MoveBalance, with signal error")
+        controller.send(controller.create_contract_deployment_with_move_balance_with_signal_error(
+            sender=accounts.get_user(shard=0, index=0),
+            amount=77
+        ))
 
 
 class BunchOfAccounts:
@@ -378,6 +396,29 @@ class Controller:
             bytecode=CONTRACT_PATH_DUMMY,
             gas_limit=5000000,
             arguments=[0],
+            native_transfer_amount=amount
+        )
+
+        return transaction
+
+    def create_contract_deployment_with_move_balance_with_signal_error(self, sender: "Account", amount: int) -> Transaction:
+        transaction = self.contracts_transactions_factory.create_transaction_for_deploy(
+            sender=sender.address,
+            bytecode=CONTRACT_PATH_ADDER,
+            gas_limit=5000000,
+            arguments=[1, 2, 3, 4, 5],
+            native_transfer_amount=amount
+        )
+
+        return transaction
+
+    def create_contract_call_with_move_balance_with_signal_error(self, sender: "Account", contract: Address, amount: int) -> Transaction:
+        transaction = self.contracts_transactions_factory.create_transaction_for_execute(
+            sender=sender.address,
+            contract=contract,
+            function="missingFunction",
+            gas_limit=5000000,
+            arguments=[1, 2, 3, 4, 5],
             native_transfer_amount=amount
         )
 
