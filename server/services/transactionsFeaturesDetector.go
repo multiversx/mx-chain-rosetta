@@ -91,15 +91,15 @@ func (detector *transactionsFeaturesDetector) isContractDeploymentWithSignalErro
 	return detector.isContractDeploymentWithSignalError(tx) || (detector.isIntrashard(tx) && detector.isContractCallWithSignalError(tx))
 }
 
-func (detector *transactionsFeaturesDetector) isContractCallWithSignalError(tx *transaction.ApiTransactionResult) bool {
-	return tx.ProcessingTypeOnSource == transactionProcessingTypeContractInvoking &&
-		tx.ProcessingTypeOnDestination == transactionProcessingTypeContractInvoking &&
-		detector.eventsController.hasAnySignalError(tx)
-}
-
 func (detector *transactionsFeaturesDetector) isContractDeploymentWithSignalError(tx *transaction.ApiTransactionResult) bool {
 	return tx.ProcessingTypeOnSource == transactionProcessingTypeContractDeployment &&
 		tx.ProcessingTypeOnDestination == transactionProcessingTypeContractDeployment &&
+		detector.eventsController.hasAnySignalError(tx)
+}
+
+func (detector *transactionsFeaturesDetector) isContractCallWithSignalError(tx *transaction.ApiTransactionResult) bool {
+	return tx.ProcessingTypeOnSource == transactionProcessingTypeContractInvoking &&
+		tx.ProcessingTypeOnDestination == transactionProcessingTypeContractInvoking &&
 		detector.eventsController.hasAnySignalError(tx)
 }
 
