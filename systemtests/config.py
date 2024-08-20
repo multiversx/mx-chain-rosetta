@@ -82,6 +82,6 @@ CONFIGURATIONS = {
             "erd1qqqqqqqqqqqqqpgq89t5xm4x04tnt9lv747wdrsaycf3rcwcggzsa7crse",
             "erd1qqqqqqqqqqqqqpgqeesfamasje5zru7ku79m8p4xqfqnywvqxj0qhtyzdr"
         ],
-        explorer_url="https://localnet-explorer.multiversx.com",
+        explorer_url="",
     ),
 }
