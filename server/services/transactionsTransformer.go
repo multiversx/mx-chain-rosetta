@@ -172,10 +172,15 @@ func (transformer *transactionsTransformer) rewardTxToRosettaTx(tx *transaction.
 }
 
 func (transformer *transactionsTransformer) normalTxToRosetta(tx *transaction.ApiTransactionResult) (*types.Transaction, error) {
-	hasValue := !isZeroAmount(tx.Value)
 	operations := make([]*types.Operation, 0)
 
-	if hasValue {
+	// Special handling of:
+	// - intra-shard contract calls, bearing value, which fail with signal error
+	// - direct contract deployments, bearing value, which fail with signal error
+	// For these, the protocol does not generate an explicit SCR with the value refund (before Sirius, in some circumstances, it did).
+	// However, since the value remains at the sender, we don't emit any operations in these circumstances.
+	transfersValue := isNonZeroAmount(tx.Value) && !transformer.featuresDetector.isContractDeploymentWithSignalErrorOrIntrashardContractCallWithSignalError(tx)
+	if transfersValue {
 		operations = append(operations, &types.Operation{
 			Type:    opTransfer,
 			Account: addressToAccountIdentifier(tx.Sender),
@@ -198,6 +203,10 @@ func (transformer *transactionsTransformer) normalTxToRosetta(tx *transaction.Ap
 	innerTxOperationsIfRelayedCompletelyIntrashardWithSignalError, err := transformer.extractInnerTxOperationsIfRelayedCompletelyIntrashardWithSignalError(tx)
 	if err != nil {
 		return nil, err
+	}
+
+	if len(innerTxOperationsIfRelayedCompletelyIntrashardWithSignalError) > 0 {
+		log.Info("normalTxToRosetta(): innerTxOperationsIfRelayedCompletelyIntrashardWithSignalError", "tx", tx.Hash, "block", tx.BlockNonce)
 	}
 
 	operations = append(operations, innerTxOperationsIfRelayedCompletelyIntrashardWithSignalError...)
@@ -364,7 +373,7 @@ func (transformer *transactionsTransformer) addOperationsGivenTransactionEvents(
 	}
 
 	for _, event := range eventsSCDeploy {
-		// Handle direct deployments with transfer of value (indirect deployments are currently excluded to prevent any potential misinterpretations)..
+		// Handle direct deployments with transfer of value (indirect deployments are currently excluded to prevent any potential misinterpretations).
 		if tx.Receiver == systemContractDeployAddress {
 			operations := []*types.Operation{
 				// Deployer's balance change is already captured in operations recovered not from logs / events, but from the transaction itself.
