@@ -50,7 +50,7 @@ func TestTransactionsTransformer_NormalTxToRosettaTx(t *testing.T) {
 			Metadata: extractTransactionMetadata(tx),
 		}
 
-		rosettaTx, err := transformer.normalTxToRosetta(tx, nil)
+		rosettaTx, err := transformer.normalTxToRosetta(tx)
 		require.NoError(t, err)
 		require.Equal(t, expectedRosettaTx, rosettaTx)
 	})
@@ -99,7 +99,7 @@ func TestTransactionsTransformer_NormalTxToRosettaTx(t *testing.T) {
 			Metadata: extractTransactionMetadata(tx),
 		}
 
-		rosettaTx, err := transformer.normalTxToRosetta(tx, nil)
+		rosettaTx, err := transformer.normalTxToRosetta(tx)
 		require.NoError(t, err)
 		require.Equal(t, expectedRosettaTx, rosettaTx)
 	})

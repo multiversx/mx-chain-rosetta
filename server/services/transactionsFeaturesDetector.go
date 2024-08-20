@@ -87,32 +87,6 @@ func (detector *transactionsFeaturesDetector) isRelayedV1TransactionCompletelyIn
 	return isWithSignalError
 }
 
-func (detector *transactionsFeaturesDetector) isIntrashardContractCallWithSignalErrorButWithoutContractResultBearingRefundValue(
-	txInQuestion *transaction.ApiTransactionResult,
-	allTransactionsInBlock []*transaction.ApiTransactionResult,
-) bool {
-	if !detector.isContractCallWithSignalError(txInQuestion) {
-		return false
-	}
-
-	if !detector.isIntrashard(txInQuestion) {
-		return false
-	}
-
-	for _, tx := range allTransactionsInBlock {
-		matchesTypeOnSource := tx.ProcessingTypeOnSource == transactionProcessingTypeMoveBalance
-		matchesTypeOnDestination := tx.ProcessingTypeOnDestination == transactionProcessingTypeMoveBalance
-		matchesOriginalTransactionHash := tx.OriginalTransactionHash == txInQuestion.Hash
-		matchesRefundValue := tx.Value == txInQuestion.Value
-
-		if matchesTypeOnSource && matchesTypeOnDestination && matchesOriginalTransactionHash && matchesRefundValue {
-			return false
-		}
-	}
-
-	return true
-}
-
 func (detector *transactionsFeaturesDetector) isContractCallWithSignalError(tx *transaction.ApiTransactionResult) bool {
 	return tx.ProcessingTypeOnSource == transactionProcessingTypeContractInvoking &&
 		tx.ProcessingTypeOnDestination == transactionProcessingTypeContractInvoking &&

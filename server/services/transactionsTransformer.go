@@ -90,7 +90,7 @@ func (transformer *transactionsTransformer) txToRosettaTx(tx *transaction.ApiTra
 
 	switch tx.Type {
 	case string(transaction.TxTypeNormal):
-		rosettaTx, err = transformer.normalTxToRosetta(tx, txsInBlock)
+		rosettaTx, err = transformer.normalTxToRosetta(tx)
 		if err != nil {
 			return nil, err
 		}
@@ -185,10 +185,7 @@ func (transformer *transactionsTransformer) rewardTxToRosettaTx(tx *transaction.
 	}
 }
 
-func (transformer *transactionsTransformer) normalTxToRosetta(
-	tx *transaction.ApiTransactionResult,
-	allTransactionsInBlock []*transaction.ApiTransactionResult,
-) (*types.Transaction, error) {
+func (transformer *transactionsTransformer) normalTxToRosetta(tx *transaction.ApiTransactionResult) (*types.Transaction, error) {
 	hasValue := !isZeroAmount(tx.Value)
 	operations := make([]*types.Operation, 0)
 
@@ -217,7 +214,7 @@ func (transformer *transactionsTransformer) normalTxToRosetta(
 		return nil, err
 	}
 
-	valueRefundOperationIfContractCallOrDeploymentWithSignalError, err := transformer.createValueReturnOperationsIfIntrashardContractCallOrContractDeploymentWithSignalError(tx, allTransactionsInBlock)
+	valueRefundOperationIfContractCallOrDeploymentWithSignalError, err := transformer.createValueReturnOperationsIfIntrashardContractCallOrContractDeploymentWithSignalError(tx)
 	if err != nil {
 		return nil, err
 	}
@@ -277,14 +274,18 @@ func (transformer *transactionsTransformer) extractInnerTxOperationsIfRelayedCom
 	}, nil
 }
 
+// createValueReturnOperationsIfIntrashardContractCallOrContractDeploymentWithSignalError applies a workaround for:
+// - intra-shard contract calls, bearing value, which fail with signal error
+// - direct contract deployments, bearing value, which fail with signal error
+// For these cases, the protocol does not generate an explicit SCR with the value refund (before Sirius, in some circumstances, it did).
+// However, in reality, the value remains at the sender. Thus, in Rosetta, we apply some "correcting" operations.
 func (transformer *transactionsTransformer) createValueReturnOperationsIfIntrashardContractCallOrContractDeploymentWithSignalError(
 	tx *transaction.ApiTransactionResult,
-	allTransactionsInBlock []*transaction.ApiTransactionResult,
 ) ([]*types.Operation, error) {
-	isContractCallWithError := transformer.featuresDetector.isIntrashardContractCallWithSignalErrorButWithoutContractResultBearingRefundValue(tx, allTransactionsInBlock)
-	isContractDeploymentWithError := transformer.featuresDetector.isContractDeploymentWithSignalError(tx)
-	if !isContractCallWithError && !isContractDeploymentWithError {
-		return []*types.Operation{}, nil
+	detector := transformer.featuresDetector
+	shouldApplyCorrection := detector.isContractDeploymentWithSignalError(tx) || (detector.isIntrashard(tx) && detector.isContractCallWithSignalError(tx))
+	if !shouldApplyCorrection {
+		return make([]*types.Operation, 0), nil
 	}
 
 	return []*types.Operation{
