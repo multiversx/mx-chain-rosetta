@@ -298,7 +298,6 @@ func TestTransactionsTransformer_TransformBlockTxsHavingContractDeployments(t *t
 	require.Nil(t, err)
 
 	t.Run("direct contract deployment, with value", func(t *testing.T) {
-
 		txs, err := transformer.transformBlockTxs(blocks[0])
 		require.Nil(t, err)
 		require.Len(t, txs, 1)
@@ -367,6 +366,40 @@ func TestTransactionsTransformer_TransformBlockTxsHavingContractDeployments(t *t
 				},
 			},
 			Metadata: extractTransactionMetadata(blocks[1].MiniBlocks[0].Transactions[0]),
+		}
+
+		require.Equal(t, expectedTx, txs[0])
+	})
+}
+
+func TestTransactionsTransformer_TransformBlockTxsHavingContractCalls(t *testing.T) {
+	networkProvider := testscommon.NewNetworkProviderMock()
+	networkProvider.MockObservedActualShard = 0
+
+	extension := newNetworkProviderExtension(networkProvider)
+	transformer := newTransactionsTransformer(networkProvider)
+
+	blocks, err := readTestBlocks("testdata/blocks_with_contract_calls.json")
+	require.Nil(t, err)
+
+	t.Run("direct contract call, with value, with signal error", func(t *testing.T) {
+		txs, err := transformer.transformBlockTxs(blocks[0])
+		require.Nil(t, err)
+		require.Len(t, txs, 1)
+		require.Len(t, txs[0].Operations, 1)
+
+		expectedTx := &types.Transaction{
+			TransactionIdentifier: hashToTransactionIdentifier("9851ab6cb221bce5800030f9db2a5fbd8ed4a9db4c6f9d190c16113f2b080e57"),
+			Operations: []*types.Operation{
+				{
+					Type:                opFee,
+					OperationIdentifier: indexToOperationIdentifier(0),
+					Account:             addressToAccountIdentifier("erd1tn62hjp72rznp8vq0lplva5csav6rccpqqdungpxtqz0g2hcq6uq9k4cc6"),
+					Amount:              extension.valueToNativeAmount("-144050000000000"),
+					Status:              &opStatusSuccess,
+				},
+			},
+			Metadata: extractTransactionMetadata(blocks[0].MiniBlocks[0].Transactions[0]),
 		}
 
 		require.Equal(t, expectedTx, txs[0])
