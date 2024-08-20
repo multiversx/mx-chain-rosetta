@@ -186,10 +186,15 @@ func (transformer *transactionsTransformer) rewardTxToRosettaTx(tx *transaction.
 }
 
 func (transformer *transactionsTransformer) normalTxToRosetta(tx *transaction.ApiTransactionResult) (*types.Transaction, error) {
-	hasValue := !isZeroAmount(tx.Value)
 	operations := make([]*types.Operation, 0)
 
-	if hasValue {
+	// Special handling of:
+	// - intra-shard contract calls, bearing value, which fail with signal error
+	// - direct contract deployments, bearing value, which fail with signal error
+	// For these, the protocol does not generate an explicit SCR with the value refund (before Sirius, in some circumstances, it did).
+	// However, since the value remains at the sender, we don't emit any operations in these circumstances.
+	transfersValue := isNonZeroAmount(tx.Value) && !transformer.featuresDetector.isContractDeploymentWithSignalErrorOrIntrashardContractCallWithSignalError(tx)
+	if transfersValue {
 		operations = append(operations, &types.Operation{
 			Type:    opTransfer,
 			Account: addressToAccountIdentifier(tx.Sender),
@@ -214,20 +219,11 @@ func (transformer *transactionsTransformer) normalTxToRosetta(tx *transaction.Ap
 		return nil, err
 	}
 
-	valueRefundOperationIfContractCallOrDeploymentWithSignalError, err := transformer.createValueReturnOperationsIfIntrashardContractCallOrContractDeploymentWithSignalError(tx)
-	if err != nil {
-		return nil, err
-	}
-
 	if len(innerTxOperationsIfRelayedCompletelyIntrashardWithSignalError) > 0 {
 		log.Info("normalTxToRosetta(): innerTxOperationsIfRelayedCompletelyIntrashardWithSignalError", "tx", tx.Hash, "block", tx.BlockNonce)
 	}
-	if len(valueRefundOperationIfContractCallOrDeploymentWithSignalError) > 0 {
-		log.Info("normalTxToRosetta(): valueRefundOperationIfContractCallOrDeploymentWithSignalError", "tx", tx.Hash, "block", tx.BlockNonce)
-	}
 
 	operations = append(operations, innerTxOperationsIfRelayedCompletelyIntrashardWithSignalError...)
-	operations = append(operations, valueRefundOperationIfContractCallOrDeploymentWithSignalError...)
 
 	return &types.Transaction{
 		TransactionIdentifier: hashToTransactionIdentifier(tx.Hash),
@@ -270,34 +266,6 @@ func (transformer *transactionsTransformer) extractInnerTxOperationsIfRelayedCom
 			Type:    opTransfer,
 			Account: addressToAccountIdentifier(receiverAddress),
 			Amount:  transformer.extension.valueToNativeAmount(innerTx.Value.String()),
-		},
-	}, nil
-}
-
-// createValueReturnOperationsIfIntrashardContractCallOrContractDeploymentWithSignalError applies a workaround for:
-// - intra-shard contract calls, bearing value, which fail with signal error
-// - direct contract deployments, bearing value, which fail with signal error
-// For these cases, the protocol does not generate an explicit SCR with the value refund (before Sirius, in some circumstances, it did).
-// However, in reality, the value remains at the sender. Thus, in Rosetta, we apply some "correcting" operations.
-func (transformer *transactionsTransformer) createValueReturnOperationsIfIntrashardContractCallOrContractDeploymentWithSignalError(
-	tx *transaction.ApiTransactionResult,
-) ([]*types.Operation, error) {
-	detector := transformer.featuresDetector
-	shouldApplyCorrection := detector.isContractDeploymentWithSignalError(tx) || (detector.isIntrashard(tx) && detector.isContractCallWithSignalError(tx))
-	if !shouldApplyCorrection {
-		return make([]*types.Operation, 0), nil
-	}
-
-	return []*types.Operation{
-		{
-			Type:    opTransfer,
-			Account: addressToAccountIdentifier(tx.Sender),
-			Amount:  transformer.extension.valueToNativeAmount(tx.Value),
-		},
-		{
-			Type:    opTransfer,
-			Account: addressToAccountIdentifier(tx.Receiver),
-			Amount:  transformer.extension.valueToNativeAmount("-" + tx.Value),
 		},
 	}, nil
 }

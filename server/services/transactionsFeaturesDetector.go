@@ -87,6 +87,10 @@ func (detector *transactionsFeaturesDetector) isRelayedV1TransactionCompletelyIn
 	return isWithSignalError
 }
 
+func (detector *transactionsFeaturesDetector) isContractDeploymentWithSignalErrorOrIntrashardContractCallWithSignalError(tx *transaction.ApiTransactionResult) bool {
+	return detector.isContractDeploymentWithSignalError(tx) || (detector.isIntrashard(tx) && detector.isContractCallWithSignalError(tx))
+}
+
 func (detector *transactionsFeaturesDetector) isContractCallWithSignalError(tx *transaction.ApiTransactionResult) bool {
 	return tx.ProcessingTypeOnSource == transactionProcessingTypeContractInvoking &&
 		tx.ProcessingTypeOnDestination == transactionProcessingTypeContractInvoking &&
