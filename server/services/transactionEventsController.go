@@ -355,7 +355,7 @@ func (controller *transactionEventsController) extractEventsClaimDeveloperReward
 
 	for _, event := range rawEvents {
 		numTopics := len(event.Topics)
-		if numTopics != 2 {
+		if numTopics != numTopicsOfEventClaimDeveloperRewards {
 			return nil, fmt.Errorf("%w: bad number of topics for %s event = %d", errCannotRecognizeEvent, transactionEventClaimDeveloperRewards, numTopics)
 		}
 
