@@ -13,8 +13,9 @@ from multiversx_sdk import (Address, AddressComputer, Mnemonic,  # type: ignore
 
 from systemtests.config import CONFIGURATIONS, Configuration
 
-CONTRACT_PATH_ADDER = Path(__file__).parent / "adder.wasm"
-CONTRACT_PATH_DUMMY = Path(__file__).parent / "dummy.wasm"
+CONTRACT_PATH_ADDER = Path(__file__).parent / "contracts" / "adder.wasm"
+CONTRACT_PATH_DUMMY = Path(__file__).parent / "contracts" / "dummy.wasm"
+CONTRACT_PATH_DEVELOPER_REWARDS = Path(__file__).parent / "contracts" / "developer_rewards.wasm"
 
 
 def main():
