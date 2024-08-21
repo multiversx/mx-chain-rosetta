@@ -263,6 +263,31 @@ func (controller *transactionEventsController) extractEventsESDTNFTAddQuantity(t
 	return typedEvents, nil
 }
 
+func (controller *transactionEventsController) extractEventsClaimDeveloperRewards(tx *transaction.ApiTransactionResult) ([]*eventClaimDeveloperRewards, error) {
+	rawEvents := controller.findManyEventsByIdentifier(tx, transactionEventClaimDeveloperRewards)
+	typedEvents := make([]*eventClaimDeveloperRewards, 0, len(rawEvents))
+
+	for _, event := range rawEvents {
+		numTopics := len(event.Topics)
+		if numTopics != numTopicsOfEventClaimDeveloperRewards {
+			return nil, fmt.Errorf("%w: bad number of topics for %s event = %d", errCannotRecognizeEvent, transactionEventClaimDeveloperRewards, numTopics)
+		}
+
+		valueBytes := event.Topics[0]
+		receiverPubkey := event.Topics[1]
+
+		value := big.NewInt(0).SetBytes(valueBytes)
+		receiver := controller.provider.ConvertPubKeyToAddress(receiverPubkey)
+
+		typedEvents = append(typedEvents, &eventClaimDeveloperRewards{
+			value:           value.String(),
+			receiverAddress: receiver,
+		})
+	}
+
+	return typedEvents, nil
+}
+
 func (controller *transactionEventsController) findManyEventsByIdentifier(tx *transaction.ApiTransactionResult, identifier string) []*transaction.Events {
 	events := make([]*transaction.Events, 0)
 

@@ -1,8 +1,6 @@
 package services
 
 import (
-	"bytes"
-
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
 )
 
@@ -23,23 +21,37 @@ func (detector *transactionsFeaturesDetector) doesContractResultHoldRewardsOfCla
 	contractResult *transaction.ApiTransactionResult,
 	allTransactionsInBlock []*transaction.ApiTransactionResult,
 ) bool {
-	claimDeveloperRewardsTxs := make(map[string]struct{})
+	hasData := len(contractResult.Data) > 0
+	hasNonZeroNonce := contractResult.Nonce > 0
+	if hasData || hasNonZeroNonce {
+		return false
+	}
 
 	for _, tx := range allTransactionsInBlock {
 		matchesTypeOnSource := tx.ProcessingTypeOnSource == transactionProcessingTypeBuiltInFunctionCall
-		matchesTypeOnDestination := tx.ProcessingTypeOnDestination == transactionProcessingTypeBuiltInFunctionCall
-		matchesData := bytes.Equal(tx.Data, []byte(builtInFunctionClaimDeveloperRewards))
-
-		if matchesTypeOnSource && matchesTypeOnDestination && matchesData {
-			claimDeveloperRewardsTxs[tx.Hash] = struct{}{}
+		if !matchesTypeOnSource {
+			continue
 		}
+
+		matchesTypeOnDestination := tx.ProcessingTypeOnDestination == transactionProcessingTypeBuiltInFunctionCall
+		if !matchesTypeOnDestination {
+			continue
+		}
+
+		matchesOperation := tx.Operation == builtInFunctionClaimDeveloperRewards
+		if !matchesOperation {
+			continue
+		}
+
+		matchesOriginalTransactionHash := tx.Hash == contractResult.OriginalTransactionHash
+		if !matchesOriginalTransactionHash {
+			continue
+		}
+
+		return true
 	}
 
-	_, isResultOfClaimDeveloperRewards := claimDeveloperRewardsTxs[contractResult.OriginalTransactionHash]
-	hasNoData := len(contractResult.Data) == 0
-	hasZeroNonce := contractResult.Nonce == 0
-
-	return isResultOfClaimDeveloperRewards && hasNoData && hasZeroNonce
+	return false
 }
 
 // isInvalidTransactionOfTypeMoveBalanceThatOnlyConsumesDataMovementGas detects (intra-shard) invalid transactions

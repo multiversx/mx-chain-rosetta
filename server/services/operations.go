@@ -12,6 +12,7 @@ const (
 	opScResult                   = "SmartContractResult"
 	opFeeRefundAsScResult        = "FeeRefundAsSmartContractResult"
 	opDeveloperRewardsAsScResult = "DeveloperRewardsAsSmartContractResult"
+	opDeveloperRewards           = "DeveloperRewards"
 	opFeeOfInvalidTx             = "FeeOfInvalidTransaction"
 	opFeeRefund                  = "FeeRefund"
 	opCustomTransfer             = "CustomTransfer"
@@ -27,6 +28,7 @@ var (
 		opScResult,
 		opFeeRefundAsScResult,
 		opDeveloperRewardsAsScResult,
+		opDeveloperRewards,
 		opFeeOfInvalidTx,
 		opFeeRefund,
 		opCustomTransfer,

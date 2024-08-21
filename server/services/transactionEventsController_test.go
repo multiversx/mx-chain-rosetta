@@ -281,4 +281,29 @@ func TestTransactionEventsController_ExtractEvents(t *testing.T) {
 		require.Equal(t, []byte{0x2a}, events[0].nonceAsBytes)
 		require.Equal(t, "100", events[0].value)
 	})
+
+	t.Run("ClaimDeveloperRewards", func(t *testing.T) {
+		topic0 := []byte{0x64}
+		topic1, _ := hex.DecodeString("5cf4abc83e50c5309d807fc3f676988759a1e301001bc9a0265804f42af806b8")
+
+		tx := &transaction.ApiTransactionResult{
+			Logs: &transaction.ApiLogs{
+				Events: []*transaction.Events{
+					{
+						Identifier: "ClaimDeveloperRewards",
+						Topics: [][]byte{
+							topic0,
+							topic1,
+						},
+					},
+				},
+			},
+		}
+
+		events, err := controller.extractEventsClaimDeveloperRewards(tx)
+		require.NoError(t, err)
+		require.Len(t, events, 1)
+		require.Equal(t, "100", events[0].value)
+		require.Equal(t, "erd1tn62hjp72rznp8vq0lplva5csav6rccpqqdungpxtqz0g2hcq6uq9k4cc6", events[0].receiverAddress)
+	})
 }
