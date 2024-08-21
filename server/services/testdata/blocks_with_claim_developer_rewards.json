@@ -1,0 +1,77 @@
+[
+    {
+        "comment": "block with claim developer rewards",
+        "miniBlocks": [
+            {
+                "transactions": [
+                    {
+                        "type": "normal",
+                        "processingTypeOnSource": "BuiltInFunctionCall",
+                        "processingTypeOnDestination": "BuiltInFunctionCall",
+                        "hash": "96b1a0533ff17df3d1777889117023d0b178cc80fa72535d1b8ec1a13bcf3a75",
+                        "epoch": 20,
+                        "value": "0",
+                        "receiver": "erd1qqqqqqqqqqqqqpgqagjekf5mxv86hy5c62vvtug5vc6jmgcsq6uq8reras",
+                        "sender": "erd1tn62hjp72rznp8vq0lplva5csav6rccpqqdungpxtqz0g2hcq6uq9k4cc6",
+                        "data": "Q2xhaW1EZXZlbG9wZXJSZXdhcmRz",
+                        "signature": "132aa54ec093c21e2d0d447bf9a9b1da5c33d4120da66fb53dbc78d1d3d007e2314fa06348302f503e96a91b697dd943189df0ad4c3750416a704de2ac007e06",
+                        "sourceShard": 0,
+                        "destinationShard": 0,
+                        "logs": {
+                            "address": "erd1qqqqqqqqqqqqqpgqagjekf5mxv86hy5c62vvtug5vc6jmgcsq6uq8reras",
+                            "events": [
+                                {
+                                    "address": "erd1qqqqqqqqqqqqqpgqagjekf5mxv86hy5c62vvtug5vc6jmgcsq6uq8reras",
+                                    "identifier": "completedTxEvent",
+                                    "topics": [
+                                        "lrGgUz/xffPRd3iJEXAj0LF4zID6clNdG47BoTvPOnU="
+                                    ],
+                                    "data": null,
+                                    "additionalData": null
+                                }
+                            ]
+                        },
+                        "operation": "ClaimDeveloperRewards",
+                        "initiallyPaidFee": "160685000000000"
+                    }
+                ]
+            },
+            {
+                "transactions": [
+                    {
+                        "type": "unsigned",
+                        "processingTypeOnSource": "MoveBalance",
+                        "processingTypeOnDestination": "MoveBalance",
+                        "hash": "d05c5f65f564d740aa1e81f7a96581d739783a43c232a6c86112afa1e6c318c4",
+                        "epoch": 20,
+                        "value": "1774725000000",
+                        "receiver": "erd1tn62hjp72rznp8vq0lplva5csav6rccpqqdungpxtqz0g2hcq6uq9k4cc6",
+                        "sender": "erd1tn62hjp72rznp8vq0lplva5csav6rccpqqdungpxtqz0g2hcq6uq9k4cc6",
+                        "previousTransactionHash": "96b1a0533ff17df3d1777889117023d0b178cc80fa72535d1b8ec1a13bcf3a75",
+                        "originalTransactionHash": "96b1a0533ff17df3d1777889117023d0b178cc80fa72535d1b8ec1a13bcf3a75",
+                        "originalSender": "erd1tn62hjp72rznp8vq0lplva5csav6rccpqqdungpxtqz0g2hcq6uq9k4cc6",
+                        "sourceShard": 0,
+                        "destinationShard": 0
+                    },
+                    {
+                        "type": "unsigned",
+                        "processingTypeOnSource": "MoveBalance",
+                        "processingTypeOnDestination": "MoveBalance",
+                        "hash": "bc89442d5e77113f0b4e7383e5d078776fc6724690ba9f98d1704202c324e090",
+                        "epoch": 20,
+                        "value": "29185000000000",
+                        "receiver": "erd1tn62hjp72rznp8vq0lplva5csav6rccpqqdungpxtqz0g2hcq6uq9k4cc6",
+                        "sender": "erd1qqqqqqqqqqqqqpgqagjekf5mxv86hy5c62vvtug5vc6jmgcsq6uq8reras",
+                        "previousTransactionHash": "96b1a0533ff17df3d1777889117023d0b178cc80fa72535d1b8ec1a13bcf3a75",
+                        "originalTransactionHash": "96b1a0533ff17df3d1777889117023d0b178cc80fa72535d1b8ec1a13bcf3a75",
+                        "sourceShard": 0,
+                        "destinationShard": 0,
+                        "nonce": 29,
+                        "data": "QDZmNmI=",
+                        "isRefund": true
+                    }
+                ]
+            }
+        ]
+    }
+]

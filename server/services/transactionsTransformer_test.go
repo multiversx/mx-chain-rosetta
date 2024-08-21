@@ -988,6 +988,74 @@ func TestTransactionsTransformer_TransformBlockTxsHavingNFTBurn(t *testing.T) {
 	require.Equal(t, expectedNftBurnTx, txs[0])
 }
 
+func TestTransactionsTransformer_TransformBlockTxsHavingClaimDeveloperRewards(t *testing.T) {
+	networkProvider := testscommon.NewNetworkProviderMock()
+	networkProvider.MockObservedActualShard = 0
+	networkProvider.MockActivationEpochSpica = 42
+
+	extension := newNetworkProviderExtension(networkProvider)
+	transformer := newTransactionsTransformer(networkProvider)
+
+	blocks, err := readTestBlocks("testdata/blocks_with_claim_developer_rewards.json")
+	require.Nil(t, err)
+
+	t.Run("recover operations in legacy manner (without using events)", func(t *testing.T) {
+		txs, err := transformer.transformBlockTxs(blocks[0])
+		require.Nil(t, err)
+		require.Len(t, txs, 3)
+		require.Len(t, txs[0].Operations, 1)
+		require.Len(t, txs[1].Operations, 1)
+		require.Len(t, txs[2].Operations, 1)
+
+		expectedTx0 := &types.Transaction{
+			TransactionIdentifier: hashToTransactionIdentifier("96b1a0533ff17df3d1777889117023d0b178cc80fa72535d1b8ec1a13bcf3a75"),
+			Operations: []*types.Operation{
+				{
+					Type:                opFee,
+					OperationIdentifier: indexToOperationIdentifier(0),
+					Account:             addressToAccountIdentifier("erd1tn62hjp72rznp8vq0lplva5csav6rccpqqdungpxtqz0g2hcq6uq9k4cc6"),
+					Amount:              extension.valueToNativeAmount("-160685000000000"),
+					Status:              &opStatusSuccess,
+				},
+			},
+			Metadata: extractTransactionMetadata(blocks[0].MiniBlocks[0].Transactions[0]),
+		}
+
+		require.Equal(t, expectedTx0, txs[0])
+
+		expectedTx1 := &types.Transaction{
+			TransactionIdentifier: hashToTransactionIdentifier("d05c5f65f564d740aa1e81f7a96581d739783a43c232a6c86112afa1e6c318c4"),
+			Operations: []*types.Operation{
+				{
+					Type:                opDeveloperRewardsAsScResult,
+					OperationIdentifier: indexToOperationIdentifier(0),
+					Account:             addressToAccountIdentifier("erd1tn62hjp72rznp8vq0lplva5csav6rccpqqdungpxtqz0g2hcq6uq9k4cc6"),
+					Amount:              extension.valueToNativeAmount("1774725000000"),
+					Status:              &opStatusSuccess,
+				},
+			},
+		}
+
+		require.Equal(t, expectedTx1, txs[1])
+
+		// Fee refund
+		expectedTx2 := &types.Transaction{
+			TransactionIdentifier: hashToTransactionIdentifier("bc89442d5e77113f0b4e7383e5d078776fc6724690ba9f98d1704202c324e090"),
+			Operations: []*types.Operation{
+				{
+					Type:                opFeeRefundAsScResult,
+					OperationIdentifier: indexToOperationIdentifier(0),
+					Account:             addressToAccountIdentifier("erd1tn62hjp72rznp8vq0lplva5csav6rccpqqdungpxtqz0g2hcq6uq9k4cc6"),
+					Amount:              extension.valueToNativeAmount("29185000000000"),
+					Status:              &opStatusSuccess,
+				},
+			},
+		}
+
+		require.Equal(t, expectedTx2, txs[2])
+	})
+}
+
 func readTestBlocks(filePath string) ([]*api.Block, error) {
 	var blocks []*api.Block
 
