@@ -2,6 +2,7 @@ package services
 
 import (
 	"fmt"
+	"math/big"
 	"strings"
 
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
