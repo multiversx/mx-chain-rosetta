@@ -57,11 +57,12 @@ def run_rosetta(configuration: Configuration):
     """
 
     current_epoch = get_current_epoch(configuration)
+    observer_url = configuration.observer_url or constants.URL_OBSERVER_SURROGATE
 
     command = [
         str(constants.PATH_ROSETTA),
         f"--port={constants.PORT_ROSETTA}",
-        f"--observer-http-url={constants.URL_OBSERVER_SURROGATE}",
+        f"--observer-http-url={observer_url}",
         f"--observer-actual-shard={configuration.network_shard}",
         f"--network-id={configuration.network_id}",
         f"--network-name={configuration.network_name}",

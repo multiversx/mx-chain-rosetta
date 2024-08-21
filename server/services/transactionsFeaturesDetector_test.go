@@ -131,3 +131,107 @@ func TestTransactionsFeaturesDetector_isRelayedV1TransactionCompletelyIntrashard
 		require.True(t, featureDetected)
 	})
 }
+
+func TestTransactionsFeatureDetector_isContractDeploymentWithSignalErrorOrIntrashardContractCallWithSignalError(t *testing.T) {
+	networkProvider := testscommon.NewNetworkProviderMock()
+	detector := newTransactionsFeaturesDetector(networkProvider)
+
+	t.Run("contract deployment, with signal error", func(t *testing.T) {
+		tx := &transaction.ApiTransactionResult{
+			ProcessingTypeOnSource:      transactionProcessingTypeContractDeployment,
+			ProcessingTypeOnDestination: transactionProcessingTypeContractDeployment,
+			Logs: &transaction.ApiLogs{
+				Events: []*transaction.Events{
+					{
+						Identifier: transactionEventSignalError,
+					},
+				},
+			},
+		}
+
+		require.True(t, detector.isContractDeploymentWithSignalErrorOrIntrashardContractCallWithSignalError(tx))
+	})
+
+	t.Run("contract deployment, without signal error", func(t *testing.T) {
+		tx := &transaction.ApiTransactionResult{
+			ProcessingTypeOnSource:      transactionProcessingTypeContractDeployment,
+			ProcessingTypeOnDestination: transactionProcessingTypeContractDeployment,
+		}
+
+		require.False(t, detector.isContractDeploymentWithSignalErrorOrIntrashardContractCallWithSignalError(tx))
+	})
+
+	t.Run("contract call, with signal error, intra-shard", func(t *testing.T) {
+		tx := &transaction.ApiTransactionResult{
+			ProcessingTypeOnSource:      transactionProcessingTypeContractInvoking,
+			ProcessingTypeOnDestination: transactionProcessingTypeContractInvoking,
+			SourceShard:                 2,
+			DestinationShard:            2,
+			Logs: &transaction.ApiLogs{
+				Events: []*transaction.Events{
+					{
+						Identifier: transactionEventSignalError,
+					},
+				},
+			},
+		}
+
+		require.True(t, detector.isContractDeploymentWithSignalErrorOrIntrashardContractCallWithSignalError(tx))
+	})
+
+	t.Run("contract call, with signal error, cross-shard", func(t *testing.T) {
+		tx := &transaction.ApiTransactionResult{
+			ProcessingTypeOnSource:      transactionProcessingTypeContractInvoking,
+			ProcessingTypeOnDestination: transactionProcessingTypeContractInvoking,
+			SourceShard:                 0,
+			DestinationShard:            1,
+			Logs: &transaction.ApiLogs{
+				Events: []*transaction.Events{
+					{
+						Identifier: transactionEventSignalError,
+					},
+				},
+			},
+		}
+
+		require.False(t, detector.isContractDeploymentWithSignalErrorOrIntrashardContractCallWithSignalError(tx))
+	})
+
+	t.Run("contract call, without signal error", func(t *testing.T) {
+		tx := &transaction.ApiTransactionResult{
+			ProcessingTypeOnSource:      transactionProcessingTypeContractInvoking,
+			ProcessingTypeOnDestination: transactionProcessingTypeContractInvoking,
+		}
+
+		require.False(t, detector.isContractDeploymentWithSignalErrorOrIntrashardContractCallWithSignalError(tx))
+	})
+
+	t.Run("arbitrary transaction", func(t *testing.T) {
+		tx := &transaction.ApiTransactionResult{
+			ProcessingTypeOnSource:      transactionProcessingTypeMoveBalance,
+			ProcessingTypeOnDestination: transactionProcessingTypeMoveBalance,
+		}
+
+		require.False(t, detector.isContractDeploymentWithSignalErrorOrIntrashardContractCallWithSignalError(tx))
+	})
+}
+
+func TestTransactionsFeaturesDetector_isIntrashard(t *testing.T) {
+	networkProvider := testscommon.NewNetworkProviderMock()
+	detector := newTransactionsFeaturesDetector(networkProvider)
+
+	require.True(t, detector.isIntrashard(&transaction.ApiTransactionResult{
+		SourceShard:      0,
+		DestinationShard: 0,
+	}))
+
+	require.True(t, detector.isIntrashard(&transaction.ApiTransactionResult{
+		SourceShard:      1,
+		DestinationShard: 1,
+	}))
+
+	require.False(t, detector.isIntrashard(&transaction.ApiTransactionResult{
+		SourceShard:      0,
+		DestinationShard: 1,
+	}))
+}

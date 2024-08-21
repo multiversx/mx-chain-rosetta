@@ -1,0 +1,52 @@
+[
+    {
+        "comment": "block with intra-shard contract call, with move balance, with signal error",
+        "miniBlocks": [
+            {
+                "transactions": [
+                    {
+                        "type": "normal",
+                        "processingTypeOnSource": "SCInvoking",
+                        "processingTypeOnDestination": "SCInvoking",
+                        "hash": "9851ab6cb221bce5800030f9db2a5fbd8ed4a9db4c6f9d190c16113f2b080e57",
+                        "value": "10000000000000000",
+                        "receiver": "erd1qqqqqqqqqqqqqpgqagjekf5mxv86hy5c62vvtug5vc6jmgcsq6uq8reras",
+                        "sender": "erd1tn62hjp72rznp8vq0lplva5csav6rccpqqdungpxtqz0g2hcq6uq9k4cc6",
+                        "sourceShard": 0,
+                        "destinationShard": 0,
+                        "logs": {
+                            "address": "erd1qqqqqqqqqqqqqpgqagjekf5mxv86hy5c62vvtug5vc6jmgcsq6uq8reras",
+                            "events": [
+                                {
+                                    "address": "erd1qqqqqqqqqqqqqpgqagjekf5mxv86hy5c62vvtug5vc6jmgcsq6uq8reras",
+                                    "identifier": "signalError",
+                                    "topics": [
+                                        "XPSryD5QxTCdgH/D9naYh1mh4wEAG8mgJlgE9Cr4Brg=",
+                                        "aW52YWxpZCBmdW5jdGlvbiAobm90IGZvdW5kKQ=="
+                                    ],
+                                    "data": "QDY2NzU2ZTYzNzQ2OTZmNmUyMDZlNmY3NDIwNjY2Zjc1NmU2NA==",
+                                    "additionalData": [
+                                        "QDY2NzU2ZTYzNzQ2OTZmNmUyMDZlNmY3NDIwNjY2Zjc1NmU2NA=="
+                                    ]
+                                },
+                                {
+                                    "address": "erd1tn62hjp72rznp8vq0lplva5csav6rccpqqdungpxtqz0g2hcq6uq9k4cc6",
+                                    "identifier": "internalVMErrors",
+                                    "topics": [
+                                        "AAAAAAAAAAAFAOolmyabMw+rkpjSmMXxFGY1LaMQBrg=",
+                                        "bWlzc2luZ0Z1bmN0aW9u"
+                                    ],
+                                    "data": "CglydW50aW1lLmdvOjgzMSBbaW52YWxpZCBmdW5jdGlvbiAobm90IGZvdW5kKV0gW21pc3NpbmdGdW5jdGlvbl0=",
+                                    "additionalData": [
+                                        "CglydW50aW1lLmdvOjgzMSBbaW52YWxpZCBmdW5jdGlvbiAobm90IGZvdW5kKV0gW21pc3NpbmdGdW5jdGlvbl0="
+                                    ]
+                                }
+                            ]
+                        },
+                        "initiallyPaidFee": "144050000000000"
+                    }
+                ]
+            }
+        ]
+    }
+]
