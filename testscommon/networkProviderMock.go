@@ -31,6 +31,7 @@ type networkProviderMock struct {
 	MockCustomCurrencies            []resources.Currency
 	MockGenesisBlockHash            string
 	MockGenesisTimestamp            int64
+	MockActivationEpochSpica        uint32
 	MockNetworkConfig               *resources.NetworkConfig
 	MockGenesisBalances             []*resources.GenesisBalance
 	MockNodeStatus                  *resources.AggregatedNodeStatus
@@ -361,4 +362,9 @@ func (mock *networkProviderMock) GetMempoolTransactionByHash(hash string) (*tran
 	}
 
 	return nil, nil
+}
+
+// IsReleaseSpicaActive -
+func (mock *networkProviderMock) IsReleaseSpicaActive(epoch uint32) bool {
+	return epoch >= mock.MockActivationEpochSpica
 }

@@ -138,7 +138,7 @@ func (transformer *transactionsTransformer) unsignedTxToRosettaTx(
 		}
 	}
 
-	if !areClaimDeveloperRewardsEventsEnabled(scr.BlockNonce) {
+	if !transformer.areClaimDeveloperRewardsEventsEnabled(scr.Epoch) {
 		// Handle developer rewards in a legacy manner (without looking at events / logs)
 		if transformer.featuresDetector.doesContractResultHoldRewardsOfClaimDeveloperRewards(scr, txsInBlock) {
 			return &types.Transaction{
@@ -561,11 +561,11 @@ func (transformer *transactionsTransformer) addOperationsGivenTransactionEvents(
 		rosettaTx.Operations = append(rosettaTx.Operations, operations...)
 	}
 
-	if areClaimDeveloperRewardsEventsEnabled(tx.BlockNonce) {
+	if transformer.areClaimDeveloperRewardsEventsEnabled(tx.Epoch) {
 		for _, event := range eventsClaimDeveloperRewards {
 			operations := []*types.Operation{
 				{
-					Type:    opDeveloperRewardsAsScResult,
+					Type:    opDeveloperRewards,
 					Account: addressToAccountIdentifier(event.receiverAddress),
 					Amount:  transformer.extension.valueToNativeAmount(event.value),
 				},
@@ -611,4 +611,8 @@ func (transformer *transactionsTransformer) extractOperationsFromEventESDT(event
 	}
 
 	return make([]*types.Operation, 0)
+}
+
+func (transformer *transactionsTransformer) areClaimDeveloperRewardsEventsEnabled(epoch uint32) bool {
+	return transformer.provider.IsReleaseSpicaActive(epoch)
 }

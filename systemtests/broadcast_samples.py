@@ -175,6 +175,11 @@ def main():
             amount=77
         ))
 
+        controller.send(controller.create_claim_developer_rewards_on_directly_owned_contract(
+            sender=accounts.get_user(shard=0, index=0),
+            contract=accounts.contracts_by_shard[0][0],
+        ))
+
 
 class BunchOfAccounts:
     def __init__(self, configuration: Configuration) -> None:
@@ -420,6 +425,16 @@ class Controller:
             gas_limit=5000000,
             arguments=[1, 2, 3, 4, 5],
             native_transfer_amount=amount
+        )
+
+        return transaction
+
+    def create_claim_developer_rewards_on_directly_owned_contract(self, sender: "Account", contract: Address) -> Transaction:
+        transaction = self.contracts_transactions_factory.create_transaction_for_execute(
+            sender=sender.address,
+            contract=contract,
+            function="ClaimDeveloperRewards",
+            gas_limit=8000000,
         )
 
         return transaction

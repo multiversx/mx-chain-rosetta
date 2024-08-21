@@ -82,6 +82,7 @@ func startRosetta(ctx *cli.Context) error {
 		FirstHistoricalEpoch:        cliFlags.firstHistoricalEpoch,
 		NumHistoricalEpochs:         cliFlags.numHistoricalEpochs,
 		ShouldHandleContracts:       cliFlags.shouldHandleContracts,
+		ActivationEpochSpica:        cliFlags.activationEpochSpica,
 	})
 	if err != nil {
 		return err

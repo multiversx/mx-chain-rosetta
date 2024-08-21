@@ -1,6 +1,8 @@
 package main
 
 import (
+	"math"
+
 	logger "github.com/multiversx/mx-chain-logger-go"
 	"github.com/urfave/cli"
 )
@@ -167,10 +169,11 @@ VERSION:
 		Required: false,
 	}
 
-	cliFlagConfigFileNodeFeatures = cli.StringFlag{
-		Name:     "config-node-features",
-		Usage:    "Specifies the configuration file for features activation on Node's side.",
+	cliFlagActivationEpochSpica = cli.UintFlag{
+		Name:     "activation-epoch-spica",
+		Usage:    "Specifies the activation epoch for Spica release.",
 		Required: false,
+		Value:    math.MaxUint32,
 	}
 )
 
@@ -200,7 +203,7 @@ func getAllCliFlags() []cli.Flag {
 		cliFlagNumHistoricalEpochs,
 		cliFlagShouldHandleContracts,
 		cliFlagConfigFileCustomCurrencies,
-		cliFlagConfigFileNodeFeatures,
+		cliFlagActivationEpochSpica,
 	}
 }
 
@@ -230,7 +233,7 @@ type parsedCliFlags struct {
 	numHistoricalEpochs         uint32
 	shouldHandleContracts       bool
 	configFileCustomCurrencies  string
-	configFileNodeFeatures      string
+	activationEpochSpica        uint32
 }
 
 func getParsedCliFlags(ctx *cli.Context) parsedCliFlags {
@@ -260,6 +263,6 @@ func getParsedCliFlags(ctx *cli.Context) parsedCliFlags {
 		numHistoricalEpochs:         uint32(ctx.GlobalUint(cliFlagNumHistoricalEpochs.Name)),
 		shouldHandleContracts:       ctx.GlobalBool(cliFlagShouldHandleContracts.Name),
 		configFileCustomCurrencies:  ctx.GlobalString(cliFlagConfigFileCustomCurrencies.Name),
-		configFileNodeFeatures:      ctx.GlobalString(cliFlagConfigFileNodeFeatures.Name),
+		activationEpochSpica:        uint32(ctx.GlobalUint(cliFlagActivationEpochSpica.Name)),
 	}
 }
