@@ -57,4 +57,5 @@ var (
 	numTopicsOfEventESDTNFTBurn                     = 3
 	numTopicsOfEventESDTNFTAddQuantity              = 3
 	numTopicsOfEventSCDeployBeforeSirius            = 2
+	numTopicsOfEventClaimDeveloperRewards           = 2
 )
