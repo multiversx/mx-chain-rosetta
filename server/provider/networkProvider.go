@@ -470,7 +470,7 @@ func (provider *networkProvider) ComputeTransactionFeeForMoveBalance(tx *transac
 
 // IsReleaseSiriusActive returns whether the Sirius release is active in the provided epoch
 func (provider *networkProvider) IsReleaseSiriusActive(epoch uint32) bool {
-	return epoch < provider.activationEpochSpica
+	return epoch >= provider.activationEpochSirius
 }
 
 // IsReleaseSpicaActive returns whether the Spica release is active in the provided epoch

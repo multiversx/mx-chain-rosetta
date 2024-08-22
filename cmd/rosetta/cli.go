@@ -170,7 +170,7 @@ VERSION:
 	}
 
 	cliFlagActivationEpochSirius = cli.UintFlag{
-		Name:     "activation-epoch-spica",
+		Name:     "activation-epoch-sirius",
 		Usage:    "Specifies the activation epoch for Sirius release.",
 		Required: false,
 		Value:    1265,
