@@ -19,6 +19,8 @@ func TestTransactionsTransformer_NormalTxToRosettaTx(t *testing.T) {
 	extension := newNetworkProviderExtension(networkProvider)
 	transformer := newTransactionsTransformer(networkProvider)
 
+	networkProvider.MockActivationEpochSirius = 42
+
 	t.Run("move balance tx", func(t *testing.T) {
 		tx := &transaction.ApiTransactionResult{
 			Hash:             "aaaa",
@@ -55,8 +57,9 @@ func TestTransactionsTransformer_NormalTxToRosettaTx(t *testing.T) {
 		require.Equal(t, expectedRosettaTx, rosettaTx)
 	})
 
-	t.Run("relayed tx, completely intrashard, with signal error", func(t *testing.T) {
+	t.Run("relayed tx, completely intrashard, with signal error (before Sirius)", func(t *testing.T) {
 		tx := &transaction.ApiTransactionResult{
+			Epoch:                       41,
 			Type:                        string(transaction.TxTypeNormal),
 			ProcessingTypeOnSource:      transactionProcessingTypeRelayedV1,
 			ProcessingTypeOnDestination: transactionProcessingTypeRelayedV1,
@@ -90,6 +93,51 @@ func TestTransactionsTransformer_NormalTxToRosettaTx(t *testing.T) {
 					Account: addressToAccountIdentifier(testscommon.TestUserCShard0.Address),
 					Amount:  extension.valueToNativeAmount("-1000000000000000000"),
 				},
+				{
+					Type:    opTransfer,
+					Account: addressToAccountIdentifier(testscommon.TestAddressOfContract),
+					Amount:  extension.valueToNativeAmount("1000000000000000000"),
+				},
+			},
+			Metadata: extractTransactionMetadata(tx),
+		}
+
+		rosettaTx, err := transformer.normalTxToRosetta(tx)
+		require.NoError(t, err)
+		require.Equal(t, expectedRosettaTx, rosettaTx)
+	})
+
+	t.Run("relayed tx, completely intrashard, with signal error (after Sirius)", func(t *testing.T) {
+		tx := &transaction.ApiTransactionResult{
+			Epoch:                       43,
+			Type:                        string(transaction.TxTypeNormal),
+			ProcessingTypeOnSource:      transactionProcessingTypeRelayedV1,
+			ProcessingTypeOnDestination: transactionProcessingTypeRelayedV1,
+			Hash:                        "aaaa",
+			Sender:                      testscommon.TestUserAShard0.Address,
+			Receiver:                    testscommon.TestUserBShard0.Address,
+			SourceShard:                 0,
+			DestinationShard:            0,
+			InitiallyPaidFee:            "50000000000000",
+			// Has non-zero value
+			Data: []byte("relayedTx@7b226e6f6e6365223a372c2273656e646572223a226e69424758747949504349644a78793373796c6c455a474c78506a503148734a45646e43732b6d726577413d222c227265636569766572223a224141414141414141414141464145356c3079623173734a3933504433672f4b396f48384579366d576958513d222c2276616c7565223a313030303030303030303030303030303030302c226761735072696365223a313030303030303030302c226761734c696d6974223a35303030302c2264617461223a22222c227369676e6174757265223a226e6830743338585a77614b6a725878446969716f6d364d6a5671724d612f6b70767474696a33692b5a6d43492f3778626830596762363548424151445744396f7036575567674541755430756e5253595736455341413d3d222c22636861696e4944223a224d513d3d222c2276657273696f6e223a327d"),
+			Logs: &transaction.ApiLogs{
+				Events: []*transaction.Events{
+					{
+						Identifier: transactionEventSignalError,
+					},
+				},
+			},
+		}
+
+		expectedRosettaTx := &types.Transaction{
+			TransactionIdentifier: hashToTransactionIdentifier("aaaa"),
+			Operations: []*types.Operation{
+				{
+					Type:    opFee,
+					Account: addressToAccountIdentifier(testscommon.TestUserAShard0.Address),
+					Amount:  extension.valueToNativeAmount("-50000000000000"),
+				},
 			},
 			Metadata: extractTransactionMetadata(tx),
 		}
@@ -105,12 +153,14 @@ func TestTransactionsTransformer_ExtractInnerTxOperationsIfRelayedCompletelyIntr
 	extension := newNetworkProviderExtension(networkProvider)
 	transformer := newTransactionsTransformer(networkProvider)
 
+	networkProvider.MockActivationEpochSirius = 42
+
 	t.Run("non-relayed tx", func(t *testing.T) {
 		tx := &transaction.ApiTransactionResult{
 			Type: string(transaction.TxTypeNormal),
 		}
 
-		operations, err := transformer.extractInnerTxOperationsIfRelayedCompletelyIntrashardWithSignalError(tx)
+		operations, err := transformer.extractInnerTxOperationsIfBeforeSiriusRelayedCompletelyIntrashardWithSignalError(tx)
 		require.NoError(t, err)
 		require.Len(t, operations, 0)
 	})
@@ -123,7 +173,7 @@ func TestTransactionsTransformer_ExtractInnerTxOperationsIfRelayedCompletelyIntr
 			Data:                        []byte("bad"),
 		}
 
-		operations, err := transformer.extractInnerTxOperationsIfRelayedCompletelyIntrashardWithSignalError(tx)
+		operations, err := transformer.extractInnerTxOperationsIfBeforeSiriusRelayedCompletelyIntrashardWithSignalError(tx)
 		require.ErrorIs(t, err, errCannotParseRelayedV1)
 		require.Empty(t, operations)
 	})
@@ -145,13 +195,18 @@ func TestTransactionsTransformer_ExtractInnerTxOperationsIfRelayedCompletelyIntr
 			},
 		}
 
-		operations, err := transformer.extractInnerTxOperationsIfRelayedCompletelyIntrashardWithSignalError(tx)
+		operations, err := transformer.extractInnerTxOperationsIfBeforeSiriusRelayedCompletelyIntrashardWithSignalError(tx)
 		require.NoError(t, err)
 		require.Equal(t, []*types.Operation{
 			{
 				Type:    opTransfer,
 				Account: addressToAccountIdentifier(testscommon.TestUserCShard0.Address),
 				Amount:  extension.valueToNativeAmount("-1000000000000000000"),
+			},
+			{
+				Type:    opTransfer,
+				Account: addressToAccountIdentifier(testscommon.TestAddressOfContract),
+				Amount:  extension.valueToNativeAmount("1000000000000000000"),
 			},
 		}, operations)
 	})
@@ -173,7 +228,7 @@ func TestTransactionsTransformer_ExtractInnerTxOperationsIfRelayedCompletelyIntr
 			},
 		}
 
-		operations, err := transformer.extractInnerTxOperationsIfRelayedCompletelyIntrashardWithSignalError(tx)
+		operations, err := transformer.extractInnerTxOperationsIfBeforeSiriusRelayedCompletelyIntrashardWithSignalError(tx)
 		require.NoError(t, err)
 		require.Len(t, operations, 0)
 	})
