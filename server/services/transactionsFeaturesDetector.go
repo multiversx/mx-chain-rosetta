@@ -5,14 +5,16 @@ import (
 )
 
 type transactionsFeaturesDetector struct {
-	networkProvider  NetworkProvider
-	eventsController *transactionEventsController
+	networkProvider          NetworkProvider
+	networkProviderExtension *networkProviderExtension
+	eventsController         *transactionEventsController
 }
 
 func newTransactionsFeaturesDetector(provider NetworkProvider) *transactionsFeaturesDetector {
 	return &transactionsFeaturesDetector{
-		networkProvider:  provider,
-		eventsController: newTransactionEventsController(provider),
+		networkProvider:          provider,
+		networkProviderExtension: newNetworkProviderExtension(provider),
+		eventsController:         newTransactionEventsController(provider),
 	}
 }
 
@@ -105,4 +107,10 @@ func (detector *transactionsFeaturesDetector) isContractCallWithSignalError(tx *
 
 func (detector *transactionsFeaturesDetector) isIntrashard(tx *transaction.ApiTransactionResult) bool {
 	return tx.SourceShard == tx.DestinationShard
+}
+
+// isSmartContractResultIneffectiveRefund detects smart contract results that are ineffective refunds.
+// Also see: https://console.cloud.google.com/bigquery?sq=667383445384:de7a5f3f172f4b50a9aaed353ef79839
+func (detector *transactionsFeaturesDetector) isSmartContractResultIneffectiveRefund(scr *transaction.ApiTransactionResult) bool {
+	return scr.IsRefund && scr.Sender == scr.Receiver && detector.networkProviderExtension.isContractAddress(scr.Sender)
 }
