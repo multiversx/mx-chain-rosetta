@@ -182,6 +182,9 @@ def main():
             contract=accounts.contracts_by_shard[0][0],
         ))
 
+        # TODO: claim developer rewards with parent-child contracts
+        # TODO: claim developer rewards on directly owned contracts, cross shard (use change owner address).
+
         print("Intra-shard, relayed v1 transaction with contract call with MoveBalance, with signal error")
         controller.send(controller.create_relayed_v1_with_contract_call_with_move_balance_with_signal_error(
             relayer=accounts.get_user(shard=0, index=0),
