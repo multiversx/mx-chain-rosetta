@@ -31,7 +31,7 @@ def main():
     controller = Controller(configuration, accounts)
 
     if mode == "setup":
-        # controller.send_multiple(controller.create_airdrops())
+        controller.send_multiple(controller.create_airdrops())
         controller.send_multiple(controller.create_contract_deployments())
     elif mode == "run":
         print("Intra-shard, simple MoveBalance with refund")
@@ -176,9 +176,18 @@ def main():
             amount=77
         ))
 
+        print("ClaimDeveloperRewards on directly owned contract")
         controller.send(controller.create_claim_developer_rewards_on_directly_owned_contract(
             sender=accounts.get_user(shard=0, index=0),
             contract=accounts.contracts_by_shard[0][0],
+        ))
+
+        print("Intra-shard, relayed v1 transaction with contract call with MoveBalance, with signal error")
+        controller.send(controller.create_relayed_v1_with_contract_call_with_move_balance_with_signal_error(
+            relayer=accounts.get_user(shard=0, index=0),
+            sender=accounts.get_user(shard=0, index=1),
+            contract=accounts.contracts_by_shard[0][0],
+            amount=1
         ))
 
 
@@ -436,6 +445,26 @@ class Controller:
             contract=contract,
             function="ClaimDeveloperRewards",
             gas_limit=8000000,
+        )
+
+        return transaction
+
+    def create_relayed_v1_with_contract_call_with_move_balance_with_signal_error(self, relayer: "Account", sender: "Account", contract: Address, amount: int) -> Transaction:
+        inner_transaction = self.contracts_transactions_factory.create_transaction_for_execute(
+            sender=sender.address,
+            contract=contract,
+            function="add",
+            gas_limit=5000000,
+            arguments=[1, 2, 3, 4, 5],
+            native_transfer_amount=amount
+        )
+
+        self._apply_nonce(inner_transaction)
+        self._sign(inner_transaction)
+
+        transaction = self.relayed_transactions_factory.create_relayed_v1_transaction(
+            inner_transaction=inner_transaction,
+            relayer_address=relayer.address,
         )
 
         return transaction
