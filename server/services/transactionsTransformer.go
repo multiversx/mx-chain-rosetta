@@ -203,13 +203,9 @@ func (transformer *transactionsTransformer) normalTxToRosetta(tx *transaction.Ap
 		Amount:  transformer.extension.valueToNativeAmount("-" + tx.InitiallyPaidFee),
 	})
 
-	innerTxOperationsIfRelayedCompletelyIntrashardWithSignalError, err := transformer.extractInnerTxOperationsIfRelayedCompletelyIntrashardWithSignalError(tx)
+	innerTxOperationsIfRelayedCompletelyIntrashardWithSignalError, err := transformer.extractInnerTxOperationsIfBeforeSiriusRelayedCompletelyIntrashardWithSignalError(tx)
 	if err != nil {
 		return nil, err
-	}
-
-	if len(innerTxOperationsIfRelayedCompletelyIntrashardWithSignalError) > 0 {
-		log.Info("normalTxToRosetta(): innerTxOperationsIfRelayedCompletelyIntrashardWithSignalError", "tx", tx.Hash, "block", tx.BlockNonce)
 	}
 
 	operations = append(operations, innerTxOperationsIfRelayedCompletelyIntrashardWithSignalError...)
@@ -221,8 +217,19 @@ func (transformer *transactionsTransformer) normalTxToRosetta(tx *transaction.Ap
 	}, nil
 }
 
-// This only handles operations for the native balance.
-func (transformer *transactionsTransformer) extractInnerTxOperationsIfRelayedCompletelyIntrashardWithSignalError(tx *transaction.ApiTransactionResult) ([]*types.Operation, error) {
+// extractInnerTxOperationsIfBeforeSiriusRelayedCompletelyIntrashardWithSignalError recovers the inner transaction operations (native balance transfers)
+// for a transaction that is relayed and completely intrashard, and has a signal error, and was processed before the activation of Sirius features.
+// Before Sirius, such a transaction is accompanied by an SCR with the value refund, thus Rosetta has to recover the inner transaction operations, as well,
+// to show the complete picture (that the operations cancel each other out).
+// After Sirius, the protocol does not generate an SCR with the value refund for such transactions, so this workaround is not needed.
+// Additional references:
+// - https://github.com/multiversx/mx-chain-rosetta/pull/81/files
+// - https://console.cloud.google.com/bigquery?sq=667383445384:bfeb7de9aeec453192612ddc7fa9d94e
+func (transformer *transactionsTransformer) extractInnerTxOperationsIfBeforeSiriusRelayedCompletelyIntrashardWithSignalError(tx *transaction.ApiTransactionResult) ([]*types.Operation, error) {
+	if transformer.provider.IsReleaseSiriusActive(tx.Epoch) {
+		return []*types.Operation{}, nil
+	}
+
 	// Only relayed V1 is handled. Relayed V2 cannot bear native value in the inner transaction.
 	isRelayedTransaction := isRelayedV1Transaction(tx)
 	if !isRelayedTransaction {
@@ -242,13 +249,21 @@ func (transformer *transactionsTransformer) extractInnerTxOperationsIfRelayedCom
 		return []*types.Operation{}, nil
 	}
 
+	log.Info("extractInnerTxOperationsIfBeforeSiriusRelayedCompletelyIntrashardWithSignalError", "tx", tx.Hash)
+
 	senderAddress := transformer.provider.ConvertPubKeyToAddress(innerTx.SenderPubKey)
+	receiverAddress := transformer.provider.ConvertPubKeyToAddress(innerTx.ReceiverPubKey)
 
 	return []*types.Operation{
 		{
 			Type:    opTransfer,
 			Account: addressToAccountIdentifier(senderAddress),
 			Amount:  transformer.extension.valueToNativeAmount("-" + innerTx.Value.String()),
+		},
+		{
+			Type:    opTransfer,
+			Account: addressToAccountIdentifier(receiverAddress),
+			Amount:  transformer.extension.valueToNativeAmount(innerTx.Value.String()),
 		},
 	}, nil
 }

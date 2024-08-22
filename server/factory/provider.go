@@ -49,6 +49,7 @@ type ArgsCreateNetworkProvider struct {
 	FirstHistoricalEpoch        uint32
 	NumHistoricalEpochs         uint32
 	ShouldHandleContracts       bool
+	ActivationEpochSirius       uint32
 	ActivationEpochSpica        uint32
 }
 
@@ -141,6 +142,7 @@ func CreateNetworkProvider(args ArgsCreateNetworkProvider) (NetworkProvider, err
 		FirstHistoricalEpoch:        args.FirstHistoricalEpoch,
 		NumHistoricalEpochs:         args.NumHistoricalEpochs,
 		ShouldHandleContracts:       args.ShouldHandleContracts,
+		ActivationEpochSirius:       args.ActivationEpochSirius,
 		ActivationEpochSpica:        args.ActivationEpochSpica,
 
 		ObserverFacade: &components.ObserverFacade{
