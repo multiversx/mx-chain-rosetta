@@ -235,3 +235,26 @@ func TestTransactionsFeaturesDetector_isIntrashard(t *testing.T) {
 		DestinationShard: 1,
 	}))
 }
+
+func TestTransactionsFeaturesDetector_isSmartContractResultIneffectiveRefund(t *testing.T) {
+	networkProvider := testscommon.NewNetworkProviderMock()
+	detector := newTransactionsFeaturesDetector(networkProvider)
+
+	require.True(t, detector.isSmartContractResultIneffectiveRefund(&transaction.ApiTransactionResult{
+		Sender:   testscommon.TestAddressOfContract,
+		Receiver: testscommon.TestAddressOfContract,
+		IsRefund: true,
+	}))
+
+	require.False(t, detector.isSmartContractResultIneffectiveRefund(&transaction.ApiTransactionResult{
+		Sender:   testscommon.TestAddressOfContract,
+		Receiver: testscommon.TestAddressOfContract,
+		IsRefund: false,
+	}))
+
+	require.False(t, detector.isSmartContractResultIneffectiveRefund(&transaction.ApiTransactionResult{
+		Sender:   testscommon.TestAddressOfContract,
+		Receiver: testscommon.TestAddressAlice,
+		IsRefund: false,
+	}))
+}

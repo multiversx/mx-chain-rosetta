@@ -66,6 +66,7 @@ def run_rosetta(configuration: Configuration):
         f"--observer-actual-shard={configuration.network_shard}",
         f"--network-id={configuration.network_id}",
         f"--network-name={configuration.network_name}",
+        f"--handle-contracts",
         f"--native-currency={configuration.native_currency}",
         f"--config-custom-currencies={configuration.config_file_custom_currencies}",
         f"--first-historical-epoch={current_epoch}",

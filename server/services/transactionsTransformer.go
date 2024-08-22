@@ -116,16 +116,16 @@ func (transformer *transactionsTransformer) unsignedTxToRosettaTx(
 	scr *transaction.ApiTransactionResult,
 	txsInBlock []*transaction.ApiTransactionResult,
 ) *types.Transaction {
-	if scr.IsRefund {
-		if scr.Sender == scr.Receiver && !transformer.extension.isUserAddress(scr.Sender) {
-			log.Info("unsignedTxToRosettaTx: dismissed refund", "hash", scr.Hash, "originalTxHash", scr.OriginalTransactionHash)
+	if transformer.featuresDetector.isSmartContractResultIneffectiveRefund(scr) {
+		log.Info("unsignedTxToRosettaTx: ineffective refund", "hash", scr.Hash)
 
-			return &types.Transaction{
-				TransactionIdentifier: hashToTransactionIdentifier(scr.Hash),
-				Operations:            []*types.Operation{},
-			}
+		return &types.Transaction{
+			TransactionIdentifier: hashToTransactionIdentifier(scr.Hash),
+			Operations:            []*types.Operation{},
 		}
+	}
 
+	if scr.IsRefund {
 		return &types.Transaction{
 			TransactionIdentifier: hashToTransactionIdentifier(scr.Hash),
 			Operations: []*types.Operation{
