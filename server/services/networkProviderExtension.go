@@ -78,6 +78,10 @@ func (extension *networkProviderExtension) getGenesisBlockIdentifier() *types.Bl
 	return blockSummaryToIdentifier(summary)
 }
 
+func (extension *networkProviderExtension) isContractAddress(address string) bool {
+	return !extension.isUserAddress(address)
+}
+
 func (extension *networkProviderExtension) isUserAddress(address string) bool {
 	pubKey, err := extension.provider.ConvertAddressToPubKey(address)
 	if err != nil {

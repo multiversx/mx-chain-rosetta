@@ -239,55 +239,77 @@ func TestTransactionsTransformer_UnsignedTxToRosettaTx(t *testing.T) {
 	extension := newNetworkProviderExtension(networkProvider)
 	transformer := newTransactionsTransformer(networkProvider)
 
-	refundTx := &transaction.ApiTransactionResult{
-		Hash:     "aaaa",
-		Sender:   testscommon.TestAddressOfContract,
-		Receiver: testscommon.TestAddressAlice,
-		Value:    "1234",
-		IsRefund: true,
-	}
+	t.Run("refund SCR", func(t *testing.T) {
+		tx := &transaction.ApiTransactionResult{
+			Hash:     "aaaa",
+			Sender:   testscommon.TestAddressOfContract,
+			Receiver: testscommon.TestAddressAlice,
+			Value:    "1234",
+			IsRefund: true,
+		}
 
-	expectedRefundTx := &types.Transaction{
-		TransactionIdentifier: hashToTransactionIdentifier("aaaa"),
-		Operations: []*types.Operation{
-			{
-				Type:    opFeeRefundAsScResult,
-				Account: addressToAccountIdentifier(testscommon.TestAddressAlice),
-				Amount:  extension.valueToNativeAmount("1234"),
+		expectedTx := &types.Transaction{
+			TransactionIdentifier: hashToTransactionIdentifier("aaaa"),
+			Operations: []*types.Operation{
+				{
+					Type:    opFeeRefundAsScResult,
+					Account: addressToAccountIdentifier(testscommon.TestAddressAlice),
+					Amount:  extension.valueToNativeAmount("1234"),
+				},
 			},
-		},
-	}
+		}
 
-	moveBalanceTx := &transaction.ApiTransactionResult{
-		Hash:     "aaaa",
-		Sender:   testscommon.TestAddressOfContract,
-		Receiver: testscommon.TestAddressAlice,
-		Value:    "1234",
-	}
+		rosettaTx := transformer.unsignedTxToRosettaTx(tx, nil)
+		require.Equal(t, expectedTx, rosettaTx)
+	})
 
-	expectedMoveBalanceTx := &types.Transaction{
-		TransactionIdentifier: hashToTransactionIdentifier("aaaa"),
-		Operations: []*types.Operation{
-			{
-				Type:    opScResult,
-				Account: addressToAccountIdentifier(testscommon.TestAddressOfContract),
-				Amount:  extension.valueToNativeAmount("-1234"),
+	t.Run("move balance SCR", func(t *testing.T) {
+		tx := &transaction.ApiTransactionResult{
+			Hash:     "aaaa",
+			Sender:   testscommon.TestAddressOfContract,
+			Receiver: testscommon.TestAddressAlice,
+			Value:    "1234",
+		}
+
+		expectedTx := &types.Transaction{
+			TransactionIdentifier: hashToTransactionIdentifier("aaaa"),
+			Operations: []*types.Operation{
+				{
+					Type:    opScResult,
+					Account: addressToAccountIdentifier(testscommon.TestAddressOfContract),
+					Amount:  extension.valueToNativeAmount("-1234"),
+				},
+				{
+					Type:    opScResult,
+					Account: addressToAccountIdentifier(testscommon.TestAddressAlice),
+					Amount:  extension.valueToNativeAmount("1234"),
+				},
 			},
-			{
-				Type:    opScResult,
-				Account: addressToAccountIdentifier(testscommon.TestAddressAlice),
-				Amount:  extension.valueToNativeAmount("1234"),
-			},
-		},
-		Metadata: extractTransactionMetadata(moveBalanceTx),
-	}
+			Metadata: extractTransactionMetadata(tx),
+		}
 
-	txsInBlock := []*transaction.ApiTransactionResult{refundTx, moveBalanceTx}
+		rosettaTx := transformer.unsignedTxToRosettaTx(tx, []*transaction.ApiTransactionResult{tx})
+		require.Equal(t, expectedTx, rosettaTx)
+	})
 
-	rosettaRefundTx := transformer.unsignedTxToRosettaTx(refundTx, txsInBlock)
-	rosettaMoveBalanceTx := transformer.unsignedTxToRosettaTx(moveBalanceTx, txsInBlock)
-	require.Equal(t, expectedRefundTx, rosettaRefundTx)
-	require.Equal(t, expectedMoveBalanceTx, rosettaMoveBalanceTx)
+	t.Run("ineffective refund SCR", func(t *testing.T) {
+		tx := &transaction.ApiTransactionResult{
+			Hash:     "aaaa",
+			Sender:   testscommon.TestAddressOfContract,
+			Receiver: testscommon.TestAddressOfContract,
+			Value:    "1234",
+			IsRefund: true,
+		}
+
+		expectedTx := &types.Transaction{
+			TransactionIdentifier: hashToTransactionIdentifier("aaaa"),
+			Operations:            []*types.Operation{},
+			Metadata:              nil,
+		}
+
+		rosettaTx := transformer.unsignedTxToRosettaTx(tx, []*transaction.ApiTransactionResult{tx})
+		require.Equal(t, expectedTx, rosettaTx)
+	})
 }
 
 func TestTransactionsTransformer_InvalidTxToRosettaTx(t *testing.T) {
