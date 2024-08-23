@@ -104,7 +104,7 @@ func (transformer *transactionsTransformer) txToRosettaTx(tx *transaction.ApiTra
 		return nil, fmt.Errorf("unknown transaction type: %s", tx.Type)
 	}
 
-	err = transformer.addOperationsGivenTransactionEvents(tx, txsInBlock, rosettaTx)
+	err = transformer.addOperationsGivenTransactionEvents(tx, rosettaTx)
 	if err != nil {
 		return nil, err
 	}
@@ -117,7 +117,7 @@ func (transformer *transactionsTransformer) unsignedTxToRosettaTx(
 	txsInBlock []*transaction.ApiTransactionResult,
 ) *types.Transaction {
 	if transformer.featuresDetector.isSmartContractResultIneffectiveRefund(scr) {
-		log.Info("unsignedTxToRosettaTx: ineffective refund", "hash", scr.Hash)
+		log.Info("unsignedTxToRosettaTx: ineffective refund", "hash", scr.Hash, "block", scr.BlockNonce)
 
 		return &types.Transaction{
 			TransactionIdentifier: hashToTransactionIdentifier(scr.Hash),
@@ -360,11 +360,7 @@ func (transformer *transactionsTransformer) mempoolMoveBalanceTxToRosettaTx(tx *
 	}
 }
 
-func (transformer *transactionsTransformer) addOperationsGivenTransactionEvents(
-	tx *transaction.ApiTransactionResult,
-	txsInBlock []*transaction.ApiTransactionResult,
-	rosettaTx *types.Transaction,
-) error {
+func (transformer *transactionsTransformer) addOperationsGivenTransactionEvents(tx *transaction.ApiTransactionResult, rosettaTx *types.Transaction) error {
 	hasSignalError := transformer.featuresDetector.eventsController.hasAnySignalError(tx)
 	if hasSignalError {
 		return nil
@@ -379,8 +375,6 @@ func (transformer *transactionsTransformer) addOperationsGivenTransactionEvents(
 	if err != nil {
 		return err
 	}
-
-	eventsTransferValueOnly = filterOutTransferValueOnlyEventsThatAreAlreadyCapturedAsContractResults(tx, eventsTransferValueOnly, txsInBlock)
 
 	eventsESDTTransfer, err := transformer.eventsController.extractEventsESDTOrESDTNFTTransfers(tx)
 	if err != nil {

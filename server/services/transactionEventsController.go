@@ -45,88 +45,104 @@ func (controller *transactionEventsController) extractEventSCDeploy(tx *transact
 }
 
 func (controller *transactionEventsController) extractEventTransferValueOnly(tx *transaction.ApiTransactionResult) ([]*eventTransferValueOnly, error) {
+	isBeforeSirius := !controller.provider.IsReleaseSiriusActive(tx.Epoch)
 	rawEvents := controller.findManyEventsByIdentifier(tx, transactionEventTransferValueOnly)
-
 	typedEvents := make([]*eventTransferValueOnly, 0)
 
 	for _, event := range rawEvents {
-		numTopics := len(event.Topics)
-		isBeforeSirius := numTopics == 3
-		isAfterSirius := numTopics == 2
-
-		var sender string
-		var receiver string
-		var valueBytes []byte
-
-		if isBeforeSirius {
-			senderPubKey := event.Topics[0]
-			receiverPubKey := event.Topics[1]
-			valueBytes = event.Topics[2]
-
-			sender = controller.provider.ConvertPubKeyToAddress(senderPubKey)
-			receiver = controller.provider.ConvertPubKeyToAddress(receiverPubKey)
-		} else if isAfterSirius {
-			// https://github.com/multiversx/mx-specs/blob/main/releases/protocol/release-specs-v1.6.0-Sirius.md#17-logs--events-changes-5490
-			sender = event.Address
-			receiverPubKey := event.Topics[1]
-			valueBytes = event.Topics[0]
-
-			receiver = controller.provider.ConvertPubKeyToAddress(receiverPubKey)
-		} else {
-			return nil, fmt.Errorf("%w: bad number of topics for '%s' = %d", errCannotRecognizeEvent, transactionEventTransferValueOnly, numTopics)
+		if string(event.Data) != transactionEventDataExecuteOnDestContext && string(event.Data) != transactionEventDataAsyncCall {
+			continue
 		}
 
-		value := big.NewInt(0).SetBytes(valueBytes)
+		if isBeforeSirius {
+			typedEvent, err := controller.decideEffectiveEventTransferValueOnlyBeforeSirius(event)
+			if err != nil {
+				return nil, err
+			}
 
-		typedEvents = append(typedEvents, &eventTransferValueOnly{
-			sender:   sender,
-			receiver: receiver,
-			value:    value.String(),
-		})
+			if typedEvent != nil {
+				typedEvents = append(typedEvents, typedEvent)
+			}
+		} else {
+			typedEvent, err := controller.decideEffectiveEventTransferValueOnlyAfterSirius(event)
+			if err != nil {
+				return nil, err
+			}
+
+			if typedEvent != nil {
+				typedEvents = append(typedEvents, typedEvent)
+			}
+		}
 	}
 
 	return typedEvents, nil
 }
 
-// TODO: Use a cached "contractResultsSummaries" (this a must)!
-func filterOutTransferValueOnlyEventsThatAreAlreadyCapturedAsContractResults(
-	txOfInterest *transaction.ApiTransactionResult,
-	events []*eventTransferValueOnly,
-	txsInBlock []*transaction.ApiTransactionResult,
-) []*eventTransferValueOnly {
-	// First, we find all contract results in this block, and we "summarize" them (in a map).
-	contractResultsSummaries := make(map[string]struct{})
+func (controller *transactionEventsController) decideEffectiveEventTransferValueOnlyBeforeSirius(event *transaction.Events) (*eventTransferValueOnly, error) {
+	numTopics := len(event.Topics)
 
-	for _, item := range txsInBlock {
-		isContractResult := item.Type == string(transaction.TxTypeUnsigned)
-		if !isContractResult {
-			continue
-		}
-
-		// If not part of the same transaction graph, then skip it.
-		if !(item.OriginalTransactionHash == txOfInterest.Hash) && !(item.OriginalTransactionHash == txOfInterest.OriginalTransactionHash) {
-			continue
-		}
-
-		summary := fmt.Sprintf("%s-%s-%s", item.Sender, item.Receiver, item.Value)
-		contractResultsSummaries[summary] = struct{}{}
+	if numTopics != numTopicsOfEventTransferValueOnlyBeforeSirius {
+		return nil, fmt.Errorf("%w: bad number of topics for 'transferValueOnly' = %d", errCannotRecognizeEvent, numTopics)
 	}
 
-	eventsToKeep := make([]*eventTransferValueOnly, 0, len(events))
+	senderPubKey := event.Topics[0]
+	receiverPubKey := event.Topics[1]
+	valueBytes := event.Topics[2]
 
-	for _, event := range events {
-		summary := fmt.Sprintf("%s-%s-%s", event.sender, event.receiver, event.value)
-
-		_, isAlreadyCaptured := contractResultsSummaries[summary]
-		if isAlreadyCaptured {
-			continue
-		}
-
-		// Event not captured as contract result, so we should keep it.
-		eventsToKeep = append(eventsToKeep, event)
+	if len(valueBytes) == 0 {
+		return nil, nil
 	}
 
-	return eventsToKeep
+	isIntrashard := controller.provider.ComputeShardIdOfPubKey(senderPubKey) == controller.provider.ComputeShardIdOfPubKey(receiverPubKey)
+	if !isIntrashard {
+		return nil, nil
+	}
+
+	sender := controller.provider.ConvertPubKeyToAddress(senderPubKey)
+	receiver := controller.provider.ConvertPubKeyToAddress(receiverPubKey)
+	value := big.NewInt(0).SetBytes(valueBytes)
+
+	return &eventTransferValueOnly{
+		sender:   sender,
+		receiver: receiver,
+		value:    value.String(),
+	}, nil
+}
+
+// See: https://github.com/multiversx/mx-specs/blob/main/releases/protocol/release-specs-v1.6.0-Sirius.md#17-logs--events-changes-5490
+func (controller *transactionEventsController) decideEffectiveEventTransferValueOnlyAfterSirius(event *transaction.Events) (*eventTransferValueOnly, error) {
+	numTopics := len(event.Topics)
+
+	if numTopics != numTopicsOfEventTransferValueOnlyAfterSirius {
+		return nil, fmt.Errorf("%w: bad number of topics for 'transferValueOnly' = %d", errCannotRecognizeEvent, numTopics)
+	}
+
+	valueBytes := event.Topics[0]
+	receiverPubKey := event.Topics[1]
+
+	if len(valueBytes) == 0 {
+		return nil, nil
+	}
+
+	sender := event.Address
+	senderPubKey, err := controller.provider.ConvertAddressToPubKey(sender)
+	if err != nil {
+		return nil, err
+	}
+
+	isIntrashard := controller.provider.ComputeShardIdOfPubKey(senderPubKey) == controller.provider.ComputeShardIdOfPubKey(receiverPubKey)
+	if !isIntrashard {
+		return nil, nil
+	}
+
+	receiver := controller.provider.ConvertPubKeyToAddress(receiverPubKey)
+	value := big.NewInt(0).SetBytes(valueBytes)
+
+	return &eventTransferValueOnly{
+		sender:   sender,
+		receiver: receiver,
+		value:    value.String(),
+	}, nil
 }
 
 func (controller *transactionEventsController) hasAnySignalError(tx *transaction.ApiTransactionResult) bool {
