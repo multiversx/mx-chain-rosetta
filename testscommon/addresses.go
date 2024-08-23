@@ -32,8 +32,23 @@ var (
 	// TestUserCShard0 is a test account (user)
 	TestUserCShard0 = newTestAccount("erd1ncsyvhku3q7zy8f8rjmmx2t9zxgch38cel28kzg3m8pt86dt0vqqecw0gy")
 
-	// TestContractShard0 is a test account (contract)
-	TestContractShard0 = newTestAccount("erd1qqqqqqqqqqqqqpgqfejaxfh4ktp8mh8s77pl90dq0uzvh2vk396qlcwepw")
+	// TestContractFooShard0 is a test account (contract)
+	TestContractFooShard0 = newTestAccount("erd1qqqqqqqqqqqqqpgqagjekf5mxv86hy5c62vvtug5vc6jmgcsq6uq8reras")
+
+	// TestContractBarShard0 is a test account (contract)
+	TestContractBarShard0 = newTestAccount("erd1qqqqqqqqqqqqqpgqdstpe4fepzl4w8683xw88t5kcjkxz0zaq6uquj6ztu")
+
+	// TestContractFooShard1 is a test account (contract)
+	TestContractFooShard1 = newTestAccount("erd1qqqqqqqqqqqqqpgq89t5xm4x04tnt9lv747wdrsaycf3rcwcggzsa7crse")
+
+	// TestContractBarShard1 is a test account (contract)
+	TestContractBarShard1 = newTestAccount("erd1qqqqqqqqqqqqqpgq0dtujxcrmwwqdtwzvq5nxuwgjcgaty7fggzse2vmm2")
+
+	// TestContractFooShard2 is a test account (contract)
+	TestContractFooShard2 = newTestAccount("erd1qqqqqqqqqqqqqpgqeesfamasje5zru7ku79m8p4xqfqnywvqxj0qhtyzdr")
+
+	// TestContractBarShard2 is a test account (contract)
+	TestContractBarShard2 = newTestAccount("erd1ux2wvqyh8pw8ea26urjqq65mqytfn42dr980pvucztxk9w79xj0q2x98te")
 
 	// TestUserShard1 is a test account (user)
 	TestUserShard1 = newTestAccount("erd1qyu5wthldzr8wx5c9ucg8kjagg0jfs53s8nr3zpz3hypefsdd8ssycr6th")
