@@ -50,10 +50,6 @@ func (controller *transactionEventsController) extractEventTransferValueOnly(tx 
 	typedEvents := make([]*eventTransferValueOnly, 0)
 
 	for _, event := range rawEvents {
-		if string(event.Data) != transactionEventDataExecuteOnDestContext && string(event.Data) != transactionEventDataAsyncCall {
-			continue
-		}
-
 		if isBeforeSirius {
 			typedEvent, err := controller.decideEffectiveEventTransferValueOnlyBeforeSirius(event)
 			if err != nil {
@@ -93,11 +89,6 @@ func (controller *transactionEventsController) decideEffectiveEventTransferValue
 		return nil, nil
 	}
 
-	isIntrashard := controller.provider.ComputeShardIdOfPubKey(senderPubKey) == controller.provider.ComputeShardIdOfPubKey(receiverPubKey)
-	if !isIntrashard {
-		return nil, nil
-	}
-
 	sender := controller.provider.ConvertPubKeyToAddress(senderPubKey)
 	receiver := controller.provider.ConvertPubKeyToAddress(receiverPubKey)
 	value := big.NewInt(0).SetBytes(valueBytes)
@@ -124,6 +115,11 @@ func (controller *transactionEventsController) decideEffectiveEventTransferValue
 		return nil, nil
 	}
 
+	if string(event.Data) != transactionEventDataExecuteOnDestContext && string(event.Data) != transactionEventDataAsyncCall {
+		// Ineffective event, since the balance change is already captured by a SCR.
+		return nil, nil
+	}
+
 	sender := event.Address
 	senderPubKey, err := controller.provider.ConvertAddressToPubKey(sender)
 	if err != nil {
@@ -132,6 +128,7 @@ func (controller *transactionEventsController) decideEffectiveEventTransferValue
 
 	isIntrashard := controller.provider.ComputeShardIdOfPubKey(senderPubKey) == controller.provider.ComputeShardIdOfPubKey(receiverPubKey)
 	if !isIntrashard {
+		// Ineffective event, since the balance change is already captured by a SCR.
 		return nil, nil
 	}
 
