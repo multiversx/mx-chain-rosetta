@@ -57,6 +57,80 @@ func TestTransactionsTransformer_NormalTxToRosettaTx(t *testing.T) {
 		require.Equal(t, expectedRosettaTx, rosettaTx)
 	})
 
+	t.Run("contract deployment with signal error (after Sirius)", func(t *testing.T) {
+		tx := &transaction.ApiTransactionResult{
+			Epoch:                       43,
+			ProcessingTypeOnSource:      "SCDeployment",
+			ProcessingTypeOnDestination: "SCDeployment",
+			Hash:                        "aaaa",
+			Sender:                      testscommon.TestAddressAlice,
+			Receiver:                    testscommon.TestAddressBob,
+			Value:                       "1234",
+			InitiallyPaidFee:            "5000000000000000",
+			Logs: &transaction.ApiLogs{
+				Events: []*transaction.Events{
+					{
+						Identifier: transactionEventSignalError,
+					},
+				},
+			},
+		}
+
+		expectedRosettaTx := &types.Transaction{
+			TransactionIdentifier: hashToTransactionIdentifier("aaaa"),
+			Operations: []*types.Operation{
+				{
+					Type:    opFee,
+					Account: addressToAccountIdentifier(testscommon.TestAddressAlice),
+					Amount:  extension.valueToNativeAmount("-5000000000000000"),
+				},
+			},
+			Metadata: extractTransactionMetadata(tx),
+		}
+
+		rosettaTx, err := transformer.normalTxToRosetta(tx)
+		require.NoError(t, err)
+		require.Equal(t, expectedRosettaTx, rosettaTx)
+	})
+
+	t.Run("intra-shard contract call with signal error (after Sirius)", func(t *testing.T) {
+		tx := &transaction.ApiTransactionResult{
+			Epoch:                       43,
+			ProcessingTypeOnSource:      "SCInvoking",
+			ProcessingTypeOnDestination: "SCInvoking",
+			Hash:                        "aaaa",
+			Sender:                      testscommon.TestUserAShard0.Address,
+			Receiver:                    testscommon.TestContractBarShard0.Address,
+			SourceShard:                 0,
+			DestinationShard:            0,
+			Value:                       "1234",
+			InitiallyPaidFee:            "5000000000000000",
+			Logs: &transaction.ApiLogs{
+				Events: []*transaction.Events{
+					{
+						Identifier: transactionEventSignalError,
+					},
+				},
+			},
+		}
+
+		expectedRosettaTx := &types.Transaction{
+			TransactionIdentifier: hashToTransactionIdentifier("aaaa"),
+			Operations: []*types.Operation{
+				{
+					Type:    opFee,
+					Account: addressToAccountIdentifier(testscommon.TestUserAShard0.Address),
+					Amount:  extension.valueToNativeAmount("-5000000000000000"),
+				},
+			},
+			Metadata: extractTransactionMetadata(tx),
+		}
+
+		rosettaTx, err := transformer.normalTxToRosetta(tx)
+		require.NoError(t, err)
+		require.Equal(t, expectedRosettaTx, rosettaTx)
+	})
+
 	t.Run("relayed tx, completely intrashard, with signal error (before Sirius)", func(t *testing.T) {
 		tx := &transaction.ApiTransactionResult{
 			Epoch:                       41,
