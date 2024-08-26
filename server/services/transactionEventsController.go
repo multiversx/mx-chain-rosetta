@@ -61,7 +61,6 @@ func (controller *transactionEventsController) extractEventTransferValueOnly(tx 
 		if typedEvent != nil {
 			typedEvents = append(typedEvents, typedEvent)
 		}
-
 	}
 
 	return typedEvents, nil
