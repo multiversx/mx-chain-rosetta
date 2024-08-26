@@ -45,59 +45,26 @@ func (controller *transactionEventsController) extractEventSCDeploy(tx *transact
 }
 
 func (controller *transactionEventsController) extractEventTransferValueOnly(tx *transaction.ApiTransactionResult) ([]*eventTransferValueOnly, error) {
-	isBeforeSirius := !controller.provider.IsReleaseSiriusActive(tx.Epoch)
+	if !controller.provider.IsReleaseSiriusActive(tx.Epoch) {
+		return make([]*eventTransferValueOnly, 0), nil
+	}
+
 	rawEvents := controller.findManyEventsByIdentifier(tx, transactionEventTransferValueOnly)
 	typedEvents := make([]*eventTransferValueOnly, 0)
 
 	for _, event := range rawEvents {
-		if isBeforeSirius {
-			typedEvent, err := controller.decideEffectiveEventTransferValueOnlyBeforeSirius(event)
-			if err != nil {
-				return nil, err
-			}
-
-			if typedEvent != nil {
-				typedEvents = append(typedEvents, typedEvent)
-			}
-		} else {
-			typedEvent, err := controller.decideEffectiveEventTransferValueOnlyAfterSirius(event)
-			if err != nil {
-				return nil, err
-			}
-
-			if typedEvent != nil {
-				typedEvents = append(typedEvents, typedEvent)
-			}
+		typedEvent, err := controller.decideEffectiveEventTransferValueOnlyAfterSirius(event)
+		if err != nil {
+			return nil, err
 		}
+
+		if typedEvent != nil {
+			typedEvents = append(typedEvents, typedEvent)
+		}
+
 	}
 
 	return typedEvents, nil
-}
-
-func (controller *transactionEventsController) decideEffectiveEventTransferValueOnlyBeforeSirius(event *transaction.Events) (*eventTransferValueOnly, error) {
-	numTopics := len(event.Topics)
-
-	if numTopics != numTopicsOfEventTransferValueOnlyBeforeSirius {
-		return nil, fmt.Errorf("%w: bad number of topics for 'transferValueOnly' = %d", errCannotRecognizeEvent, numTopics)
-	}
-
-	senderPubKey := event.Topics[0]
-	receiverPubKey := event.Topics[1]
-	valueBytes := event.Topics[2]
-
-	if len(valueBytes) == 0 {
-		return nil, nil
-	}
-
-	sender := controller.provider.ConvertPubKeyToAddress(senderPubKey)
-	receiver := controller.provider.ConvertPubKeyToAddress(receiverPubKey)
-	value := big.NewInt(0).SetBytes(valueBytes)
-
-	return &eventTransferValueOnly{
-		sender:   sender,
-		receiver: receiver,
-		value:    value.String(),
-	}, nil
 }
 
 // See: https://github.com/multiversx/mx-specs/blob/main/releases/protocol/release-specs-v1.6.0-Sirius.md#17-logs--events-changes-5490
