@@ -28,7 +28,6 @@ var (
 
 var (
 	transactionEventSignalError                             = core.SignalErrorOperation
-	transactionEventInternalVMErrors                        = "internalVMErrors"
 	transactionEventSCDeploy                                = core.SCDeployIdentifier
 	transactionEventTransferValueOnly                       = "transferValueOnly"
 	transactionEventESDTTransfer                            = "ESDTTransfer"
