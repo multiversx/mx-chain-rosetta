@@ -43,6 +43,9 @@ var (
 	transactionEventClaimDeveloperRewards                   = core.BuiltInFunctionClaimDeveloperRewards
 	transactionEventTopicInvalidMetaTransaction             = "meta transaction is invalid"
 	transactionEventTopicInvalidMetaTransactionNotEnoughGas = "meta transaction is invalid: not enough gas"
+
+	transactionEventDataExecuteOnDestContext = "ExecuteOnDestContext"
+	transactionEventDataAsyncCall            = "AsyncCall"
 )
 
 var (
@@ -56,4 +59,5 @@ var (
 	numTopicsOfEventESDTNFTAddQuantity              = 3
 	numTopicsOfEventSCDeployBeforeSirius            = 2
 	numTopicsOfEventClaimDeveloperRewards           = 2
+	numTopicsOfEventTransferValueOnlyAfterSirius    = 2
 )

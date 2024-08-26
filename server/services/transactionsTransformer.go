@@ -34,6 +34,8 @@ func (transformer *transactionsTransformer) transformBlockTxs(block *api.Block) 
 
 	for _, miniblock := range block.MiniBlocks {
 		for _, tx := range miniblock.Transactions {
+			// Make sure SCRs also have the block nonce set.
+			tx.BlockNonce = block.Nonce
 			txs = append(txs, tx)
 		}
 		for _, receipt := range miniblock.Receipts {
@@ -115,7 +117,7 @@ func (transformer *transactionsTransformer) unsignedTxToRosettaTx(
 	txsInBlock []*transaction.ApiTransactionResult,
 ) *types.Transaction {
 	if transformer.featuresDetector.isSmartContractResultIneffectiveRefund(scr) {
-		log.Info("unsignedTxToRosettaTx: ineffective refund", "hash", scr.Hash)
+		log.Info("unsignedTxToRosettaTx: ineffective refund", "hash", scr.Hash, "block", scr.BlockNonce)
 
 		return &types.Transaction{
 			TransactionIdentifier: hashToTransactionIdentifier(scr.Hash),
@@ -359,7 +361,17 @@ func (transformer *transactionsTransformer) mempoolMoveBalanceTxToRosettaTx(tx *
 }
 
 func (transformer *transactionsTransformer) addOperationsGivenTransactionEvents(tx *transaction.ApiTransactionResult, rosettaTx *types.Transaction) error {
+	hasSignalError := transformer.featuresDetector.eventsController.hasAnySignalError(tx)
+	if hasSignalError {
+		return nil
+	}
+
 	eventsSCDeploy, err := transformer.eventsController.extractEventSCDeploy(tx)
+	if err != nil {
+		return err
+	}
+
+	eventsTransferValueOnly, err := transformer.eventsController.extractEventTransferValueOnly(tx)
 	if err != nil {
 		return err
 	}
@@ -424,6 +436,25 @@ func (transformer *transactionsTransformer) addOperationsGivenTransactionEvents(
 
 			rosettaTx.Operations = append(rosettaTx.Operations, operations...)
 		}
+	}
+
+	for _, event := range eventsTransferValueOnly {
+		log.Info("eventTransferValueOnly (effective)", "tx", tx.Hash, "block", tx.BlockNonce)
+
+		operations := []*types.Operation{
+			{
+				Type:    opTransfer,
+				Account: addressToAccountIdentifier(event.sender),
+				Amount:  transformer.extension.valueToNativeAmount("-" + event.value),
+			},
+			{
+				Type:    opTransfer,
+				Account: addressToAccountIdentifier(event.receiver),
+				Amount:  transformer.extension.valueToNativeAmount(event.value),
+			},
+		}
+
+		rosettaTx.Operations = append(rosettaTx.Operations, operations...)
 	}
 
 	for _, event := range eventsESDTTransfer {

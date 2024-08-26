@@ -44,6 +44,70 @@ func (controller *transactionEventsController) extractEventSCDeploy(tx *transact
 	return typedEvents, nil
 }
 
+func (controller *transactionEventsController) extractEventTransferValueOnly(tx *transaction.ApiTransactionResult) ([]*eventTransferValueOnly, error) {
+	if !controller.provider.IsReleaseSiriusActive(tx.Epoch) {
+		return make([]*eventTransferValueOnly, 0), nil
+	}
+
+	rawEvents := controller.findManyEventsByIdentifier(tx, transactionEventTransferValueOnly)
+	typedEvents := make([]*eventTransferValueOnly, 0)
+
+	for _, event := range rawEvents {
+		typedEvent, err := controller.decideEffectiveEventTransferValueOnlyAfterSirius(event)
+		if err != nil {
+			return nil, err
+		}
+
+		if typedEvent != nil {
+			typedEvents = append(typedEvents, typedEvent)
+		}
+	}
+
+	return typedEvents, nil
+}
+
+// See: https://github.com/multiversx/mx-specs/blob/main/releases/protocol/release-specs-v1.6.0-Sirius.md#17-logs--events-changes-5490
+func (controller *transactionEventsController) decideEffectiveEventTransferValueOnlyAfterSirius(event *transaction.Events) (*eventTransferValueOnly, error) {
+	numTopics := len(event.Topics)
+
+	if numTopics != numTopicsOfEventTransferValueOnlyAfterSirius {
+		return nil, fmt.Errorf("%w: bad number of topics for 'transferValueOnly' = %d", errCannotRecognizeEvent, numTopics)
+	}
+
+	valueBytes := event.Topics[0]
+	receiverPubKey := event.Topics[1]
+
+	if len(valueBytes) == 0 {
+		return nil, nil
+	}
+
+	if string(event.Data) != transactionEventDataExecuteOnDestContext && string(event.Data) != transactionEventDataAsyncCall {
+		// Ineffective event, since the balance change is already captured by a SCR.
+		return nil, nil
+	}
+
+	sender := event.Address
+	senderPubKey, err := controller.provider.ConvertAddressToPubKey(sender)
+	if err != nil {
+		return nil, err
+	}
+
+	isIntrashard := controller.provider.ComputeShardIdOfPubKey(senderPubKey) == controller.provider.ComputeShardIdOfPubKey(receiverPubKey)
+	if !isIntrashard {
+		// Ineffective event, since the balance change is already captured by a SCR.
+		return nil, nil
+	}
+
+	receiver := controller.provider.ConvertPubKeyToAddress(receiverPubKey)
+	value := big.NewInt(0).SetBytes(valueBytes)
+
+	return &eventTransferValueOnly{
+		sender:   sender,
+		receiver: receiver,
+		value:    value.String(),
+	}, nil
+}
+
 func (controller *transactionEventsController) hasAnySignalError(tx *transaction.ApiTransactionResult) bool {
 	if !controller.hasEvents(tx) {
 		return false
