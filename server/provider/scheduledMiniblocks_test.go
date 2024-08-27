@@ -12,12 +12,21 @@ import (
 func TestGatherEffectiveTransactions(t *testing.T) {
 	selfShard := uint32(1)
 
+	tx_a := &transaction.ApiTransactionResult{Hash: "aaaa"}
+	tx_b := &transaction.ApiTransactionResult{Hash: "bbbb"}
+	tx_c := &transaction.ApiTransactionResult{Hash: "cccc"}
+	tx_d := &transaction.ApiTransactionResult{Hash: "dddd"}
+	tx_e := &transaction.ApiTransactionResult{Hash: "eeee"}
+	tx_f := &transaction.ApiTransactionResult{Hash: "ffff"}
+	tx_g := &transaction.ApiTransactionResult{Hash: "ffaa", PreviousTransactionHash: tx_e.Hash, SourceShard: selfShard}
+	tx_i := &transaction.ApiTransactionResult{Hash: "ffbb", PreviousTransactionHash: tx_f.Hash, SourceShard: selfShard}
+
 	block_5 := &api.Block{
 		MiniBlocks: []*api.MiniBlock{
 			{
 				Type: dataBlock.InvalidBlock.String(),
 				Transactions: []*transaction.ApiTransactionResult{
-					{Hash: "aaaa"},
+					tx_a,
 				},
 			},
 		},
@@ -28,14 +37,14 @@ func TestGatherEffectiveTransactions(t *testing.T) {
 			{
 				ProcessingType: dataBlock.Scheduled.String(),
 				Transactions: []*transaction.ApiTransactionResult{
-					{Hash: "bbbb"},
-					{Hash: "cccc"},
+					tx_b,
+					tx_c,
 				},
 			},
 			{
 				Type: dataBlock.InvalidBlock.String(),
 				Transactions: []*transaction.ApiTransactionResult{
-					{Hash: "bbbb"},
+					tx_b,
 				},
 			},
 		},
@@ -46,14 +55,14 @@ func TestGatherEffectiveTransactions(t *testing.T) {
 			{
 				ProcessingType: dataBlock.Processed.String(),
 				Transactions: []*transaction.ApiTransactionResult{
-					{Hash: "cccc"},
+					tx_c,
 				},
 			},
 			{
 				Type: dataBlock.InvalidBlock.String(),
 				Transactions: []*transaction.ApiTransactionResult{
-					{Hash: "bbbb"},
-					{Hash: "eeee"},
+					tx_b,
+					tx_d,
 				},
 			},
 		},
@@ -63,14 +72,54 @@ func TestGatherEffectiveTransactions(t *testing.T) {
 		MiniBlocks: []*api.MiniBlock{},
 	}
 
+	block_9 := &api.Block{
+		MiniBlocks: []*api.MiniBlock{
+			{
+				ProcessingType: dataBlock.Scheduled.String(),
+				Transactions: []*transaction.ApiTransactionResult{
+					tx_e,
+				},
+			},
+		},
+	}
+
+	block_10 := &api.Block{
+		MiniBlocks: []*api.MiniBlock{
+			{
+				Transactions: []*transaction.ApiTransactionResult{
+					tx_f,
+				},
+			},
+			{
+				Transactions: []*transaction.ApiTransactionResult{
+					tx_g,
+					tx_i,
+				},
+			},
+		},
+	}
+
+	// Current block is 6
 	txs := gatherEffectiveTransactions(selfShard, block_5, block_6, block_7)
 	require.Len(t, txs, 2)
-	require.Contains(t, txs, &transaction.ApiTransactionResult{Hash: "bbbb"})
-	require.Contains(t, txs, &transaction.ApiTransactionResult{Hash: "cccc"})
+	require.Contains(t, txs, tx_b)
+	require.Contains(t, txs, tx_c)
 
+	// Current block is 7
 	txs = gatherEffectiveTransactions(selfShard, block_6, block_7, block_8)
 	require.Len(t, txs, 1)
-	require.Contains(t, txs, &transaction.ApiTransactionResult{Hash: "eeee"})
+	require.Contains(t, txs, tx_d)
+
+	// Current block is 8
+	txs = gatherEffectiveTransactions(selfShard, block_7, block_8, block_9)
+	require.Len(t, txs, 0)
+
+	// Current block is 9
+	txs = gatherEffectiveTransactions(selfShard, block_8, block_9, block_10)
+	require.Len(t, txs, 2)
+	require.Contains(t, txs, tx_e)
+	require.Contains(t, txs, tx_g)
+
 }
 
 func TestFindImmediatelyExecutingContractResults(t *testing.T) {

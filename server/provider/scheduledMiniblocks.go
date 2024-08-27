@@ -79,11 +79,13 @@ func gatherEffectiveTransactions(selfShard uint32, previousBlock *api.Block, cur
 	var currentlyExecutedResults []*transaction.ApiTransactionResult
 
 	if len(scheduledTxsInPreviousBlock) > 0 {
-		// Look behind, for any contract results that, even if present in the current block, had their effects in the previous block.
+		// Look behind, for any contract results that, even if present in the current block, had their effects in the previous block,
+		// where their parent transaction was "scheduled".
 		previouslyExecutedResults = findImmediatelyExecutingContractResults(selfShard, scheduledTxsInPreviousBlock, txsInCurrentBlock)
 	}
 	if len(scheduledTxsInCurrentBlock) > 0 {
-		// Look ahead, for any contract results that, even if present in the next block, have their effects in the current block.
+		// Look ahead, for any contract results that, even if present in the next block, have their effects in the current block,
+		// where their parent transaction is "scheduled".
 		txsInNextBlock := gatherAllTransactions(nextBlock)
 		currentlyExecutedResults = findImmediatelyExecutingContractResults(selfShard, scheduledTxsInCurrentBlock, txsInNextBlock)
 	}
