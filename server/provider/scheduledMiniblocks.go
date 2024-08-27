@@ -122,7 +122,7 @@ func gatherEffectiveTransactions(selfShard uint32, previousBlock *api.Block, cur
 		}
 	}
 
-	// Collect the effective transactions in a slice.
+	// Collect & return the effective transactions.
 	effectiveTxs := make([]*transaction.ApiTransactionResult, 0, len(effectiveTxsByHash))
 
 	for _, tx := range effectiveTxsByHash {
@@ -132,42 +132,48 @@ func gatherEffectiveTransactions(selfShard uint32, previousBlock *api.Block, cur
 	return effectiveTxs
 }
 
+// findImmediatelyExecutingContractResults scans "maybeContractResults" for (immediately executing) contract results of "transactions"
 func findImmediatelyExecutingContractResults(
 	selfShard uint32,
 	transactions []*transaction.ApiTransactionResult,
 	maybeContractResults []*transaction.ApiTransactionResult,
 ) []*transaction.ApiTransactionResult {
 	immediatelyExecutingContractResults := make([]*transaction.ApiTransactionResult, 0)
-	nextContractResultsByHash := make(map[string][]*transaction.ApiTransactionResult)
+	directContractResultsByHash := make(map[string][]*transaction.ApiTransactionResult)
 
+	// Prepare a look-up { transaction or SCR hash } -> { list of direct contract results (direct descendants) },
+	// using the "previous transaction hash" link.
 	for _, item := range maybeContractResults {
-		nextContractResultsByHash[item.PreviousTransactionHash] = append(nextContractResultsByHash[item.PreviousTransactionHash], item)
+		directContractResultsByHash[item.PreviousTransactionHash] = append(directContractResultsByHash[item.PreviousTransactionHash], item)
 	}
 
+	// For each transaction, find (accumulate) all contract results that are immediately executing.
 	for _, tx := range transactions {
-		immediatelyExecutingContractResultsPart := findImmediatelyExecutingContractResultsOfTransaction(selfShard, tx, nextContractResultsByHash)
+		immediatelyExecutingContractResultsPart := findImmediatelyExecutingContractResultsOfTransaction(selfShard, tx, directContractResultsByHash)
 		immediatelyExecutingContractResults = append(immediatelyExecutingContractResults, immediatelyExecutingContractResultsPart...)
 	}
 
 	return immediatelyExecutingContractResults
 }
 
+// findImmediatelyExecutingContractResultsOfTransaction scans "directContractResultsByHash" for (immediately executing) contract results of "tx"
 func findImmediatelyExecutingContractResultsOfTransaction(
 	selfShard uint32,
 	tx *transaction.ApiTransactionResult,
-	nextContractResultsByHash map[string][]*transaction.ApiTransactionResult,
+	directContractResultsByHash map[string][]*transaction.ApiTransactionResult,
 ) []*transaction.ApiTransactionResult {
 	immediatelyExecutingContractResults := make([]*transaction.ApiTransactionResult, 0)
 
-	for _, nextContractResult := range nextContractResultsByHash[tx.Hash] {
-		if nextContractResult.SourceShard != selfShard {
+	for _, directContractResult := range directContractResultsByHash[tx.Hash] {
+		if directContractResult.SourceShard != selfShard {
 			// Cross-shard, not immediately executing.
 			continue
 		}
 
-		immediatelyExecutingContractResults = append(immediatelyExecutingContractResults, nextContractResult)
-		// Recursive call:
-		immediatelyExecutingContractResultsPart := findImmediatelyExecutingContractResultsOfTransaction(selfShard, nextContractResult, nextContractResultsByHash)
+		// Found immediately executing contract result, retain it.
+		immediatelyExecutingContractResults = append(immediatelyExecutingContractResults, directContractResult)
+		// Furthermore, recursively find all its (immediately executing) descendants.
+		immediatelyExecutingContractResultsPart := findImmediatelyExecutingContractResultsOfTransaction(selfShard, directContractResult, directContractResultsByHash)
 		immediatelyExecutingContractResults = append(immediatelyExecutingContractResults, immediatelyExecutingContractResultsPart...)
 	}
 
