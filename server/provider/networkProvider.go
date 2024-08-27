@@ -266,13 +266,12 @@ func createBlockCopy(block *api.Block) *api.Block {
 
 	for i, miniblock := range block.MiniBlocks {
 		miniblocksCopy[i] = &api.MiniBlock{
-			Type:                  miniblock.Type,
-			Hash:                  miniblock.Hash,
-			ProcessingType:        miniblock.ProcessingType,
-			ConstructionState:     miniblock.ConstructionState,
-			IsFromReceiptsStorage: miniblock.IsFromReceiptsStorage,
-			SourceShard:           miniblock.SourceShard,
-			DestinationShard:      miniblock.DestinationShard,
+			Type:              miniblock.Type,
+			Hash:              miniblock.Hash,
+			ProcessingType:    miniblock.ProcessingType,
+			ConstructionState: miniblock.ConstructionState,
+			SourceShard:       miniblock.SourceShard,
+			DestinationShard:  miniblock.DestinationShard,
 			// This is sufficient for our purposes (we don't mutate the transactions themselves, we only mutate the list of transactions within a miniblock).
 			Transactions: miniblock.Transactions,
 			Receipts:     miniblock.Receipts,
