@@ -166,7 +166,7 @@ func findImmediatelyExecutingContractResultsOfTransaction(
 
 	for _, directContractResult := range directContractResultsByHash[tx.Hash] {
 		if directContractResult.SourceShard != selfShard {
-			// Cross-shard, not immediately executing.
+			// Contract result comes from another shard.
 			continue
 		}
 
