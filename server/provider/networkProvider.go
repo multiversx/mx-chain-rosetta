@@ -224,6 +224,8 @@ func (provider *networkProvider) GetBlockByNonce(nonce uint64) (*api.Block, erro
 		return nil, err
 	}
 
+	// The block (copy) returned by doGetBlockByNonce() is now mutated.
+	// The mutated copy is not held in a cache (not needed).
 	err = provider.simplifyBlockWithScheduledTransactions(block)
 	if err != nil {
 		return nil, err
@@ -240,7 +242,7 @@ func (provider *networkProvider) doGetBlockByNonce(nonce uint64) (*api.Block, er
 
 	block, ok := provider.getBlockByNonceCached(nonce)
 	if ok {
-		return block, nil
+		return createBlockCopy(block), nil
 	}
 
 	response, err := provider.observerFacade.GetBlockByNonce(provider.observedActualShard, nonce, queryOptions)
@@ -255,7 +257,41 @@ func (provider *networkProvider) doGetBlockByNonce(nonce uint64) (*api.Block, er
 
 	provider.cacheBlockByNonce(nonce, block)
 
-	return block, nil
+	return createBlockCopy(block), nil
+}
+
+// createBlockCopy creates a somehow shallow copy of a block.
+func createBlockCopy(block *api.Block) *api.Block {
+	miniblocksCopy := make([]*api.MiniBlock, len(block.MiniBlocks))
+
+	for i, miniblock := range block.MiniBlocks {
+		miniblocksCopy[i] = &api.MiniBlock{
+			Type:                  miniblock.Type,
+			Hash:                  miniblock.Hash,
+			ProcessingType:        miniblock.ProcessingType,
+			ConstructionState:     miniblock.ConstructionState,
+			IsFromReceiptsStorage: miniblock.IsFromReceiptsStorage,
+			SourceShard:           miniblock.SourceShard,
+			DestinationShard:      miniblock.DestinationShard,
+			// This is sufficient for our purposes (we don't mutate the transactions themselves, we only mutate the list of transactions within a miniblock).
+			Transactions: miniblock.Transactions,
+			Receipts:     miniblock.Receipts,
+		}
+	}
+
+	return &api.Block{
+		Nonce:         block.Nonce,
+		Round:         block.Round,
+		Epoch:         block.Epoch,
+		Shard:         block.Shard,
+		NumTxs:        block.NumTxs,
+		Hash:          block.Hash,
+		PrevBlockHash: block.PrevBlockHash,
+		StateRootHash: block.StateRootHash,
+		Status:        block.Status,
+		Timestamp:     block.Timestamp,
+		MiniBlocks:    miniblocksCopy,
+	}
 }
 
 func (provider *networkProvider) getBlockByNonceCached(nonce uint64) (*api.Block, bool) {
@@ -263,8 +299,7 @@ func (provider *networkProvider) getBlockByNonceCached(nonce uint64) (*api.Block
 	if ok {
 		block, ok := blockUntyped.(*api.Block)
 		if ok {
-			blockCopy := *block
-			return &blockCopy, true
+			return block, true
 		}
 	}
 
@@ -272,8 +307,7 @@ func (provider *networkProvider) getBlockByNonceCached(nonce uint64) (*api.Block
 }
 
 func (provider *networkProvider) cacheBlockByNonce(nonce uint64, block *api.Block) {
-	blockCopy := *block
-	_ = provider.blocksCache.Put(blockNonceToBytes(nonce), &blockCopy, 1)
+	_ = provider.blocksCache.Put(blockNonceToBytes(nonce), block, 1)
 }
 
 // GetBlockByHash gets a block by hash
