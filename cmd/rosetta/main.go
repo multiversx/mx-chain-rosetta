@@ -96,6 +96,10 @@ func startRosetta(ctx *cli.Context) error {
 		return err
 	}
 
+	if cliFlags.shouldEnablePprofEndpoints {
+		controllers = append(controllers, newPprofController())
+	}
+
 	httpServer, err := createHttpServer(cliFlags.port, controllers...)
 	if err != nil {
 		return err
