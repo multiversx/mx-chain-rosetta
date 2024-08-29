@@ -17,32 +17,32 @@ type pprofController struct {
 func newPprofController() *pprofController {
 	routes := []server.Route{
 		{
-			Method:      "GET",
+			Method:      http.MethodGet,
 			Pattern:     "/debug/pprof/",
 			HandlerFunc: http.HandlerFunc(pprof.Index),
 		},
 		{
-			Method:      "GET",
+			Method:      http.MethodGet,
 			Pattern:     "/debug/pprof/cmdline",
 			HandlerFunc: http.HandlerFunc(pprof.Cmdline),
 		},
 		{
-			Method:      "GET",
+			Method:      http.MethodGet,
 			Pattern:     "/debug/pprof/profile",
 			HandlerFunc: http.HandlerFunc(pprof.Profile),
 		},
 		{
-			Method:      "GET",
+			Method:      http.MethodGet,
 			Pattern:     "/debug/pprof/symbol",
 			HandlerFunc: http.HandlerFunc(pprof.Symbol),
 		},
 		{
-			Method:      "GET",
+			Method:      http.MethodGet,
 			Pattern:     "/debug/pprof/trace",
 			HandlerFunc: http.HandlerFunc(pprof.Trace),
 		},
 		{
-			Method:      "GET",
+			Method:      http.MethodGet,
 			Pattern:     "/debug/pprof/{cmd}",
 			HandlerFunc: http.HandlerFunc(pprof.Index),
 		},
@@ -53,6 +53,7 @@ func newPprofController() *pprofController {
 	}
 }
 
+// Routes returns the routes for the pprof controller
 func (r *pprofController) Routes() server.Routes {
 	return r.routes
 }
