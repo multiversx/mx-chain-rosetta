@@ -117,7 +117,7 @@ func (transformer *transactionsTransformer) unsignedTxToRosettaTx(
 	txsInBlock []*transaction.ApiTransactionResult,
 ) *types.Transaction {
 	if transformer.featuresDetector.isSmartContractResultIneffectiveRefund(scr) {
-		log.Info("unsignedTxToRosettaTx: ineffective refund", "hash", scr.Hash, "block", scr.BlockNonce)
+		log.Debug("unsignedTxToRosettaTx: ineffective refund", "hash", scr.Hash, "block", scr.BlockNonce)
 
 		return &types.Transaction{
 			TransactionIdentifier: hashToTransactionIdentifier(scr.Hash),
@@ -444,7 +444,7 @@ func (transformer *transactionsTransformer) addOperationsGivenTransactionEvents(
 	}
 
 	for _, event := range eventsTransferValueOnly {
-		log.Info("eventTransferValueOnly (effective)", "tx", tx.Hash, "block", tx.BlockNonce)
+		log.Debug("eventTransferValueOnly (effective)", "tx", tx.Hash, "block", tx.BlockNonce)
 
 		operations := []*types.Operation{
 			{

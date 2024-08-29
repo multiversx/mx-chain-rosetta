@@ -3,27 +3,30 @@ package services
 import (
 	"encoding/hex"
 	"strings"
+	"time"
 
 	"github.com/multiversx/mx-chain-core-go/core"
 )
 
 var (
-	transactionVersion                           = 1
-	transactionProcessingTypeRelayedV1           = "RelayedTx"
-	transactionProcessingTypeBuiltInFunctionCall = "BuiltInFunctionCall"
-	transactionProcessingTypeMoveBalance         = "MoveBalance"
-	transactionProcessingTypeContractInvoking    = "SCInvoking"
-	transactionProcessingTypeContractDeployment  = "SCDeployment"
-	amountZero                                   = "0"
-	builtInFunctionClaimDeveloperRewards         = core.BuiltInFunctionClaimDeveloperRewards
-	builtInFunctionESDTTransfer                  = core.BuiltInFunctionESDTTransfer
-	refundGasMessage                             = "refundedGas"
-	argumentsSeparator                           = "@"
-	sendingValueToNonPayableContractDataPrefix   = argumentsSeparator + hex.EncodeToString([]byte("sending value to non payable contract"))
-	emptyHash                                    = strings.Repeat("0", 64)
-	nodeVersionForOfflineRosetta                 = "N / A"
-	systemContractDeployAddress                  = "erd1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq6gq4hu"
-	nativeAsESDTIdentifier                       = "EGLD-000000"
+	transactionVersion                                    = 1
+	transactionProcessingTypeRelayedV1                    = "RelayedTx"
+	transactionProcessingTypeBuiltInFunctionCall          = "BuiltInFunctionCall"
+	transactionProcessingTypeMoveBalance                  = "MoveBalance"
+	transactionProcessingTypeContractInvoking             = "SCInvoking"
+	transactionProcessingTypeContractDeployment           = "SCDeployment"
+	amountZero                                            = "0"
+	builtInFunctionClaimDeveloperRewards                  = core.BuiltInFunctionClaimDeveloperRewards
+	builtInFunctionESDTTransfer                           = core.BuiltInFunctionESDTTransfer
+	refundGasMessage                                      = "refundedGas"
+	argumentsSeparator                                    = "@"
+	sendingValueToNonPayableContractDataPrefix            = argumentsSeparator + hex.EncodeToString([]byte("sending value to non payable contract"))
+	emptyHash                                             = strings.Repeat("0", 64)
+	nodeVersionForOfflineRosetta                          = "N / A"
+	systemContractDeployAddress                           = "erd1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq6gq4hu"
+	nativeAsESDTIdentifier                                = "EGLD-000000"
+	durationAlarmThresholdBlockServiceGetBlock            = time.Duration(250) * time.Millisecond
+	durationAlarmThresholdAccountServiceGetAccountBalance = time.Duration(250) * time.Millisecond
 )
 
 var (
