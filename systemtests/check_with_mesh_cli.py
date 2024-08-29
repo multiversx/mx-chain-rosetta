@@ -66,13 +66,14 @@ def run_rosetta(configuration: Configuration):
         f"--observer-actual-shard={configuration.network_shard}",
         f"--network-id={configuration.network_id}",
         f"--network-name={configuration.network_name}",
-        f"--handle-contracts",
         f"--native-currency={configuration.native_currency}",
         f"--config-custom-currencies={configuration.config_file_custom_currencies}",
         f"--first-historical-epoch={current_epoch}",
         f"--num-historical-epochs={configuration.num_historical_epochs}",
         f"--activation-epoch-sirius={configuration.activation_epoch_sirius}",
         f"--activation-epoch-spica={configuration.activation_epoch_spica}",
+        "--handle-contracts",
+        "--pprof"
     ]
 
     return subprocess.Popen(command)
