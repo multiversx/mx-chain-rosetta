@@ -227,3 +227,15 @@ oldest_block_identifier = first block of oldest_epoch
 ## Implementation validation
 
 In order to validate the Rosetta implementation using `rosetta-cli`, please follow [MultiversX/rosetta-checks](https://github.com/multiversx/mx-chain-rosetta-checks).
+
+## System tests
+
+### Virtual environment
+
+Create a virtual environment and install the dependencies:
+
+```
+python3 -m venv ./venv
+source ./venv/bin/activate
+pip install -r ./requirements-dev.txt --upgrade
+```

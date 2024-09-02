@@ -3,14 +3,17 @@ from argparse import ArgumentParser
 from pathlib import Path
 from typing import Any, Dict, List
 
-from multiversx_sdk import (Address, AddressComputer, Mnemonic,  # type: ignore
+from multiversx_sdk import (Address, AddressComputer, Mnemonic,
                             ProxyNetworkProvider, RelayedTransactionsFactory,
                             SmartContractTransactionsFactory, Token,
-                            TokenManagementTransactionsFactory, TokenTransfer,
-                            Transaction, TransactionComputer,
+                            TokenManagementTransactionsFactory,
+                            TokenManagementTransactionsOutcomeParser,
+                            TokenTransfer, Transaction, TransactionAwaiter,
+                            TransactionComputer, TransactionsConverter,
                             TransactionsFactoryConfig,
                             TransferTransactionsFactory, UserSecretKey,
                             UserSigner)
+from multiversx_sdk.network_providers.transactions import TransactionOnNetwork
 
 from systemtests.config import CONFIGURATIONS, Configuration
 
@@ -24,16 +27,20 @@ def main():
 
     subparsers = parser.add_subparsers()
     subparser_setup = subparsers.add_parser("setup")
-    parser.add_argument("--network", choices=CONFIGURATIONS.keys(), required=True)
+    subparser_setup.add_argument("--network", choices=CONFIGURATIONS.keys(), required=True)
     subparser_setup.set_defaults(func=do_setup)
 
     subparser_run = subparsers.add_parser("run")
-    parser.add_argument("--network", choices=CONFIGURATIONS.keys(), required=True)
+    subparser_run.add_argument("--network", choices=CONFIGURATIONS.keys(), required=True)
     subparser_run.add_argument("--without-spica", action="store_true")
     subparser_run.set_defaults(func=do_run)
 
     args = parser.parse_args()
-    args.func(args)
+
+    if not hasattr(args, "func"):
+        parser.print_help()
+    else:
+        args.func(args)
 
 
 def do_setup(args: Any):
@@ -42,9 +49,15 @@ def do_setup(args: Any):
     accounts = BunchOfAccounts(configuration)
     controller = Controller(configuration, accounts)
 
-    controller.send_multiple(controller.create_airdrops_for_native_currency())
-    controller.send_multiple(controller.create_airdrops_for_custom_currencies())
-    controller.send_multiple(controller.create_contract_deployments())
+    print("Do airdrops for native currency...")
+    controller.do_airdrops_for_native_currency()
+
+    print("Issue custom currency...")
+    token_identifier = controller.issue_custom_currency("ROSETTA")
+    print(f"Token identifier: {token_identifier}")
+
+    # controller.send_multiple(controller.create_airdrops_for_custom_currencies())
+    # controller.send_multiple(controller.create_contract_deployments())
 
 
 def do_run(args: Any):
@@ -241,11 +254,11 @@ class BunchOfAccounts:
             self.users_by_shard[shard].append(user)
             self.users_by_bech32[user.address.to_bech32()] = user
 
-        for item in configuration.known_contracts:
-            contract_address = Address.from_bech32(item)
-            shard = address_computer.get_shard_of_address(contract_address)
-            self.contracts.append(contract_address)
-            self.contracts_by_shard[shard].append(contract_address)
+        # for item in configuration.known_contracts:
+        #     contract_address = Address.from_bech32(item)
+        #     shard = address_computer.get_shard_of_address(contract_address)
+        #     self.contracts.append(contract_address)
+        #     self.contracts_by_shard[shard].append(contract_address)
 
     def _create_sponsor(self) -> "Account":
         sponsor_secret_key = UserSecretKey(self.configuration.sponsor_secret_key)
@@ -272,15 +285,23 @@ class Controller:
         self.configuration = configuration
         self.accounts = accounts
         self.custom_currencies = CustomCurrencies(configuration)
-        self.transactions_factory_config = TransactionsFactoryConfig(chain_id=configuration.network_id)
         self.network_provider = ProxyNetworkProvider(configuration.proxy_url)
+        self.transaction_computer = TransactionComputer()
+        self.transactions_converter = TransactionsConverter()
+        self.transactions_factory_config = TransactionsFactoryConfig(chain_id=configuration.network_id)
         self.nonces_tracker = NoncesTracker(configuration.proxy_url)
         self.token_management_transactions_factory = TokenManagementTransactionsFactory(self.transactions_factory_config)
+        self.token_management_outcome_parser = TokenManagementTransactionsOutcomeParser()
         self.transfer_transactions_factory = TransferTransactionsFactory(self.transactions_factory_config)
         self.relayed_transactions_factory = RelayedTransactionsFactory(self.transactions_factory_config)
         self.contracts_transactions_factory = SmartContractTransactionsFactory(self.transactions_factory_config)
+        self.transaction_awaiter = TransactionAwaiter(self)
 
-    def create_airdrops_for_native_currency(self) -> List[Transaction]:
+    # Temporary workaround, until the SDK is updated to simplify transaction awaiting.
+    def get_transaction(self, tx_hash: str) -> TransactionOnNetwork:
+        return self.network_provider.get_transaction(tx_hash, with_process_status=True)
+
+    def do_airdrops_for_native_currency(self):
         transactions: List[Transaction] = []
 
         for user in self.accounts.users:
@@ -290,18 +311,19 @@ class Controller:
                 native_amount=1000000000000000000
             )
 
-            self._apply_nonce(transaction)
-            self._sign(transaction)
+            self.apply_nonce(transaction)
+            self.sign(transaction)
 
             transactions.append(transaction)
 
-        return transactions
+        self.send_multiple(transactions)
+        self.await_completed(transactions)
 
-    def create_issuance_of_custom_currency(self) -> Transaction:
+    def issue_custom_currency(self, name: str) -> str:
         transaction = self.token_management_transactions_factory.create_transaction_for_issuing_fungible(
             sender=self.accounts.sponsor.address,
-            token_name="ROSETTA",
-            token_ticker="ROSETTA",
+            token_name=name,
+            token_ticker=name,
             initial_supply=1000000000,
             num_decimals=2,
             can_freeze=True,
@@ -312,10 +334,14 @@ class Controller:
             can_add_special_roles=True,
         )
 
-        self._apply_nonce(transaction)
-        self._sign(transaction)
+        self.apply_nonce(transaction)
+        self.sign(transaction)
+        self.send(transaction)
 
-        return transaction
+        [transaction_on_network] = self.await_completed([transaction])
+        transaction_outcome = self.transactions_converter.transaction_on_network_to_outcome(transaction_on_network)
+        [issue_fungible_outcome] = self.token_management_outcome_parser.parse_issue_fungible(transaction_outcome)
+        return issue_fungible_outcome.token_identifier
 
     def create_airdrops_for_custom_currencies(self) -> List[Transaction]:
         transactions: List[Transaction] = []
@@ -327,8 +353,8 @@ class Controller:
                 token_transfers=[TokenTransfer(Token(self.custom_currencies.currency), 1000000)]
             )
 
-            self._apply_nonce(transaction)
-            self._sign(transaction)
+            self.apply_nonce(transaction)
+            self.sign(transaction)
 
             transactions.append(transaction)
 
@@ -360,8 +386,8 @@ class Controller:
         ))
 
         for transaction in transactions:
-            self._apply_nonce(transaction)
-            self._sign(transaction)
+            self.apply_nonce(transaction)
+            self.sign(transaction)
 
             sender = Address.from_bech32(transaction.sender)
             contract_address = address_computer.compute_contract_address(sender, transaction.nonce)
@@ -377,8 +403,8 @@ class Controller:
 
         transaction.gas_limit += 42000
 
-        self._apply_nonce(transaction)
-        self._sign(transaction)
+        self.apply_nonce(transaction)
+        self.sign(transaction)
 
         return transaction
 
@@ -391,8 +417,8 @@ class Controller:
 
         transaction.gas_limit += 42000
 
-        self._apply_nonce(transaction)
-        self._sign(transaction)
+        self.apply_nonce(transaction)
+        self.sign(transaction)
 
         return transaction
 
@@ -404,8 +430,8 @@ class Controller:
             token_transfers=[TokenTransfer(Token(self.custom_currencies.currency), 7)]
         )
 
-        self._apply_nonce(transaction)
-        self._sign(transaction)
+        self.apply_nonce(transaction)
+        self.sign(transaction)
 
         return transaction
 
@@ -419,8 +445,8 @@ class Controller:
             native_amount=amount
         )
 
-        self._apply_nonce(inner_transaction)
-        self._sign(inner_transaction)
+        self.apply_nonce(inner_transaction)
+        self.sign(inner_transaction)
 
         transaction = self.relayed_transactions_factory.create_relayed_v1_transaction(
             inner_transaction=inner_transaction,
@@ -428,7 +454,7 @@ class Controller:
         )
 
         transaction.nonce = relayer_nonce
-        self._sign(transaction)
+        self.sign(transaction)
 
         return transaction
 
@@ -442,8 +468,8 @@ class Controller:
             token_transfers=[TokenTransfer(Token(self.custom_currencies.currency), amount)]
         )
 
-        self._apply_nonce(inner_transaction)
-        self._sign(inner_transaction)
+        self.apply_nonce(inner_transaction)
+        self.sign(inner_transaction)
 
         transaction = self.relayed_transactions_factory.create_relayed_v1_transaction(
             inner_transaction=inner_transaction,
@@ -451,7 +477,7 @@ class Controller:
         )
 
         transaction.nonce = relayer_nonce
-        self._sign(transaction)
+        self.sign(transaction)
 
         return transaction
 
@@ -467,8 +493,8 @@ class Controller:
 
         inner_transaction.gas_limit = 0
 
-        self._apply_nonce(inner_transaction)
-        self._sign(inner_transaction)
+        self.apply_nonce(inner_transaction)
+        self.sign(inner_transaction)
 
         transaction = self.relayed_transactions_factory.create_relayed_v2_transaction(
             inner_transaction=inner_transaction,
@@ -477,7 +503,7 @@ class Controller:
         )
 
         transaction.nonce = relayer_nonce
-        self._sign(transaction)
+        self.sign(transaction)
 
         return transaction
 
@@ -498,8 +524,8 @@ class Controller:
             )
 
             inner_transaction.relayer = relayer.address.to_bech32()
-            self._apply_nonce(inner_transaction)
-            self._sign(inner_transaction)
+            self.apply_nonce(inner_transaction)
+            self.sign(inner_transaction)
             inner_transactions.append(inner_transaction)
 
         transaction = self.relayed_transactions_factory.create_relayed_v3_transaction(
@@ -508,7 +534,7 @@ class Controller:
         )
 
         transaction.nonce = relayer_nonce
-        self._sign(transaction)
+        self.sign(transaction)
 
         return transaction
 
@@ -521,8 +547,8 @@ class Controller:
             native_transfer_amount=amount
         )
 
-        self._apply_nonce(transaction)
-        self._sign(transaction)
+        self.apply_nonce(transaction)
+        self.sign(transaction)
 
         return transaction
 
@@ -535,8 +561,8 @@ class Controller:
             native_transfer_amount=amount
         )
 
-        self._apply_nonce(transaction)
-        self._sign(transaction)
+        self.apply_nonce(transaction)
+        self.sign(transaction)
 
         return transaction
 
@@ -550,8 +576,8 @@ class Controller:
             native_transfer_amount=amount
         )
 
-        self._apply_nonce(transaction)
-        self._sign(transaction)
+        self.apply_nonce(transaction)
+        self.sign(transaction)
 
         return transaction
 
@@ -563,8 +589,8 @@ class Controller:
             gas_limit=8000000,
         )
 
-        self._apply_nonce(transaction)
-        self._sign(transaction)
+        self.apply_nonce(transaction)
+        self.sign(transaction)
 
         return transaction
 
@@ -581,8 +607,8 @@ class Controller:
             native_transfer_amount=amount
         )
 
-        self._apply_nonce(inner_transaction)
-        self._sign(inner_transaction)
+        self.apply_nonce(inner_transaction)
+        self.sign(inner_transaction)
 
         transaction = self.relayed_transactions_factory.create_relayed_v1_transaction(
             inner_transaction=inner_transaction,
@@ -590,9 +616,22 @@ class Controller:
         )
 
         transaction.nonce = relayer_nonce
-        self._sign(transaction)
+        self.sign(transaction)
 
         return transaction
+
+    def apply_nonce(self, transaction: Transaction):
+        sender = self.accounts.get_account_by_bech32(transaction.sender)
+        transaction.nonce = self.nonces_tracker.get_then_increment_nonce(sender.address)
+
+    def _reserve_nonce(self, account: "Account"):
+        sender = self.accounts.get_account_by_bech32(account.address.to_bech32())
+        return self.nonces_tracker.get_then_increment_nonce(sender.address)
+
+    def sign(self, transaction: Transaction):
+        sender = self.accounts.get_account_by_bech32(transaction.sender)
+        bytes_for_signing = self.transaction_computer.compute_bytes_for_signing(transaction)
+        transaction.signature = sender.signer.sign(bytes_for_signing)
 
     def send_multiple(self, transactions: List[Transaction]):
         self.network_provider.send_transactions(transactions)
@@ -601,19 +640,20 @@ class Controller:
         transaction_hash = self.network_provider.send_transaction(transaction)
         print(f"{self.configuration.explorer_url}/transactions/{transaction_hash}")
 
-    def _apply_nonce(self, transaction: Transaction):
-        sender = self.accounts.get_account_by_bech32(transaction.sender)
-        transaction.nonce = self.nonces_tracker.get_then_increment_nonce(sender.address)
+    def await_completed(self, transactions: List[Transaction]) -> List[TransactionOnNetwork]:
+        print(f"Awaiting completion of {len(transactions)} transactions...")
 
-    def _reserve_nonce(self, account: "Account"):
-        sender = self.accounts.get_account_by_bech32(account.address.to_bech32())
-        return self.nonces_tracker.get_then_increment_nonce(sender.address)
+        transactions_on_network: List[TransactionOnNetwork] = []
 
-    def _sign(self, transaction: Transaction):
-        sender = self.accounts.get_account_by_bech32(transaction.sender)
-        computer = TransactionComputer()
-        bytes_for_signing = computer.compute_bytes_for_signing(transaction)
-        transaction.signature = sender.signer.sign(bytes_for_signing)
+        # We do sequential awaiting (perfectly fine in this context).
+        for transaction in transactions:
+            transaction_hash = self.transaction_computer.compute_transaction_hash(transaction).hex()
+            transaction_on_network = self.transaction_awaiter.await_completed(transaction_hash)
+            transactions_on_network.append(transaction_on_network)
+
+            print(f"Completed: {self.configuration.explorer_url}/transactions/{transaction_hash}")
+
+        return transactions_on_network
 
 
 class Account:

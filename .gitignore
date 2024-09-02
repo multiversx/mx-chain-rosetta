@@ -5,3 +5,4 @@ systemtests/**/check-data/**
 logs/**
 
 **/__pycache__/**
+venv/**
