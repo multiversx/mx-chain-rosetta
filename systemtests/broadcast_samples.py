@@ -1,12 +1,13 @@
 import json
 from argparse import ArgumentParser
 from pathlib import Path
-from typing import Dict, List
+from typing import Any, Dict, List
 
 from multiversx_sdk import (Address, AddressComputer, Mnemonic,  # type: ignore
                             ProxyNetworkProvider, RelayedTransactionsFactory,
                             SmartContractTransactionsFactory, Token,
-                            TokenTransfer, Transaction, TransactionComputer,
+                            TokenManagementTransactionsFactory, TokenTransfer,
+                            Transaction, TransactionComputer,
                             TransactionsFactoryConfig,
                             TransferTransactionsFactory, UserSecretKey,
                             UserSigner)
@@ -20,88 +21,109 @@ CONTRACT_PATH_DEVELOPER_REWARDS = Path(__file__).parent / "contracts" / "develop
 
 def main():
     parser = ArgumentParser()
+
+    subparsers = parser.add_subparsers()
+    subparser_setup = subparsers.add_parser("setup")
     parser.add_argument("--network", choices=CONFIGURATIONS.keys(), required=True)
-    parser.add_argument("--mode", choices=["setup", "run"], required=True)
+    subparser_setup.set_defaults(func=do_setup)
+
+    subparser_run = subparsers.add_parser("run")
+    parser.add_argument("--network", choices=CONFIGURATIONS.keys(), required=True)
+    subparser_run.add_argument("--without-spica", action="store_true")
+    subparser_run.set_defaults(func=do_run)
+
     args = parser.parse_args()
+    args.func(args)
 
-    configuration = CONFIGURATIONS[args.network]
-    mode = args.mode
 
+def do_setup(args: Any):
+    network = args.network
+    configuration = CONFIGURATIONS[network]
     accounts = BunchOfAccounts(configuration)
     controller = Controller(configuration, accounts)
 
-    if mode == "setup":
-        controller.send_multiple(controller.create_airdrops())
-        controller.send_multiple(controller.create_contract_deployments())
-    elif mode == "run":
-        print("Intra-shard, simple MoveBalance with refund")
-        controller.send(controller.create_simple_move_balance_with_refund(
-            sender=accounts.get_user(shard=0, index=0),
-            receiver=accounts.get_user(shard=0, index=1).address,
-        ))
+    controller.send_multiple(controller.create_airdrops_for_native_currency())
+    controller.send_multiple(controller.create_airdrops_for_custom_currencies())
+    controller.send_multiple(controller.create_contract_deployments())
 
-        print("Cross-shard, simple MoveBalance with refund")
-        controller.send(controller.create_simple_move_balance_with_refund(
-            sender=accounts.get_user(shard=0, index=1),
-            receiver=accounts.get_user(shard=1, index=0).address,
-        ))
 
-        print("Intra-shard, invalid MoveBalance with refund")
-        controller.send(controller.create_invalid_move_balance_with_refund(
-            sender=accounts.get_user(shard=0, index=2),
-            receiver=accounts.get_user(shard=0, index=3).address,
-        ))
+def do_run(args: Any):
+    network = args.network
+    with_spica = not args.without_spica
 
-        print("Cross-shard, invalid MoveBalance with refund")
-        controller.send(controller.create_invalid_move_balance_with_refund(
-            sender=accounts.get_user(shard=0, index=4),
-            receiver=accounts.get_user(shard=1, index=1).address,
-        ))
+    configuration = CONFIGURATIONS[network]
+    accounts = BunchOfAccounts(configuration)
+    controller = Controller(configuration, accounts)
 
-        print("Intra-shard, sending value to non-payable contract")
-        controller.send(controller.create_simple_move_balance_with_refund(
-            sender=accounts.get_user(shard=0, index=0),
-            receiver=accounts.contracts_by_shard[0][0],
-        ))
+    print("Intra-shard, simple MoveBalance with refund")
+    controller.send(controller.create_simple_move_balance_with_refund(
+        sender=accounts.get_user(shard=0, index=0),
+        receiver=accounts.get_user(shard=0, index=1).address,
+    ))
 
-        print("Cross-shard, sending value to non-payable contract")
-        controller.send(controller.create_simple_move_balance_with_refund(
-            sender=accounts.get_user(shard=0, index=1),
-            receiver=accounts.contracts_by_shard[1][0],
-        ))
+    print("Cross-shard, simple MoveBalance with refund")
+    controller.send(controller.create_simple_move_balance_with_refund(
+        sender=accounts.get_user(shard=0, index=1),
+        receiver=accounts.get_user(shard=1, index=0).address,
+    ))
 
-        # Intra-shard, native transfer within MultiESDTTransfer
-        controller.send(controller.create_native_transfer_within_multiesdt(
-            sender=accounts.get_user(shard=0, index=0),
-            receiver=accounts.get_user(shard=0, index=1).address,
-        ))
+    print("Intra-shard, invalid MoveBalance with refund")
+    controller.send(controller.create_invalid_move_balance_with_refund(
+        sender=accounts.get_user(shard=0, index=2),
+        receiver=accounts.get_user(shard=0, index=3).address,
+    ))
 
-        print("Cross-shard, native transfer within MultiESDTTransfer")
-        controller.send(controller.create_native_transfer_within_multiesdt(
-            sender=accounts.get_user(shard=0, index=1),
-            receiver=accounts.get_user(shard=1, index=0).address,
-        ))
+    print("Cross-shard, invalid MoveBalance with refund")
+    controller.send(controller.create_invalid_move_balance_with_refund(
+        sender=accounts.get_user(shard=0, index=4),
+        receiver=accounts.get_user(shard=1, index=1).address,
+    ))
 
-        print("Intra-shard, native transfer within MultiESDTTransfer, towards non-payable contract")
-        controller.send(controller.create_native_transfer_within_multiesdt(
-            sender=accounts.get_user(shard=0, index=0),
-            receiver=accounts.contracts_by_shard[0][0],
-        ))
+    print("Intra-shard, sending value to non-payable contract")
+    controller.send(controller.create_simple_move_balance_with_refund(
+        sender=accounts.get_user(shard=0, index=0),
+        receiver=accounts.contracts_by_shard[0][0],
+    ))
 
-        print("Cross-shard, native transfer within MultiESDTTransfer, towards non-payable contract")
-        controller.send(controller.create_native_transfer_within_multiesdt(
-            sender=accounts.get_user(shard=0, index=1),
-            receiver=accounts.contracts_by_shard[1][0],
-        ))
+    print("Cross-shard, sending value to non-payable contract")
+    controller.send(controller.create_simple_move_balance_with_refund(
+        sender=accounts.get_user(shard=0, index=1),
+        receiver=accounts.contracts_by_shard[1][0],
+    ))
 
-        print("Intra-shard, relayed v1 transaction with MoveBalance")
-        controller.send(controller.create_relayed_v1_with_move_balance(
-            relayer=accounts.get_user(shard=0, index=0),
-            sender=accounts.get_user(shard=0, index=1),
-            receiver=accounts.get_user(shard=0, index=2).address,
-            amount=42
-        ))
+    # Intra-shard, native transfer within MultiESDTTransfer
+    controller.send(controller.create_native_transfer_within_multiesdt(
+        sender=accounts.get_user(shard=0, index=0),
+        receiver=accounts.get_user(shard=0, index=1).address,
+    ))
 
+    print("Cross-shard, native transfer within MultiESDTTransfer")
+    controller.send(controller.create_native_transfer_within_multiesdt(
+        sender=accounts.get_user(shard=0, index=1),
+        receiver=accounts.get_user(shard=1, index=0).address,
+    ))
+
+    print("Intra-shard, native transfer within MultiESDTTransfer, towards non-payable contract")
+    controller.send(controller.create_native_transfer_within_multiesdt(
+        sender=accounts.get_user(shard=0, index=0),
+        receiver=accounts.contracts_by_shard[0][0],
+    ))
+
+    print("Cross-shard, native transfer within MultiESDTTransfer, towards non-payable contract")
+    controller.send(controller.create_native_transfer_within_multiesdt(
+        sender=accounts.get_user(shard=0, index=1),
+        receiver=accounts.contracts_by_shard[1][0],
+    ))
+
+    print("Intra-shard, relayed v1 transaction with MoveBalance")
+    controller.send(controller.create_relayed_v1_with_move_balance(
+        relayer=accounts.get_user(shard=0, index=0),
+        sender=accounts.get_user(shard=0, index=1),
+        receiver=accounts.get_user(shard=0, index=2).address,
+        amount=42
+    ))
+
+    if with_spica:
         print("Relayed v3, senders and receivers in same shard")
         controller.send(controller.create_relayed_v3_with_a_few_inner_move_balances(
             relayer=accounts.get_user(shard=0, index=0),
@@ -110,6 +132,7 @@ def main():
             amount=42
         ))
 
+    if with_spica:
         print("Relayed v3, senders and receivers in different shards")
         controller.send(controller.create_relayed_v3_with_a_few_inner_move_balances(
             relayer=accounts.get_user(shard=0, index=0),
@@ -118,6 +141,7 @@ def main():
             amount=42
         ))
 
+    if with_spica:
         print("Relayed v3, senders and receivers in same shard (insufficient balance)")
         controller.send(controller.create_relayed_v3_with_a_few_inner_move_balances(
             relayer=accounts.get_user(shard=0, index=0),
@@ -126,6 +150,7 @@ def main():
             amount=1000000000000000000000
         ))
 
+    if with_spica:
         print("Relayed v3, senders and receivers in different shards (insufficient balance)")
         controller.send(controller.create_relayed_v3_with_a_few_inner_move_balances(
             relayer=accounts.get_user(shard=0, index=0),
@@ -134,6 +159,7 @@ def main():
             amount=1000000000000000000000
         ))
 
+    if with_spica:
         print("Relayed v3, senders and receivers in same shard, sending to non-payable contract")
         controller.send(controller.create_relayed_v3_with_a_few_inner_move_balances(
             relayer=accounts.get_user(shard=0, index=0),
@@ -142,40 +168,41 @@ def main():
             amount=1000000000000000000
         ))
 
-        print("Intra-shard, relayed v1 transaction with MoveBalance")
-        controller.send(controller.create_relayed_v1_with_move_balance(
-            relayer=accounts.get_user(shard=1, index=0),
-            sender=accounts.get_user(shard=1, index=9),
-            receiver=Address.from_bech32("erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqzllls8a5w6u"),
-            amount=1000000000000000000
-        ))
+    print("Intra-shard, relayed v1 transaction with MoveBalance")
+    controller.send(controller.create_relayed_v1_with_move_balance(
+        relayer=accounts.get_user(shard=1, index=0),
+        sender=accounts.get_user(shard=1, index=9),
+        receiver=Address.from_bech32("erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqzllls8a5w6u"),
+        amount=1000000000000000000
+    ))
 
-        print("Direct contract deployment with MoveBalance")
-        controller.send(controller.create_contract_deployment_with_move_balance(
-            sender=accounts.get_user(shard=0, index=0),
-            amount=10000000000000000
-        ))
+    print("Direct contract deployment with MoveBalance")
+    controller.send(controller.create_contract_deployment_with_move_balance(
+        sender=accounts.get_user(shard=0, index=0),
+        amount=10000000000000000
+    ))
 
-        print("Intra-shard, contract call with MoveBalance, with signal error")
-        controller.send(controller.create_contract_call_with_move_balance_with_signal_error(
-            sender=accounts.get_user(shard=0, index=0),
-            contract=accounts.contracts_by_shard[0][0],
-            amount=10000000000000000
-        ))
+    print("Intra-shard, contract call with MoveBalance, with signal error")
+    controller.send(controller.create_contract_call_with_move_balance_with_signal_error(
+        sender=accounts.get_user(shard=0, index=0),
+        contract=accounts.contracts_by_shard[0][0],
+        amount=10000000000000000
+    ))
 
-        print("Cross-shard, contract call with MoveBalance, with signal error")
-        controller.send(controller.create_contract_call_with_move_balance_with_signal_error(
-            sender=accounts.get_user(shard=0, index=0),
-            contract=accounts.contracts_by_shard[1][0],
-            amount=10000000000000000
-        ))
+    print("Cross-shard, contract call with MoveBalance, with signal error")
+    controller.send(controller.create_contract_call_with_move_balance_with_signal_error(
+        sender=accounts.get_user(shard=0, index=0),
+        contract=accounts.contracts_by_shard[1][0],
+        amount=10000000000000000
+    ))
 
-        print("Direct contract deployment with MoveBalance, with signal error")
-        controller.send(controller.create_contract_deployment_with_move_balance_with_signal_error(
-            sender=accounts.get_user(shard=0, index=0),
-            amount=77
-        ))
+    print("Direct contract deployment with MoveBalance, with signal error")
+    controller.send(controller.create_contract_deployment_with_move_balance_with_signal_error(
+        sender=accounts.get_user(shard=0, index=0),
+        amount=77
+    ))
 
+    if with_spica:
         print("ClaimDeveloperRewards on directly owned contract")
         controller.send(controller.create_claim_developer_rewards_on_directly_owned_contract(
             sender=accounts.get_user(shard=0, index=0),
@@ -185,13 +212,13 @@ def main():
         # TODO: claim developer rewards with parent-child contracts
         # TODO: claim developer rewards on directly owned contracts, cross shard (use change owner address).
 
-        print("Intra-shard, relayed v1 transaction with contract call with MoveBalance, with signal error")
-        controller.send(controller.create_relayed_v1_with_contract_call_with_move_balance_with_signal_error(
-            relayer=accounts.get_user(shard=0, index=0),
-            sender=accounts.get_user(shard=0, index=1),
-            contract=accounts.contracts_by_shard[0][0],
-            amount=1
-        ))
+    print("Intra-shard, relayed v1 transaction with contract call with MoveBalance, with signal error")
+    controller.send(controller.create_relayed_v1_with_contract_call_with_move_balance_with_signal_error(
+        relayer=accounts.get_user(shard=0, index=0),
+        sender=accounts.get_user(shard=0, index=1),
+        contract=accounts.contracts_by_shard[0][0],
+        amount=1
+    ))
 
 
 class BunchOfAccounts:
@@ -248,11 +275,12 @@ class Controller:
         self.transactions_factory_config = TransactionsFactoryConfig(chain_id=configuration.network_id)
         self.network_provider = ProxyNetworkProvider(configuration.proxy_url)
         self.nonces_tracker = NoncesTracker(configuration.proxy_url)
+        self.token_management_transactions_factory = TokenManagementTransactionsFactory(self.transactions_factory_config)
         self.transfer_transactions_factory = TransferTransactionsFactory(self.transactions_factory_config)
         self.relayed_transactions_factory = RelayedTransactionsFactory(self.transactions_factory_config)
         self.contracts_transactions_factory = SmartContractTransactionsFactory(self.transactions_factory_config)
 
-    def create_airdrops(self) -> List[Transaction]:
+    def create_airdrops_for_native_currency(self) -> List[Transaction]:
         transactions: List[Transaction] = []
 
         for user in self.accounts.users:
@@ -262,11 +290,45 @@ class Controller:
                 native_amount=1000000000000000000
             )
 
+            self._apply_nonce(transaction)
+            self._sign(transaction)
+
+            transactions.append(transaction)
+
+        return transactions
+
+    def create_issuance_of_custom_currency(self) -> Transaction:
+        transaction = self.token_management_transactions_factory.create_transaction_for_issuing_fungible(
+            sender=self.accounts.sponsor.address,
+            token_name="ROSETTA",
+            token_ticker="ROSETTA",
+            initial_supply=1000000000,
+            num_decimals=2,
+            can_freeze=True,
+            can_wipe=True,
+            can_pause=True,
+            can_change_owner=True,
+            can_upgrade=True,
+            can_add_special_roles=True,
+        )
+
+        self._apply_nonce(transaction)
+        self._sign(transaction)
+
+        return transaction
+
+    def create_airdrops_for_custom_currencies(self) -> List[Transaction]:
+        transactions: List[Transaction] = []
+
+        for user in self.accounts.users:
             transaction = self.transfer_transactions_factory.create_transaction_for_esdt_token_transfer(
                 sender=self.accounts.sponsor.address,
                 receiver=user.address,
                 token_transfers=[TokenTransfer(Token(self.custom_currencies.currency), 1000000)]
             )
+
+            self._apply_nonce(transaction)
+            self._sign(transaction)
 
             transactions.append(transaction)
 
@@ -274,8 +336,8 @@ class Controller:
 
     def create_contract_deployments(self) -> List[Transaction]:
         transactions: List[Transaction] = []
+        address_computer = AddressComputer()
 
-        # Non-payable contracts, in each shard
         transactions.append(self.contracts_transactions_factory.create_transaction_for_deploy(
             sender=self.accounts.get_user(shard=0, index=0).address,
             bytecode=CONTRACT_PATH_ADDER,
@@ -297,6 +359,13 @@ class Controller:
             arguments=[0]
         ))
 
+        for transaction in transactions:
+            self._apply_nonce(transaction)
+            self._sign(transaction)
+
+            sender = Address.from_bech32(transaction.sender)
+            contract_address = address_computer.compute_contract_address(sender, transaction.nonce)
+
         return transactions
 
     def create_simple_move_balance_with_refund(self, sender: "Account", receiver: Address) -> Transaction:
@@ -307,6 +376,10 @@ class Controller:
         )
 
         transaction.gas_limit += 42000
+
+        self._apply_nonce(transaction)
+        self._sign(transaction)
+
         return transaction
 
     def create_invalid_move_balance_with_refund(self, sender: "Account", receiver: Address) -> Transaction:
@@ -317,6 +390,10 @@ class Controller:
         )
 
         transaction.gas_limit += 42000
+
+        self._apply_nonce(transaction)
+        self._sign(transaction)
+
         return transaction
 
     def create_native_transfer_within_multiesdt(self, sender: "Account", receiver: Address) -> Transaction:
@@ -327,9 +404,15 @@ class Controller:
             token_transfers=[TokenTransfer(Token(self.custom_currencies.currency), 7)]
         )
 
+        self._apply_nonce(transaction)
+        self._sign(transaction)
+
         return transaction
 
     def create_relayed_v1_with_move_balance(self, relayer: "Account", sender: "Account", receiver: Address, amount: int) -> Transaction:
+        # Relayer nonce is reserved before sender nonce, to ensure good ordering (if sender and relayer are the same account).
+        relayer_nonce = self._reserve_nonce(relayer)
+
         inner_transaction = self.transfer_transactions_factory.create_transaction_for_native_token_transfer(
             sender=sender.address,
             receiver=receiver,
@@ -344,9 +427,15 @@ class Controller:
             relayer_address=relayer.address,
         )
 
+        transaction.nonce = relayer_nonce
+        self._sign(transaction)
+
         return transaction
 
     def create_relayed_v1_with_esdt_transfer(self, relayer: "Account", sender: "Account", receiver: Address, amount: int) -> Transaction:
+        # Relayer nonce is reserved before sender nonce, to ensure good ordering (if sender and relayer are the same account).
+        relayer_nonce = self._reserve_nonce(relayer)
+
         inner_transaction = self.transfer_transactions_factory.create_transaction_for_esdt_token_transfer(
             sender=sender.address,
             receiver=receiver,
@@ -361,9 +450,15 @@ class Controller:
             relayer_address=relayer.address,
         )
 
+        transaction.nonce = relayer_nonce
+        self._sign(transaction)
+
         return transaction
 
     def create_relayed_v2_with_move_balance(self, relayer: "Account", sender: "Account", receiver: Address, amount: int) -> Transaction:
+        # Relayer nonce is reserved before sender nonce, to ensure good ordering (if sender and relayer are the same account).
+        relayer_nonce = self._reserve_nonce(relayer)
+
         inner_transaction = self.transfer_transactions_factory.create_transaction_for_native_token_transfer(
             sender=sender.address,
             receiver=receiver,
@@ -381,9 +476,15 @@ class Controller:
             relayer_address=relayer.address,
         )
 
+        transaction.nonce = relayer_nonce
+        self._sign(transaction)
+
         return transaction
 
     def create_relayed_v3_with_a_few_inner_move_balances(self, relayer: "Account", senders: List["Account"], receivers: List[Address], amount: int) -> Transaction:
+        # Relayer nonce is reserved before sender nonce, to ensure good ordering (if sender and relayer are the same account).
+        relayer_nonce = self._reserve_nonce(relayer)
+
         if len(senders) != len(receivers):
             raise ValueError("senders and receivers must have the same length", len(senders), len(receivers))
 
@@ -406,6 +507,9 @@ class Controller:
             inner_transactions=inner_transactions,
         )
 
+        transaction.nonce = relayer_nonce
+        self._sign(transaction)
+
         return transaction
 
     def create_contract_deployment_with_move_balance(self, sender: "Account", amount: int) -> Transaction:
@@ -417,6 +521,9 @@ class Controller:
             native_transfer_amount=amount
         )
 
+        self._apply_nonce(transaction)
+        self._sign(transaction)
+
         return transaction
 
     def create_contract_deployment_with_move_balance_with_signal_error(self, sender: "Account", amount: int) -> Transaction:
@@ -427,6 +534,9 @@ class Controller:
             arguments=[1, 2, 3, 4, 5],
             native_transfer_amount=amount
         )
+
+        self._apply_nonce(transaction)
+        self._sign(transaction)
 
         return transaction
 
@@ -440,6 +550,9 @@ class Controller:
             native_transfer_amount=amount
         )
 
+        self._apply_nonce(transaction)
+        self._sign(transaction)
+
         return transaction
 
     def create_claim_developer_rewards_on_directly_owned_contract(self, sender: "Account", contract: Address) -> Transaction:
@@ -450,9 +563,15 @@ class Controller:
             gas_limit=8000000,
         )
 
+        self._apply_nonce(transaction)
+        self._sign(transaction)
+
         return transaction
 
     def create_relayed_v1_with_contract_call_with_move_balance_with_signal_error(self, relayer: "Account", sender: "Account", contract: Address, amount: int) -> Transaction:
+        # Relayer nonce is reserved before sender nonce, to ensure good ordering (if sender and relayer are the same account).
+        relayer_nonce = self._reserve_nonce(relayer)
+
         inner_transaction = self.contracts_transactions_factory.create_transaction_for_execute(
             sender=sender.address,
             contract=contract,
@@ -470,24 +589,25 @@ class Controller:
             relayer_address=relayer.address,
         )
 
+        transaction.nonce = relayer_nonce
+        self._sign(transaction)
+
         return transaction
 
     def send_multiple(self, transactions: List[Transaction]):
-        for transaction in transactions:
-            self._apply_nonce(transaction)
-            self._sign(transaction)
-
         self.network_provider.send_transactions(transactions)
 
     def send(self, transaction: Transaction):
-        self._apply_nonce(transaction)
-        self._sign(transaction)
         transaction_hash = self.network_provider.send_transaction(transaction)
         print(f"{self.configuration.explorer_url}/transactions/{transaction_hash}")
 
     def _apply_nonce(self, transaction: Transaction):
         sender = self.accounts.get_account_by_bech32(transaction.sender)
         transaction.nonce = self.nonces_tracker.get_then_increment_nonce(sender.address)
+
+    def _reserve_nonce(self, account: "Account"):
+        sender = self.accounts.get_account_by_bech32(account.address.to_bech32())
+        return self.nonces_tracker.get_then_increment_nonce(sender.address)
 
     def _sign(self, transaction: Transaction):
         sender = self.accounts.get_account_by_bech32(transaction.sender)
