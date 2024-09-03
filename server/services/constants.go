@@ -25,8 +25,8 @@ var (
 	nodeVersionForOfflineRosetta                          = "N / A"
 	systemContractDeployAddress                           = "erd1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq6gq4hu"
 	nativeAsESDTIdentifier                                = "EGLD-000000"
-	durationAlarmThresholdBlockServiceGetBlock            = time.Duration(250) * time.Millisecond
-	durationAlarmThresholdAccountServiceGetAccountBalance = time.Duration(250) * time.Millisecond
+	durationAlarmThresholdBlockServiceGetBlock            = time.Duration(500) * time.Millisecond
+	durationAlarmThresholdAccountServiceGetAccountBalance = time.Duration(500) * time.Millisecond
 )
 
 var (
