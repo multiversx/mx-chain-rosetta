@@ -239,3 +239,26 @@ python3 -m venv ./venv
 source ./venv/bin/activate
 pip install -r ./requirements-dev.txt --upgrade
 ```
+
+### Check:data
+
+Optional: generate sample data (transactions):
+
+```
+source .env
+
+PYTHONPATH=. python3 ./systemtests/generate_testdata_on_network.py setup --network testnet
+PYTHONPATH=. python3 ./systemtests/generate_testdata_on_network.py run --network testnet --without-spica
+```
+
+Run the checks:
+
+```
+PYTHONPATH=. python3 ./systemtests/check_with_mesh_cli.py --mode=data --network=testnet
+```
+
+### Check:construction
+
+```
+PYTHONPATH=. python3 ./systemtests/check_with_mesh_cli.py --mode=construction-native --network=testnet
+```
