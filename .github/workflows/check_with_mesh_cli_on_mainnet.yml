@@ -24,6 +24,7 @@ jobs:
       - name: Build
         run: |
           cd $GITHUB_WORKSPACE/cmd/rosetta && go build .
+          cd $GITHUB_WORKSPACE/systemtests && go build ./proxyToObserverAdapter.go
 
       - name: check:data
         run: |
