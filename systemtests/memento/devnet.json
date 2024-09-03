@@ -1,0 +1,43 @@
+{
+    "contracts": [
+        {
+            "tag": "adder",
+            "address": "erd1qqqqqqqqqqqqqpgqy3mrmhn7mk7c007ctgharhdrjl0cygg5q6uq0qpnhp"
+        },
+        {
+            "tag": "adder",
+            "address": "erd1qqqqqqqqqqqqqpgqpw4pqzlr3ccwgrryjxqlfht5dtvpwq8nggzsh2qq2g"
+        },
+        {
+            "tag": "adder",
+            "address": "erd1qqqqqqqqqqqqqpgqtpkw3tykag4ptg8javlctwpt6ug7hy0yxj0qwyzfj9"
+        },
+        {
+            "tag": "adder",
+            "address": "erd1qqqqqqqqqqqqqpgqp4sm25wye3wufju6lr3dywskntarq302q6uqx2leyy"
+        },
+        {
+            "tag": "adder",
+            "address": "erd1qqqqqqqqqqqqqpgq06w75aldf6nsd08xyq89rgc3hwtzway5ggzsgrem79"
+        },
+        {
+            "tag": "adder",
+            "address": "erd1qqqqqqqqqqqqqpgqwkduvp3sy2ydcvgupmtalz5xm8xve7e6xj0qyn5rx5"
+        },
+        {
+            "tag": "developerRewards",
+            "address": "erd1qqqqqqqqqqqqqpgq5q5dszu00yatrqgull9zeka8gzj5d4ekq6uqkgn597"
+        },
+        {
+            "tag": "developerRewards",
+            "address": "erd1qqqqqqqqqqqqqpgqtuckap20cq5703udaz3uzrl6hcupe28hggzsl7svdf"
+        },
+        {
+            "tag": "developerRewards",
+            "address": "erd1qqqqqqqqqqqqqpgql3fgq9w3t2maxgnp33ymjfna76ek2vtpxj0qhy9u4e"
+        }
+    ],
+    "customCurrencies": [
+        "ROSETTA-7be784"
+    ]
+}
