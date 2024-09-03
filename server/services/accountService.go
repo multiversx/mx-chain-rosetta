@@ -2,9 +2,11 @@ package services
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/coinbase/rosetta-sdk-go/server"
 	"github.com/coinbase/rosetta-sdk-go/types"
+	"github.com/multiversx/mx-chain-core-go/core"
 )
 
 type accountService struct {
@@ -23,10 +25,30 @@ func NewAccountService(provider NetworkProvider) server.AccountAPIServicer {
 }
 
 // AccountBalance implements the /account/balance endpoint.
-func (service *accountService) AccountBalance(
-	_ context.Context,
-	request *types.AccountBalanceRequest,
-) (*types.AccountBalanceResponse, *types.Error) {
+func (service *accountService) AccountBalance(_ context.Context, request *types.AccountBalanceRequest) (*types.AccountBalanceResponse, *types.Error) {
+	stopWatch := core.NewStopWatch()
+	stopWatch.Start("account")
+
+	response, err := service.doGetAccountBalance(request)
+	if err != nil {
+		return nil, err
+	}
+
+	stopWatch.Stop("account")
+	duration := stopWatch.GetMeasurement("account")
+
+	if duration > durationAlarmThresholdAccountServiceGetAccountBalance {
+		log.Debug(fmt.Sprintf("accountService.AccountBalance() took more than %s", durationAlarmThresholdAccountServiceGetAccountBalance),
+			"duration", duration,
+			"address", request.AccountIdentifier.Address,
+			"blockNonce", response.BlockIdentifier.Index,
+		)
+	}
+
+	return response, nil
+}
+
+func (service *accountService) doGetAccountBalance(request *types.AccountBalanceRequest) (*types.AccountBalanceResponse, *types.Error) {
 	options, err := blockIdentifierToAccountQueryOptions(request.BlockIdentifier)
 	if err != nil {
 		return nil, service.errFactory.newErrWithOriginal(ErrUnableToGetAccount, err)

@@ -182,6 +182,11 @@ VERSION:
 		Required: false,
 		Value:    math.MaxUint32,
 	}
+
+	cliFlagShouldEnablePprofEndpoints = cli.BoolFlag{
+		Name:  "pprof",
+		Usage: "Whether to enable pprof HTTP endpoints.",
+	}
 )
 
 func getAllCliFlags() []cli.Flag {
@@ -212,6 +217,7 @@ func getAllCliFlags() []cli.Flag {
 		cliFlagConfigFileCustomCurrencies,
 		cliFlagActivationEpochSirius,
 		cliFlagActivationEpochSpica,
+		cliFlagShouldEnablePprofEndpoints,
 	}
 }
 
@@ -243,6 +249,7 @@ type parsedCliFlags struct {
 	configFileCustomCurrencies  string
 	activationEpochSirius       uint32
 	activationEpochSpica        uint32
+	shouldEnablePprofEndpoints  bool
 }
 
 func getParsedCliFlags(ctx *cli.Context) parsedCliFlags {
@@ -274,5 +281,6 @@ func getParsedCliFlags(ctx *cli.Context) parsedCliFlags {
 		configFileCustomCurrencies:  ctx.GlobalString(cliFlagConfigFileCustomCurrencies.Name),
 		activationEpochSirius:       uint32(ctx.GlobalUint(cliFlagActivationEpochSirius.Name)),
 		activationEpochSpica:        uint32(ctx.GlobalUint(cliFlagActivationEpochSpica.Name)),
+		shouldEnablePprofEndpoints:  ctx.GlobalBool(cliFlagShouldEnablePprofEndpoints.Name),
 	}
 }
