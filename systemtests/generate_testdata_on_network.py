@@ -845,7 +845,7 @@ class Memento:
         }
 
         self.path.parent.mkdir(parents=True, exist_ok=True)
-        self.path.write_text(json.dumps(data, indent=4))
+        self.path.write_text(json.dumps(data, indent=4) + "\n")
 
 
 if __name__ == '__main__':

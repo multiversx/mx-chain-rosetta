@@ -18,6 +18,7 @@ class Configuration:
     check_construction_custom_configuration_file: str
     check_data_configuration_file: str
     check_data_directory: str
+    check_data_num_blocks: int
     explorer_url: str
     memento_file: str = ""
     sponsor_secret_key: bytes = bytes.fromhex(os.environ.get("SPONSOR_SECRET_KEY", ""))
@@ -40,6 +41,7 @@ CONFIGURATIONS = {
         check_construction_custom_configuration_file="",
         check_data_configuration_file="systemtests/mesh_cli_config/check-data.json",
         check_data_directory="systemtests/mainnet-data",
+        check_data_num_blocks=4096,
         memento_file="systemtests/memento/mainnet.json",
         explorer_url="https://explorer.multiversx.com",
     ),
@@ -58,6 +60,7 @@ CONFIGURATIONS = {
         check_construction_custom_configuration_file="systemtests/mesh_cli_config/devnet-construction-custom.json",
         check_data_configuration_file="systemtests/mesh_cli_config/check-data.json",
         check_data_directory="systemtests/devnet-data",
+        check_data_num_blocks=0,
         memento_file="systemtests/memento/devnet.json",
         explorer_url="https://devnet-explorer.multiversx.com",
     ),
@@ -76,6 +79,7 @@ CONFIGURATIONS = {
         check_construction_custom_configuration_file="systemtests/mesh_cli_config/testnet-construction-custom.json",
         check_data_configuration_file="systemtests/mesh_cli_config/check-data.json",
         check_data_directory="systemtests/testnet-data",
+        check_data_num_blocks=0,
         memento_file="systemtests/memento/testnet.json",
         explorer_url="https://testnet-explorer.multiversx.com",
     ),
@@ -94,6 +98,7 @@ CONFIGURATIONS = {
         check_construction_custom_configuration_file="systemtests/mesh_cli_config/localnet-construction-custom.json",
         check_data_configuration_file="systemtests/mesh_cli_config/check-data.json",
         check_data_directory="systemtests/localnet-data",
+        check_data_num_blocks=0,
         memento_file="systemtests/memento/localnet.json",
         explorer_url="",
     ),
