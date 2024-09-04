@@ -2,78 +2,42 @@
     "contracts": [
         {
             "tag": "adder",
-            "address": "erd1qqqqqqqqqqqqqpgqwrgm0m24r6g5p4c0x79jmdr6dys35nueq6uqf304md"
+            "address": "erd1qqqqqqqqqqqqqpgqup2rt8ysvau35r68da4taqjdefqq4j5cq6uqplpqwq"
         },
         {
             "tag": "adder",
-            "address": "erd1qqqqqqqqqqqqqpgqvn4f5l0rkwajhahwukrlfx5f4dat6a6uggzspzmeu6"
+            "address": "erd1qqqqqqqqqqqqqpgqv9lredz9k3eck239vs4l7w83qh8h2nerggzsqmyyea"
         },
         {
             "tag": "adder",
-            "address": "erd1qqqqqqqqqqqqqpgq3msre3nzdcvh533lrn9zrh8zlwphu4lpxj0qnc56jc"
+            "address": "erd1qqqqqqqqqqqqqpgqgvphxkelfmuq8kt3cqg56sgeqh0vey38xj0qetz9rr"
         },
         {
             "tag": "adder",
-            "address": "erd1qqqqqqqqqqqqqpgq7ngq50c3n4rxmvk4hg94mxt567f603t3q6uqgjqn7n"
+            "address": "erd1qqqqqqqqqqqqqpgqxpxxsw5az55r4r66vxas4vnu275pgfk5q6uqf64h3e"
         },
         {
             "tag": "adder",
-            "address": "erd1qqqqqqqqqqqqqpgq3fd39nzu8utn0grmvqph8uxvuhjmcuc5ggzsmjj9el"
+            "address": "erd1qqqqqqqqqqqqqpgqjamqgp80cxst29kddddn0xx3cddhn8ffggzszw9ez4"
         },
         {
             "tag": "adder",
-            "address": "erd1qqqqqqqqqqqqqpgqdk2ngl3kyp0yeeszheh6yh65f4rp4mp2xj0q46whsg"
+            "address": "erd1qqqqqqqqqqqqqpgq50778xnzt6gv2v53eqkr5jqz5xjfafvwxj0qlcrc98"
         },
         {
             "tag": "developerRewards",
-            "address": "erd1qqqqqqqqqqqqqpgqs4gc0xwamtum4n93d8lcqjkcgnyhvlveq6uq07dh8v"
+            "address": "erd1qqqqqqqqqqqqqpgq2mt83wj3rkccsjnedsx292dqq8pyn3m5q6uq53hkrv"
         },
         {
             "tag": "developerRewards",
-            "address": "erd1qqqqqqqqqqqqqpgqpw4pqzlr3ccwgrryjxqlfht5dtvpwq8nggzsh2qq2g"
+            "address": "erd1qqqqqqqqqqqqqpgq8vutkfcjyhzeuqshx9273enlcxk6m99aggzssl4xnj"
         },
         {
             "tag": "developerRewards",
-            "address": "erd1qqqqqqqqqqqqqpgqk3zdyh7ln8ssvvl832m0grvxqepa06xqxj0qh0rn4f"
-        },
-        {
-            "tag": "adder",
-            "address": "erd1qqqqqqqqqqqqqpgqtz5cwkqena9426zqq224kps7d0z6l07vq6uqm9z7rq"
-        },
-        {
-            "tag": "adder",
-            "address": "erd1qqqqqqqqqqqqqpgq06w75aldf6nsd08xyq89rgc3hwtzway5ggzsgrem79"
-        },
-        {
-            "tag": "adder",
-            "address": "erd1qqqqqqqqqqqqqpgq5r94ugctx3sd3e3usl7aqw68ceqkhsjwxj0q993red"
-        },
-        {
-            "tag": "adder",
-            "address": "erd1qqqqqqqqqqqqqpgq2yruu3xzulsg7z8qz5490tjutn70cj6zq6uq30x59t"
-        },
-        {
-            "tag": "adder",
-            "address": "erd1qqqqqqqqqqqqqpgqtuckap20cq5703udaz3uzrl6hcupe28hggzsl7svdf"
-        },
-        {
-            "tag": "adder",
-            "address": "erd1qqqqqqqqqqqqqpgqgkjtp63hwxlkxf9mcdtjn62exx4cqyh3xj0qg0c5rs"
-        },
-        {
-            "tag": "developerRewards",
-            "address": "erd1qqqqqqqqqqqqqpgqd9dftxher75cn83nzjpapuk5p0sskap0q6uqjmuw05"
-        },
-        {
-            "tag": "developerRewards",
-            "address": "erd1qqqqqqqqqqqqqpgq5rjnzq5aav756han2pn5v9vugppsn7e3ggzs3947wy"
-        },
-        {
-            "tag": "developerRewards",
-            "address": "erd1qqqqqqqqqqqqqpgqrd8rc3009wr0dtt09q2k50dtw49ng8r3xj0qj09kvt"
+            "address": "erd1qqqqqqqqqqqqqpgqam3ee8m9w2sdy5dysyyp8z4wdvhq5fcuxj0qtyhau5"
         }
     ],
     "customCurrencies": [
-        "ROSETTA-2a3087"
+        "ROSETTA-26a938"
     ]
 }

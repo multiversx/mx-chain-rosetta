@@ -289,6 +289,31 @@ class BunchOfAccounts:
         return Address.from_bech32(addresses[index])
 
 
+class Account:
+    def __init__(self, signer: UserSigner) -> None:
+        self.signer = signer
+        self.address: Address = signer.get_pubkey().to_address("erd")
+
+
+class SmartContract:
+    def __init__(self, tag: str, address: str) -> None:
+        self.tag = tag
+        self.address = address
+
+    @classmethod
+    def from_dictionary(cls, data: Dict[str, str]) -> "SmartContract":
+        return cls(
+            tag=data["tag"],
+            address=data["address"]
+        )
+
+    def to_dictionary(self) -> Dict[str, str]:
+        return {
+            "tag": self.tag,
+            "address": self.address
+        }
+
+
 class Controller:
     def __init__(self, configuration: Configuration, accounts: BunchOfAccounts, memento: "Memento") -> None:
         self.configuration = configuration
@@ -326,9 +351,6 @@ class Controller:
             transactions.append(transaction)
 
         self.send_multiple(transactions)
-
-        time.sleep(3)
-
         self.await_completed(transactions)
 
     def issue_custom_currency(self, name: str):
@@ -349,8 +371,6 @@ class Controller:
         self.apply_nonce(transaction)
         self.sign(transaction)
         self.send(transaction)
-
-        time.sleep(3)
 
         [transaction_on_network] = self.await_completed([transaction])
         transaction_outcome = self.transactions_converter.transaction_on_network_to_outcome(transaction_on_network)
@@ -378,9 +398,6 @@ class Controller:
                 transactions.append(transaction)
 
         self.send_multiple(transactions)
-
-        time.sleep(3)
-
         self.await_completed(transactions)
 
     def do_create_contract_deployments(self):
@@ -477,9 +494,6 @@ class Controller:
             self.memento.add_contract("developerRewards", contract_address.to_bech32())
 
         self.send_multiple(transactions_all)
-
-        time.sleep(3)
-
         self.await_completed(transactions_all)
 
     def create_simple_move_balance_with_refund(self, sender: "Account", receiver: Address) -> Transaction:
@@ -735,6 +749,9 @@ class Controller:
     def await_completed(self, transactions: List[Transaction]) -> List[TransactionOnNetwork]:
         print(f"Awaiting completion of {len(transactions)} transactions...")
 
+        # Short wait before starting requests, to avoid "transaction not found" errors.
+        time.sleep(3)
+
         transactions_on_network: List[TransactionOnNetwork] = []
 
         # We do sequential awaiting (perfectly fine in this context).
@@ -746,31 +763,6 @@ class Controller:
             print(f"Completed: {self.configuration.explorer_url}/transactions/{transaction_hash}")
 
         return transactions_on_network
-
-
-class Account:
-    def __init__(self, signer: UserSigner) -> None:
-        self.signer = signer
-        self.address: Address = signer.get_pubkey().to_address("erd")
-
-
-class SmartContract:
-    def __init__(self, tag: str, address: str) -> None:
-        self.tag = tag
-        self.address = address
-
-    @classmethod
-    def from_dictionary(cls, data: Dict[str, str]) -> "SmartContract":
-        return cls(
-            tag=data["tag"],
-            address=data["address"]
-        )
-
-    def to_dictionary(self) -> Dict[str, str]:
-        return {
-            "tag": self.tag,
-            "address": self.address
-        }
 
 
 class NoncesTracker:
@@ -798,6 +790,10 @@ class NoncesTracker:
 
 
 class Memento:
+    """
+    The memento is used to store some state (contract addresses, tokens identifiers) among multiple runs.
+    """
+
     def __init__(self, path: Path) -> None:
         self.path = path
         self._contracts: List[SmartContract] = []

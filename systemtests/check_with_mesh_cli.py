@@ -146,13 +146,7 @@ def run_mesh_cli_with_check_data(configuration: Configuration):
 
     shutil.rmtree(configuration.check_data_directory, ignore_errors=True)
 
-    if configuration.check_data_num_blocks:
-        latest_block = get_latest_block(configuration)
-        start_block = latest_block - configuration.check_data_num_blocks + 1
-    else:
-        current_epoch = get_current_epoch(configuration)
-        first_historical_epoch = current_epoch - configuration.num_historical_epochs + 1
-        start_block = get_start_of_epoch(configuration, first_historical_epoch)
+    start_block = get_start_block_for_check_data(configuration)
 
     command = [
         "rosetta-cli",
@@ -164,6 +158,16 @@ def run_mesh_cli_with_check_data(configuration: Configuration):
     ]
 
     return subprocess.Popen(command)
+
+
+def get_start_block_for_check_data(configuration: Configuration) -> int:
+    if configuration.check_data_num_blocks:
+        latest_block = get_latest_block(configuration)
+        return latest_block - configuration.check_data_num_blocks
+
+    current_epoch = get_current_epoch(configuration)
+    first_historical_epoch = current_epoch - configuration.num_historical_epochs + 1
+    return get_start_of_epoch(configuration, first_historical_epoch)
 
 
 def get_latest_block(configuration: Configuration) -> int:

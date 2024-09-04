@@ -38,7 +38,6 @@
         "historical_balance_disabled": false,
         "end_conditions": {
             "reconciliation_coverage": {
-                "coverage": 0.9,
                 "from_tip": true
             }
         }
