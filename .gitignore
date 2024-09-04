@@ -1,7 +1,9 @@
 cmd/rosetta/rosetta
 cmd/rosetta/logs/**
 systemtests/logs/**
+systemtests/memento/**
 systemtests/**/check-data/**
 logs/**
 
 **/__pycache__/**
+venv/**

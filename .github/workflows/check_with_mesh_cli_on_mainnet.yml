@@ -1,4 +1,4 @@
-name: Check with Mesh CLI
+name: Check with Mesh CLI (mainnet)
 
 on:
   pull_request:
@@ -26,18 +26,9 @@ jobs:
           cd $GITHUB_WORKSPACE/cmd/rosetta && go build .
           cd $GITHUB_WORKSPACE/systemtests && go build ./proxyToObserverAdapter.go
 
-      - name: check:construction (native)
-        run: |
-          PYTHONPATH=. python3 ./systemtests/check_with_mesh_cli.py --mode=construction-native --network=testnet
-          sleep 30
-
-      - name: check:construction (custom)
-        run: |
-          PYTHONPATH=. python3 ./systemtests/check_with_mesh_cli.py --mode=construction-custom --network=testnet
-          sleep 30
-
       - name: check:data
         run: |
-          PYTHONPATH=. python3 ./systemtests/check_with_mesh_cli.py --mode=data --network=testnet
-
+          PYTHONPATH=. python3 ./systemtests/check_with_mesh_cli.py --mode=data --network=mainnet
+        env:
+          MAINNET_PROXY_URL: ${{ secrets.MAINNET_PROXY_URL }}
 
