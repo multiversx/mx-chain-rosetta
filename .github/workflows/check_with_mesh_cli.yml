@@ -36,6 +36,14 @@ jobs:
           PYTHONPATH=. python3 ./systemtests/check_with_mesh_cli.py --mode=construction-custom --network=testnet
           sleep 30
 
+      - name: Generate sample transactions for check:data
+        run: |
+          PYTHONPATH=. python3 ./systemtests/generate_testdata_on_network.py --mode=setup --network=testnet
+          PYTHONPATH=. python3 ./systemtests/generate_testdata_on_network.py --mode=run --network=testnet
+        env:
+          USERS_MNEMONIC: ${{ secrets.USERS_MNEMONIC }}
+          SPONSOR_SECRET_KEY: ${{ secrets.SPONSOR_SECRET_KEY }}
+
       - name: check:data
         run: |
           PYTHONPATH=. python3 ./systemtests/check_with_mesh_cli.py --mode=data --network=testnet
