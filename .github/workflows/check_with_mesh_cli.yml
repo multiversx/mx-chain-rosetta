@@ -39,7 +39,7 @@ jobs:
       - name: Generate sample transactions for check:data
         run: |
           PYTHONPATH=. python3 ./systemtests/generate_testdata_on_network.py setup --network=testnet
-          PYTHONPATH=. python3 ./systemtests/generate_testdata_on_network.py run --network=testnet --without-spica
+          PYTHONPATH=. python3 ./systemtests/generate_testdata_on_network.py run --network=testnet
         env:
           USERS_MNEMONIC: ${{ secrets.USERS_MNEMONIC }}
           SPONSOR_SECRET_KEY: ${{ secrets.SPONSOR_SECRET_KEY }}
