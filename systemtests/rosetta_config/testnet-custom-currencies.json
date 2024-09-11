@@ -1,6 +1,10 @@
 [
     {
-        "symbol": "ROSETTA-de9b08",
+        "symbol": "ROSETTA-357812",
+        "decimals": 4
+    },
+    {
+        "symbol": "ROSETTA-e4620d",
         "decimals": 4
     }
 ]

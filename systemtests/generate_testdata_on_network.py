@@ -33,7 +33,6 @@ def main():
 
     subparser_run = subparsers.add_parser("run")
     subparser_run.add_argument("--network", choices=CONFIGURATIONS.keys(), required=True)
-    subparser_run.add_argument("--without-spica", action="store_true")
     subparser_run.set_defaults(func=do_run)
 
     args = parser.parse_args()
@@ -66,7 +65,6 @@ def do_setup(args: Any):
 
 def do_run(args: Any):
     network = args.network
-    with_spica = not args.without_spica
     configuration = CONFIGURATIONS[network]
     memento = Memento(Path(configuration.memento_file))
     accounts = BunchOfAccounts(configuration, memento)
@@ -108,38 +106,38 @@ def do_run(args: Any):
         receiver=accounts.get_contract_address("adder", 1, 0),
     ))
 
-    if with_spica:
-        # Intra-shard, native transfer within MultiESDTTransfer
-        controller.send(controller.create_native_transfer_within_multiesdt(
-            sender=accounts.get_user(shard=0, index=0),
-            receiver=accounts.get_user(shard=0, index=1).address,
-            native_amount=42,
-            custom_amount=7
-        ))
 
-        print("Cross-shard, native transfer within MultiESDTTransfer")
-        controller.send(controller.create_native_transfer_within_multiesdt(
-            sender=accounts.get_user(shard=0, index=1),
-            receiver=accounts.get_user(shard=1, index=0).address,
-            native_amount=42,
-            custom_amount=7
-        ))
+    print("Intra-shard, native transfer within MultiESDTTransfer")
+    controller.send(controller.create_native_transfer_within_multiesdt(
+        sender=accounts.get_user(shard=0, index=0),
+        receiver=accounts.get_user(shard=0, index=1).address,
+        native_amount=42,
+        custom_amount=7
+    ))
 
-        print("Intra-shard, native transfer within MultiESDTTransfer, towards non-payable contract")
-        controller.send(controller.create_native_transfer_within_multiesdt(
-            sender=accounts.get_user(shard=0, index=0),
-            receiver=accounts.get_contract_address("adder", 0, 0),
-            native_amount=42,
-            custom_amount=7
-        ))
+    print("Cross-shard, native transfer within MultiESDTTransfer")
+    controller.send(controller.create_native_transfer_within_multiesdt(
+        sender=accounts.get_user(shard=0, index=1),
+        receiver=accounts.get_user(shard=1, index=0).address,
+        native_amount=42,
+        custom_amount=7
+    ))
 
-        print("Cross-shard, native transfer within MultiESDTTransfer, towards non-payable contract")
-        controller.send(controller.create_native_transfer_within_multiesdt(
-            sender=accounts.get_user(shard=0, index=1),
-            receiver=accounts.get_contract_address("adder", 1, 0),
-            native_amount=42,
-            custom_amount=7
-        ))
+    print("Intra-shard, native transfer within MultiESDTTransfer, towards non-payable contract")
+    controller.send(controller.create_native_transfer_within_multiesdt(
+        sender=accounts.get_user(shard=0, index=0),
+        receiver=accounts.get_contract_address("adder", 0, 0),
+        native_amount=42,
+        custom_amount=7
+    ))
+
+    print("Cross-shard, native transfer within MultiESDTTransfer, towards non-payable contract")
+    controller.send(controller.create_native_transfer_within_multiesdt(
+        sender=accounts.get_user(shard=0, index=1),
+        receiver=accounts.get_contract_address("adder", 1, 0),
+        native_amount=42,
+        custom_amount=7
+    ))
 
     print("Intra-shard, relayed v1 transaction with MoveBalance")
     controller.send(controller.create_relayed_v1_with_move_balance(
@@ -149,50 +147,45 @@ def do_run(args: Any):
         amount=42
     ))
 
-    if with_spica:
-        print("Relayed v3, senders and receivers in same shard")
-        controller.send(controller.create_relayed_v3_with_a_few_inner_move_balances(
-            relayer=accounts.get_user(shard=0, index=0),
-            senders=accounts.users_by_shard[0][1:3],
-            receivers=[account.address for account in accounts.users_by_shard[0][3:5]],
-            amount=42
-        ))
+    print("Relayed v3, senders and receivers in same shard")
+    controller.send(controller.create_relayed_v3_with_a_few_inner_move_balances(
+        relayer=accounts.get_user(shard=0, index=0),
+        senders=accounts.users_by_shard[0][1:3],
+        receivers=[account.address for account in accounts.users_by_shard[0][3:5]],
+        amount=42
+    ))
 
-    if with_spica:
-        print("Relayed v3, senders and receivers in different shards")
-        controller.send(controller.create_relayed_v3_with_a_few_inner_move_balances(
-            relayer=accounts.get_user(shard=0, index=0),
-            senders=accounts.users_by_shard[0][1:3],
-            receivers=[account.address for account in accounts.users_by_shard[1][3:5]],
-            amount=42
-        ))
+    print("Relayed v3, senders and receivers in different shards")
+    controller.send(controller.create_relayed_v3_with_a_few_inner_move_balances(
+        relayer=accounts.get_user(shard=0, index=0),
+        senders=accounts.users_by_shard[0][1:3],
+        receivers=[account.address for account in accounts.users_by_shard[1][3:5]],
+        amount=42
+    ))
 
-    if with_spica:
-        print("Relayed v3, senders and receivers in same shard (insufficient balance)")
-        controller.send(controller.create_relayed_v3_with_a_few_inner_move_balances(
-            relayer=accounts.get_user(shard=0, index=0),
-            senders=accounts.users_by_shard[0][1:3],
-            receivers=[account.address for account in accounts.users_by_shard[0][3:5]],
-            amount=1000000000000000000000
-        ))
+    print("Relayed v3, senders and receivers in same shard (insufficient balance)")
+    controller.send(controller.create_relayed_v3_with_a_few_inner_move_balances(
+        relayer=accounts.get_user(shard=0, index=0),
+        senders=accounts.users_by_shard[0][1:3],
+        receivers=[account.address for account in accounts.users_by_shard[0][3:5]],
+        amount=1000000000000000000000
+    ))
 
-    if with_spica:
-        print("Relayed v3, senders and receivers in different shards (insufficient balance)")
-        controller.send(controller.create_relayed_v3_with_a_few_inner_move_balances(
-            relayer=accounts.get_user(shard=0, index=0),
-            senders=accounts.users_by_shard[0][1:3],
-            receivers=[account.address for account in accounts.users_by_shard[1][3:5]],
-            amount=1000000000000000000000
-        ))
+    print("Relayed v3, senders and receivers in different shards (insufficient balance)")
+    controller.send(controller.create_relayed_v3_with_a_few_inner_move_balances(
+        relayer=accounts.get_user(shard=0, index=0),
+        senders=accounts.users_by_shard[0][1:3],
+        receivers=[account.address for account in accounts.users_by_shard[1][3:5]],
+        amount=1000000000000000000000
+    ))
 
-    if with_spica:
-        print("Relayed v3, senders and receivers in same shard, sending to non-payable contract")
-        controller.send(controller.create_relayed_v3_with_a_few_inner_move_balances(
-            relayer=accounts.get_user(shard=0, index=0),
-            senders=[accounts.get_user(shard=0, index=5)],
-            receivers=[accounts.get_contract_address("adder", 0, 0)],
-            amount=1000000000000000000
-        ))
+    print("Relayed v3, senders and receivers in same shard, sending to non-payable contract")
+    controller.send(controller.create_relayed_v3_with_a_few_inner_move_balances(
+        relayer=accounts.get_user(shard=0, index=0),
+        senders=[accounts.get_user(shard=0, index=5)],
+        receivers=[accounts.get_contract_address("adder", 0, 0)],
+        amount=1000000000000000000
+    ))
 
     print("Intra-shard, relayed v1 transaction with MoveBalance")
     controller.send(controller.create_relayed_v1_with_move_balance(
@@ -228,15 +221,14 @@ def do_run(args: Any):
         amount=77
     ))
 
-    if with_spica:
-        print("ClaimDeveloperRewards on directly owned contract")
-        controller.send(controller.create_claim_developer_rewards_on_directly_owned_contract(
-            sender=accounts.get_user(shard=0, index=0),
-            contract=accounts.get_contract_address("adder", 0, 0),
-        ))
+    print("ClaimDeveloperRewards on directly owned contract")
+    controller.send(controller.create_claim_developer_rewards_on_directly_owned_contract(
+        sender=accounts.get_user(shard=0, index=0),
+        contract=accounts.get_contract_address("adder", 0, 0),
+    ))
 
-        # TODO: claim developer rewards with parent-child contracts
-        # TODO: claim developer rewards on directly owned contracts, cross shard (use change owner address).
+    # TODO: claim developer rewards with parent-child contracts
+    # TODO: claim developer rewards on directly owned contracts, cross shard (use change owner address).
 
     print("Intra-shard, relayed v1 transaction with contract call with MoveBalance, with signal error")
     controller.send(controller.create_relayed_v1_with_contract_call_with_move_balance_with_signal_error(
@@ -244,6 +236,14 @@ def do_run(args: Any):
         sender=accounts.get_user(shard=0, index=1),
         contract=accounts.get_contract_address("adder", 0, 0),
         amount=1
+    ))
+
+    print("Relayed v3, completely intra-shard, with a few contract calls")
+    controller.send(controller.create_relayed_v3_with_a_few_contract_calls(
+        relayer=accounts.get_user(shard=0, index=0),
+        senders=[accounts.get_user(shard=0, index=0)] * 7,
+        contracts=[accounts.get_contract_address("dummy", shard=0, index=0)] * 7,
+        amount=0
     ))
 
 
@@ -260,7 +260,7 @@ class BunchOfAccounts:
 
         address_computer = AddressComputer()
 
-        for i in range(32):
+        for i in range(128):
             user = self._create_user(i)
             shard = address_computer.get_shard_of_address(user.address)
             self.users.append(user)
@@ -358,7 +358,7 @@ class Controller:
 
             transactions.append(transaction)
 
-        self.send_multiple(transactions)
+        self.send_multiple(transactions, chunk_size=99, wait_between_chunks=7)
         self.await_completed(transactions)
 
     def issue_custom_currency(self, name: str):
@@ -405,7 +405,7 @@ class Controller:
                 self.sign(transaction)
                 transactions.append(transaction)
 
-        self.send_multiple(transactions)
+        self.send_multiple(transactions, chunk_size=99, wait_between_chunks=7)
         self.await_completed(transactions)
 
     def do_create_contract_deployments(self):
@@ -547,6 +547,24 @@ class Controller:
 
         return transaction
 
+    def create_native_transfer_within_multiesdt_transfer_and_execute(self, sender: "Account", contract: Address, function: str, native_amount: int, custom_amount: int, seal_for_broadcast: bool = True) -> Transaction:
+        custom_currency = self.memento.get_custom_currencies()[0]
+
+        transaction = self.contracts_transactions_factory.create_transaction_for_execute(
+            sender=sender.address,
+            contract=contract,
+            function=function,
+            gas_limit=3000000,
+            native_transfer_amount=native_amount,
+            token_transfers=[TokenTransfer(Token(custom_currency), custom_amount)]
+        )
+
+        if seal_for_broadcast:
+            self.apply_nonce(transaction)
+            self.sign(transaction)
+
+        return transaction
+
     def create_relayed_v1_with_move_balance(self, relayer: "Account", sender: "Account", receiver: Address, amount: int) -> Transaction:
         # Relayer nonce is reserved before sender nonce, to ensure good ordering (if sender and relayer are the same account).
         relayer_nonce = self._reserve_nonce(relayer)
@@ -641,6 +659,61 @@ class Controller:
             self.apply_nonce(inner_transaction)
             self.sign(inner_transaction)
             inner_transactions.append(inner_transaction)
+
+        transaction = self.relayed_transactions_factory.create_relayed_v3_transaction(
+            relayer_address=relayer.address,
+            inner_transactions=inner_transactions,
+        )
+
+        transaction.nonce = relayer_nonce
+        self.sign(transaction)
+
+        return transaction
+
+    def create_relayed_v3_with_a_few_contract_calls(self, relayer: "Account", senders: List["Account"], contracts: List[Address], amount: int) -> Transaction:
+        # Relayer nonce is reserved before sender nonce, to ensure good ordering (if sender and relayer are the same account).
+        relayer_nonce = self._reserve_nonce(relayer)
+
+        if len(senders) != len(contracts):
+            raise ValueError("senders and receivers must have the same length", len(senders), len(contracts))
+
+        inner_transactions: List[Transaction] = []
+
+        for sender, contract in zip(senders, contracts):
+            inner_transaction = self.contracts_transactions_factory.create_transaction_for_execute(
+                sender=sender.address,
+                contract=contract,
+                function="doSomething",
+                gas_limit=3000000,
+                arguments=[],
+                native_transfer_amount=amount
+            )
+
+            inner_transaction.relayer = relayer.address.to_bech32()
+            self.apply_nonce(inner_transaction)
+            self.sign(inner_transaction)
+            inner_transactions.append(inner_transaction)
+
+        transaction = self.relayed_transactions_factory.create_relayed_v3_transaction(
+            relayer_address=relayer.address,
+            inner_transactions=inner_transactions,
+        )
+
+        transaction.nonce = relayer_nonce
+        self.sign(transaction)
+
+        return transaction
+
+    def create_relayed_v3_with_inner_transactions(self, relayer: "Account", inner_transactions: List[Transaction]) -> Transaction:
+        # Relayer nonce is reserved before sender nonce, to ensure good ordering (if sender and relayer are the same account).
+        relayer_nonce = self._reserve_nonce(relayer)
+
+        for inner_transaction in inner_transactions:
+            inner_transaction.relayer = relayer.address.to_bech32()
+            self.apply_nonce(inner_transaction)
+
+            # Even if it was already signed, we need to sign it again (because it has been modified).
+            self.sign(inner_transaction)
 
         transaction = self.relayed_transactions_factory.create_relayed_v3_transaction(
             relayer_address=relayer.address,
@@ -747,8 +820,12 @@ class Controller:
         bytes_for_signing = self.transaction_computer.compute_bytes_for_signing(transaction)
         transaction.signature = sender.signer.sign(bytes_for_signing)
 
-    def send_multiple(self, transactions: List[Transaction]):
-        self.network_provider.send_transactions(transactions)
+    def send_multiple(self, transactions: List[Transaction], chunk_size: int = 1024, wait_between_chunks: float = 0):
+        chunks = list(split_to_chunks(transactions, chunk_size))
+
+        for chunk in chunks:
+            self.network_provider.send_transactions(chunk)
+            time.sleep(wait_between_chunks)
 
     def send(self, transaction: Transaction):
         transaction_hash = self.network_provider.send_transaction(transaction)
@@ -850,6 +927,11 @@ class Memento:
 
         self.path.parent.mkdir(parents=True, exist_ok=True)
         self.path.write_text(json.dumps(data, indent=4) + "\n")
+
+
+def split_to_chunks(items: Any, chunk_size: int):
+    for i in range(0, len(items), chunk_size):
+        yield items[i:i + chunk_size]
 
 
 if __name__ == '__main__':
