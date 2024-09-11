@@ -71,44 +71,43 @@ def do_run(args: Any):
     accounts = BunchOfAccounts(configuration, memento)
     controller = Controller(configuration, accounts, memento)
 
-    print("Intra-shard, simple MoveBalance with refund")
+    print("## Intra-shard, simple MoveBalance with refund")
     controller.send(controller.create_simple_move_balance_with_refund(
         sender=accounts.get_user(shard=0, index=0),
         receiver=accounts.get_user(shard=0, index=1).address,
     ))
 
-    print("Cross-shard, simple MoveBalance with refund")
+    print("## Cross-shard, simple MoveBalance with refund")
     controller.send(controller.create_simple_move_balance_with_refund(
         sender=accounts.get_user(shard=0, index=1),
         receiver=accounts.get_user(shard=1, index=0).address,
     ))
 
-    print("Intra-shard, invalid MoveBalance with refund")
+    print("## Intra-shard, invalid MoveBalance with refund")
     controller.send(controller.create_invalid_move_balance_with_refund(
         sender=accounts.get_user(shard=0, index=2),
         receiver=accounts.get_user(shard=0, index=3).address,
     ))
 
-    print("Cross-shard, invalid MoveBalance with refund")
+    print("## Cross-shard, invalid MoveBalance with refund")
     controller.send(controller.create_invalid_move_balance_with_refund(
         sender=accounts.get_user(shard=0, index=4),
         receiver=accounts.get_user(shard=1, index=1).address,
     ))
 
-    print("Intra-shard, sending value to non-payable contract")
+    print("## Intra-shard, sending value to non-payable contract")
     controller.send(controller.create_simple_move_balance_with_refund(
         sender=accounts.get_user(shard=0, index=0),
         receiver=accounts.get_contract_address("adder", 0, 0),
     ))
 
-    print("Cross-shard, sending value to non-payable contract")
+    print("## Cross-shard, sending value to non-payable contract")
     controller.send(controller.create_simple_move_balance_with_refund(
         sender=accounts.get_user(shard=0, index=1),
         receiver=accounts.get_contract_address("adder", 1, 0),
     ))
 
-
-    print("Intra-shard, native transfer within MultiESDTTransfer")
+    print("## Intra-shard, native transfer within MultiESDTTransfer")
     controller.send(controller.create_native_transfer_within_multiesdt(
         sender=accounts.get_user(shard=0, index=0),
         receiver=accounts.get_user(shard=0, index=1).address,
@@ -116,7 +115,7 @@ def do_run(args: Any):
         custom_amount=7
     ))
 
-    print("Cross-shard, native transfer within MultiESDTTransfer")
+    print("## Cross-shard, native transfer within MultiESDTTransfer")
     controller.send(controller.create_native_transfer_within_multiesdt(
         sender=accounts.get_user(shard=0, index=1),
         receiver=accounts.get_user(shard=1, index=0).address,
@@ -124,7 +123,7 @@ def do_run(args: Any):
         custom_amount=7
     ))
 
-    print("Intra-shard, native transfer within MultiESDTTransfer, towards non-payable contract")
+    print("## Intra-shard, native transfer within MultiESDTTransfer, towards non-payable contract")
     controller.send(controller.create_native_transfer_within_multiesdt(
         sender=accounts.get_user(shard=0, index=0),
         receiver=accounts.get_contract_address("adder", 0, 0),
@@ -132,7 +131,7 @@ def do_run(args: Any):
         custom_amount=7
     ))
 
-    print("Cross-shard, native transfer within MultiESDTTransfer, towards non-payable contract")
+    print("## Cross-shard, native transfer within MultiESDTTransfer, towards non-payable contract")
     controller.send(controller.create_native_transfer_within_multiesdt(
         sender=accounts.get_user(shard=0, index=1),
         receiver=accounts.get_contract_address("adder", 1, 0),
@@ -140,7 +139,75 @@ def do_run(args: Any):
         custom_amount=7
     ))
 
-    print("Intra-shard, relayed v1 transaction with MoveBalance")
+    print("## Cross-shard, transfer & execute with native & custom transfer")
+    controller.send(controller.create_native_transfer_within_multiesdt_transfer_and_execute(
+        sender=accounts.get_user(shard=0, index=1),
+        contract=accounts.get_contract_address("dummy", shard=2, index=0),
+        function="doSomething",
+        native_amount=42,
+        custom_amount=7,
+    ))
+
+    print("## Intra-shard, transfer & execute with native & custom transfer")
+    controller.send(controller.create_native_transfer_within_multiesdt_transfer_and_execute(
+        sender=accounts.get_user(shard=0, index=4),
+        contract=accounts.get_contract_address("dummy", shard=0, index=0),
+        function="doSomething",
+        native_amount=42,
+        custom_amount=7,
+    ))
+
+    print("## Cross-shard, transfer & execute with native & custom transfer, wrapped in Relayed V3")
+    controller.send(
+        controller.create_relayed_v3_with_inner_transactions(
+            relayer=accounts.get_user(shard=0, index=0),
+            inner_transactions=[
+                controller.create_native_transfer_within_multiesdt_transfer_and_execute(
+                    sender=accounts.get_user(shard=0, index=1),
+                    contract=accounts.get_contract_address("dummy", shard=2, index=0),
+                    function="doSomething",
+                    native_amount=42,
+                    custom_amount=7,
+                    seal_for_broadcast=False,
+                ),
+                controller.create_native_transfer_within_multiesdt_transfer_and_execute(
+                    sender=accounts.get_user(shard=0, index=2),
+                    contract=accounts.get_contract_address("dummy", shard=2, index=0),
+                    function="doNothing",
+                    native_amount=42,
+                    custom_amount=7,
+                    seal_for_broadcast=False
+                )
+            ]
+        )
+    )
+
+    print("## Intra-shard, transfer & execute with native & custom transfer, wrapped in Relayed V3")
+    controller.send(
+        controller.create_relayed_v3_with_inner_transactions(
+            relayer=accounts.get_user(shard=0, index=0),
+            inner_transactions=[
+                controller.create_native_transfer_within_multiesdt_transfer_and_execute(
+                    sender=accounts.get_user(shard=0, index=3),
+                    contract=accounts.get_contract_address("dummy", shard=0, index=0),
+                    function="doSomething",
+                    native_amount=42,
+                    custom_amount=7,
+                    seal_for_broadcast=False,
+                ),
+                controller.create_native_transfer_within_multiesdt_transfer_and_execute(
+                    sender=accounts.get_user(shard=0, index=4),
+                    contract=accounts.get_contract_address("dummy", shard=0, index=0),
+                    function="doNothing",
+                    native_amount=42,
+                    custom_amount=7,
+                    seal_for_broadcast=False
+                )
+            ]
+        )
+    )
+
+    print("## Intra-shard, relayed v1 transaction with MoveBalance")
     controller.send(controller.create_relayed_v1_with_move_balance(
         relayer=accounts.get_user(shard=0, index=0),
         sender=accounts.get_user(shard=0, index=1),
@@ -148,7 +215,7 @@ def do_run(args: Any):
         amount=42
     ))
 
-    print("Relayed v3, senders and receivers in same shard")
+    print("## Relayed v3, senders and receivers in same shard")
     controller.send(controller.create_relayed_v3_with_a_few_inner_move_balances(
         relayer=accounts.get_user(shard=0, index=0),
         senders=accounts.users_by_shard[0][1:3],
@@ -156,7 +223,7 @@ def do_run(args: Any):
         amount=42
     ))
 
-    print("Relayed v3, senders and receivers in different shards")
+    print("## Relayed v3, senders and receivers in different shards")
     controller.send(controller.create_relayed_v3_with_a_few_inner_move_balances(
         relayer=accounts.get_user(shard=0, index=0),
         senders=accounts.users_by_shard[0][1:3],
@@ -164,7 +231,7 @@ def do_run(args: Any):
         amount=42
     ))
 
-    print("Relayed v3, senders and receivers in same shard (insufficient balance)")
+    print("## Relayed v3, senders and receivers in same shard (insufficient balance)")
     controller.send(controller.create_relayed_v3_with_a_few_inner_move_balances(
         relayer=accounts.get_user(shard=0, index=0),
         senders=accounts.users_by_shard[0][1:3],
@@ -172,7 +239,7 @@ def do_run(args: Any):
         amount=1000000000000000000000
     ))
 
-    print("Relayed v3, senders and receivers in different shards (insufficient balance)")
+    print("## Relayed v3, senders and receivers in different shards (insufficient balance)")
     controller.send(controller.create_relayed_v3_with_a_few_inner_move_balances(
         relayer=accounts.get_user(shard=0, index=0),
         senders=accounts.users_by_shard[0][1:3],
@@ -180,7 +247,7 @@ def do_run(args: Any):
         amount=1000000000000000000000
     ))
 
-    print("Relayed v3, senders and receivers in same shard, sending to non-payable contract")
+    print("## Relayed v3, senders and receivers in same shard, sending to non-payable contract")
     controller.send(controller.create_relayed_v3_with_a_few_inner_move_balances(
         relayer=accounts.get_user(shard=0, index=0),
         senders=[accounts.get_user(shard=0, index=5)],
@@ -188,7 +255,7 @@ def do_run(args: Any):
         amount=1000000000000000000
     ))
 
-    print("Intra-shard, relayed v1 transaction with MoveBalance")
+    print("## Intra-shard, relayed v1 transaction with MoveBalance (with bad receiver, system smart contract)")
     controller.send(controller.create_relayed_v1_with_move_balance(
         relayer=accounts.get_user(shard=1, index=0),
         sender=accounts.get_user(shard=1, index=9),
@@ -196,33 +263,33 @@ def do_run(args: Any):
         amount=1000000000000000000
     ))
 
-    print("Direct contract deployment with MoveBalance")
+    print("## Direct contract deployment with MoveBalance")
     controller.send(controller.create_contract_deployment_with_move_balance(
         sender=accounts.get_user(shard=0, index=0),
         amount=10000000000000000
     ))
 
-    print("Intra-shard, contract call with MoveBalance, with signal error")
+    print("## Intra-shard, contract call with MoveBalance, with signal error")
     controller.send(controller.create_contract_call_with_move_balance_with_signal_error(
         sender=accounts.get_user(shard=0, index=0),
         contract=accounts.get_contract_address("adder", 0, 0),
         amount=10000000000000000
     ))
 
-    print("Cross-shard, contract call with MoveBalance, with signal error")
+    print("## Cross-shard, contract call with MoveBalance, with signal error")
     controller.send(controller.create_contract_call_with_move_balance_with_signal_error(
         sender=accounts.get_user(shard=0, index=0),
         contract=accounts.get_contract_address("adder", 1, 0),
         amount=10000000000000000
     ))
 
-    print("Direct contract deployment with MoveBalance, with signal error")
+    print("## Direct contract deployment with MoveBalance, with signal error")
     controller.send(controller.create_contract_deployment_with_move_balance_with_signal_error(
         sender=accounts.get_user(shard=0, index=0),
         amount=77
     ))
 
-    print("ClaimDeveloperRewards on directly owned contract")
+    print("## ClaimDeveloperRewards on directly owned contract")
     controller.send(controller.create_claim_developer_rewards_on_directly_owned_contract(
         sender=accounts.get_user(shard=0, index=0),
         contract=accounts.get_contract_address("adder", 0, 0),
@@ -231,7 +298,7 @@ def do_run(args: Any):
     # TODO: claim developer rewards with parent-child contracts
     # TODO: claim developer rewards on directly owned contracts, cross shard (use change owner address).
 
-    print("Intra-shard, relayed v1 transaction with contract call with MoveBalance, with signal error")
+    print("## Intra-shard, relayed v1 transaction with contract call with MoveBalance, with signal error")
     controller.send(controller.create_relayed_v1_with_contract_call_with_move_balance_with_signal_error(
         relayer=accounts.get_user(shard=0, index=0),
         sender=accounts.get_user(shard=0, index=1),
@@ -239,7 +306,7 @@ def do_run(args: Any):
         amount=1
     ))
 
-    print("Relayed v3, completely intra-shard, with a few contract calls")
+    print("## Relayed v3, completely intra-shard, with a few contract calls")
     controller.send(controller.create_relayed_v3_with_a_few_contract_calls(
         relayer=accounts.get_user(shard=0, index=0),
         senders=[accounts.get_user(shard=0, index=0)] * 7,
