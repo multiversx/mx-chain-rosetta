@@ -1,6 +1,7 @@
 import json
 import time
 from argparse import ArgumentParser
+from multiprocessing.dummy import Pool
 from pathlib import Path
 from typing import Any, Dict, List
 
@@ -821,10 +822,14 @@ class Controller:
         transaction.signature = sender.signer.sign(bytes_for_signing)
 
     def send_multiple(self, transactions: List[Transaction], chunk_size: int = 1024, wait_between_chunks: float = 0):
+        print(f"Sending {len(transactions)} transactions...")
+
         chunks = list(split_to_chunks(transactions, chunk_size))
 
         for chunk in chunks:
-            self.network_provider.send_transactions(chunk)
+            num_sent, _ = self.network_provider.send_transactions(chunk)
+
+            print(f"Sent {num_sent} transactions. Waiting {wait_between_chunks} seconds...")
             time.sleep(wait_between_chunks)
 
     def send(self, transaction: Transaction):
@@ -837,16 +842,14 @@ class Controller:
         # Short wait before starting requests, to avoid "transaction not found" errors.
         time.sleep(3)
 
-        transactions_on_network: List[TransactionOnNetwork] = []
-
-        # We do sequential awaiting (perfectly fine in this context).
-        for transaction in transactions:
+        def await_completed_one(transaction: Transaction) -> TransactionOnNetwork:
             transaction_hash = self.transaction_computer.compute_transaction_hash(transaction).hex()
             transaction_on_network = self.transaction_awaiter.await_completed(transaction_hash)
-            transactions_on_network.append(transaction_on_network)
 
             print(f"Completed: {self.configuration.explorer_url}/transactions/{transaction_hash}")
+            return transaction_on_network
 
+        transactions_on_network = Pool(8).map(await_completed_one, transactions)
         return transactions_on_network
 
 
