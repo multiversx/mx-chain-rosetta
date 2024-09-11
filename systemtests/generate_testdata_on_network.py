@@ -113,24 +113,32 @@ def do_run(args: Any):
         controller.send(controller.create_native_transfer_within_multiesdt(
             sender=accounts.get_user(shard=0, index=0),
             receiver=accounts.get_user(shard=0, index=1).address,
+            native_amount=42,
+            custom_amount=7
         ))
 
         print("Cross-shard, native transfer within MultiESDTTransfer")
         controller.send(controller.create_native_transfer_within_multiesdt(
             sender=accounts.get_user(shard=0, index=1),
             receiver=accounts.get_user(shard=1, index=0).address,
+            native_amount=42,
+            custom_amount=7
         ))
 
         print("Intra-shard, native transfer within MultiESDTTransfer, towards non-payable contract")
         controller.send(controller.create_native_transfer_within_multiesdt(
             sender=accounts.get_user(shard=0, index=0),
             receiver=accounts.get_contract_address("adder", 0, 0),
+            native_amount=42,
+            custom_amount=7
         ))
 
         print("Cross-shard, native transfer within MultiESDTTransfer, towards non-payable contract")
         controller.send(controller.create_native_transfer_within_multiesdt(
             sender=accounts.get_user(shard=0, index=1),
             receiver=accounts.get_contract_address("adder", 1, 0),
+            native_amount=42,
+            custom_amount=7
         ))
 
     print("Intra-shard, relayed v1 transaction with MoveBalance")
@@ -486,7 +494,7 @@ class Controller:
         for transaction in transactions_dummy:
             sender = Address.from_bech32(transaction.sender)
             contract_address = address_computer.compute_contract_address(sender, transaction.nonce)
-            self.memento.add_contract("adder", contract_address.to_bech32())
+            self.memento.add_contract("dummy", contract_address.to_bech32())
 
         for transaction in transactions_developer_rewards:
             sender = Address.from_bech32(transaction.sender)
@@ -524,14 +532,14 @@ class Controller:
 
         return transaction
 
-    def create_native_transfer_within_multiesdt(self, sender: "Account", receiver: Address) -> Transaction:
+    def create_native_transfer_within_multiesdt(self, sender: "Account", receiver: Address, native_amount: int, custom_amount: int) -> Transaction:
         custom_currency = self.memento.get_custom_currencies()[0]
 
         transaction = self.transfer_transactions_factory.create_transaction_for_transfer(
             sender=sender.address,
             receiver=receiver,
-            native_amount=42,
-            token_transfers=[TokenTransfer(Token(custom_currency), 7)]
+            native_amount=native_amount,
+            token_transfers=[TokenTransfer(Token(custom_currency), custom_amount)]
         )
 
         self.apply_nonce(transaction)
