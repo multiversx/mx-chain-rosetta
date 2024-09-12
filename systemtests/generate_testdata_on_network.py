@@ -257,6 +257,23 @@ def do_run(args: Any):
         amount=1000000000000000000
     ))
 
+    print("## Relayed v3, completely intra-shard, with a few contract calls")
+    controller.send(controller.create_relayed_v3_with_a_few_contract_calls(
+        relayer=accounts.get_user(shard=0, index=0),
+        senders=[accounts.get_user(shard=0, index=0)] * 7,
+        contracts=[accounts.get_contract_address("dummy", shard=0, index=0)] * 7,
+        inner_transaction_amount=0
+    ))
+
+    print("## Relayed v3, cross-shard, with gas limit = 599999999")
+    controller.send(controller.create_relayed_v3_with_a_few_contract_calls(
+        relayer=accounts.get_user(shard=0, index=0),
+        senders=[accounts.get_user(shard=0, index=0)],
+        contracts=[accounts.get_contract_address("dummy", shard=1, index=0)],
+        inner_transaction_amount=0,
+        inner_transaction_gas_limit=599949999,
+    ))
+
     print("## Intra-shard, relayed v1 transaction with MoveBalance (with bad receiver, system smart contract)")
     controller.send(controller.create_relayed_v1_with_move_balance(
         relayer=accounts.get_user(shard=1, index=0),
@@ -297,14 +314,6 @@ def do_run(args: Any):
         sender=accounts.get_user(shard=0, index=1),
         contract=accounts.get_contract_address("adder", 0, 0),
         amount=1
-    ))
-
-    print("## Relayed v3, completely intra-shard, with a few contract calls")
-    controller.send(controller.create_relayed_v3_with_a_few_contract_calls(
-        relayer=accounts.get_user(shard=0, index=0),
-        senders=[accounts.get_user(shard=0, index=0)] * 7,
-        contracts=[accounts.get_contract_address("dummy", shard=0, index=0)] * 7,
-        amount=0
     ))
 
     print("## Intra-shard ClaimDeveloperRewards on directly owned contract")
@@ -821,7 +830,12 @@ class Controller:
 
         return transaction
 
-    def create_relayed_v3_with_a_few_contract_calls(self, relayer: "Account", senders: List["Account"], contracts: List[Address], amount: int) -> Transaction:
+    def create_relayed_v3_with_a_few_contract_calls(self,
+                                                    relayer: "Account",
+                                                    senders: List["Account"],
+                                                    contracts: List[Address],
+                                                    inner_transaction_amount: int,
+                                                    inner_transaction_gas_limit: int = 3000000) -> Transaction:
         # Relayer nonce is reserved before sender nonce, to ensure good ordering (if sender and relayer are the same account).
         relayer_nonce = self._reserve_nonce(relayer)
 
@@ -835,9 +849,9 @@ class Controller:
                 sender=sender.address,
                 contract=contract,
                 function="doSomething",
-                gas_limit=3000000,
+                gas_limit=inner_transaction_gas_limit,
                 arguments=[],
-                native_transfer_amount=amount
+                native_transfer_amount=inner_transaction_amount
             )
 
             inner_transaction.relayer = relayer.address.to_bech32()
