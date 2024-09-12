@@ -289,15 +289,6 @@ def do_run(args: Any):
         amount=77
     ))
 
-    print("## ClaimDeveloperRewards on directly owned contract")
-    controller.send(controller.create_claim_developer_rewards_on_directly_owned_contract(
-        sender=accounts.get_user(shard=0, index=0),
-        contract=accounts.get_contract_address("adder", 0, 0),
-    ))
-
-    # TODO: claim developer rewards with parent-child contracts
-    # TODO: claim developer rewards on directly owned contracts, cross shard (use change owner address).
-
     print("## Intra-shard, relayed v1 transaction with contract call with MoveBalance, with signal error")
     controller.send(controller.create_relayed_v1_with_contract_call_with_move_balance_with_signal_error(
         relayer=accounts.get_user(shard=0, index=0),
@@ -313,6 +304,25 @@ def do_run(args: Any):
         contracts=[accounts.get_contract_address("dummy", shard=0, index=0)] * 7,
         amount=0
     ))
+
+    print("## Intra-shard ClaimDeveloperRewards on directly owned contract")
+    controller.send(controller.create_claim_developer_rewards_on_directly_owned_contract(
+        sender=accounts.get_user(shard=0, index=0),
+        contract=accounts.get_contract_address("adder", 0, 0),
+    ))
+
+    print("## Cross-shard ClaimDeveloperRewards on directly owned contract")
+    controller.do_change_contract_owner(
+        contract=accounts.get_contract_address("adder", shard=1, index=0),
+        new_owner=accounts.get_user(shard=0, index=0)
+    )
+
+    controller.send(controller.create_claim_developer_rewards_on_directly_owned_contract(
+        sender=accounts.get_user(shard=0, index=0),
+        contract=accounts.get_contract_address("adder", shard=1, index=0),
+    ))
+
+    # TODO: claim developer rewards with parent-child contracts
 
 
 class BunchOfAccounts:
@@ -571,6 +581,24 @@ class Controller:
 
         self.send_multiple(transactions_all)
         self.await_completed(transactions_all)
+
+    def do_change_contract_owner(self, contract: Address, new_owner: "Account"):
+        contract_account = self.network_provider.get_account(contract)
+        current_owner_address = contract_account.owner_address.to_bech32()
+        current_owner = self.accounts.get_account_by_bech32(current_owner_address)
+        new_owner_address = new_owner.address
+
+        if current_owner_address == new_owner_address.to_bech32():
+            return
+
+        transaction = self.create_change_owner_address(
+            contract=contract,
+            owner=current_owner,
+            new_owner=new_owner_address,
+        )
+
+        self.send(transaction)
+        self.await_completed([transaction])
 
     def create_simple_move_balance_with_refund(self, sender: "Account", receiver: Address) -> Transaction:
         transaction = self.transfer_transactions_factory.create_transaction_for_native_token_transfer(
@@ -842,6 +870,20 @@ class Controller:
             contract=contract,
             function="ClaimDeveloperRewards",
             gas_limit=8000000,
+        )
+
+        self.apply_nonce(transaction)
+        self.sign(transaction)
+
+        return transaction
+
+    def create_change_owner_address(self, contract: Address, owner: "Account", new_owner: Address) -> Transaction:
+        transaction = self.contracts_transactions_factory.create_transaction_for_execute(
+            sender=owner.address,
+            contract=contract,
+            function="ChangeOwnerAddress",
+            gas_limit=6000000,
+            arguments=[new_owner.get_public_key()]
         )
 
         self.apply_nonce(transaction)
