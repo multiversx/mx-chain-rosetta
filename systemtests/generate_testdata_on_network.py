@@ -3,10 +3,12 @@ import time
 from argparse import ArgumentParser
 from multiprocessing.dummy import Pool
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 from multiversx_sdk import (Address, AddressComputer, Mnemonic,
-                            ProxyNetworkProvider, RelayedTransactionsFactory,
+                            ProxyNetworkProvider, QueryRunnerAdapter,
+                            RelayedTransactionsFactory,
+                            SmartContractQueriesController,
                             SmartContractTransactionsFactory, Token,
                             TokenManagementTransactionsFactory,
                             TokenManagementTransactionsOutcomeParser,
@@ -218,32 +220,32 @@ def do_run(args: Any):
     print("## Relayed v3, senders and receivers in same shard")
     controller.send(controller.create_relayed_v3_with_a_few_inner_move_balances(
         relayer=accounts.get_user(shard=0, index=0),
-        senders=accounts.users_by_shard[0][1:3],
-        receivers=[account.address for account in accounts.users_by_shard[0][3:5]],
+        senders=accounts.get_users_by_shard(0)[1:3],
+        receivers=[account.address for account in accounts.get_users_by_shard(0)[3:5]],
         amount=42
     ))
 
     print("## Relayed v3, senders and receivers in different shards")
     controller.send(controller.create_relayed_v3_with_a_few_inner_move_balances(
         relayer=accounts.get_user(shard=0, index=0),
-        senders=accounts.users_by_shard[0][1:3],
-        receivers=[account.address for account in accounts.users_by_shard[1][3:5]],
+        senders=accounts.get_users_by_shard(0)[1:3],
+        receivers=[account.address for account in accounts.get_users_by_shard(1)[3:5]],
         amount=42
     ))
 
     print("## Relayed v3, senders and receivers in same shard (insufficient balance)")
     controller.send(controller.create_relayed_v3_with_a_few_inner_move_balances(
         relayer=accounts.get_user(shard=0, index=0),
-        senders=accounts.users_by_shard[0][1:3],
-        receivers=[account.address for account in accounts.users_by_shard[0][3:5]],
+        senders=accounts.get_users_by_shard(0)[1:3],
+        receivers=[account.address for account in accounts.get_users_by_shard(0)[3:5]],
         amount=1000000000000000000000
     ))
 
     print("## Relayed v3, senders and receivers in different shards (insufficient balance)")
     controller.send(controller.create_relayed_v3_with_a_few_inner_move_balances(
         relayer=accounts.get_user(shard=0, index=0),
-        senders=accounts.users_by_shard[0][1:3],
-        receivers=[account.address for account in accounts.users_by_shard[1][3:5]],
+        senders=accounts.get_users_by_shard(0)[1:3],
+        receivers=[account.address for account in accounts.get_users_by_shard(1)[3:5]],
         amount=1000000000000000000000
     ))
 
@@ -322,7 +324,17 @@ def do_run(args: Any):
         contract=accounts.get_contract_address("adder", shard=1, index=0),
     ))
 
-    # TODO: claim developer rewards with parent-child contracts
+    print("## ClaimDeveloperRewards on child contract (owned by a contract); user & parent contract in same shard")
+    controller.send(controller.create_claim_developer_rewards_on_child_contract(
+        sender=accounts.get_user(shard=0, index=0),
+        parent_contract=accounts.get_contract_address("developerRewards", shard=0, index=0),
+    ))
+
+    print("## ClaimDeveloperRewards on child contract (owned by a contract); user & parent contract in different shards")
+    controller.send(controller.create_claim_developer_rewards_on_child_contract(
+        sender=accounts.get_user(shard=0, index=0),
+        parent_contract=accounts.get_contract_address("developerRewards", shard=1, index=0),
+    ))
 
 
 class BunchOfAccounts:
@@ -331,25 +343,16 @@ class BunchOfAccounts:
         self.mnemonic = Mnemonic(configuration.users_mnemonic)
         self.sponsor = self._create_sponsor()
         self.users: List[Account] = []
-        self.users_by_shard: List[List[Account]] = [[], [], []]
         self.users_by_bech32: Dict[str, Account] = {}
         self.contracts: List[SmartContract] = []
-        self.contracts_by_shard: List[List[SmartContract]] = [[], [], []]
-
-        address_computer = AddressComputer()
 
         for i in range(128):
             user = self._create_user(i)
-            shard = address_computer.get_shard_of_address(user.address)
             self.users.append(user)
-            self.users_by_shard[shard].append(user)
             self.users_by_bech32[user.address.to_bech32()] = user
 
         for item in memento.get_contracts():
-            contract_address = Address.from_bech32(item.address)
-            shard = address_computer.get_shard_of_address(contract_address)
             self.contracts.append(item)
-            self.contracts_by_shard[shard].append(item)
 
     def _create_sponsor(self) -> "Account":
         sponsor_secret_key = UserSecretKey(self.configuration.sponsor_secret_key)
@@ -362,7 +365,10 @@ class BunchOfAccounts:
         return Account(user_signer)
 
     def get_user(self, shard: int, index: int) -> "Account":
-        return self.users_by_shard[shard][index]
+        return [user for user in self.users if self._is_address_in_shard(user.address, shard)][index]
+
+    def get_users_by_shard(self, shard: int) -> List["Account"]:
+        return [user for user in self.users if self._is_address_in_shard(user.address, shard)]
 
     def get_account_by_bech32(self, address: str) -> "Account":
         if self.sponsor.address.to_bech32() == address:
@@ -371,8 +377,26 @@ class BunchOfAccounts:
         return self.users_by_bech32[address]
 
     def get_contract_address(self, tag: str, shard: int, index: int) -> Address:
-        addresses: List[str] = [contract.address for contract in self.contracts_by_shard[shard] if contract.tag == tag]
-        return Address.from_bech32(addresses[index])
+        addresses: List[str] = [contract.address for contract in self.contracts if contract.tag == tag and self._is_bech32_in_shard(contract.address, shard)]
+        return Address.new_from_bech32(addresses[index])
+
+    def get_contracts_addresses(self, tag: Optional[str] = None, shard: Optional[int] = None) -> List[Address]:
+        contracts = self.contracts
+
+        if tag is not None:
+            contracts = [contract for contract in contracts if contract.tag == tag]
+        if shard is not None:
+            contracts = [contract for contract in contracts if self._is_bech32_in_shard(contract.address, shard)]
+
+        return [Address.from_bech32(contract.address) for contract in contracts]
+
+    def _is_bech32_in_shard(self, address: str, shard: int) -> bool:
+        return self._is_address_in_shard(Address.new_from_bech32(address), shard)
+
+    def _is_address_in_shard(self, address: Address, shard: int) -> bool:
+        address_computer = AddressComputer()
+        address_shard = address_computer.get_shard_of_address(address)
+        return address_shard == shard
 
 
 class Account:
@@ -415,6 +439,7 @@ class Controller:
         self.transfer_transactions_factory = TransferTransactionsFactory(self.transactions_factory_config)
         self.relayed_transactions_factory = RelayedTransactionsFactory(self.transactions_factory_config)
         self.contracts_transactions_factory = SmartContractTransactionsFactory(self.transactions_factory_config)
+        self.contracts_query_controller = SmartContractQueriesController(QueryRunnerAdapter(self.network_provider))
         self.transaction_awaiter = TransactionAwaiter(self)
 
     # Temporary workaround, until the SDK is updated to simplify transaction awaiting.
@@ -581,6 +606,36 @@ class Controller:
 
         self.send_multiple(transactions_all)
         self.await_completed(transactions_all)
+
+        # Let's do some indirect deployments, as well (children of "developerRewards" contracts).
+        transactions: list[Transaction] = []
+
+        for contract in self.memento.get_contracts("developerRewards"):
+            transaction = self.contracts_transactions_factory.create_transaction_for_execute(
+                sender=self.accounts.get_user(shard=0, index=0).address,
+                contract=Address.new_from_bech32(contract.address),
+                function="deployChild",
+                gas_limit=5000000,
+            )
+
+            self.apply_nonce(transaction)
+            self.sign(transaction)
+
+            transactions.append(transaction)
+
+        self.send_multiple(transactions)
+        self.await_completed(transactions)
+
+        # Save the addresses of the newly deployed children.
+        for contract in self.memento.get_contracts("developerRewards"):
+            [child_address_pubkey] = self.contracts_query_controller.query(
+                contract=contract.address,
+                function="getChildAddress",
+                arguments=[],
+            )
+
+            child_address = Address(child_address_pubkey, "erd")
+            self.memento.add_contract("developerRewardsChild", child_address.to_bech32())
 
     def do_change_contract_owner(self, contract: Address, new_owner: "Account"):
         contract_account = self.network_provider.get_account(contract)
@@ -877,6 +932,19 @@ class Controller:
 
         return transaction
 
+    def create_claim_developer_rewards_on_child_contract(self, sender: "Account", parent_contract: Address) -> Transaction:
+        transaction = self.contracts_transactions_factory.create_transaction_for_execute(
+            sender=sender.address,
+            contract=parent_contract,
+            function="claimDeveloperRewardsOnChild",
+            gas_limit=8000000,
+        )
+
+        self.apply_nonce(transaction)
+        self.sign(transaction)
+
+        return transaction
+
     def create_change_owner_address(self, contract: Address, owner: "Account", new_owner: Address) -> Transaction:
         transaction = self.contracts_transactions_factory.create_transaction_for_execute(
             sender=owner.address,
@@ -1015,9 +1083,15 @@ class Memento:
         self._contracts.append(SmartContract(tag, address))
         self.save()
 
-    def get_contracts(self) -> List[SmartContract]:
+    def get_contracts(self, tag: Optional[str] = None) -> List[SmartContract]:
         self.load()
-        return self._contracts
+
+        contracts = self._contracts
+
+        if tag is not None:
+            contracts = [contract for contract in contracts if contract.tag == tag]
+
+        return contracts
 
     def load(self):
         if not self.path.exists():
