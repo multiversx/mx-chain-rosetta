@@ -17,7 +17,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip3 install requests
+          pip install -r ./requirements-dev.txt
           curl -sSfL https://raw.githubusercontent.com/coinbase/mesh-cli/master/scripts/install.sh | sh -s -- -b "$HOME/.local/bin"
           echo "$HOME/.local/bin" >> $GITHUB_PATH
 
@@ -35,6 +35,14 @@ jobs:
         run: |
           PYTHONPATH=. python3 ./systemtests/check_with_mesh_cli.py --mode=construction-custom --network=testnet
           sleep 30
+
+      - name: Generate sample transactions for check:data
+        run: |
+          PYTHONPATH=. python3 ./systemtests/generate_testdata_on_network.py setup --network=testnet
+          PYTHONPATH=. python3 ./systemtests/generate_testdata_on_network.py run --network=testnet
+        env:
+          USERS_MNEMONIC: ${{ secrets.USERS_MNEMONIC }}
+          SPONSOR_SECRET_KEY: ${{ secrets.SPONSOR_SECRET_KEY }}
 
       - name: check:data
         run: |

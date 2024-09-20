@@ -248,7 +248,7 @@ Optional: generate sample data (transactions):
 source .env
 
 PYTHONPATH=. python3 ./systemtests/generate_testdata_on_network.py setup --network testnet
-PYTHONPATH=. python3 ./systemtests/generate_testdata_on_network.py run --network testnet --without-spica
+PYTHONPATH=. python3 ./systemtests/generate_testdata_on_network.py run --network testnet
 ```
 
 Run the checks:

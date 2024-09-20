@@ -166,8 +166,9 @@ def get_start_block_for_check_data(configuration: Configuration) -> int:
         return latest_block - configuration.check_data_num_blocks
 
     current_epoch = get_current_epoch(configuration)
-    first_historical_epoch = current_epoch - configuration.num_historical_epochs + 1
-    return get_start_of_epoch(configuration, first_historical_epoch)
+    first_historical_epoch = max(0, current_epoch - configuration.num_historical_epochs + 1)
+    start_block = max(1, get_start_of_epoch(configuration, first_historical_epoch))
+    return start_block
 
 
 def get_latest_block(configuration: Configuration) -> int:
