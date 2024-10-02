@@ -222,8 +222,43 @@ oldest_block_identifier = first block of oldest_epoch
  - We do not support the `related_transactions` property, since it's not feasible to properly filter the related transactions of a given transaction by source / destination shard (with respect to the observed shard).
  - The endpoint `/block/transaction` is not implemented, since all transactions are returned by the endpoint `/block`.
  - We chose not to support the optional property `Operation.related_operations`. Although the smart contract results (also known as _unsigned transactions_) form a DAG (directed acyclic graph) at the protocol level, operations within a transaction are in a simple sequence.
- - Balance-changing operations that affect Smart Contract accounts are not emitted by our Rosetta implementation (thus are not available on the Rosetta API).
+ - Balance-changing operations that affect Smart Contract accounts are only emitted if Rosetta is started with the flag `--handle-contracts`.
 
 ## Implementation validation
 
 In order to validate the Rosetta implementation using `rosetta-cli`, please follow [MultiversX/rosetta-checks](https://github.com/multiversx/mx-chain-rosetta-checks).
+
+## System tests
+
+### Virtual environment
+
+Create a virtual environment and install the dependencies:
+
+```
+python3 -m venv ./venv
+source ./venv/bin/activate
+pip install -r ./requirements-dev.txt --upgrade
+```
+
+### Check:data
+
+Optional: generate sample data (transactions):
+
+```
+source .env
+
+PYTHONPATH=. python3 ./systemtests/generate_testdata_on_network.py setup --network testnet
+PYTHONPATH=. python3 ./systemtests/generate_testdata_on_network.py run --network testnet
+```
+
+Run the checks:
+
+```
+PYTHONPATH=. python3 ./systemtests/check_with_mesh_cli.py --mode=data --network=testnet
+```
+
+### Check:construction
+
+```
+PYTHONPATH=. python3 ./systemtests/check_with_mesh_cli.py --mode=construction-native --network=testnet
+```

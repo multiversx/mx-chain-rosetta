@@ -14,7 +14,7 @@ from systemtests.config import CONFIGURATIONS, Configuration
 
 def main() -> int:
     parser = ArgumentParser()
-    parser.add_argument("--mode", choices=["data", "construction"], required=True)
+    parser.add_argument("--mode", choices=["data", "construction-native", "construction-custom"], required=True)
     parser.add_argument("--network", choices=CONFIGURATIONS.keys(), required=True)
     args = parser.parse_args()
 
@@ -22,13 +22,13 @@ def main() -> int:
     configuration = CONFIGURATIONS[args.network]
 
     process_rosetta = run_rosetta(configuration)
-    process_adapter = run_proxy_to_observer_adapter(configuration)
+    process_adapter = optionally_run_proxy_to_observer_adapter(configuration)
     process_checker = run_mesh_cli(mode, configuration)
 
     # Handle termination signals
     def signal_handler(sig: Any, frame: Any):
         process_rosetta.kill()
-        process_adapter.kill()
+        process_adapter.kill() if process_adapter else None
         process_checker.kill()
         sys.exit(1)
 
@@ -39,7 +39,7 @@ def main() -> int:
     exit_code = process_checker.wait()
 
     process_rosetta.kill()
-    process_adapter.kill()
+    process_adapter.kill() if process_adapter else None
 
     time.sleep(1)
 
@@ -57,23 +57,33 @@ def run_rosetta(configuration: Configuration):
     """
 
     current_epoch = get_current_epoch(configuration)
+    observer_url = configuration.observer_url or constants.URL_OBSERVER_SURROGATE
 
     command = [
         str(constants.PATH_ROSETTA),
         f"--port={constants.PORT_ROSETTA}",
-        f"--observer-http-url=http://localhost:{constants.PORT_OBSERVER_SURROGATE}",
+        f"--observer-http-url={observer_url}",
         f"--observer-actual-shard={configuration.network_shard}",
         f"--network-id={configuration.network_id}",
         f"--network-name={configuration.network_name}",
         f"--native-currency={configuration.native_currency}",
+        f"--config-custom-currencies={configuration.config_file_custom_currencies}",
         f"--first-historical-epoch={current_epoch}",
         f"--num-historical-epochs={configuration.num_historical_epochs}",
+        f"--activation-epoch-sirius={configuration.activation_epoch_sirius}",
+        f"--activation-epoch-spica={configuration.activation_epoch_spica}",
+        "--handle-contracts",
+        "--pprof"
     ]
 
     return subprocess.Popen(command)
 
 
-def run_proxy_to_observer_adapter(configuration: Configuration):
+def optionally_run_proxy_to_observer_adapter(configuration: Configuration) -> Any:
+    if configuration.observer_url:
+        # If observer URL is provided, we don't need the adapter.
+        return None
+
     command = [
         str(constants.PATH_PROXY_TO_OBSERVER_ADAPTER),
         f"--proxy={configuration.proxy_url}",
@@ -87,13 +97,15 @@ def run_proxy_to_observer_adapter(configuration: Configuration):
 def run_mesh_cli(mode: str, configuration: Configuration):
     if mode == "data":
         return run_mesh_cli_with_check_data(configuration)
-    elif mode == "construction":
-        return run_mesh_cli_with_check_construction(configuration)
+    elif mode == "construction-native":
+        return run_mesh_cli_with_check_construction_native(configuration)
+    elif mode == "construction-custom":
+        return run_mesh_cli_with_check_construction_custom(configuration)
     else:
         raise ValueError(f"Unknown mode: {mode}")
 
 
-def run_mesh_cli_with_check_construction(configuration: Configuration):
+def run_mesh_cli_with_check_construction_native(configuration: Configuration):
     """
     E.g.
 
@@ -104,7 +116,19 @@ def run_mesh_cli_with_check_construction(configuration: Configuration):
     command = [
         "rosetta-cli",
         "check:construction",
-        f"--configuration-file={configuration.check_construction_configuration_file}",
+        f"--configuration-file={configuration.check_construction_native_configuration_file}",
+        f"--online-url=http://localhost:{constants.PORT_ROSETTA}",
+        f"--offline-url=http://localhost:{constants.PORT_ROSETTA}",
+    ]
+
+    return subprocess.Popen(command)
+
+
+def run_mesh_cli_with_check_construction_custom(configuration: Configuration):
+    command = [
+        "rosetta-cli",
+        "check:construction",
+        f"--configuration-file={configuration.check_construction_custom_configuration_file}",
         f"--online-url=http://localhost:{constants.PORT_ROSETTA}",
         f"--offline-url=http://localhost:{constants.PORT_ROSETTA}",
     ]
@@ -122,9 +146,7 @@ def run_mesh_cli_with_check_data(configuration: Configuration):
 
     shutil.rmtree(configuration.check_data_directory, ignore_errors=True)
 
-    current_epoch = get_current_epoch(configuration)
-    first_historical_epoch = current_epoch - configuration.num_historical_epochs + 1
-    start_block = get_start_of_epoch(configuration, first_historical_epoch)
+    start_block = get_start_block_for_check_data(configuration)
 
     command = [
         "rosetta-cli",
@@ -136,6 +158,23 @@ def run_mesh_cli_with_check_data(configuration: Configuration):
     ]
 
     return subprocess.Popen(command)
+
+
+def get_start_block_for_check_data(configuration: Configuration) -> int:
+    if configuration.check_data_num_blocks:
+        latest_block = get_latest_block(configuration)
+        return latest_block - configuration.check_data_num_blocks
+
+    current_epoch = get_current_epoch(configuration)
+    first_historical_epoch = max(0, current_epoch - configuration.num_historical_epochs + 1)
+    start_block = max(1, get_start_of_epoch(configuration, first_historical_epoch))
+    return start_block
+
+
+def get_latest_block(configuration: Configuration) -> int:
+    response = requests.get(f"{configuration.proxy_url}/network/status/{configuration.network_shard}")
+    response.raise_for_status()
+    return response.json()["data"]["status"]["erd_nonce"]
 
 
 def get_current_epoch(configuration: Configuration) -> int:

@@ -53,6 +53,11 @@ func startRosetta(ctx *cli.Context) error {
 		return err
 	}
 
+	customCurrencies, err := decideCustomCurrencies(cliFlags.configFileCustomCurrencies)
+	if err != nil {
+		return err
+	}
+
 	log.Info("Starting Rosetta...", "middleware", version.RosettaMiddlewareVersion, "specification", version.RosettaVersion)
 
 	networkProvider, err := factory.CreateNetworkProvider(factory.ArgsCreateNetworkProvider{
@@ -66,13 +71,19 @@ func startRosetta(ctx *cli.Context) error {
 		NetworkID:                   cliFlags.networkID,
 		NetworkName:                 cliFlags.networkName,
 		GasPerDataByte:              cliFlags.gasPerDataByte,
+		GasPriceModifier:            cliFlags.gasPriceModifier,
+		GasLimitCustomTransfer:      cliFlags.gasLimitCustomTransfer,
 		MinGasPrice:                 cliFlags.minGasPrice,
 		MinGasLimit:                 cliFlags.minGasLimit,
 		ExtraGasLimitGuardedTx:      cliFlags.extraGasLimitGuardedTx,
 		NativeCurrencySymbol:        cliFlags.nativeCurrencySymbol,
+		CustomCurrencies:            customCurrencies,
 		GenesisBlockHash:            cliFlags.genesisBlock,
 		FirstHistoricalEpoch:        cliFlags.firstHistoricalEpoch,
 		NumHistoricalEpochs:         cliFlags.numHistoricalEpochs,
+		ShouldHandleContracts:       cliFlags.shouldHandleContracts,
+		ActivationEpochSirius:       cliFlags.activationEpochSirius,
+		ActivationEpochSpica:        cliFlags.activationEpochSpica,
 	})
 	if err != nil {
 		return err
@@ -83,6 +94,10 @@ func startRosetta(ctx *cli.Context) error {
 	controllers, err := factory.CreateControllers(networkProvider)
 	if err != nil {
 		return err
+	}
+
+	if cliFlags.shouldEnablePprofEndpoints {
+		controllers = append(controllers, newPprofController())
 	}
 
 	httpServer, err := createHttpServer(cliFlags.port, controllers...)

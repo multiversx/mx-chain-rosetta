@@ -30,14 +30,20 @@ type ArgsNewNetworkProvider struct {
 	NetworkID                   string
 	NetworkName                 string
 	GasPerDataByte              uint64
+	GasPriceModifier            float64
+	GasLimitCustomTransfer      uint64
 	MinGasPrice                 uint64
 	MinGasLimit                 uint64
 	ExtraGasLimitGuardedTx      uint64
 	NativeCurrencySymbol        string
+	CustomCurrencies            []resources.Currency
 	GenesisBlockHash            string
 	GenesisTimestamp            int64
 	FirstHistoricalEpoch        uint32
 	NumHistoricalEpochs         uint32
+	ShouldHandleContracts       bool
+	ActivationEpochSirius       uint32
+	ActivationEpochSpica        uint32
 
 	ObserverFacade observerFacade
 
@@ -46,17 +52,22 @@ type ArgsNewNetworkProvider struct {
 	PubKeyConverter       core.PubkeyConverter
 }
 
+// In the future, we might rename this to "networkFacade" (which, in turn, depends on networkProvider, currencyProvider, blocksProvider and so on).
 type networkProvider struct {
+	*currenciesProvider
+
 	isOffline                   bool
 	observedActualShard         uint32
 	observedProjectedShard      uint32
 	observedProjectedShardIsSet bool
 	observerUrl                 string
-	nativeCurrencySymbol        string
 	genesisBlockHash            string
 	genesisTimestamp            int64
 	firstHistoricalEpoch        uint32
 	numHistoricalEpochs         uint32
+	shouldHandleContracts       bool
+	activationEpochSirius       uint32
+	activationEpochSpica        uint32
 
 	observerFacade observerFacade
 
@@ -69,6 +80,7 @@ type networkProvider struct {
 	blocksCache blocksCache
 }
 
+// NewNetworkProvider (future-to-be renamed to NewNetworkFacade) creates a new networkProvider
 func NewNetworkProvider(args ArgsNewNetworkProvider) (*networkProvider, error) {
 	// Since for each block N we also have to fetch block N-1 and block N+1 (see "simplifyBlockWithScheduledTransactions"),
 	// it makes sense to cache the block response (using an LRU cache).
@@ -77,18 +89,27 @@ func NewNetworkProvider(args ArgsNewNetworkProvider) (*networkProvider, error) {
 		return nil, err
 	}
 
+	currenciesProvider, err := newCurrenciesProvider(args.NativeCurrencySymbol, args.CustomCurrencies)
+	if err != nil {
+		return nil, err
+	}
+
 	return &networkProvider{
+		currenciesProvider: currenciesProvider,
+
 		isOffline: args.IsOffline,
 
 		observedActualShard:         args.ObservedActualShard,
 		observedProjectedShard:      args.ObservedProjectedShard,
 		observedProjectedShardIsSet: args.ObservedProjectedShardIsSet,
 		observerUrl:                 args.ObserverUrl,
-		nativeCurrencySymbol:        args.NativeCurrencySymbol,
 		genesisBlockHash:            args.GenesisBlockHash,
 		genesisTimestamp:            args.GenesisTimestamp,
 		firstHistoricalEpoch:        args.FirstHistoricalEpoch,
 		numHistoricalEpochs:         args.NumHistoricalEpochs,
+		shouldHandleContracts:       args.ShouldHandleContracts,
+		activationEpochSirius:       args.ActivationEpochSirius,
+		activationEpochSpica:        args.ActivationEpochSpica,
 
 		observerFacade: args.ObserverFacade,
 
@@ -101,6 +122,8 @@ func NewNetworkProvider(args ArgsNewNetworkProvider) (*networkProvider, error) {
 			NetworkID:              args.NetworkID,
 			NetworkName:            args.NetworkName,
 			GasPerDataByte:         args.GasPerDataByte,
+			GasPriceModifier:       args.GasPriceModifier,
+			GasLimitCustomTransfer: args.GasLimitCustomTransfer,
 			MinGasPrice:            args.MinGasPrice,
 			MinGasLimit:            args.MinGasLimit,
 			ExtraGasLimitGuardedTx: args.ExtraGasLimitGuardedTx,
@@ -118,14 +141,6 @@ func (provider *networkProvider) IsOffline() bool {
 // GetBlockchainName returns the name of the network
 func (provider *networkProvider) GetBlockchainName() string {
 	return provider.networkConfig.BlockchainName
-}
-
-// GetNativeCurrency gets the native currency (EGLD, 18 decimals)
-func (provider *networkProvider) GetNativeCurrency() resources.NativeCurrency {
-	return resources.NativeCurrency{
-		Symbol:   provider.nativeCurrencySymbol,
-		Decimals: int32(nativeCurrencyNumDecimals),
-	}
 }
 
 // GetNetworkConfig gets the network config (once fetched, the network config is indefinitely held in memory)
@@ -209,6 +224,8 @@ func (provider *networkProvider) GetBlockByNonce(nonce uint64) (*api.Block, erro
 		return nil, err
 	}
 
+	// The block (copy) returned by doGetBlockByNonce() is now mutated.
+	// The mutated copy is not held in a cache (not needed).
 	err = provider.simplifyBlockWithScheduledTransactions(block)
 	if err != nil {
 		return nil, err
@@ -225,7 +242,7 @@ func (provider *networkProvider) doGetBlockByNonce(nonce uint64) (*api.Block, er
 
 	block, ok := provider.getBlockByNonceCached(nonce)
 	if ok {
-		return block, nil
+		return createBlockCopy(block), nil
 	}
 
 	response, err := provider.observerFacade.GetBlockByNonce(provider.observedActualShard, nonce, queryOptions)
@@ -240,7 +257,40 @@ func (provider *networkProvider) doGetBlockByNonce(nonce uint64) (*api.Block, er
 
 	provider.cacheBlockByNonce(nonce, block)
 
-	return block, nil
+	return createBlockCopy(block), nil
+}
+
+// createBlockCopy creates a somehow shallow copy of a block.
+func createBlockCopy(block *api.Block) *api.Block {
+	miniblocksCopy := make([]*api.MiniBlock, len(block.MiniBlocks))
+
+	for i, miniblock := range block.MiniBlocks {
+		miniblocksCopy[i] = &api.MiniBlock{
+			Type:              miniblock.Type,
+			Hash:              miniblock.Hash,
+			ProcessingType:    miniblock.ProcessingType,
+			ConstructionState: miniblock.ConstructionState,
+			SourceShard:       miniblock.SourceShard,
+			DestinationShard:  miniblock.DestinationShard,
+			// This is sufficient for our purposes (we don't mutate the transactions themselves, we only mutate the list of transactions within a miniblock).
+			Transactions: miniblock.Transactions,
+			Receipts:     miniblock.Receipts,
+		}
+	}
+
+	return &api.Block{
+		Nonce:         block.Nonce,
+		Round:         block.Round,
+		Epoch:         block.Epoch,
+		Shard:         block.Shard,
+		NumTxs:        block.NumTxs,
+		Hash:          block.Hash,
+		PrevBlockHash: block.PrevBlockHash,
+		StateRootHash: block.StateRootHash,
+		Status:        block.Status,
+		Timestamp:     block.Timestamp,
+		MiniBlocks:    miniblocksCopy,
+	}
 }
 
 func (provider *networkProvider) getBlockByNonceCached(nonce uint64) (*api.Block, bool) {
@@ -248,8 +298,7 @@ func (provider *networkProvider) getBlockByNonceCached(nonce uint64) (*api.Block
 	if ok {
 		block, ok := blockUntyped.(*api.Block)
 		if ok {
-			blockCopy := *block
-			return &blockCopy, true
+			return block, true
 		}
 	}
 
@@ -257,8 +306,7 @@ func (provider *networkProvider) getBlockByNonceCached(nonce uint64) (*api.Block
 }
 
 func (provider *networkProvider) cacheBlockByNonce(nonce uint64, block *api.Block) {
-	blockCopy := *block
-	_ = provider.blocksCache.Put(blockNonceToBytes(nonce), &blockCopy, 1)
+	_ = provider.blocksCache.Put(blockNonceToBytes(nonce), block, 1)
 }
 
 // GetBlockByHash gets a block by hash
@@ -306,14 +354,15 @@ func (provider *networkProvider) IsAddressObserved(address string) (bool, error)
 	}
 
 	shard := provider.observerFacade.ComputeShardId(pubKey)
-	isObservedActualShard := shard == provider.observedActualShard
-	isObservedProjectedShard := pubKey[len(pubKey)-1] == byte(provider.observedProjectedShard)
 
-	if provider.observedProjectedShardIsSet {
-		return isObservedProjectedShard, nil
-	}
+	noConstraintAboutProjectedShard := !provider.observedProjectedShardIsSet
+	noConstraintAboutHandlingContracts := provider.shouldHandleContracts
 
-	return isObservedActualShard, nil
+	passesConstraintAboutObservedActualShard := shard == provider.observedActualShard
+	passesConstraintAboutObservedProjectedShard := noConstraintAboutProjectedShard || pubKey[len(pubKey)-1] == byte(provider.observedProjectedShard)
+	passesConstraintAboutHandlingContracts := noConstraintAboutHandlingContracts || !core.IsSmartContractAddress(pubKey)
+
+	return passesConstraintAboutObservedActualShard && passesConstraintAboutObservedProjectedShard && passesConstraintAboutHandlingContracts, nil
 }
 
 // ComputeShardIdOfPubKey computes the shard ID of a public key
@@ -324,7 +373,13 @@ func (provider *networkProvider) ComputeShardIdOfPubKey(pubKey []byte) uint32 {
 
 // ConvertPubKeyToAddress converts a public key to an address
 func (provider *networkProvider) ConvertPubKeyToAddress(pubkey []byte) string {
-	return provider.pubKeyConverter.Encode(pubkey)
+	address, err := provider.pubKeyConverter.Encode(pubkey)
+	if err != nil {
+		log.Warn("networkProvider.ConvertPubKeyToAddress()", "pubkey", pubkey, "err", err)
+		return ""
+	}
+
+	return address
 }
 
 // ConvertAddressToPubKey converts an address to a pubkey
@@ -397,7 +452,7 @@ func (provider *networkProvider) GetMempoolTransactionByHash(hash string) (*tran
 	return nil, nil
 }
 
-// ComputeTransactionFeeForMoveBalance computes the fee for a move-balance transaction.
+// ComputeTransactionFeeForMoveBalance computes the fee for a move-balance transaction
 func (provider *networkProvider) ComputeTransactionFeeForMoveBalance(tx *transaction.ApiTransactionResult) *big.Int {
 	minGasLimit := provider.networkConfig.MinGasLimit
 	extraGasLimitGuardedTx := provider.networkConfig.ExtraGasLimitGuardedTx
@@ -413,6 +468,16 @@ func (provider *networkProvider) ComputeTransactionFeeForMoveBalance(tx *transac
 	return fee
 }
 
+// IsReleaseSiriusActive returns whether the Sirius release is active in the provided epoch
+func (provider *networkProvider) IsReleaseSiriusActive(epoch uint32) bool {
+	return epoch >= provider.activationEpochSirius
+}
+
+// IsReleaseSpicaActive returns whether the Spica release is active in the provided epoch
+func (provider *networkProvider) IsReleaseSpicaActive(epoch uint32) bool {
+	return epoch >= provider.activationEpochSpica
+}
+
 // LogDescription writes a description of the network provider in the log output
 func (provider *networkProvider) LogDescription() {
 	log.Info("Description of network provider",
@@ -423,8 +488,12 @@ func (provider *networkProvider) LogDescription() {
 		"observedActualShard", provider.observedActualShard,
 		"observedProjectedShard", provider.observedProjectedShard,
 		"observedProjectedShardIsSet", provider.observedProjectedShardIsSet,
-		"nativeCurrency", provider.nativeCurrencySymbol,
 		"firstHistoricalEpoch", provider.firstHistoricalEpoch,
 		"numHistoricalEpochs", provider.numHistoricalEpochs,
+		"shouldHandleContracts", provider.shouldHandleContracts,
+		"activationEpochSirius", provider.activationEpochSirius,
+		"activationEpochSpica", provider.activationEpochSpica,
+		"nativeCurrency", provider.GetNativeCurrency().Symbol,
+		"customCurrencies", provider.GetCustomCurrenciesSymbols(),
 	)
 }

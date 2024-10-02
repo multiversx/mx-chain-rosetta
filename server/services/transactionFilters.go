@@ -53,24 +53,6 @@ func filterOutIntrashardRelayedTransactionAlreadyHeldInInvalidMiniblock(txs []*t
 	return filteredTxs
 }
 
-func filterOutContractResultsWithNoValue(txs []*transaction.ApiTransactionResult) []*transaction.ApiTransactionResult {
-	filteredTxs := make([]*transaction.ApiTransactionResult, 0, len(txs))
-
-	for _, tx := range txs {
-		isContractResult := tx.Type == string(transaction.TxTypeUnsigned)
-		hasValue := tx.Value != "0" && tx.Value != ""
-		hasNegativeValue := hasValue && tx.Value[0] == '-'
-
-		if isContractResult && (!hasValue || hasNegativeValue) {
-			continue
-		}
-
-		filteredTxs = append(filteredTxs, tx)
-	}
-
-	return filteredTxs
-}
-
 func filterOutRosettaTransactionsWithNoOperations(rosettaTxs []*types.Transaction) []*types.Transaction {
 	filtered := make([]*types.Transaction, 0, len(rosettaTxs))
 

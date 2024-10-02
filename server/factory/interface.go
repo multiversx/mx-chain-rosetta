@@ -13,7 +13,10 @@ import (
 type NetworkProvider interface {
 	IsOffline() bool
 	GetBlockchainName() string
-	GetNativeCurrency() resources.NativeCurrency
+	GetNativeCurrency() resources.Currency
+	GetCustomCurrencies() []resources.Currency
+	GetCustomCurrencyBySymbol(symbol string) (resources.Currency, bool)
+	HasCustomCurrency(symbol string) bool
 	GetNetworkConfig() *resources.NetworkConfig
 	GetGenesisBlockSummary() *resources.BlockSummary
 	GetGenesisTimestamp() int64
@@ -22,8 +25,7 @@ type NetworkProvider interface {
 	GetBlockByNonce(nonce uint64) (*api.Block, error)
 	GetBlockByHash(hash string) (*api.Block, error)
 	GetAccount(address string) (*resources.AccountOnBlock, error)
-	GetAccountNativeBalance(address string, options resources.AccountQueryOptions) (*resources.AccountOnBlock, error)
-	GetAccountESDTBalance(address string, tokenIdentifier string, options resources.AccountQueryOptions) (*resources.AccountESDTBalance, error)
+	GetAccountBalance(address string, tokenIdentifier string, options resources.AccountQueryOptions) (*resources.AccountBalanceOnBlock, error)
 	IsAddressObserved(address string) (bool, error)
 	ComputeShardIdOfPubKey(pubkey []byte) uint32
 	ConvertPubKeyToAddress(pubkey []byte) string
@@ -33,5 +35,7 @@ type NetworkProvider interface {
 	ComputeReceiptHash(apiReceipt *transaction.ApiReceipt) (string, error)
 	ComputeTransactionFeeForMoveBalance(tx *transaction.ApiTransactionResult) *big.Int
 	GetMempoolTransactionByHash(hash string) (*transaction.ApiTransactionResult, error)
+	IsReleaseSiriusActive(epoch uint32) bool
+	IsReleaseSpicaActive(epoch uint32) bool
 	LogDescription()
 }

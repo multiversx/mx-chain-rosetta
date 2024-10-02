@@ -1,0 +1,2 @@
+multiversx-sdk
+requests

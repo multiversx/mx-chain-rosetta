@@ -2,17 +2,12 @@ package services
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/coinbase/rosetta-sdk-go/server"
 	"github.com/coinbase/rosetta-sdk-go/types"
-	"github.com/multiversx/mx-chain-rosetta/server/resources"
+	"github.com/multiversx/mx-chain-core-go/core"
 )
-
-type accountOnBlock struct {
-	balance          *types.Amount
-	nonce            uint64
-	blockCoordinates resources.BlockCoordinates
-}
 
 type accountService struct {
 	provider   NetworkProvider
@@ -30,10 +25,30 @@ func NewAccountService(provider NetworkProvider) server.AccountAPIServicer {
 }
 
 // AccountBalance implements the /account/balance endpoint.
-func (service *accountService) AccountBalance(
-	_ context.Context,
-	request *types.AccountBalanceRequest,
-) (*types.AccountBalanceResponse, *types.Error) {
+func (service *accountService) AccountBalance(_ context.Context, request *types.AccountBalanceRequest) (*types.AccountBalanceResponse, *types.Error) {
+	stopWatch := core.NewStopWatch()
+	stopWatch.Start("account")
+
+	response, err := service.doGetAccountBalance(request)
+	if err != nil {
+		return nil, err
+	}
+
+	stopWatch.Stop("account")
+	duration := stopWatch.GetMeasurement("account")
+
+	if duration > durationAlarmThresholdAccountServiceGetAccountBalance {
+		log.Debug(fmt.Sprintf("accountService.AccountBalance() took more than %s", durationAlarmThresholdAccountServiceGetAccountBalance),
+			"duration", duration,
+			"address", request.AccountIdentifier.Address,
+			"blockNonce", response.BlockIdentifier.Index,
+		)
+	}
+
+	return response, nil
+}
+
+func (service *accountService) doGetAccountBalance(request *types.AccountBalanceRequest) (*types.AccountBalanceResponse, *types.Error) {
 	options, err := blockIdentifierToAccountQueryOptions(request.BlockIdentifier)
 	if err != nil {
 		return nil, service.errFactory.newErrWithOriginal(ErrUnableToGetAccount, err)
@@ -63,49 +78,27 @@ func (service *accountService) AccountBalance(
 		return nil, service.errFactory.newErr(ErrNotImplemented)
 	}
 
-	account, err := service.getAccountOnBlock(address, currencySymbol, options)
+	accountBalanceOnBlock, err := service.provider.GetAccountBalance(address, currencySymbol, options)
 	if err != nil {
 		return nil, service.errFactory.newErrWithOriginal(ErrUnableToGetAccount, err)
 	}
 
+	blockIdentifier := accountBlockCoordinatesToIdentifier(accountBalanceOnBlock.BlockCoordinates)
+	amount := service.extension.valueToAmount(accountBalanceOnBlock.Balance, currencySymbol)
+	metadata := objectsMap{}
+
+	// Currently, "nonce" is present only for native currency requests (for simplicity).
+	if accountBalanceOnBlock.Nonce.HasValue {
+		metadata["nonce"] = accountBalanceOnBlock.Nonce.Value
+	}
+
 	response := &types.AccountBalanceResponse{
-		BlockIdentifier: accountBlockCoordinatesToIdentifier(account.blockCoordinates),
-		Balances:        []*types.Amount{account.balance},
-		Metadata: objectsMap{
-			"nonce": account.nonce,
-		},
+		BlockIdentifier: blockIdentifier,
+		Balances:        []*types.Amount{amount},
+		Metadata:        metadata,
 	}
 
 	return response, nil
-}
-
-func (service *accountService) getAccountOnBlock(address string, currencySymbol string, options resources.AccountQueryOptions) (accountOnBlock, error) {
-	isForNative := currencySymbol == service.getNativeSymbol()
-	if isForNative {
-		accountBalance, err := service.provider.GetAccountNativeBalance(address, options)
-		if err != nil {
-			return accountOnBlock{}, err
-		}
-
-		amount := service.extension.valueToNativeAmount(accountBalance.Account.Balance)
-		return accountOnBlock{
-			balance:          amount,
-			nonce:            accountBalance.Account.Nonce,
-			blockCoordinates: accountBalance.BlockCoordinates,
-		}, nil
-	}
-
-	accountBalance, err := service.provider.GetAccountESDTBalance(address, currencySymbol, options)
-	if err != nil {
-		return accountOnBlock{}, err
-	}
-
-	amount := service.extension.valueToCustomAmount(accountBalance.Balance, currencySymbol)
-	return accountOnBlock{
-		balance: amount,
-		// TODO: return nonce, as well.
-		blockCoordinates: accountBalance.BlockCoordinates,
-	}, nil
 }
 
 func (service *accountService) getNativeSymbol() string {

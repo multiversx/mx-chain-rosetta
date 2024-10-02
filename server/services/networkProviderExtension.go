@@ -3,6 +3,7 @@ package services
 import (
 	"github.com/coinbase/rosetta-sdk-go/types"
 	"github.com/multiversx/mx-chain-core-go/core"
+	"github.com/multiversx/mx-chain-rosetta/server/resources"
 )
 
 type networkProviderExtension struct {
@@ -15,6 +16,14 @@ func newNetworkProviderExtension(provider NetworkProvider) *networkProviderExten
 	}
 }
 
+func (extension *networkProviderExtension) valueToAmount(value string, currencySymbol string) *types.Amount {
+	if extension.isNativeCurrencySymbol(currencySymbol) {
+		return extension.valueToNativeAmount(value)
+	}
+
+	return extension.valueToCustomAmount(value, currencySymbol)
+}
+
 func (extension *networkProviderExtension) valueToNativeAmount(value string) *types.Amount {
 	return &types.Amount{
 		Value:    value,
@@ -23,10 +32,21 @@ func (extension *networkProviderExtension) valueToNativeAmount(value string) *ty
 }
 
 func (extension *networkProviderExtension) valueToCustomAmount(value string, currencySymbol string) *types.Amount {
+	currency, ok := extension.provider.GetCustomCurrencyBySymbol(currencySymbol)
+	if !ok {
+		log.Warn("valueToCustomAmount(): unknown currency", "symbol", currencySymbol)
+
+		currency = resources.Currency{
+			Symbol:   currencySymbol,
+			Decimals: 0,
+		}
+	}
+
 	return &types.Amount{
 		Value: value,
 		Currency: &types.Currency{
-			Symbol: currencySymbol,
+			Symbol:   currency.Symbol,
+			Decimals: currency.Decimals,
 		},
 	}
 }
@@ -58,34 +78,20 @@ func (extension *networkProviderExtension) getGenesisBlockIdentifier() *types.Bl
 	return blockSummaryToIdentifier(summary)
 }
 
-func (extension *networkProviderExtension) filterObservedOperations(operations []*types.Operation) ([]*types.Operation, error) {
-	filtered := make([]*types.Operation, 0, len(operations))
-
-	for _, operation := range operations {
-		address := operation.Account.Address
-
-		isObserved, err := extension.provider.IsAddressObserved(address)
-		if err != nil {
-			return nil, err
-		}
-
-		isUserAddress := extension.isUserAddress(address)
-
-		if isObserved && isUserAddress {
-			filtered = append(filtered, operation)
-		}
-	}
-
-	indexOperations(filtered)
-	return filtered, nil
+func (extension *networkProviderExtension) isContractAddress(address string) bool {
+	return !extension.isUserAddress(address)
 }
 
 func (extension *networkProviderExtension) isUserAddress(address string) bool {
-	pubkey, err := extension.provider.ConvertAddressToPubKey(address)
+	pubKey, err := extension.provider.ConvertAddressToPubKey(address)
 	if err != nil {
 		// E.g., when address = "metachain"
 		return false
 	}
 
-	return !core.IsSmartContractAddress(pubkey)
+	return extension.isUserPubKey(pubKey)
+}
+
+func (extension *networkProviderExtension) isUserPubKey(pubKey []byte) bool {
+	return !core.IsSmartContractAddress(pubKey)
 }

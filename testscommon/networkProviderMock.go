@@ -28,8 +28,11 @@ type networkProviderMock struct {
 	MockObservedProjectedShard      uint32
 	MockObservedProjectedShardIsSet bool
 	MockNativeCurrencySymbol        string
+	MockCustomCurrencies            []resources.Currency
 	MockGenesisBlockHash            string
 	MockGenesisTimestamp            int64
+	MockActivationEpochSirius       uint32
+	MockActivationEpochSpica        uint32
 	MockNetworkConfig               *resources.NetworkConfig
 	MockGenesisBalances             []*resources.GenesisBalance
 	MockNodeStatus                  *resources.AggregatedNodeStatus
@@ -37,8 +40,8 @@ type networkProviderMock struct {
 	MockBlocksByHash                map[string]*api.Block
 	MockNextAccountBlockCoordinates *resources.BlockCoordinates
 	MockAccountsByAddress           map[string]*resources.Account
-	MockAccountsNativeBalances      map[string]*resources.Account
-	MockAccountsESDTBalances        map[string]*resources.AccountESDTBalance
+	MockAccountsNativeBalances      map[string]*resources.AccountBalanceOnBlock
+	MockAccountsCustomBalances      map[string]*resources.AccountBalanceOnBlock
 	MockMempoolTransactionsByHash   map[string]*transaction.ApiTransactionResult
 	MockComputedTransactionHash     string
 	MockComputedReceiptHash         string
@@ -49,7 +52,7 @@ type networkProviderMock struct {
 
 // NewNetworkProviderMock -
 func NewNetworkProviderMock() *networkProviderMock {
-	pubKeyConverter, _ := pubkeyConverter.NewBech32PubkeyConverter(32, log)
+	pubKeyConverter, _ := pubkeyConverter.NewBech32PubkeyConverter(32, "erd")
 
 	return &networkProviderMock{
 		pubKeyConverter:                 pubKeyConverter,
@@ -59,15 +62,18 @@ func NewNetworkProviderMock() *networkProviderMock {
 		MockObservedProjectedShard:      0,
 		MockObservedProjectedShardIsSet: false,
 		MockNativeCurrencySymbol:        "XeGLD",
+		MockCustomCurrencies:            make([]resources.Currency, 0),
 		MockGenesisBlockHash:            emptyHash,
 		MockGenesisTimestamp:            genesisTimestamp,
 		MockNetworkConfig: &resources.NetworkConfig{
 			BlockchainName:         "MultiversX",
 			NetworkID:              "T",
 			NetworkName:            "testnet",
-			GasPerDataByte:         1500,
 			MinGasPrice:            1000000000,
 			MinGasLimit:            50000,
+			GasPerDataByte:         1500,
+			GasPriceModifier:       0.01,
+			GasLimitCustomTransfer: 200000,
 			ExtraGasLimitGuardedTx: 50000,
 		},
 		MockGenesisBalances: make([]*resources.GenesisBalance, 0),
@@ -89,13 +95,12 @@ func NewNetworkProviderMock() *networkProviderMock {
 		MockBlocksByNonce: make(map[uint64]*api.Block),
 		MockBlocksByHash:  make(map[string]*api.Block),
 		MockNextAccountBlockCoordinates: &resources.BlockCoordinates{
-			Nonce:    0,
-			Hash:     emptyHash,
-			RootHash: emptyHash,
+			Nonce: 0,
+			Hash:  emptyHash,
 		},
 		MockAccountsByAddress:         make(map[string]*resources.Account),
-		MockAccountsNativeBalances:    make(map[string]*resources.Account),
-		MockAccountsESDTBalances:      make(map[string]*resources.AccountESDTBalance),
+		MockAccountsNativeBalances:    make(map[string]*resources.AccountBalanceOnBlock),
+		MockAccountsCustomBalances:    make(map[string]*resources.AccountBalanceOnBlock),
 		MockMempoolTransactionsByHash: make(map[string]*transaction.ApiTransactionResult),
 		MockComputedTransactionHash:   emptyHash,
 		MockNextError:                 nil,
@@ -113,11 +118,33 @@ func (mock *networkProviderMock) GetBlockchainName() string {
 }
 
 // GetNativeCurrency -
-func (mock *networkProviderMock) GetNativeCurrency() resources.NativeCurrency {
-	return resources.NativeCurrency{
+func (mock *networkProviderMock) GetNativeCurrency() resources.Currency {
+	return resources.Currency{
 		Symbol:   mock.MockNativeCurrencySymbol,
 		Decimals: 18,
 	}
+}
+
+// GetCustomCurrencies -
+func (mock *networkProviderMock) GetCustomCurrencies() []resources.Currency {
+	return mock.MockCustomCurrencies
+}
+
+// GetCustomCurrencyBySymbol -
+func (mock *networkProviderMock) GetCustomCurrencyBySymbol(symbol string) (resources.Currency, bool) {
+	for _, currency := range mock.MockCustomCurrencies {
+		if currency.Symbol == symbol {
+			return currency, true
+		}
+	}
+
+	return resources.Currency{}, false
+}
+
+// HasCustomCurrency -
+func (mock *networkProviderMock) HasCustomCurrency(symbol string) bool {
+	_, has := mock.GetCustomCurrencyBySymbol(symbol)
+	return has
 }
 
 // GetNetworkConfig -
@@ -202,40 +229,30 @@ func (mock *networkProviderMock) GetAccount(address string) (*resources.AccountO
 	return nil, fmt.Errorf("account %s not found", address)
 }
 
-func (mock *networkProviderMock) GetAccountNativeBalance(address string, _ resources.AccountQueryOptions) (*resources.AccountOnBlock, error) {
+func (mock *networkProviderMock) GetAccountBalance(address string, tokenIdentifier string, _ resources.AccountQueryOptions) (*resources.AccountBalanceOnBlock, error) {
 	if mock.MockNextError != nil {
 		return nil, mock.MockNextError
 	}
 
-	accountBalance, ok := mock.MockAccountsNativeBalances[address]
+	isNativeBalance := tokenIdentifier == mock.MockNativeCurrencySymbol
+	if isNativeBalance {
+		accountBalance, ok := mock.MockAccountsNativeBalances[address]
+		if ok {
+			accountBalance.BlockCoordinates = *mock.MockNextAccountBlockCoordinates
+			return accountBalance, nil
+		}
+
+		return nil, fmt.Errorf("account %s not found (for native balance)", address)
+	}
+
+	customTokenBalanceKey := fmt.Sprintf("%s_%s", address, tokenIdentifier)
+	accountBalance, ok := mock.MockAccountsCustomBalances[customTokenBalanceKey]
 	if ok {
-		return &resources.AccountOnBlock{
-			Account: resources.Account{
-				Balance: accountBalance.Balance,
-				Nonce:   accountBalance.Nonce,
-			},
-			BlockCoordinates: *mock.MockNextAccountBlockCoordinates,
-		}, nil
+		accountBalance.BlockCoordinates = *mock.MockNextAccountBlockCoordinates
+		return accountBalance, nil
 	}
 
-	return nil, fmt.Errorf("account %s not found", address)
-}
-
-func (mock *networkProviderMock) GetAccountESDTBalance(address string, tokenIdentifier string, _ resources.AccountQueryOptions) (*resources.AccountESDTBalance, error) {
-	if mock.MockNextError != nil {
-		return nil, mock.MockNextError
-	}
-
-	key := fmt.Sprintf("%s_%s", address, tokenIdentifier)
-	accountBalance, ok := mock.MockAccountsESDTBalances[key]
-	if ok {
-		return &resources.AccountESDTBalance{
-			Balance:          accountBalance.Balance,
-			BlockCoordinates: *mock.MockNextAccountBlockCoordinates,
-		}, nil
-	}
-
-	return nil, fmt.Errorf("account %s not found", address)
+	return nil, fmt.Errorf("account %s not found (for custom token balance)", address)
 }
 
 // IsAddressObserved -
@@ -273,7 +290,13 @@ func (mock *networkProviderMock) ComputeShardIdOfPubKey(pubKey []byte) uint32 {
 
 // ConvertPubKeyToAddress -
 func (mock *networkProviderMock) ConvertPubKeyToAddress(pubkey []byte) string {
-	return mock.pubKeyConverter.Encode(pubkey)
+	address, err := mock.pubKeyConverter.Encode(pubkey)
+	if err != nil {
+		log.Error("networkProviderMock.ConvertPubKeyToAddress() failed", "pubkey", pubkey, "error", err)
+		return ""
+	}
+
+	return address
 }
 
 // ConvertAddressToPubKey -
@@ -340,4 +363,14 @@ func (mock *networkProviderMock) GetMempoolTransactionByHash(hash string) (*tran
 	}
 
 	return nil, nil
+}
+
+// IsReleaseSiriusActive -
+func (mock *networkProviderMock) IsReleaseSiriusActive(epoch uint32) bool {
+	return epoch >= mock.MockActivationEpochSirius
+}
+
+// IsReleaseSpicaActive -
+func (mock *networkProviderMock) IsReleaseSpicaActive(epoch uint32) bool {
+	return epoch >= mock.MockActivationEpochSpica
 }

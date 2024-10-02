@@ -20,15 +20,14 @@ type BlockSummary struct {
 	Timestamp         int64
 }
 
-// NativeCurrency is an internal resource
-type NativeCurrency struct {
-	Symbol   string
-	Decimals int32
+// Currency is an internal resource
+type Currency struct {
+	Symbol   string `json:"symbol"`
+	Decimals int32  `json:"decimals"`
 }
 
 // BlockCoordinates is an API resource
 type BlockCoordinates struct {
-	Nonce    uint64 `json:"nonce"`
-	Hash     string `json:"hash"`
-	RootHash string `json:"rootHash"`
+	Nonce uint64 `json:"nonce"`
+	Hash  string `json:"hash"`
 }

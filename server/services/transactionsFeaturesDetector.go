@@ -1,20 +1,20 @@
 package services
 
 import (
-	"bytes"
-
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
 )
 
 type transactionsFeaturesDetector struct {
-	networkProvider  NetworkProvider
-	eventsController *transactionEventsController
+	networkProvider          NetworkProvider
+	networkProviderExtension *networkProviderExtension
+	eventsController         *transactionEventsController
 }
 
 func newTransactionsFeaturesDetector(provider NetworkProvider) *transactionsFeaturesDetector {
 	return &transactionsFeaturesDetector{
-		networkProvider:  provider,
-		eventsController: newTransactionEventsController(provider),
+		networkProvider:          provider,
+		networkProviderExtension: newNetworkProviderExtension(provider),
+		eventsController:         newTransactionEventsController(provider),
 	}
 }
 
@@ -23,23 +23,37 @@ func (detector *transactionsFeaturesDetector) doesContractResultHoldRewardsOfCla
 	contractResult *transaction.ApiTransactionResult,
 	allTransactionsInBlock []*transaction.ApiTransactionResult,
 ) bool {
-	claimDeveloperRewardsTxs := make(map[string]struct{})
+	hasData := len(contractResult.Data) > 0
+	hasNonZeroNonce := contractResult.Nonce > 0
+	if hasData || hasNonZeroNonce {
+		return false
+	}
 
 	for _, tx := range allTransactionsInBlock {
 		matchesTypeOnSource := tx.ProcessingTypeOnSource == transactionProcessingTypeBuiltInFunctionCall
-		matchesTypeOnDestination := tx.ProcessingTypeOnDestination == transactionProcessingTypeBuiltInFunctionCall
-		matchesData := bytes.Equal(tx.Data, []byte(builtInFunctionClaimDeveloperRewards))
-
-		if matchesTypeOnSource && matchesTypeOnDestination && matchesData {
-			claimDeveloperRewardsTxs[tx.Hash] = struct{}{}
+		if !matchesTypeOnSource {
+			continue
 		}
+
+		matchesTypeOnDestination := tx.ProcessingTypeOnDestination == transactionProcessingTypeBuiltInFunctionCall
+		if !matchesTypeOnDestination {
+			continue
+		}
+
+		matchesOperation := tx.Operation == builtInFunctionClaimDeveloperRewards
+		if !matchesOperation {
+			continue
+		}
+
+		matchesOriginalTransactionHash := tx.Hash == contractResult.OriginalTransactionHash
+		if !matchesOriginalTransactionHash {
+			continue
+		}
+
+		return true
 	}
 
-	_, isResultOfClaimDeveloperRewards := claimDeveloperRewardsTxs[contractResult.OriginalTransactionHash]
-	hasNoData := len(contractResult.Data) == 0
-	hasZeroNonce := contractResult.Nonce == 0
-
-	return isResultOfClaimDeveloperRewards && hasNoData && hasZeroNonce
+	return false
 }
 
 // isInvalidTransactionOfTypeMoveBalanceThatOnlyConsumesDataMovementGas detects (intra-shard) invalid transactions
@@ -60,7 +74,7 @@ func (detector *transactionsFeaturesDetector) isInvalidTransactionOfTypeMoveBala
 	return withSendingValueToNonPayableContract || withMetaTransactionIsInvalid
 }
 
-func (detector *transactionsFeaturesDetector) isRelayedTransactionCompletelyIntrashardWithSignalError(tx *transaction.ApiTransactionResult, innerTx *innerTransactionOfRelayedV1) bool {
+func (detector *transactionsFeaturesDetector) isRelayedV1TransactionCompletelyIntrashardWithSignalError(tx *transaction.ApiTransactionResult, innerTx *innerTransactionOfRelayedV1) bool {
 	innerTxSenderShard := detector.networkProvider.ComputeShardIdOfPubKey(innerTx.SenderPubKey)
 	innerTxReceiverShard := detector.networkProvider.ComputeShardIdOfPubKey(innerTx.ReceiverPubKey)
 
@@ -73,4 +87,30 @@ func (detector *transactionsFeaturesDetector) isRelayedTransactionCompletelyIntr
 
 	isWithSignalError := detector.eventsController.hasAnySignalError(tx)
 	return isWithSignalError
+}
+
+func (detector *transactionsFeaturesDetector) isContractDeploymentWithSignalErrorOrIntrashardContractCallWithSignalError(tx *transaction.ApiTransactionResult) bool {
+	return detector.isContractDeploymentWithSignalError(tx) || (detector.isIntrashard(tx) && detector.isContractCallWithSignalError(tx))
+}
+
+func (detector *transactionsFeaturesDetector) isContractDeploymentWithSignalError(tx *transaction.ApiTransactionResult) bool {
+	return tx.ProcessingTypeOnSource == transactionProcessingTypeContractDeployment &&
+		tx.ProcessingTypeOnDestination == transactionProcessingTypeContractDeployment &&
+		detector.eventsController.hasAnySignalError(tx)
+}
+
+func (detector *transactionsFeaturesDetector) isContractCallWithSignalError(tx *transaction.ApiTransactionResult) bool {
+	return tx.ProcessingTypeOnSource == transactionProcessingTypeContractInvoking &&
+		tx.ProcessingTypeOnDestination == transactionProcessingTypeContractInvoking &&
+		detector.eventsController.hasAnySignalError(tx)
+}
+
+func (detector *transactionsFeaturesDetector) isIntrashard(tx *transaction.ApiTransactionResult) bool {
+	return tx.SourceShard == tx.DestinationShard
+}
+
+// isSmartContractResultIneffectiveRefund detects smart contract results that are ineffective refunds.
+// Also see: https://console.cloud.google.com/bigquery?sq=667383445384:de7a5f3f172f4b50a9aaed353ef79839
+func (detector *transactionsFeaturesDetector) isSmartContractResultIneffectiveRefund(scr *transaction.ApiTransactionResult) bool {
+	return scr.IsRefund && scr.Sender == scr.Receiver && detector.networkProviderExtension.isContractAddress(scr.Sender)
 }

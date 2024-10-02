@@ -2,10 +2,12 @@ package services
 
 import (
 	"context"
+	"fmt"
 	"sync"
 
 	"github.com/coinbase/rosetta-sdk-go/server"
 	"github.com/coinbase/rosetta-sdk-go/types"
+	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/data/api"
 	"github.com/multiversx/mx-chain-rosetta/server/resources"
 )
@@ -37,9 +39,23 @@ func (service *blockService) Block(
 	_ context.Context,
 	request *types.BlockRequest,
 ) (*types.BlockResponse, *types.Error) {
+	stopWatch := core.NewStopWatch()
+	stopWatch.Start("block")
+
 	response, err := service.doGetBlock(request)
 	if err != nil {
 		return nil, err
+	}
+
+	stopWatch.Stop("block")
+	duration := stopWatch.GetMeasurement("block")
+
+	if duration > durationAlarmThresholdBlockServiceGetBlock {
+		log.Debug(fmt.Sprintf("blockService.Block() took more than %s", durationAlarmThresholdBlockServiceGetBlock),
+			"duration", duration,
+			"blockNonce", response.Block.BlockIdentifier.Index,
+			"blockHash", response.Block.BlockIdentifier.Hash,
+		)
 	}
 
 	traceBlockResponse(response)
@@ -145,7 +161,7 @@ func (service *blockService) createGenesisOperations(balances []*resources.Genes
 		operations = append(operations, operation)
 	}
 
-	operations, err := service.extension.filterObservedOperations(operations)
+	operations, err := filterOperationsByAddress(operations, service.provider.IsAddressObserved)
 	if err != nil {
 		return nil, err
 	}
@@ -195,7 +211,7 @@ func (service *blockService) convertToRosettaBlock(block *api.Block) (*types.Blo
 		parentBlockIdentifier = service.extension.getGenesisBlockIdentifier()
 	}
 
-	transactions, err := service.txsTransformer.transformTxsFromBlock(block)
+	transactions, err := service.txsTransformer.transformBlockTxs(block)
 	if err != nil {
 		return nil, err
 	}
