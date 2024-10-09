@@ -1030,7 +1030,7 @@ class Controller:
 
     def send(self, transaction: Transaction, await_completion: bool = False):
         transaction_hash = self.network_provider.send_transaction(transaction)
-        print(f"    🌍 {self.configuration.explorer_url}/transactions/{transaction_hash}")
+        print(f"    🌍 {self.configuration.view_url.replace('{hash}', transaction_hash)}")
 
         if await_completion:
             self.await_completed([transaction])
@@ -1045,7 +1045,7 @@ class Controller:
             transaction_hash = self.transaction_computer.compute_transaction_hash(transaction).hex()
             transaction_on_network = self.transaction_awaiter.await_completed(transaction_hash)
 
-            print(f"    ✓ Completed: {self.configuration.explorer_url}/transactions/{transaction_hash}")
+            print(f"    ✓ Completed: {self.configuration.view_url.replace('{hash}', transaction_hash)}")
             return transaction_on_network
 
         transactions_on_network = Pool(8).map(await_completed_one, transactions)

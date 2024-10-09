@@ -19,7 +19,7 @@ class Configuration:
     check_data_configuration_file: str
     check_data_directory: str
     check_data_num_blocks: int
-    explorer_url: str
+    view_url: str
     memento_file: str = ""
     sponsor_secret_key: bytes = bytes.fromhex(os.environ.get("SPONSOR_SECRET_KEY", ""))
     users_mnemonic: str = os.environ.get("USERS_MNEMONIC", "")
@@ -36,14 +36,14 @@ CONFIGURATIONS = {
         observer_url="",
         proxy_url=os.environ.get("MAINNET_PROXY_URL", "https://gateway.multiversx.com"),
         activation_epoch_sirius=1265,
-        activation_epoch_spica=4294967295,
+        activation_epoch_spica=1538,
         check_construction_native_configuration_file="",
         check_construction_custom_configuration_file="",
         check_data_configuration_file="systemtests/mesh_cli_config/check-data.json",
         check_data_directory="systemtests/mainnet-data",
         check_data_num_blocks=4096,
         memento_file="systemtests/memento/mainnet.json",
-        explorer_url="https://explorer.multiversx.com",
+        view_url="https://explorer.multiversx.com/transactions/{hash}",
     ),
     "devnet": Configuration(
         network_shard=0,
@@ -55,14 +55,14 @@ CONFIGURATIONS = {
         observer_url="",
         proxy_url="https://devnet-gateway.multiversx.com",
         activation_epoch_sirius=629,
-        activation_epoch_spica=4294967295,
+        activation_epoch_spica=2327,
         check_construction_native_configuration_file="systemtests/mesh_cli_config/devnet-construction-native.json",
         check_construction_custom_configuration_file="systemtests/mesh_cli_config/devnet-construction-custom.json",
         check_data_configuration_file="systemtests/mesh_cli_config/check-data.json",
         check_data_directory="systemtests/devnet-data",
         check_data_num_blocks=0,
         memento_file="systemtests/memento/devnet.json",
-        explorer_url="https://devnet-explorer.multiversx.com",
+        view_url="https://devnet-explorer.multiversx.com/transactions/{hash}",
     ),
     "testnet": Configuration(
         network_shard=0,
@@ -81,7 +81,7 @@ CONFIGURATIONS = {
         check_data_directory="systemtests/testnet-data",
         check_data_num_blocks=0,
         memento_file="systemtests/memento/testnet.json",
-        explorer_url="https://testnet-explorer.multiversx.com",
+        view_url="https://testnet-explorer.multiversx.com/transactions/{hash}",
     ),
     "localnet": Configuration(
         network_shard=0,
@@ -93,13 +93,13 @@ CONFIGURATIONS = {
         observer_url="",
         proxy_url="http://localhost:7950",
         activation_epoch_sirius=1,
-        activation_epoch_spica=4294967295,
+        activation_epoch_spica=4,
         check_construction_native_configuration_file="systemtests/mesh_cli_config/localnet-construction-native.json",
         check_construction_custom_configuration_file="systemtests/mesh_cli_config/localnet-construction-custom.json",
         check_data_configuration_file="systemtests/mesh_cli_config/check-data.json",
         check_data_directory="systemtests/localnet-data",
         check_data_num_blocks=0,
         memento_file="systemtests/memento/localnet.json",
-        explorer_url="",
+        view_url="http://localhost:7950/transaction/{hash}?withResults=true&withLogs=true",
     ),
 }
