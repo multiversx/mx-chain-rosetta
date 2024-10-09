@@ -20,6 +20,7 @@ class Configuration:
     check_data_directory: str
     check_data_num_blocks: int
     view_url: str
+    custom_currency_issue_cost: int = 50000000000000000
     memento_file: str = ""
     sponsor_secret_key: bytes = bytes.fromhex(os.environ.get("SPONSOR_SECRET_KEY", ""))
     users_mnemonic: str = os.environ.get("USERS_MNEMONIC", "")
@@ -89,7 +90,7 @@ CONFIGURATIONS = {
         network_name="untitled",
         native_currency="EGLD",
         config_file_custom_currencies="systemtests/rosetta_config/localnet-custom-currencies.json",
-        num_historical_epochs=2,
+        num_historical_epochs=3,
         observer_url="",
         proxy_url="http://localhost:7950",
         activation_epoch_sirius=1,
@@ -101,5 +102,6 @@ CONFIGURATIONS = {
         check_data_num_blocks=0,
         memento_file="systemtests/memento/localnet.json",
         view_url="http://localhost:7950/transaction/{hash}?withResults=true&withLogs=true",
+        custom_currency_issue_cost=5000000000000000000
     ),
 }

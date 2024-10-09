@@ -444,6 +444,7 @@ class Controller:
         self.transaction_computer = TransactionComputer()
         self.transactions_converter = TransactionsConverter()
         self.transactions_factory_config = TransactionsFactoryConfig(chain_id=configuration.network_id)
+        self.transactions_factory_config.issue_cost = configuration.custom_currency_issue_cost
         self.nonces_tracker = NoncesTracker(configuration.proxy_url)
         self.token_management_transactions_factory = TokenManagementTransactionsFactory(self.transactions_factory_config)
         self.token_management_outcome_parser = TokenManagementTransactionsOutcomeParser()
