@@ -354,6 +354,34 @@ def do_run(args: Any):
         parent_contract=accounts.get_contract_address("developerRewards", shard=1, index=0),
     ), await_completion=True)
 
+    print("## Relayed v3, intra-shard, with refund")
+    controller.send(controller.create_relayed_v3_with_inner_transactions(
+        relayer=accounts.get_user(shard=0, index=0),
+        inner_transactions=[
+            controller.create_simple_move_balance(
+                    sender=accounts.get_user(shard=0, index=1),
+                    receiver=accounts.get_user(shard=0, index=2).address),
+            controller.create_simple_move_balance(
+                sender=accounts.get_user(shard=0, index=1),
+                receiver=accounts.get_user(shard=0, index=3).address)
+        ],
+        additional_gas_limit=300000
+    ), await_completion=True)
+
+    print("## Relayed v3, cross-shard, with refund")
+    controller.send(controller.create_relayed_v3_with_inner_transactions(
+        relayer=accounts.get_user(shard=0, index=0),
+        inner_transactions=[
+            controller.create_simple_move_balance(
+                    sender=accounts.get_user(shard=0, index=1),
+                    receiver=accounts.get_user(shard=2, index=2).address),
+            controller.create_simple_move_balance(
+                sender=accounts.get_user(shard=0, index=1),
+                receiver=accounts.get_user(shard=2, index=3).address)
+        ],
+        additional_gas_limit=300000
+    ), await_completion=True)
+
     print("## Relayed v3, intra-shard, a few identical transactions (same nonce)")
     controller.send(controller.create_relayed_v3_with_inner_transactions(
         relayer=accounts.get_user(shard=0, index=0),
@@ -972,7 +1000,7 @@ class Controller:
 
         return transaction
 
-    def create_relayed_v3_with_inner_transactions(self, relayer: "Account", inner_transactions: List[Transaction]) -> Transaction:
+    def create_relayed_v3_with_inner_transactions(self, relayer: "Account", inner_transactions: List[Transaction], additional_gas_limit: int = 0) -> Transaction:
         # Relayer nonce is reserved before sender nonce, to ensure good ordering (if sender and relayer are the same account).
         relayer_nonce = self._reserve_nonce(relayer)
 
@@ -992,6 +1020,7 @@ class Controller:
         )
 
         transaction.nonce = relayer_nonce
+        transaction.gas_limit += additional_gas_limit
         self.sign(transaction)
 
         return transaction
