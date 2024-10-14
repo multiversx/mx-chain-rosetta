@@ -56,6 +56,8 @@ def do_setup(args: Any):
 
     memento.clear()
 
+    controller.wait_until_epoch(configuration.activation_epoch_sirius)
+
     print("Do airdrops for native currency...")
     controller.do_airdrops_for_native_currency()
 
@@ -75,6 +77,8 @@ def do_run(args: Any):
     memento = Memento(Path(configuration.memento_file))
     accounts = BunchOfAccounts(configuration, memento)
     controller = Controller(configuration, accounts, memento)
+
+    controller.wait_until_epoch(configuration.activation_epoch_spica)
 
     print("## Intra-shard, simple MoveBalance with refund")
     controller.send(controller.create_simple_move_balance(
@@ -99,7 +103,7 @@ def do_run(args: Any):
 
     print("## Cross-shard, invalid MoveBalance with refund")
     controller.send(controller.create_invalid_move_balance(
-        sender=accounts.get_user(shard=0, index=4),
+        sender=accounts.get_user(shard=0, index=3),
         receiver=accounts.get_user(shard=1, index=1).address,
         additional_gas_limit=42000,
     ), await_completion=True)
@@ -161,7 +165,7 @@ def do_run(args: Any):
 
     print("## Intra-shard, transfer & execute with native & custom transfer")
     controller.send(controller.create_native_transfer_within_multiesdt_transfer_and_execute(
-        sender=accounts.get_user(shard=0, index=4),
+        sender=accounts.get_user(shard=0, index=3),
         contract=accounts.get_contract_address("dummy", shard=0, index=0),
         function="doSomething",
         native_amount=42,
@@ -200,7 +204,7 @@ def do_run(args: Any):
             relayer=accounts.get_user(shard=0, index=0),
             inner_transactions=[
                 controller.create_native_transfer_within_multiesdt_transfer_and_execute(
-                    sender=accounts.get_user(shard=0, index=3),
+                    sender=accounts.get_user(shard=0, index=2),
                     contract=accounts.get_contract_address("dummy", shard=0, index=0),
                     function="doSomething",
                     native_amount=42,
@@ -208,7 +212,7 @@ def do_run(args: Any):
                     seal_for_broadcast=False,
                 ),
                 controller.create_native_transfer_within_multiesdt_transfer_and_execute(
-                    sender=accounts.get_user(shard=0, index=4),
+                    sender=accounts.get_user(shard=0, index=3),
                     contract=accounts.get_contract_address("dummy", shard=0, index=0),
                     function="doNothing",
                     native_amount=42,
@@ -288,7 +292,7 @@ def do_run(args: Any):
     print("## Intra-shard, relayed v1 transaction with MoveBalance (with bad receiver, system smart contract)")
     controller.send(controller.create_relayed_v1_with_move_balance(
         relayer=accounts.get_user(shard=1, index=0),
-        sender=accounts.get_user(shard=1, index=9),
+        sender=accounts.get_user(shard=1, index=2),
         receiver=Address.from_bech32("erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqzllls8a5w6u"),
         amount=1000000000000000000
     ), await_completion=True)
@@ -386,29 +390,27 @@ def do_run(args: Any):
 
     print("## Intra-shard, transfer native within MultiESDTTransfer (fuzzy, with tx.value != 0)")
     controller.send(controller.create_native_transfer_within_multiesdt_fuzzy(
-        sender=accounts.get_user(shard=0, index=4),
-        receiver=accounts.get_user(shard=0, index=5).address,
+        sender=accounts.get_user(shard=0, index=2),
+        receiver=accounts.get_user(shard=0, index=3).address,
         native_amount_as_value=42,
         native_amount_in_data=[43, 44]
     ), await_completion=True)
 
     print("## Intra-shard, transfer native within MultiESDTTransfer (fuzzy, with tx.value == 0)")
     controller.send(controller.create_native_transfer_within_multiesdt_fuzzy(
-        sender=accounts.get_user(shard=0, index=4),
-        receiver=accounts.get_user(shard=0, index=5).address,
+        sender=accounts.get_user(shard=0, index=3),
+        receiver=accounts.get_user(shard=0, index=3).address,
         native_amount_as_value=0,
         native_amount_in_data=[43, 44]
     ), await_completion=True)
 
     print("## Cross-shard, transfer native within MultiESDTTransfer (fuzzy, with tx.value == 0)")
     controller.send(controller.create_native_transfer_within_multiesdt_fuzzy(
-        sender=accounts.get_user(shard=0, index=4),
-        receiver=accounts.get_user(shard=1, index=5).address,
+        sender=accounts.get_user(shard=0, index=2),
+        receiver=accounts.get_user(shard=1, index=3).address,
         native_amount_as_value=0,
         native_amount_in_data=[43, 44]
     ), await_completion=True)
-
-    # TODO intra relayed v3, unde e signal error, sa vad ca apare si SCR. deranjeaza pe logica aia cu pre-post-sirius?
 
 
 class BunchOfAccounts:
@@ -1147,6 +1149,17 @@ class Controller:
 
         transactions_on_network = Pool(8).map(await_completed_one, transactions)
         return transactions_on_network
+
+    def wait_until_epoch(self, epoch: int):
+        print(f"⏳ Waiting until epoch {epoch}...")
+
+        while True:
+            current_epoch = self.network_provider.get_network_status().epoch_number
+            if current_epoch >= epoch:
+                print(f"✓ Reached epoch {current_epoch} >= {epoch}")
+                break
+
+            time.sleep(30)
 
 
 class NoncesTracker:
