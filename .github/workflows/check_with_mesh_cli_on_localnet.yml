@@ -33,7 +33,8 @@ jobs:
           mxpy localnet setup --configfile=${GITHUB_WORKSPACE}/systemtests/localnet.toml
           
           # Start the localnet and store the PID
-          nohup mxpy localnet start --configfile=${GITHUB_WORKSPACE}/systemtests/localnet.toml &
+          nohup mxpy localnet start --configfile=${GITHUB_WORKSPACE}/systemtests/localnet.toml > localnet.log 2>&1 & echo $! > localnet.pid
+          sleep 60 # Allow time for the localnet to start
 
       - name: Generate testdata
         run: |
