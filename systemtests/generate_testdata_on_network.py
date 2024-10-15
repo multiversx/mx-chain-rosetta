@@ -70,6 +70,8 @@ def do_setup(args: Any):
     print("Do contract deployments...")
     controller.do_create_contract_deployments()
 
+    memento.replace_setup_transactions(controller.transactions_hashes_accumulator)
+
 
 def do_run(args: Any):
     network = args.network
@@ -95,16 +97,18 @@ def do_run(args: Any):
     ), await_completion=True)
 
     print("## Intra-shard, invalid MoveBalance with refund")
-    controller.send(controller.create_invalid_move_balance(
+    controller.send(controller.create_simple_move_balance(
         sender=accounts.get_user(shard=0, index=2),
         receiver=accounts.get_user(shard=0, index=3).address,
+        amount=1000000000000000000000000,
         additional_gas_limit=42000,
     ), await_completion=True)
 
     print("## Cross-shard, invalid MoveBalance with refund")
-    controller.send(controller.create_invalid_move_balance(
+    controller.send(controller.create_simple_move_balance(
         sender=accounts.get_user(shard=0, index=3),
         receiver=accounts.get_user(shard=1, index=1).address,
+        amount=1000000000000000000000000,
         additional_gas_limit=42000,
     ), await_completion=True)
 
@@ -331,6 +335,14 @@ def do_run(args: Any):
         amount=1
     ), await_completion=True)
 
+    print("## Cross-shard, relayed v1 transaction with contract call with MoveBalance, with signal error (1)")
+    controller.send(controller.create_relayed_v1_with_contract_call_with_move_balance_with_signal_error(
+        relayer=accounts.get_user(shard=0, index=0),
+        sender=accounts.get_user(shard=0, index=1),
+        contract=accounts.get_contract_address("adder", 1, 0),
+        amount=1
+    ), await_completion=True)
+
     print("## Intra-shard ClaimDeveloperRewards on directly owned contract")
     controller.send(controller.create_claim_developer_rewards_on_directly_owned_contract(
         sender=accounts.get_user(shard=0, index=0),
@@ -411,6 +423,8 @@ def do_run(args: Any):
         native_amount_as_value=0,
         native_amount_in_data=[43, 44]
     ), await_completion=True)
+
+    memento.replace_run_transactions(controller.transactions_hashes_accumulator)
 
 
 class BunchOfAccounts:
@@ -518,6 +532,7 @@ class Controller:
         self.contracts_transactions_factory = SmartContractTransactionsFactory(self.transactions_factory_config)
         self.contracts_query_controller = SmartContractQueriesController(QueryRunnerAdapter(self.network_provider))
         self.transaction_awaiter = TransactionAwaiter(self)
+        self.transactions_hashes_accumulator: list[str] = []
 
     # Temporary workaround, until the SDK is updated to simplify transaction awaiting.
     def get_transaction(self, tx_hash: str) -> TransactionOnNetwork:
@@ -732,25 +747,11 @@ class Controller:
         self.send(transaction)
         self.await_completed([transaction])
 
-    def create_simple_move_balance(self, sender: "Account", receiver: Address, additional_gas_limit: int = 0) -> Transaction:
+    def create_simple_move_balance(self, sender: "Account", receiver: Address, amount: int = 42, additional_gas_limit: int = 0) -> Transaction:
         transaction = self.transfer_transactions_factory.create_transaction_for_native_token_transfer(
             sender=sender.address,
             receiver=receiver,
-            native_amount=42
-        )
-
-        transaction.gas_limit += additional_gas_limit
-
-        self.apply_nonce(transaction)
-        self.sign(transaction)
-
-        return transaction
-
-    def create_invalid_move_balance(self, sender: "Account", receiver: Address, additional_gas_limit: int = 0) -> Transaction:
-        transaction = self.transfer_transactions_factory.create_transaction_for_native_token_transfer(
-            sender=sender.address,
-            receiver=receiver,
-            native_amount=1000000000000000000000000
+            native_amount=amount
         )
 
         transaction.gas_limit += additional_gas_limit
@@ -1119,9 +1120,10 @@ class Controller:
         chunks = list(split_to_chunks(transactions, chunk_size))
 
         for chunk in chunks:
-            num_sent, _ = self.network_provider.send_transactions(chunk)
-
+            num_sent, hashes_by_index = self.network_provider.send_transactions(chunk)
             print(f"Sent {num_sent} transactions. Waiting {wait_between_chunks} seconds...")
+
+            self.transactions_hashes_accumulator.extend(hashes_by_index.values())
             time.sleep(wait_between_chunks)
 
         if await_completion:
@@ -1133,6 +1135,8 @@ class Controller:
 
         if await_completion:
             self.await_completed([transaction])
+
+        self.transactions_hashes_accumulator.append(transaction_hash)
 
     def await_completed(self, transactions: List[Transaction]) -> List[TransactionOnNetwork]:
         print(f"    ⏳ Awaiting completion of {len(transactions)} transactions...")
@@ -1195,6 +1199,8 @@ class Memento:
         self.path = path
         self._contracts: List[SmartContract] = []
         self._custom_currencies: List[str] = []
+        self._setup_transactions: List[str] = []
+        self._run_transactions: List[str] = []
 
     def clear(self):
         self._contracts = []
@@ -1225,6 +1231,16 @@ class Memento:
 
         return contracts
 
+    def replace_setup_transactions(self, transactions_hashes: list[str]):
+        self.load()
+        self._setup_transactions = transactions_hashes
+        self.save()
+
+    def replace_run_transactions(self, transactions_hashes: list[str]):
+        self.load()
+        self._run_transactions = transactions_hashes
+        self.save()
+
     def load(self):
         if not self.path.exists():
             return
@@ -1234,6 +1250,8 @@ class Memento:
         contracts_raw = data.get("contracts", [])
         self._contracts = [SmartContract.from_dictionary(item) for item in contracts_raw]
         self._custom_currencies = data.get("customCurrencies", [])
+        self._setup_transactions = data.get("setupTransactions", [])
+        self._run_transactions = data.get("runTransactions", [])
 
     def save(self):
         contracts_raw = [contract.to_dictionary() for contract in self._contracts]
@@ -1241,6 +1259,8 @@ class Memento:
         data = {
             "contracts": contracts_raw,
             "customCurrencies": self._custom_currencies,
+            "setupTransactions": self._setup_transactions,
+            "runTransactions": self._run_transactions,
         }
 
         self.path.parent.mkdir(parents=True, exist_ok=True)
