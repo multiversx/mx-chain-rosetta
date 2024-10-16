@@ -255,6 +255,9 @@ Run the checks:
 
 ```
 PYTHONPATH=. python3 ./systemtests/check_with_mesh_cli.py --mode=data --network=testnet
+
+# Or, continuously:
+while PYTHONPATH=. python3 ./systemtests/check_with_mesh_cli.py --mode=data --network=testnet; do sleep 5; done
 ```
 
 ### Check:construction
