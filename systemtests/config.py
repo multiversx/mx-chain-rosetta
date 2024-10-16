@@ -104,4 +104,24 @@ CONFIGURATIONS = {
         view_url="http://localhost:7950/transaction/{hash}?withResults=true&withLogs=true",
         custom_currency_issue_cost=5000000000000000000
     ),
+    "internal": Configuration(
+        network_shard=0,
+        network_id="1",
+        network_name="untitled",
+        native_currency="EGLD",
+        config_file_custom_currencies="systemtests/rosetta_config/internal-custom-currencies.json",
+        num_historical_epochs=1,
+        observer_url="",
+        proxy_url=os.environ.get("INTERNAL_TESTNET_PROXY_URL", ""),
+        activation_epoch_sirius=1,
+        activation_epoch_spica=4,
+        check_construction_native_configuration_file="systemtests/mesh_cli_config/internal-construction-native.json",
+        check_construction_custom_configuration_file="systemtests/mesh_cli_config/internal-construction-custom.json",
+        check_data_configuration_file="systemtests/mesh_cli_config/check-data.json",
+        check_data_directory="systemtests/internal-data",
+        check_data_num_blocks=0,
+        memento_file="systemtests/memento/internal.json",
+        view_url=f"{os.environ.get('INTERNAL_TESTNET_EXPLORER_URL', '')}/transactions/{{hash}}",
+        custom_currency_issue_cost=5000000000000000000
+    ),
 }
