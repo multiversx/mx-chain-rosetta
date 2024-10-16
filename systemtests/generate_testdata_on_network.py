@@ -24,6 +24,7 @@ from systemtests.config import CONFIGURATIONS, Configuration
 
 CONTRACT_PATH_ADDER = Path(__file__).parent / "contracts" / "adder.wasm"
 CONTRACT_PATH_DUMMY = Path(__file__).parent / "contracts" / "dummy.wasm"
+CONTRACT_PATH_FORWARDER = Path(__file__).parent / "contracts" / "forwarder.wasm"
 CONTRACT_PATH_DEVELOPER_REWARDS = Path(__file__).parent / "contracts" / "developer_rewards.wasm"
 
 
@@ -606,6 +607,7 @@ class Controller:
     def do_create_contract_deployments(self):
         transactions_adder: List[Transaction] = []
         transactions_dummy: List[Transaction] = []
+        transactions_forwarder: List[Transaction] = []
         transactions_developer_rewards: List[Transaction] = []
         address_computer = AddressComputer()
 
@@ -653,6 +655,28 @@ class Controller:
             arguments=[]
         ))
 
+        # Forwarder
+        transactions_forwarder.append(self.contracts_transactions_factory.create_transaction_for_deploy(
+            sender=self.accounts.get_user(shard=0, index=0).address,
+            bytecode=CONTRACT_PATH_FORWARDER,
+            gas_limit=25000000,
+            arguments=[]
+        ))
+
+        transactions_forwarder.append(self.contracts_transactions_factory.create_transaction_for_deploy(
+            sender=self.accounts.get_user(shard=1, index=0).address,
+            bytecode=CONTRACT_PATH_FORWARDER,
+            gas_limit=25000000,
+            arguments=[]
+        ))
+
+        transactions_forwarder.append(self.contracts_transactions_factory.create_transaction_for_deploy(
+            sender=self.accounts.get_user(shard=2, index=0).address,
+            bytecode=CONTRACT_PATH_FORWARDER,
+            gas_limit=25000000,
+            arguments=[]
+        ))
+
         # Developer rewards
         transactions_developer_rewards.append(self.contracts_transactions_factory.create_transaction_for_deploy(
             sender=self.accounts.get_user(shard=0, index=0).address,
@@ -675,7 +699,7 @@ class Controller:
             arguments=[]
         ))
 
-        transactions_all = transactions_adder + transactions_dummy + transactions_developer_rewards
+        transactions_all = transactions_adder + transactions_dummy + transactions_forwarder + transactions_developer_rewards
 
         for transaction in transactions_all:
             self.apply_nonce(transaction)
@@ -690,6 +714,11 @@ class Controller:
             sender = Address.from_bech32(transaction.sender)
             contract_address = address_computer.compute_contract_address(sender, transaction.nonce)
             self.memento.add_contract("dummy", contract_address.to_bech32())
+
+        for transaction in transactions_forwarder:
+            sender = Address.from_bech32(transaction.sender)
+            contract_address = address_computer.compute_contract_address(sender, transaction.nonce)
+            self.memento.add_contract("forwarder", contract_address.to_bech32())
 
         for transaction in transactions_developer_rewards:
             sender = Address.from_bech32(transaction.sender)
