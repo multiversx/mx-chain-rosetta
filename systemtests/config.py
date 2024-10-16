@@ -24,6 +24,7 @@ class Configuration:
     memento_file: str = ""
     sponsor_secret_key: bytes = bytes.fromhex(os.environ.get("SPONSOR_SECRET_KEY", ""))
     users_mnemonic: str = os.environ.get("USERS_MNEMONIC", "")
+    num_users: int = 128
 
 
 CONFIGURATIONS = {

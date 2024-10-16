@@ -160,7 +160,7 @@ def do_run(args: Any):
     ), await_completion=True)
 
     print("## Cross-shard, transfer & execute with native & custom transfer")
-    controller.send(controller.create_native_transfer_within_multiesdt_transfer_and_execute(
+    controller.send(controller.create_transfer_and_execute(
         sender=accounts.get_user(shard=0, index=1),
         contract=accounts.get_contract_address("dummy", shard=0, index=0),
         function="doSomething",
@@ -169,7 +169,7 @@ def do_run(args: Any):
     ), await_completion=True)
 
     print("## Intra-shard, transfer & execute with native & custom transfer")
-    controller.send(controller.create_native_transfer_within_multiesdt_transfer_and_execute(
+    controller.send(controller.create_transfer_and_execute(
         sender=accounts.get_user(shard=0, index=3),
         contract=accounts.get_contract_address("dummy", shard=0, index=0),
         function="doSomething",
@@ -182,7 +182,7 @@ def do_run(args: Any):
         controller.create_relayed_v3_with_inner_transactions(
             relayer=accounts.get_user(shard=0, index=0),
             inner_transactions=[
-                controller.create_native_transfer_within_multiesdt_transfer_and_execute(
+                controller.create_transfer_and_execute(
                     sender=accounts.get_user(shard=0, index=1),
                     contract=accounts.get_contract_address("dummy", shard=2, index=0),
                     function="doSomething",
@@ -190,7 +190,7 @@ def do_run(args: Any):
                     custom_amount=7,
                     seal_for_broadcast=False,
                 ),
-                controller.create_native_transfer_within_multiesdt_transfer_and_execute(
+                controller.create_transfer_and_execute(
                     sender=accounts.get_user(shard=0, index=2),
                     contract=accounts.get_contract_address("dummy", shard=2, index=0),
                     function="doNothing",
@@ -208,7 +208,7 @@ def do_run(args: Any):
         controller.create_relayed_v3_with_inner_transactions(
             relayer=accounts.get_user(shard=0, index=0),
             inner_transactions=[
-                controller.create_native_transfer_within_multiesdt_transfer_and_execute(
+                controller.create_transfer_and_execute(
                     sender=accounts.get_user(shard=0, index=2),
                     contract=accounts.get_contract_address("dummy", shard=0, index=0),
                     function="doSomething",
@@ -216,12 +216,30 @@ def do_run(args: Any):
                     custom_amount=7,
                     seal_for_broadcast=False,
                 ),
-                controller.create_native_transfer_within_multiesdt_transfer_and_execute(
+                controller.create_transfer_and_execute(
                     sender=accounts.get_user(shard=0, index=3),
                     contract=accounts.get_contract_address("dummy", shard=0, index=0),
                     function="doNothing",
                     native_amount=42,
                     custom_amount=7,
+                    seal_for_broadcast=False
+                )
+            ]
+        ),
+        await_completion=True
+    )
+
+    print("## Intra-shard, transfer & execute with native transfer, with signal error, wrapped in Relayed V3")
+    controller.send(
+        controller.create_relayed_v3_with_inner_transactions(
+            relayer=accounts.get_user(shard=0, index=0),
+            inner_transactions=[
+                controller.create_transfer_and_execute(
+                    sender=accounts.get_user(shard=0, index=3),
+                    contract=accounts.get_contract_address("dummy", shard=0, index=0),
+                    function="doNothing",
+                    native_amount=42,
+                    custom_amount=0,
                     seal_for_broadcast=False
                 )
             ]
@@ -437,7 +455,7 @@ class BunchOfAccounts:
         self.users_by_bech32: Dict[str, Account] = {}
         self.contracts: List[SmartContract] = []
 
-        for i in range(128):
+        for i in range(configuration.num_users):
             user = self._create_user(i)
             self.users.append(user)
             self.users_by_bech32[user.address.to_bech32()] = user
@@ -834,8 +852,12 @@ class Controller:
 
         return transaction
 
-    def create_native_transfer_within_multiesdt_transfer_and_execute(self, sender: "Account", contract: Address, function: str, native_amount: int, custom_amount: int, seal_for_broadcast: bool = True) -> Transaction:
-        custom_currency = self.memento.get_custom_currencies()[0]
+    def create_transfer_and_execute(self, sender: "Account", contract: Address, function: str, native_amount: int, custom_amount: int, seal_for_broadcast: bool = True) -> Transaction:
+        token_transfers: List[TokenTransfer] = []
+
+        if custom_amount:
+            custom_currency = self.memento.get_custom_currencies()[0]
+            token_transfers = [TokenTransfer(Token(custom_currency), custom_amount)]
 
         transaction = self.contracts_transactions_factory.create_transaction_for_execute(
             sender=sender.address,
@@ -843,7 +865,7 @@ class Controller:
             function=function,
             gas_limit=3000000,
             native_transfer_amount=native_amount,
-            token_transfers=[TokenTransfer(Token(custom_currency), custom_amount)]
+            token_transfers=token_transfers
         )
 
         if seal_for_broadcast:
