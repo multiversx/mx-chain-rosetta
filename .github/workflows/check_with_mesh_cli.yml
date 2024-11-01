@@ -1,4 +1,4 @@
-name: Check with Mesh CLI
+name: Check with Mesh CLI (testnet)
 
 on:
   pull_request:
