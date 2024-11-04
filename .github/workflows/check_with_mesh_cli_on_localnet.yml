@@ -1,0 +1,53 @@
+name: Check with Mesh CLI (localnet)
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/setup-python@v5
+        with:
+          python-version: 3.11
+
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          pipx install multiversx-sdk-cli --force
+          pip install -r ./requirements-dev.txt
+          curl -sSfL https://raw.githubusercontent.com/coinbase/mesh-cli/master/scripts/install.sh | sh -s -- -b "$HOME/.local/bin"
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+      - name: Build
+        run: |
+          cd $GITHUB_WORKSPACE/cmd/rosetta && go build .
+          cd $GITHUB_WORKSPACE/systemtests && go build ./proxyToObserverAdapter.go
+
+      - name: Set up MultiversX localnet
+        run: |
+          mkdir -p ~/localnet && cd ~/localnet
+          mxpy localnet setup --configfile=${GITHUB_WORKSPACE}/systemtests/localnet.toml
+          
+          # Start the localnet and store the PID
+          nohup mxpy localnet start --configfile=${GITHUB_WORKSPACE}/systemtests/localnet.toml > localnet.log 2>&1 & echo $! > localnet.pid
+          sleep 60 # Allow time for the localnet to start
+
+      - name: Generate testdata
+        run: |
+          source .env
+          PYTHONPATH=. python3 ./systemtests/generate_testdata_on_network.py setup --network localnet
+          PYTHONPATH=. python3 ./systemtests/generate_testdata_on_network.py run --network localnet
+
+      - name: check:data
+        run: |
+          source .env
+          PYTHONPATH=. python3 ./systemtests/check_with_mesh_cli.py --mode=data --network=localnet
+
+      - name: Stop MultiversX localnet
+        if: success() || failure()
+        run: |
+          kill $(cat localnet.pid) || echo "Testnet already stopped"
