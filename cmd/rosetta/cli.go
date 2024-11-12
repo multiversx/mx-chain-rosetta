@@ -1,8 +1,6 @@
 package main
 
 import (
-	"math"
-
 	logger "github.com/multiversx/mx-chain-logger-go"
 	"github.com/urfave/cli"
 )
@@ -180,7 +178,7 @@ VERSION:
 		Name:     "activation-epoch-spica",
 		Usage:    "Specifies the activation epoch for Spica release.",
 		Required: false,
-		Value:    math.MaxUint32,
+		Value:    1575,
 	}
 
 	cliFlagShouldEnablePprofEndpoints = cli.BoolFlag{
