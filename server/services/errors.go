@@ -199,6 +199,5 @@ func (factory *errFactory) getPrototypeByCode(code errCode) errPrototype {
 	return factory.prototypesMap[ErrUnknown]
 }
 
-var errEventNotFound = errors.New("transaction event not found")
 var errCannotRecognizeEvent = errors.New("cannot recognize transaction event")
 var errCannotParseRelayedV1 = errors.New("cannot parse relayed V1 transaction")
