@@ -6,11 +6,11 @@ require (
 	github.com/coinbase/rosetta-sdk-go v0.8.3
 	github.com/coinbase/rosetta-sdk-go/types v1.0.0
 	github.com/gin-gonic/gin v1.9.1
-	github.com/multiversx/mx-chain-core-go v1.2.21
-	github.com/multiversx/mx-chain-go v1.7.17
+	github.com/multiversx/mx-chain-core-go v1.2.24-0.20241204105653-2beb13136490
+	github.com/multiversx/mx-chain-go v1.8.7-0.20241209152036-98a029a0ef16
 	github.com/multiversx/mx-chain-logger-go v1.0.15
-	github.com/multiversx/mx-chain-proxy-go v1.1.50
-	github.com/multiversx/mx-chain-storage-go v1.0.16
+	github.com/multiversx/mx-chain-proxy-go v1.1.54
+	github.com/multiversx/mx-chain-storage-go v1.0.18
 	github.com/stretchr/testify v1.8.4
 	github.com/urfave/cli v1.22.10
 )
@@ -40,10 +40,10 @@ require (
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/mr-tron/base58 v1.2.0 // indirect
-	github.com/multiversx/mx-chain-communication-go v1.1.0 // indirect
+	github.com/multiversx/mx-chain-communication-go v1.1.1 // indirect
 	github.com/multiversx/mx-chain-crypto-go v1.2.12 // indirect
-	github.com/multiversx/mx-chain-es-indexer-go v1.7.4 // indirect
-	github.com/multiversx/mx-chain-vm-common-go v1.5.13 // indirect
+	github.com/multiversx/mx-chain-es-indexer-go v1.7.10 // indirect
+	github.com/multiversx/mx-chain-vm-common-go v1.5.16 // indirect
 	github.com/pelletier/go-toml v1.9.3 // indirect
 	github.com/pelletier/go-toml/v2 v2.0.8 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
