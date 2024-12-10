@@ -220,6 +220,69 @@ func TestTransactionsTransformer_NormalTxToRosettaTx(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, expectedRosettaTx, rosettaTx)
 	})
+
+	t.Run("relayed tx V3", func(t *testing.T) {
+		tx := &transaction.ApiTransactionResult{
+			Hash:             "aaaa",
+			Sender:           testscommon.TestAddressAlice,
+			Receiver:         testscommon.TestAddressBob,
+			RelayerAddress:   testscommon.TestAddressCarol,
+			Value:            "1234",
+			InitiallyPaidFee: "50000000000000",
+		}
+
+		expectedRosettaTx := &types.Transaction{
+			TransactionIdentifier: hashToTransactionIdentifier("aaaa"),
+			Operations: []*types.Operation{
+				{
+					Type:    opTransfer,
+					Account: addressToAccountIdentifier(testscommon.TestAddressAlice),
+					Amount:  extension.valueToNativeAmount("-1234"),
+				},
+				{
+					Type:    opTransfer,
+					Account: addressToAccountIdentifier(testscommon.TestAddressBob),
+					Amount:  extension.valueToNativeAmount("1234"),
+				},
+				{
+					Type:    opFee,
+					Account: addressToAccountIdentifier(testscommon.TestAddressCarol),
+					Amount:  extension.valueToNativeAmount("-50000000000000"),
+				},
+			},
+			Metadata: extractTransactionMetadata(tx),
+		}
+
+		rosettaTx, err := transformer.normalTxToRosetta(tx)
+		require.NoError(t, err)
+		require.Equal(t, expectedRosettaTx, rosettaTx)
+	})
+}
+
+func TestTransactionsTransformer_decideFeePayer(t *testing.T) {
+	networkProvider := testscommon.NewNetworkProviderMock()
+	transformer := newTransactionsTransformer(networkProvider)
+
+	t.Run("when fee payer is sender", func(t *testing.T) {
+		tx := &transaction.ApiTransactionResult{
+			Sender:   testscommon.TestAddressAlice,
+			Receiver: testscommon.TestAddressBob,
+		}
+
+		feePayer := transformer.decideFeePayer(tx)
+		require.Equal(t, testscommon.TestAddressAlice, feePayer)
+	})
+
+	t.Run("when fee payer is relayer", func(t *testing.T) {
+		tx := &transaction.ApiTransactionResult{
+			Sender:         testscommon.TestAddressAlice,
+			Receiver:       testscommon.TestAddressBob,
+			RelayerAddress: testscommon.TestAddressCarol,
+		}
+
+		feePayer := transformer.decideFeePayer(tx)
+		require.Equal(t, testscommon.TestAddressCarol, feePayer)
+	})
 }
 
 func TestTransactionsTransformer_ExtractInnerTxOperationsIfRelayedCompletelyIntrashardWithSignalError(t *testing.T) {
