@@ -213,9 +213,10 @@ func (transformer *transactionsTransformer) normalTxToRosetta(tx *transaction.Ap
 		})
 	}
 
+	feePayer := transformer.decideFeePayer(tx)
 	operations = append(operations, &types.Operation{
 		Type:    opFee,
-		Account: addressToAccountIdentifier(tx.Sender),
+		Account: addressToAccountIdentifier(feePayer),
 		Amount:  transformer.extension.valueToNativeAmount("-" + tx.InitiallyPaidFee),
 	})
 
@@ -231,6 +232,14 @@ func (transformer *transactionsTransformer) normalTxToRosetta(tx *transaction.Ap
 		Operations:            operations,
 		Metadata:              extractTransactionMetadata(tx),
 	}, nil
+}
+
+func (transformer *transactionsTransformer) decideFeePayer(tx *transaction.ApiTransactionResult) string {
+	if len(tx.RelayerAddress) > 0 {
+		return tx.RelayerAddress
+	}
+
+	return tx.Sender
 }
 
 // extractInnerTxOperationsIfBeforeSiriusRelayedCompletelyIntrashardWithSignalError recovers the inner transaction operations (native balance transfers)
