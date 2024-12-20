@@ -788,7 +788,7 @@ class Controller:
             sender=sender.address,
             bytecode=CONTRACT_PATH_DUMMY,
             gas_limit=5000000,
-            arguments=[0],
+            arguments=[BigUIntValue(0)],
             native_transfer_amount=amount
         )
 
@@ -802,7 +802,7 @@ class Controller:
             sender=sender.address,
             bytecode=CONTRACT_PATH_ADDER,
             gas_limit=5000000,
-            arguments=[1, 2, 3, 4, 5],
+            arguments=[BigUIntValue(1), BigUIntValue(2), BigUIntValue(3), BigUIntValue(4), BigUIntValue(5)],
             native_transfer_amount=amount
         )
 
@@ -817,7 +817,7 @@ class Controller:
             contract=contract,
             function="missingFunction",
             gas_limit=5000000,
-            arguments=[1, 2, 3, 4, 5],
+            arguments=[BigUIntValue(1), BigUIntValue(2), BigUIntValue(3), BigUIntValue(4), BigUIntValue(5)],
             native_transfer_amount=amount
         )
 
@@ -858,7 +858,7 @@ class Controller:
             contract=contract,
             function="ChangeOwnerAddress",
             gas_limit=6000000,
-            arguments=[new_owner.get_public_key()]
+            arguments=[AddressValue.new_from_address(new_owner)]
         )
 
         self.apply_nonce(transaction)
@@ -875,7 +875,7 @@ class Controller:
             contract=contract,
             function="add",
             gas_limit=5000000,
-            arguments=[1, 2, 3, 4, 5],
+            arguments=[BigUIntValue(1), BigUIntValue(2), BigUIntValue(3), BigUIntValue(4), BigUIntValue(5)],
             native_transfer_amount=amount
         )
 
