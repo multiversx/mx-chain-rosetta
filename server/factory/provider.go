@@ -73,7 +73,11 @@ func CreateNetworkProvider(args ArgsCreateNetworkProvider) (NetworkProvider, err
 		},
 	}
 
-	observersProvider, err := observer.NewSimpleNodesProvider(observers, notApplicableConfigurationFilePath)
+	observersProvider, err := observer.NewSimpleNodesProvider(
+		observers,
+		notApplicableConfigurationFilePath,
+		shardCoordinator.NumberOfShards(),
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -115,7 +119,7 @@ func CreateNetworkProvider(args ArgsCreateNetworkProvider) (NetworkProvider, err
 		return nil, err
 	}
 
-	blockProcessor, err := process.NewBlockProcessor(&components.DisabledExternalStorageConnector{}, baseProcessor)
+	blockProcessor, err := process.NewBlockProcessor(baseProcessor)
 	if err != nil {
 		return nil, err
 	}
