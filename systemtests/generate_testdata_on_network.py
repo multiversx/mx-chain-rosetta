@@ -6,19 +6,18 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from multiversx_sdk import (Address, AddressComputer, Mnemonic,
-                            ProxyNetworkProvider, QueryRunnerAdapter,
-                            RelayedTransactionsFactory,
-                            SmartContractQueriesController,
+                            ProxyNetworkProvider, RelayedTransactionsFactory,
+                            SmartContractController,
                             SmartContractTransactionsFactory, Token,
                             TokenManagementTransactionsFactory,
                             TokenManagementTransactionsOutcomeParser,
                             TokenTransfer, Transaction, TransactionAwaiter,
-                            TransactionComputer, TransactionsConverter,
+                            TransactionComputer, TransactionOnNetwork,
                             TransactionsFactoryConfig,
                             TransferTransactionsFactory, UserSecretKey,
                             UserSigner)
-from multiversx_sdk.abi import AddressValue, Serializer, StringValue, U32Value
-from multiversx_sdk.network_providers.transactions import TransactionOnNetwork
+from multiversx_sdk.abi import (AddressValue, BigUIntValue, Serializer,
+                                StringValue, U32Value)
 
 from systemtests.config import CONFIGURATIONS, Configuration
 
@@ -385,7 +384,6 @@ class Controller:
         self.accounts = accounts
         self.network_provider = ProxyNetworkProvider(configuration.proxy_url)
         self.transaction_computer = TransactionComputer()
-        self.transactions_converter = TransactionsConverter()
         self.transactions_factory_config = TransactionsFactoryConfig(chain_id=configuration.network_id)
         self.transactions_factory_config.issue_cost = configuration.custom_currency_issue_cost
         self.nonces_tracker = NoncesTracker(configuration.proxy_url)
@@ -394,13 +392,9 @@ class Controller:
         self.transfer_transactions_factory = TransferTransactionsFactory(self.transactions_factory_config)
         self.relayed_transactions_factory = RelayedTransactionsFactory(self.transactions_factory_config)
         self.contracts_transactions_factory = SmartContractTransactionsFactory(self.transactions_factory_config)
-        self.contracts_query_controller = SmartContractQueriesController(QueryRunnerAdapter(self.network_provider))
-        self.transaction_awaiter = TransactionAwaiter(self)
+        self.contracts_query_controller = SmartContractController(configuration.network_id, self.network_provider)
+        self.transaction_awaiter = TransactionAwaiter(self.network_provider)
         self.transactions_hashes_accumulator: list[str] = []
-
-    # Temporary workaround, until the SDK is updated to simplify transaction awaiting.
-    def get_transaction(self, tx_hash: str) -> TransactionOnNetwork:
-        return self.network_provider.get_transaction(tx_hash, with_process_status=True)
 
     def do_airdrops_for_native_currency(self):
         transactions: List[Transaction] = []
@@ -440,8 +434,7 @@ class Controller:
         self.send(transaction)
 
         [transaction_on_network] = self.await_completed([transaction])
-        transaction_outcome = self.transactions_converter.transaction_on_network_to_outcome(transaction_on_network)
-        [issue_fungible_outcome] = self.token_management_outcome_parser.parse_issue_fungible(transaction_outcome)
+        [issue_fungible_outcome] = self.token_management_outcome_parser.parse_issue_fungible(transaction_on_network)
         token_identifier = issue_fungible_outcome.token_identifier
 
         print(f"Token identifier: {token_identifier}")
@@ -479,21 +472,21 @@ class Controller:
             sender=self.accounts.get_user(shard=0, index=0).address,
             bytecode=CONTRACT_PATH_ADDER,
             gas_limit=5000000,
-            arguments=[0]
+            arguments=[BigUIntValue(0)]
         ))
 
         transactions_adder.append(self.contracts_transactions_factory.create_transaction_for_deploy(
             sender=self.accounts.get_user(shard=1, index=0).address,
             bytecode=CONTRACT_PATH_ADDER,
             gas_limit=5000000,
-            arguments=[0]
+            arguments=[BigUIntValue(0)]
         ))
 
         transactions_adder.append(self.contracts_transactions_factory.create_transaction_for_deploy(
             sender=self.accounts.get_user(shard=2, index=0).address,
             bytecode=CONTRACT_PATH_ADDER,
             gas_limit=5000000,
-            arguments=[0]
+            arguments=[BigUIntValue(0)]
         ))
 
         # Dummy
@@ -569,23 +562,19 @@ class Controller:
             self.sign(transaction)
 
         for transaction in transactions_adder:
-            sender = Address.from_bech32(transaction.sender)
-            contract_address = address_computer.compute_contract_address(sender, transaction.nonce)
+            contract_address = address_computer.compute_contract_address(transaction.sender, transaction.nonce)
             self.memento.add_contract("adder", contract_address.to_bech32())
 
         for transaction in transactions_dummy:
-            sender = Address.from_bech32(transaction.sender)
-            contract_address = address_computer.compute_contract_address(sender, transaction.nonce)
+            contract_address = address_computer.compute_contract_address(transaction.sender, transaction.nonce)
             self.memento.add_contract("dummy", contract_address.to_bech32())
 
         for transaction in transactions_forwarder:
-            sender = Address.from_bech32(transaction.sender)
-            contract_address = address_computer.compute_contract_address(sender, transaction.nonce)
+            contract_address = address_computer.compute_contract_address(transaction.sender, transaction.nonce)
             self.memento.add_contract("forwarder", contract_address.to_bech32())
 
         for transaction in transactions_developer_rewards:
-            sender = Address.from_bech32(transaction.sender)
-            contract_address = address_computer.compute_contract_address(sender, transaction.nonce)
+            contract_address = address_computer.compute_contract_address(transaction.sender, transaction.nonce)
             self.memento.add_contract("developerRewards", contract_address.to_bech32())
 
         self.send_multiple(transactions_all)
@@ -613,7 +602,7 @@ class Controller:
         # Save the addresses of the newly deployed children.
         for contract in self.memento.get_contracts("developerRewards"):
             [child_address_pubkey] = self.contracts_query_controller.query(
-                contract=contract.address,
+                contract=Address.new_from_bech32(contract.address),
                 function="getChildAddress",
                 arguments=[],
             )
@@ -623,8 +612,9 @@ class Controller:
 
     def do_change_contract_owner(self, contract: Address, new_owner: "Account"):
         contract_account = self.network_provider.get_account(contract)
-        current_owner_address = contract_account.owner_address.to_bech32()
-        current_owner = self.accounts.get_account_by_bech32(current_owner_address)
+        current_owner_address = contract_account.contract_owner_address
+        assert current_owner_address is not None
+        current_owner = self.accounts.get_account_by_bech32(current_owner_address.to_bech32())
         new_owner_address = new_owner.address
 
         if current_owner_address == new_owner_address.to_bech32():
@@ -684,8 +674,8 @@ class Controller:
         data = "MultiESDTNFTTransfer@" + serializer.serialize(data_args)
 
         transaction = Transaction(
-            sender=sender.address.to_bech32(),
-            receiver=sender.address.to_bech32(),
+            sender=sender.address,
+            receiver=sender.address,
             gas_limit=5000000,
             chain_id=self.configuration.network_id,
             value=native_amount_as_value,
@@ -903,7 +893,7 @@ class Controller:
         return transaction
 
     def apply_nonce(self, transaction: Transaction):
-        sender = self.accounts.get_account_by_bech32(transaction.sender)
+        sender = self.accounts.get_account_by_bech32(transaction.sender.to_bech32())
         transaction.nonce = self.nonces_tracker.get_then_increment_nonce(sender.address)
 
     def _reserve_nonce(self, account: "Account"):
@@ -911,7 +901,7 @@ class Controller:
         return self.nonces_tracker.get_then_increment_nonce(sender.address)
 
     def sign(self, transaction: Transaction):
-        sender = self.accounts.get_account_by_bech32(transaction.sender)
+        sender = self.accounts.get_account_by_bech32(transaction.sender.to_bech32())
         bytes_for_signing = self.transaction_computer.compute_bytes_for_signing(transaction)
         transaction.signature = sender.signer.sign(bytes_for_signing)
 
@@ -921,10 +911,10 @@ class Controller:
         chunks = list(split_to_chunks(transactions, chunk_size))
 
         for chunk in chunks:
-            num_sent, hashes_by_index = self.network_provider.send_transactions(chunk)
+            num_sent, hashes = self.network_provider.send_transactions(chunk)
             print(f"Sent {num_sent} transactions. Waiting {wait_between_chunks} seconds...")
 
-            self.transactions_hashes_accumulator.extend(hashes_by_index.values())
+            self.transactions_hashes_accumulator.extend([hash.hex() for hash in hashes if hash is not None])
             time.sleep(wait_between_chunks)
 
         if await_completion:
@@ -932,12 +922,12 @@ class Controller:
 
     def send(self, transaction: Transaction, await_completion: bool = False):
         transaction_hash = self.network_provider.send_transaction(transaction)
-        print(f"    🌍 {self.configuration.view_url.replace('{hash}', transaction_hash)}")
+        print(f"    🌍 {self.configuration.view_url.replace('{hash}', transaction_hash.hex())}")
 
         if await_completion:
             self.await_completed([transaction])
 
-        self.transactions_hashes_accumulator.append(transaction_hash)
+        self.transactions_hashes_accumulator.append(transaction_hash.hex())
 
     def await_completed(self, transactions: List[Transaction]) -> List[TransactionOnNetwork]:
         print(f"    ⏳ Awaiting completion of {len(transactions)} transactions...")
@@ -959,7 +949,7 @@ class Controller:
         print(f"⏳ Waiting until epoch {epoch}...")
 
         while True:
-            current_epoch = self.network_provider.get_network_status().epoch_number
+            current_epoch = self.network_provider.get_network_status().current_epoch
             if current_epoch >= epoch:
                 print(f"✓ Reached epoch {current_epoch} >= {epoch}")
                 break
