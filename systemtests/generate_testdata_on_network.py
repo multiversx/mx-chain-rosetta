@@ -715,27 +715,68 @@ class Controller:
         return transaction
 
     def create_relayed_with_move_balance(self, relayer: "Account", sender: "Account", receiver: Address, amount: int, relayed_version: int) -> Transaction:
-        # Relayer nonce is reserved before sender nonce, to ensure good ordering (if sender and relayer are the same account).
-        relayer_nonce = self._reserve_nonce(relayer)
+        if relayed_version == 1:
+            # Relayer nonce is reserved before sender nonce, to ensure good ordering (if sender and relayer are the same account).
+            relayer_nonce = self._reserve_nonce(relayer)
 
-        inner_transaction = self.transfer_transactions_factory.create_transaction_for_native_token_transfer(
-            sender=sender.address,
-            receiver=receiver,
-            native_amount=amount
-        )
+            inner_transaction = self.transfer_transactions_factory.create_transaction_for_native_token_transfer(
+                sender=sender.address,
+                receiver=receiver,
+                native_amount=amount
+            )
 
-        self.apply_nonce(inner_transaction)
-        self.sign(inner_transaction)
+            self.apply_nonce(inner_transaction)
+            self.sign(inner_transaction)
 
-        transaction = self.relayed_transactions_factory.create_relayed_v1_transaction(
-            inner_transaction=inner_transaction,
-            relayer_address=relayer.address,
-        )
+            transaction = self.relayed_transactions_factory.create_relayed_v1_transaction(
+                inner_transaction=inner_transaction,
+                relayer_address=relayer.address,
+            )
 
-        transaction.nonce = relayer_nonce
-        self.sign(transaction)
+            transaction.nonce = relayer_nonce
+            self.sign(transaction)
 
-        return transaction
+            return transaction
+
+        if relayed_version == 2:
+            # Relayer nonce is reserved before sender nonce, to ensure good ordering (if sender and relayer are the same account).
+            relayer_nonce = self._reserve_nonce(relayer)
+
+            inner_transaction = self.transfer_transactions_factory.create_transaction_for_native_token_transfer(
+                sender=sender.address,
+                receiver=receiver,
+                native_amount=amount
+            )
+
+            self.apply_nonce(inner_transaction)
+            self.sign(inner_transaction)
+
+            transaction = self.relayed_transactions_factory.create_relayed_v2_transaction(
+                inner_transaction=inner_transaction,
+                inner_transaction_gas_limit=100000,
+                relayer_address=relayer.address,
+            )
+
+            transaction.nonce = relayer_nonce
+            self.sign(transaction)
+
+            return transaction
+
+        if relayed_version == 3:
+            transaction = self.transfer_transactions_factory.create_transaction_for_native_token_transfer(
+                sender=sender.address,
+                receiver=receiver,
+                native_amount=amount
+            )
+
+            transaction.relayer = relayer.address
+            self.apply_nonce(transaction)
+            self.sign(transaction)
+            self.sign_as_relayer_v3(transaction)
+
+            return transaction
+
+        raise ValueError(f"Unsupported relayed version: {relayed_version}")
 
     def create_relayed_v1_with_esdt_transfer(self, relayer: "Account", sender: "Account", receiver: Address, amount: int) -> Transaction:
         custom_currency = self.memento.get_custom_currencies()[0]
@@ -909,6 +950,12 @@ class Controller:
         sender = self.accounts.get_account_by_bech32(transaction.sender.to_bech32())
         bytes_for_signing = self.transaction_computer.compute_bytes_for_signing(transaction)
         transaction.signature = sender.signer.sign(bytes_for_signing)
+
+    def sign_as_relayer_v3(self, transaction: Transaction):
+        assert transaction.relayer is not None
+        relayer = self.accounts.get_account_by_bech32(transaction.relayer.to_bech32())
+        bytes_for_signing = self.transaction_computer.compute_bytes_for_signing(transaction)
+        transaction.relayer_signature = relayer.signer.sign(bytes_for_signing)
 
     def send_multiple(self, transactions: List[Transaction], chunk_size: int = 1024, wait_between_chunks: float = 0, await_completion: bool = False):
         print(f"Sending {len(transactions)} transactions...")
