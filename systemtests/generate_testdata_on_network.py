@@ -20,6 +20,7 @@ from multiversx_sdk.abi import (AddressValue, BigUIntValue, Serializer,
                                 StringValue, U32Value)
 
 from systemtests.config import CONFIGURATIONS, Configuration
+from systemtests.constants import ADDITIONAL_GAS_LIMIT_FOR_RELAYED_V3
 
 CONTRACT_PATH_ADDER = Path(__file__).parent / "contracts" / "adder.wasm"
 CONTRACT_PATH_DUMMY = Path(__file__).parent / "contracts" / "dummy.wasm"
@@ -83,7 +84,7 @@ def do_run(args: Any):
     accounts = BunchOfAccounts(configuration, memento)
     controller = Controller(configuration, accounts, memento)
 
-    controller.wait_until_epoch(configuration.activation_epoch_spica)
+    controller.wait_until_epoch(configuration.activation_epoch_relayed_v3)
 
     print("## Intra-shard, simple MoveBalance with refund")
     controller.send(controller.create_simple_move_balance(
@@ -179,23 +180,24 @@ def do_run(args: Any):
         custom_amount=7,
     ), await_completion=True)
 
-    print("## Intra-shard, relayed transactions with MoveBalance")
-    controller.send(controller.create_relayed_with_move_balance(
-        relayer=accounts.get_user(shard=SOME_SHARD, index=0),
-        sender=accounts.get_user(shard=SOME_SHARD, index=1),
-        receiver=accounts.get_user(shard=SOME_SHARD, index=2).address,
-        amount=42,
-        relayed_version=1,
-    ), await_completion=True)
+    for relayed_version in [1, 3]:
+        print(f"## Intra-shard, relayed v{relayed_version} transaction with MoveBalance")
+        controller.send(controller.create_relayed_with_move_balance(
+            relayer=accounts.get_user(shard=SOME_SHARD, index=0),
+            sender=accounts.get_user(shard=SOME_SHARD, index=1),
+            receiver=accounts.get_user(shard=SOME_SHARD, index=2).address,
+            amount=42,
+            relayed_version=relayed_version,
+        ), await_completion=True)
 
-    print("## Intra-shard, relayed transactions with MoveBalance (with bad receiver, system smart contract)")
-    controller.send(controller.create_relayed_with_move_balance(
-        relayer=accounts.get_user(shard=SOME_SHARD, index=0),
-        sender=accounts.get_user(shard=SOME_SHARD, index=2),
-        receiver=Address.from_bech32("erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqzllls8a5w6u"),
-        amount=1000000000000000000,
-        relayed_version=1,
-    ), await_completion=True)
+        print(f"## Intra-shard, relayed v{relayed_version} transaction with MoveBalance (with bad receiver, system smart contract)")
+        controller.send(controller.create_relayed_with_move_balance(
+            relayer=accounts.get_user(shard=SOME_SHARD, index=0),
+            sender=accounts.get_user(shard=SOME_SHARD, index=2),
+            receiver=Address.from_bech32("erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqzllls8a5w6u"),
+            amount=1000000000000000000,
+            relayed_version=relayed_version,
+        ), await_completion=True)
 
     print("## Direct contract deployment with MoveBalance")
     controller.send(controller.create_contract_deployment_with_move_balance(
@@ -231,7 +233,7 @@ def do_run(args: Any):
         amount=1
     ), await_completion=True)
 
-    print("## Cross-shard, relayed v1 transaction with contract call with MoveBalance, with signal error (1)")
+    print("## Cross-shard, relayed v1 transaction with contract call with MoveBalance, with signal error")
     controller.send(controller.create_relayed_v1_with_contract_call_with_move_balance_with_signal_error(
         relayer=accounts.get_user(shard=SOME_SHARD, index=0),
         sender=accounts.get_user(shard=SOME_SHARD, index=1),
@@ -739,28 +741,7 @@ class Controller:
             return transaction
 
         if relayed_version == 2:
-            # Relayer nonce is reserved before sender nonce, to ensure good ordering (if sender and relayer are the same account).
-            relayer_nonce = self._reserve_nonce(relayer)
-
-            inner_transaction = self.transfer_transactions_factory.create_transaction_for_native_token_transfer(
-                sender=sender.address,
-                receiver=receiver,
-                native_amount=amount
-            )
-
-            self.apply_nonce(inner_transaction)
-            self.sign(inner_transaction)
-
-            transaction = self.relayed_transactions_factory.create_relayed_v2_transaction(
-                inner_transaction=inner_transaction,
-                inner_transaction_gas_limit=100000,
-                relayer_address=relayer.address,
-            )
-
-            transaction.nonce = relayer_nonce
-            self.sign(transaction)
-
-            return transaction
+            raise ValueError("Relayed v2 does not support move balance operations.")
 
         if relayed_version == 3:
             transaction = self.transfer_transactions_factory.create_transaction_for_native_token_transfer(
@@ -770,6 +751,7 @@ class Controller:
             )
 
             transaction.relayer = relayer.address
+            transaction.gas_limit += ADDITIONAL_GAS_LIMIT_FOR_RELAYED_V3
             self.apply_nonce(transaction)
             self.sign(transaction)
             self.sign_as_relayer_v3(transaction)

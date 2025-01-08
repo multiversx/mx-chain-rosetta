@@ -14,6 +14,7 @@ class Configuration:
     proxy_url: str
     activation_epoch_sirius: int
     activation_epoch_spica: int
+    activation_epoch_relayed_v3: int
     check_construction_native_configuration_file: str
     check_construction_custom_configuration_file: str
     check_data_configuration_file: str
@@ -39,6 +40,7 @@ CONFIGURATIONS = {
         proxy_url=os.environ.get("MAINNET_PROXY_URL", "https://gateway.multiversx.com"),
         activation_epoch_sirius=1265,
         activation_epoch_spica=1538,
+        activation_epoch_relayed_v3=4294967295,
         check_construction_native_configuration_file="",
         check_construction_custom_configuration_file="",
         check_data_configuration_file="systemtests/mesh_cli_config/check-data.json",
@@ -58,6 +60,7 @@ CONFIGURATIONS = {
         proxy_url="https://devnet-gateway.multiversx.com",
         activation_epoch_sirius=629,
         activation_epoch_spica=2327,
+        activation_epoch_relayed_v3=4294967295,
         check_construction_native_configuration_file="systemtests/mesh_cli_config/devnet-construction-native.json",
         check_construction_custom_configuration_file="systemtests/mesh_cli_config/devnet-construction-custom.json",
         check_data_configuration_file="systemtests/mesh_cli_config/check-data.json",
@@ -77,6 +80,7 @@ CONFIGURATIONS = {
         proxy_url="https://testnet-gateway.multiversx.com",
         activation_epoch_sirius=1,
         activation_epoch_spica=33,
+        activation_epoch_relayed_v3=4294967295,
         check_construction_native_configuration_file="systemtests/mesh_cli_config/testnet-construction-native.json",
         check_construction_custom_configuration_file="systemtests/mesh_cli_config/testnet-construction-custom.json",
         check_data_configuration_file="systemtests/mesh_cli_config/check-data.json",
@@ -95,7 +99,8 @@ CONFIGURATIONS = {
         observer_url="",
         proxy_url="http://localhost:7950",
         activation_epoch_sirius=1,
-        activation_epoch_spica=4,
+        activation_epoch_spica=1,
+        activation_epoch_relayed_v3=2,
         check_construction_native_configuration_file="systemtests/mesh_cli_config/localnet-construction-native.json",
         check_construction_custom_configuration_file="systemtests/mesh_cli_config/localnet-construction-custom.json",
         check_data_configuration_file="systemtests/mesh_cli_config/check-data.json",
@@ -115,7 +120,8 @@ CONFIGURATIONS = {
         observer_url="",
         proxy_url=os.environ.get("INTERNAL_TESTNET_PROXY_URL", ""),
         activation_epoch_sirius=1,
-        activation_epoch_spica=4,
+        activation_epoch_spica=1,
+        activation_epoch_relayed_v3=2,
         check_construction_native_configuration_file="systemtests/mesh_cli_config/internal-construction-native.json",
         check_construction_custom_configuration_file="systemtests/mesh_cli_config/internal-construction-custom.json",
         check_data_configuration_file="systemtests/mesh_cli_config/check-data.json",
