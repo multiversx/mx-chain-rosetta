@@ -225,21 +225,24 @@ def do_run(args: Any):
         amount=77
     ), await_completion=True)
 
-    print("## Intra-shard, relayed v1 transaction with contract call with MoveBalance, with signal error")
-    controller.send(controller.create_relayed_v1_with_contract_call_with_move_balance_with_signal_error(
-        relayer=accounts.get_user(shard=SOME_SHARD, index=0),
-        sender=accounts.get_user(shard=SOME_SHARD, index=1),
-        contract=accounts.get_contract_address("adder", shard=SOME_SHARD, index=0),
-        amount=1
-    ), await_completion=True)
+    for relayed_version in [1, 3]:
+        print(f"## Intra-shard, relayed v{relayed_version} transaction with contract call with MoveBalance, with signal error")
+        controller.send(controller.create_relayed_with_contract_call_with_move_balance_with_signal_error(
+            relayer=accounts.get_user(shard=SOME_SHARD, index=0),
+            sender=accounts.get_user(shard=SOME_SHARD, index=1),
+            contract=accounts.get_contract_address("adder", shard=SOME_SHARD, index=0),
+            amount=1,
+            relayed_version=relayed_version,
+        ), await_completion=True)
 
-    print("## Cross-shard, relayed v1 transaction with contract call with MoveBalance, with signal error")
-    controller.send(controller.create_relayed_v1_with_contract_call_with_move_balance_with_signal_error(
-        relayer=accounts.get_user(shard=SOME_SHARD, index=0),
-        sender=accounts.get_user(shard=SOME_SHARD, index=1),
-        contract=accounts.get_contract_address("adder", shard=OTHER_SHARD, index=0),
-        amount=1
-    ), await_completion=True)
+        print(f"## Cross-shard, relayed v{relayed_version} transaction with contract call with MoveBalance, with signal error")
+        controller.send(controller.create_relayed_with_contract_call_with_move_balance_with_signal_error(
+            relayer=accounts.get_user(shard=SOME_SHARD, index=0),
+            sender=accounts.get_user(shard=SOME_SHARD, index=1),
+            contract=accounts.get_contract_address("adder", shard=OTHER_SHARD, index=0),
+            amount=1,
+            relayed_version=relayed_version,
+        ), await_completion=True)
 
     print("## Intra-shard ClaimDeveloperRewards on directly owned contract")
     controller.send(controller.create_claim_developer_rewards_on_directly_owned_contract(
@@ -741,7 +744,7 @@ class Controller:
             return transaction
 
         if relayed_version == 2:
-            raise ValueError("Relayed v2 does not support move balance operations.")
+            raise ValueError("not implemented")
 
         if relayed_version == 3:
             transaction = self.transfer_transactions_factory.create_transaction_for_native_token_transfer(
@@ -759,57 +762,6 @@ class Controller:
             return transaction
 
         raise ValueError(f"Unsupported relayed version: {relayed_version}")
-
-    def create_relayed_v1_with_esdt_transfer(self, relayer: "Account", sender: "Account", receiver: Address, amount: int) -> Transaction:
-        custom_currency = self.memento.get_custom_currencies()[0]
-
-        # Relayer nonce is reserved before sender nonce, to ensure good ordering (if sender and relayer are the same account).
-        relayer_nonce = self._reserve_nonce(relayer)
-
-        inner_transaction = self.transfer_transactions_factory.create_transaction_for_esdt_token_transfer(
-            sender=sender.address,
-            receiver=receiver,
-            token_transfers=[TokenTransfer(Token(custom_currency), amount)]
-        )
-
-        self.apply_nonce(inner_transaction)
-        self.sign(inner_transaction)
-
-        transaction = self.relayed_transactions_factory.create_relayed_v1_transaction(
-            inner_transaction=inner_transaction,
-            relayer_address=relayer.address,
-        )
-
-        transaction.nonce = relayer_nonce
-        self.sign(transaction)
-
-        return transaction
-
-    def create_relayed_v2_with_move_balance(self, relayer: "Account", sender: "Account", receiver: Address, amount: int) -> Transaction:
-        # Relayer nonce is reserved before sender nonce, to ensure good ordering (if sender and relayer are the same account).
-        relayer_nonce = self._reserve_nonce(relayer)
-
-        inner_transaction = self.transfer_transactions_factory.create_transaction_for_native_token_transfer(
-            sender=sender.address,
-            receiver=receiver,
-            native_amount=amount
-        )
-
-        inner_transaction.gas_limit = 0
-
-        self.apply_nonce(inner_transaction)
-        self.sign(inner_transaction)
-
-        transaction = self.relayed_transactions_factory.create_relayed_v2_transaction(
-            inner_transaction=inner_transaction,
-            inner_transaction_gas_limit=100000,
-            relayer_address=relayer.address,
-        )
-
-        transaction.nonce = relayer_nonce
-        self.sign(transaction)
-
-        return transaction
 
     def create_contract_deployment_with_move_balance(self, sender: "Account", amount: int) -> Transaction:
         transaction = self.contracts_transactions_factory.create_transaction_for_deploy(
@@ -894,31 +846,55 @@ class Controller:
 
         return transaction
 
-    def create_relayed_v1_with_contract_call_with_move_balance_with_signal_error(self, relayer: "Account", sender: "Account", contract: Address, amount: int) -> Transaction:
-        # Relayer nonce is reserved before sender nonce, to ensure good ordering (if sender and relayer are the same account).
-        relayer_nonce = self._reserve_nonce(relayer)
+    def create_relayed_with_contract_call_with_move_balance_with_signal_error(self, relayer: "Account", sender: "Account", contract: Address, amount: int, relayed_version: int) -> Transaction:
+        if relayed_version == 1:
+            # Relayer nonce is reserved before sender nonce, to ensure good ordering (if sender and relayer are the same account).
+            relayer_nonce = self._reserve_nonce(relayer)
 
-        inner_transaction = self.contracts_transactions_factory.create_transaction_for_execute(
-            sender=sender.address,
-            contract=contract,
-            function="add",
-            gas_limit=5000000,
-            arguments=[BigUIntValue(1), BigUIntValue(2), BigUIntValue(3), BigUIntValue(4), BigUIntValue(5)],
-            native_transfer_amount=amount
-        )
+            inner_transaction = self.contracts_transactions_factory.create_transaction_for_execute(
+                sender=sender.address,
+                contract=contract,
+                function="add",
+                gas_limit=5000000,
+                arguments=[BigUIntValue(1), BigUIntValue(2), BigUIntValue(3), BigUIntValue(4), BigUIntValue(5)],
+                native_transfer_amount=amount
+            )
 
-        self.apply_nonce(inner_transaction)
-        self.sign(inner_transaction)
+            self.apply_nonce(inner_transaction)
+            self.sign(inner_transaction)
 
-        transaction = self.relayed_transactions_factory.create_relayed_v1_transaction(
-            inner_transaction=inner_transaction,
-            relayer_address=relayer.address,
-        )
+            transaction = self.relayed_transactions_factory.create_relayed_v1_transaction(
+                inner_transaction=inner_transaction,
+                relayer_address=relayer.address,
+            )
 
-        transaction.nonce = relayer_nonce
-        self.sign(transaction)
+            transaction.nonce = relayer_nonce
+            self.sign(transaction)
 
-        return transaction
+            return transaction
+
+        if relayed_version == 2:
+            raise ValueError("not implemented")
+
+        if relayed_version == 3:
+            transaction = self.contracts_transactions_factory.create_transaction_for_execute(
+                sender=sender.address,
+                contract=contract,
+                function="add",
+                gas_limit=5000000,
+                arguments=[BigUIntValue(1), BigUIntValue(2), BigUIntValue(3), BigUIntValue(4), BigUIntValue(5)],
+                native_transfer_amount=amount
+            )
+
+            transaction.relayer = relayer.address
+            transaction.gas_limit += ADDITIONAL_GAS_LIMIT_FOR_RELAYED_V3
+            self.apply_nonce(transaction)
+            self.sign(transaction)
+            self.sign_as_relayer_v3(transaction)
+
+            return transaction
+
+        raise ValueError(f"Unsupported relayed version: {relayed_version}")
 
     def apply_nonce(self, transaction: Transaction):
         sender = self.accounts.get_account_by_bech32(transaction.sender.to_bech32())
