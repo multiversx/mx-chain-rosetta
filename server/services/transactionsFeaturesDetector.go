@@ -60,6 +60,7 @@ func (detector *transactionsFeaturesDetector) doesContractResultHoldRewardsOfCla
 // that only consume the "data movement" component of the gas:
 // - "sending value to non-payable contract"
 // - "meta transaction is invalid"
+// See: MX-16423. Analyze whether we can simplify the conditions below, or possibly discard them completely / replace them with simpler ones.
 func (detector *transactionsFeaturesDetector) isInvalidTransactionOfTypeMoveBalanceThatOnlyConsumesDataMovementGas(tx *transaction.ApiTransactionResult) bool {
 	isInvalid := tx.Type == string(transaction.TxTypeInvalid)
 	isMoveBalance := tx.ProcessingTypeOnSource == transactionProcessingTypeMoveBalance && tx.ProcessingTypeOnDestination == transactionProcessingTypeMoveBalance
@@ -68,7 +69,6 @@ func (detector *transactionsFeaturesDetector) isInvalidTransactionOfTypeMoveBala
 		return false
 	}
 
-	// TODO: Analyze whether we can simplify the conditions below, or possibly discard them completely / replace them with simpler ones.
 	withSendingValueToNonPayableContract := detector.eventsController.hasSignalErrorOfSendingValueToNonPayableContract(tx)
 	withMetaTransactionIsInvalid := detector.eventsController.hasSignalErrorOfMetaTransactionIsInvalid(tx)
 	return withSendingValueToNonPayableContract || withMetaTransactionIsInvalid

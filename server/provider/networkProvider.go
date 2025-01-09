@@ -35,6 +35,7 @@ type ArgsNewNetworkProvider struct {
 	MinGasPrice                 uint64
 	MinGasLimit                 uint64
 	ExtraGasLimitGuardedTx      uint64
+	ExtraGasLimitRelayedTxV3    uint64
 	NativeCurrencySymbol        string
 	CustomCurrencies            []resources.Currency
 	GenesisBlockHash            string
@@ -118,15 +119,16 @@ func NewNetworkProvider(args ArgsNewNetworkProvider) (*networkProvider, error) {
 		pubKeyConverter:       args.PubKeyConverter,
 
 		networkConfig: &resources.NetworkConfig{
-			BlockchainName:         args.BlockchainName,
-			NetworkID:              args.NetworkID,
-			NetworkName:            args.NetworkName,
-			GasPerDataByte:         args.GasPerDataByte,
-			GasPriceModifier:       args.GasPriceModifier,
-			GasLimitCustomTransfer: args.GasLimitCustomTransfer,
-			MinGasPrice:            args.MinGasPrice,
-			MinGasLimit:            args.MinGasLimit,
-			ExtraGasLimitGuardedTx: args.ExtraGasLimitGuardedTx,
+			BlockchainName:           args.BlockchainName,
+			NetworkID:                args.NetworkID,
+			NetworkName:              args.NetworkName,
+			GasPerDataByte:           args.GasPerDataByte,
+			GasPriceModifier:         args.GasPriceModifier,
+			GasLimitCustomTransfer:   args.GasLimitCustomTransfer,
+			MinGasPrice:              args.MinGasPrice,
+			MinGasLimit:              args.MinGasLimit,
+			ExtraGasLimitGuardedTx:   args.ExtraGasLimitGuardedTx,
+			ExtraGasLimitRelayedTxV3: args.ExtraGasLimitRelayedTxV3,
 		},
 
 		blocksCache: blocksCache,
@@ -456,12 +458,18 @@ func (provider *networkProvider) GetMempoolTransactionByHash(hash string) (*tran
 func (provider *networkProvider) ComputeTransactionFeeForMoveBalance(tx *transaction.ApiTransactionResult) *big.Int {
 	minGasLimit := provider.networkConfig.MinGasLimit
 	extraGasLimitGuardedTx := provider.networkConfig.ExtraGasLimitGuardedTx
+	extraGasLimitRelayedTxV3 := provider.networkConfig.ExtraGasLimitRelayedTxV3
 	gasPerDataByte := provider.networkConfig.GasPerDataByte
 	gasLimit := minGasLimit + gasPerDataByte*uint64(len(tx.Data))
 
 	isGuarded := len(tx.GuardianAddr) > 0
 	if isGuarded {
 		gasLimit += extraGasLimitGuardedTx
+	}
+
+	isRelayedV3 := len(tx.RelayerAddress) > 0
+	if isRelayedV3 {
+		gasLimit += extraGasLimitRelayedTxV3
 	}
 
 	fee := core.SafeMul(gasLimit, tx.GasPrice)
