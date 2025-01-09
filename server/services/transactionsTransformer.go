@@ -130,6 +130,7 @@ func (transformer *transactionsTransformer) unsignedTxToRosettaTx(
 			TransactionIdentifier: hashToTransactionIdentifier(scr.Hash),
 			Operations: []*types.Operation{
 				{
+					// Refund is properly given to the fee payer (sender or relayer).
 					Type:    opFeeRefundAsScResult,
 					Account: addressToAccountIdentifier(scr.Receiver),
 					Amount:  transformer.extension.valueToNativeAmount(scr.Value),
@@ -303,7 +304,8 @@ func (transformer *transactionsTransformer) refundReceiptToRosettaTx(receipt *tr
 		TransactionIdentifier: hashToTransactionIdentifier(receiptHash),
 		Operations: []*types.Operation{
 			{
-				Type:    opFeeRefund,
+				Type: opFeeRefund,
+				// Refund is properly given to the fee payer (sender or relayer).
 				Account: addressToAccountIdentifier(receipt.SndAddr),
 				Amount:  transformer.extension.valueToNativeAmount(receipt.Value.String()),
 			},
@@ -322,6 +324,8 @@ func (transformer *transactionsTransformer) invalidTxToRosettaTx(tx *transaction
 		fee = transformer.provider.ComputeTransactionFeeForMoveBalance(tx).String()
 	}
 
+	feePayer := transformer.decideFeePayer(tx)
+
 	return &types.Transaction{
 		TransactionIdentifier: hashToTransactionIdentifier(tx.Hash),
 		Operations: []*types.Operation{
@@ -339,7 +343,7 @@ func (transformer *transactionsTransformer) invalidTxToRosettaTx(tx *transaction
 			},
 			{
 				Type:    opFeeOfInvalidTx,
-				Account: addressToAccountIdentifier(tx.Sender),
+				Account: addressToAccountIdentifier(feePayer),
 				Amount:  transformer.extension.valueToNativeAmount("-" + fee),
 			},
 		},
