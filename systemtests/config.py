@@ -1,6 +1,12 @@
 import os
 from dataclasses import dataclass
 
+# These work fine for localnet:
+# https://github.com/multiversx/mx-sdk-testwallets/blob/main/users/alice.pem.
+DEFAULT_SPONSOR_SECRET_KEY = "413f42575f7f26fad3317a778771212fdb80245850981e48b58a4f25e344e8f9"
+# https://github.com/multiversx/mx-sdk-testwallets/blob/main/users/mnemonic.txt.
+DEFAULT_USERS_MNEMONIC = "moral volcano peasant pass circle pen over picture flat shop clap goat never lyrics gather prepare woman film husband gravity behind test tiger improve"
+
 
 @dataclass
 class Configuration:
@@ -23,8 +29,8 @@ class Configuration:
     view_url: str
     custom_currency_issue_cost: int = 50000000000000000
     memento_file: str = ""
-    sponsor_secret_key: bytes = bytes.fromhex(os.environ.get("SPONSOR_SECRET_KEY", ""))
-    users_mnemonic: str = os.environ.get("USERS_MNEMONIC", "")
+    sponsor_secret_key: bytes = bytes.fromhex(os.environ.get("SPONSOR_SECRET_KEY", DEFAULT_SPONSOR_SECRET_KEY))
+    users_mnemonic: str = os.environ.get("USERS_MNEMONIC", DEFAULT_USERS_MNEMONIC)
     num_users: int = 128
 
 

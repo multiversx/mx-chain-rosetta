@@ -54,6 +54,8 @@ def main():
 
 
 def do_setup(args: Any):
+    print("Phase [setup] started...")
+
     network = args.network
     configuration = CONFIGURATIONS[network]
     memento = Memento(Path(configuration.memento_file))
@@ -80,6 +82,8 @@ def do_setup(args: Any):
 
 
 def do_run(args: Any):
+    print("Phase [run] started...")
+
     network = args.network
     configuration = CONFIGURATIONS[network]
     memento = Memento(Path(configuration.memento_file))

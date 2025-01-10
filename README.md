@@ -245,8 +245,6 @@ pip install -r ./requirements-dev.txt --upgrade
 Optional: generate sample data (transactions):
 
 ```
-source .env
-
 PYTHONPATH=. python3 ./systemtests/generate_testdata_on_network.py setup --network testnet
 PYTHONPATH=. python3 ./systemtests/generate_testdata_on_network.py run --network testnet
 ```

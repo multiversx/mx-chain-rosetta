@@ -30,11 +30,15 @@ jobs:
         run: |
           python3 ./systemtests/check_with_mesh_cli.py --mode=construction-native --network=testnet
           sleep 30
+        env:
+          PYTHONPATH: .
 
       - name: check:construction (custom)
         run: |
           python3 ./systemtests/check_with_mesh_cli.py --mode=construction-custom --network=testnet
           sleep 30
+        env:
+          PYTHONPATH: .
 
       - name: Generate testdata (setup)
         run: |
@@ -42,6 +46,7 @@ jobs:
         env:
           USERS_MNEMONIC: ${{ secrets.USERS_MNEMONIC }}
           SPONSOR_SECRET_KEY: ${{ secrets.SPONSOR_SECRET_KEY }}
+          PYTHONPATH: .
 
       - name: Generate testdata (run)
         run: |
@@ -49,9 +54,12 @@ jobs:
         env:
           USERS_MNEMONIC: ${{ secrets.USERS_MNEMONIC }}
           SPONSOR_SECRET_KEY: ${{ secrets.SPONSOR_SECRET_KEY }}
+          PYTHONPATH: .
 
       - name: check:data
         run: |
           python3 ./systemtests/check_with_mesh_cli.py --mode=data --network=testnet
+        env:
+          PYTHONPATH: .
 
 
