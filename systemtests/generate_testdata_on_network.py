@@ -340,7 +340,7 @@ def do_run(args: Any):
             relayed_version=relayed_version,
         ), await_completion=True)
 
-    for relayed_version in [1, 3]:
+    for relayed_version in [1, 2, 3]:
         print(f"## Relayed v{relayed_version}, intra-shard, with contract call")
         controller.send(controller.create_relayed_with_contract_call(
             relayer=accounts.get_user(shard=SOME_SHARD, index=0),
@@ -353,7 +353,7 @@ def do_run(args: Any):
             relayed_version=relayed_version,
         ), await_completion=True)
 
-    for relayed_version in [1, 3]:
+    for relayed_version in [1, 2, 3]:
         print(f"## Relayed v{relayed_version}, cross-shard, with contract call")
         controller.send(controller.create_relayed_with_contract_call(
             relayer=accounts.get_user(shard=SOME_SHARD, index=0),
@@ -366,7 +366,7 @@ def do_run(args: Any):
             relayed_version=relayed_version,
         ), await_completion=True)
 
-    for relayed_version in [1, 3]:
+    for relayed_version in [1, 2, 3]:
         print(f"## Relayed v{relayed_version}, intra-shard, with contract call, with signal error")
         controller.send(controller.create_relayed_with_contract_call(
             relayer=accounts.get_user(shard=SOME_SHARD, index=0),
@@ -379,7 +379,7 @@ def do_run(args: Any):
             relayed_version=relayed_version,
         ), await_completion=True)
 
-    for relayed_version in [1, 3]:
+    for relayed_version in [1, 2, 3]:
         print(f"## Relayed v{relayed_version}, cross-shard, with contract call, with signal error")
         controller.send(controller.create_relayed_with_contract_call(
             relayer=accounts.get_user(shard=SOME_SHARD, index=0),
@@ -999,7 +999,31 @@ class Controller:
             return transaction
 
         if relayed_version == 2:
-            raise ValueError("not implemented")
+            # Relayer nonce is reserved before sender nonce, to ensure good ordering (if sender and relayer are the same account).
+            relayer_nonce = self._reserve_nonce(relayer)
+
+            inner_transaction = self.contracts_transactions_factory.create_transaction_for_execute(
+                sender=sender.address,
+                contract=contract,
+                function=function,
+                gas_limit=0,
+                arguments=arguments,
+                native_transfer_amount=amount
+            )
+
+            self.apply_nonce(inner_transaction)
+            self.sign(inner_transaction)
+
+            transaction = self.relayed_transactions_factory.create_relayed_v2_transaction(
+                inner_transaction=inner_transaction,
+                inner_transaction_gas_limit=gas_limit,
+                relayer_address=relayer.address,
+            )
+
+            transaction.nonce = relayer_nonce
+            self.sign(transaction)
+
+            return transaction
 
         if relayed_version == 3:
             transaction = self.contracts_transactions_factory.create_transaction_for_execute(
