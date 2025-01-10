@@ -126,13 +126,14 @@ func (transformer *transactionsTransformer) unsignedTxToRosettaTx(
 	}
 
 	if scr.IsRefund {
+		refundReceiver := transformer.decideRefundReceiverGivenSCR(scr)
+
 		return &types.Transaction{
 			TransactionIdentifier: hashToTransactionIdentifier(scr.Hash),
 			Operations: []*types.Operation{
 				{
-					// Refund is properly given to the fee payer (sender or relayer).
 					Type:    opFeeRefundAsScResult,
-					Account: addressToAccountIdentifier(scr.Receiver),
+					Account: addressToAccountIdentifier(refundReceiver),
 					Amount:  transformer.extension.valueToNativeAmount(scr.Value),
 				},
 			},
@@ -241,6 +242,14 @@ func (transformer *transactionsTransformer) decideFeePayer(tx *transaction.ApiTr
 	}
 
 	return tx.Sender
+}
+
+func (transformer *transactionsTransformer) decideRefundReceiverGivenSCR(scr *transaction.ApiTransactionResult) string {
+	if len(scr.RelayerAddress) > 0 {
+		return scr.RelayerAddress
+	}
+
+	return scr.Receiver
 }
 
 // extractInnerTxOperationsIfBeforeSiriusRelayedCompletelyIntrashardWithSignalError recovers the inner transaction operations (native balance transfers)

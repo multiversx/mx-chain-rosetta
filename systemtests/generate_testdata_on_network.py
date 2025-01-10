@@ -274,6 +274,62 @@ def do_run(args: Any):
             relayed_version=relayed_version,
         ), await_completion=True)
 
+    for relayed_version in [1, 3]:
+        print(f"## Relayed v{relayed_version}, cross-shard MoveBalance")
+        controller.send(controller.create_relayed_with_move_balance(
+            relayer=accounts.get_user(shard=SOME_SHARD, index=0),
+            sender=accounts.get_user(shard=SOME_SHARD, index=1),
+            receiver=accounts.get_user(shard=OTHER_SHARD, index=0).address,
+            amount=42,
+            additional_gas_limit=0,
+            relayed_version=relayed_version,
+        ), await_completion=True)
+
+    for relayed_version in [3]:
+        print(f"## Relayed v{relayed_version}, intra-shard MoveBalance, with refund")
+        controller.send(controller.create_relayed_with_move_balance(
+            relayer=accounts.get_user(shard=SOME_SHARD, index=0),
+            sender=accounts.get_user(shard=SOME_SHARD, index=1),
+            receiver=accounts.get_user(shard=SOME_SHARD, index=2).address,
+            amount=42,
+            additional_gas_limit=42000,
+            relayed_version=relayed_version,
+        ), await_completion=True)
+
+    for relayed_version in [3]:
+        print(f"## Relayed v{relayed_version}, cross-shard MoveBalance, with refund")
+        controller.send(controller.create_relayed_with_move_balance(
+            relayer=accounts.get_user(shard=SOME_SHARD, index=0),
+            sender=accounts.get_user(shard=SOME_SHARD, index=1),
+            receiver=accounts.get_user(shard=OTHER_SHARD, index=0).address,
+            amount=42,
+            additional_gas_limit=42000,
+            relayed_version=relayed_version,
+        ), await_completion=True)
+
+    for relayed_version in [3]:
+        print(f"## Relayed v{relayed_version}, invalid, intra-shard MoveBalance, with refund")
+        controller.send(controller.create_relayed_with_move_balance(
+            relayer=accounts.get_user(shard=SOME_SHARD, index=0),
+            sender=accounts.get_user(shard=SOME_SHARD, index=1),
+            receiver=accounts.get_user(shard=SOME_SHARD, index=2).address,
+            amount=1000000000000000000000000,
+            additional_gas_limit=42000,
+            relayed_version=relayed_version,
+        ), await_completion=True)
+
+    for relayed_version in [3]:
+        print(f"## Relayed v{relayed_version}, invalid, cross-shard MoveBalance, with refund")
+        controller.send(controller.create_relayed_with_move_balance(
+            relayer=accounts.get_user(shard=SOME_SHARD, index=0),
+            sender=accounts.get_user(shard=SOME_SHARD, index=1),
+            receiver=accounts.get_user(shard=OTHER_SHARD, index=0).address,
+            amount=1000000000000000000000000,
+            additional_gas_limit=42000,
+            relayed_version=relayed_version,
+        ), await_completion=True)
+
+    for relayed_version in [1, 3]:
         print(f"## Relayed v{relayed_version}, intra-shard MoveBalance (with bad receiver, system smart contract)")
         controller.send(controller.create_relayed_with_move_balance(
             relayer=accounts.get_user(shard=SOME_SHARD, index=0),
@@ -284,6 +340,7 @@ def do_run(args: Any):
             relayed_version=relayed_version,
         ), await_completion=True)
 
+    for relayed_version in [1, 3]:
         print(f"## Relayed v{relayed_version}, intra-shard, with contract call with MoveBalance, with signal error")
         controller.send(controller.create_relayed_with_contract_call_with_move_balance_with_signal_error(
             relayer=accounts.get_user(shard=SOME_SHARD, index=0),
@@ -293,6 +350,7 @@ def do_run(args: Any):
             relayed_version=relayed_version,
         ), await_completion=True)
 
+    for relayed_version in [1, 3]:
         print(f"## Relayed v{relayed_version}, cross-shard, with contract call with MoveBalance, with signal error")
         controller.send(controller.create_relayed_with_contract_call_with_move_balance_with_signal_error(
             relayer=accounts.get_user(shard=SOME_SHARD, index=0),
