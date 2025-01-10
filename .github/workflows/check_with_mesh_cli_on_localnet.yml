@@ -36,10 +36,14 @@ jobs:
           nohup mxpy localnet start --configfile=${GITHUB_WORKSPACE}/systemtests/localnet.toml > localnet.log 2>&1 & echo $! > localnet.pid
           sleep 60 # Allow time for the localnet to start
 
-      - name: Generate testdata
+      - name: Generate testdata (setup)
         run: |
           source .env
           PYTHONPATH=. python3 ./systemtests/generate_testdata_on_network.py setup --network localnet
+
+      - name: Generate testdata (run)
+        run: |
+          source .env
           PYTHONPATH=. python3 ./systemtests/generate_testdata_on_network.py run --network localnet
 
       - name: check:data

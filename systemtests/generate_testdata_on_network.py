@@ -20,7 +20,9 @@ from multiversx_sdk.abi import (AddressValue, BigUIntValue, Serializer,
                                 StringValue, U32Value)
 
 from systemtests.config import CONFIGURATIONS, Configuration
-from systemtests.constants import ADDITIONAL_GAS_LIMIT_FOR_RELAYED_V3
+from systemtests.constants import (
+    ADDITIONAL_GAS_LIMIT_FOR_RELAYED_V3,
+    TRANSACTION_AWAITING_POLLING_TIMEOUT_IN_MILLISECONDS)
 
 CONTRACT_PATH_ADDER = Path(__file__).parent / "contracts" / "adder.wasm"
 CONTRACT_PATH_DUMMY = Path(__file__).parent / "contracts" / "dummy.wasm"
@@ -524,7 +526,7 @@ class Controller:
         self.relayed_transactions_factory = RelayedTransactionsFactory(self.transactions_factory_config)
         self.contracts_transactions_factory = SmartContractTransactionsFactory(self.transactions_factory_config)
         self.contracts_query_controller = SmartContractController(configuration.network_id, self.network_provider)
-        self.transaction_awaiter = TransactionAwaiter(self.network_provider)
+        self.transaction_awaiter = TransactionAwaiter(self.network_provider, polling_interval_in_milliseconds=TRANSACTION_AWAITING_POLLING_TIMEOUT_IN_MILLISECONDS)
         self.transactions_hashes_accumulator: list[str] = []
 
     def do_airdrops_for_native_currency(self):
@@ -543,7 +545,9 @@ class Controller:
             transactions.append(transaction)
 
         self.send_multiple(transactions, chunk_size=99, wait_between_chunks=7)
-        self.await_completed(transactions)
+
+        print("Wait for the last transaction to be completed (optimization)...")
+        self.await_completed(transactions[-1:])
 
     def issue_custom_currency(self, name: str):
         transaction = self.token_management_transactions_factory.create_transaction_for_issuing_fungible(
@@ -589,7 +593,9 @@ class Controller:
                 transactions.append(transaction)
 
         self.send_multiple(transactions, chunk_size=99, wait_between_chunks=7)
-        self.await_completed(transactions)
+
+        print("Wait for the last transaction to be completed (optimization)...")
+        self.await_completed(transactions[-1:])
 
     def do_create_contract_deployments(self):
         transactions_adder: List[Transaction] = []
