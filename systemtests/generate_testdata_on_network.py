@@ -74,7 +74,7 @@ def do_setup(args: Any):
     print("Do contract deployments...")
     controller.do_create_contract_deployments()
 
-    memento.replace_setup_transactions(controller.transactions_hashes_accumulator)
+    print("Setup done.")
 
 
 def do_run(args: Any):
@@ -1149,7 +1149,6 @@ class Memento:
         self.path = path
         self._contracts: List[SmartContract] = []
         self._custom_currencies: List[str] = []
-        self._setup_transactions: List[str] = []
         self._run_transactions: List[str] = []
 
     def clear(self):
@@ -1181,11 +1180,6 @@ class Memento:
 
         return contracts
 
-    def replace_setup_transactions(self, transactions_hashes: list[str]):
-        self.load()
-        self._setup_transactions = transactions_hashes
-        self.save()
-
     def replace_run_transactions(self, transactions_hashes: list[str]):
         self.load()
         self._run_transactions = transactions_hashes
@@ -1200,7 +1194,6 @@ class Memento:
         contracts_raw = data.get("contracts", [])
         self._contracts = [SmartContract.from_dictionary(item) for item in contracts_raw]
         self._custom_currencies = data.get("customCurrencies", [])
-        self._setup_transactions = data.get("setupTransactions", [])
         self._run_transactions = data.get("runTransactions", [])
 
     def save(self):
@@ -1209,7 +1202,6 @@ class Memento:
         data = {
             "contracts": contracts_raw,
             "customCurrencies": self._custom_currencies,
-            "setupTransactions": self._setup_transactions,
             "runTransactions": self._run_transactions,
         }
 
