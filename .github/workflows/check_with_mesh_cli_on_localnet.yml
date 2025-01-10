@@ -39,17 +39,17 @@ jobs:
       - name: Generate testdata (setup)
         run: |
           source .env
-          PYTHONPATH=. python3 ./systemtests/generate_testdata_on_network.py setup --network localnet
+          python3 ./systemtests/generate_testdata_on_network.py setup --network localnet
 
       - name: Generate testdata (run)
         run: |
           source .env
-          PYTHONPATH=. python3 ./systemtests/generate_testdata_on_network.py run --network localnet
+          python3 ./systemtests/generate_testdata_on_network.py run --network localnet
 
       - name: check:data
         run: |
           source .env
-          PYTHONPATH=. python3 ./systemtests/check_with_mesh_cli.py --mode=data --network=localnet
+          python3 ./systemtests/check_with_mesh_cli.py --mode=data --network=localnet
 
       - name: Stop MultiversX localnet
         if: success() || failure()
