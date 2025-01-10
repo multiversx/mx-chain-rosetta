@@ -341,21 +341,79 @@ def do_run(args: Any):
         ), await_completion=True)
 
     for relayed_version in [1, 3]:
-        print(f"## Relayed v{relayed_version}, intra-shard, with contract call with MoveBalance, with signal error")
-        controller.send(controller.create_relayed_with_contract_call_with_move_balance_with_signal_error(
+        print(f"## Relayed v{relayed_version}, intra-shard, with contract call")
+        controller.send(controller.create_relayed_with_contract_call(
             relayer=accounts.get_user(shard=SOME_SHARD, index=0),
             sender=accounts.get_user(shard=SOME_SHARD, index=1),
             contract=accounts.get_contract_address("adder", shard=SOME_SHARD, index=0),
+            function="add",
+            arguments=[BigUIntValue(42)],
+            gas_limit=5_000_000,
+            amount=0,
+            relayed_version=relayed_version,
+        ), await_completion=True)
+
+    for relayed_version in [1, 3]:
+        print(f"## Relayed v{relayed_version}, cross-shard, with contract call")
+        controller.send(controller.create_relayed_with_contract_call(
+            relayer=accounts.get_user(shard=SOME_SHARD, index=0),
+            sender=accounts.get_user(shard=SOME_SHARD, index=1),
+            contract=accounts.get_contract_address("adder", shard=OTHER_SHARD, index=0),
+            function="add",
+            arguments=[BigUIntValue(42)],
+            gas_limit=5_000_000,
+            amount=0,
+            relayed_version=relayed_version,
+        ), await_completion=True)
+
+    for relayed_version in [1, 3]:
+        print(f"## Relayed v{relayed_version}, intra-shard, with contract call, with signal error")
+        controller.send(controller.create_relayed_with_contract_call(
+            relayer=accounts.get_user(shard=SOME_SHARD, index=0),
+            sender=accounts.get_user(shard=SOME_SHARD, index=1),
+            contract=accounts.get_contract_address("adder", shard=SOME_SHARD, index=0),
+            function="add",
+            arguments=[BigUIntValue(41), BigUIntValue(42)],
+            gas_limit=5_000_000,
+            amount=0,
+            relayed_version=relayed_version,
+        ), await_completion=True)
+
+    for relayed_version in [1, 3]:
+        print(f"## Relayed v{relayed_version}, cross-shard, with contract call, with signal error")
+        controller.send(controller.create_relayed_with_contract_call(
+            relayer=accounts.get_user(shard=SOME_SHARD, index=0),
+            sender=accounts.get_user(shard=SOME_SHARD, index=1),
+            contract=accounts.get_contract_address("adder", shard=OTHER_SHARD, index=0),
+            function="add",
+            arguments=[BigUIntValue(41), BigUIntValue(42)],
+            gas_limit=5_000_000,
+            amount=0,
+            relayed_version=relayed_version,
+        ), await_completion=True)
+
+    for relayed_version in [1, 3]:
+        print(f"## Relayed v{relayed_version}, intra-shard, with contract call with MoveBalance, with signal error")
+        controller.send(controller.create_relayed_with_contract_call(
+            relayer=accounts.get_user(shard=SOME_SHARD, index=0),
+            sender=accounts.get_user(shard=SOME_SHARD, index=1),
+            contract=accounts.get_contract_address("adder", shard=SOME_SHARD, index=0),
+            function="add",
+            arguments=[BigUIntValue(41), BigUIntValue(42)],
+            gas_limit=5_000_000,
             amount=1,
             relayed_version=relayed_version,
         ), await_completion=True)
 
     for relayed_version in [1, 3]:
         print(f"## Relayed v{relayed_version}, cross-shard, with contract call with MoveBalance, with signal error")
-        controller.send(controller.create_relayed_with_contract_call_with_move_balance_with_signal_error(
+        controller.send(controller.create_relayed_with_contract_call(
             relayer=accounts.get_user(shard=SOME_SHARD, index=0),
             sender=accounts.get_user(shard=SOME_SHARD, index=1),
             contract=accounts.get_contract_address("adder", shard=OTHER_SHARD, index=0),
+            function="add",
+            arguments=[BigUIntValue(41), BigUIntValue(42)],
+            gas_limit=5_000_000,
             amount=1,
             relayed_version=relayed_version,
         ), await_completion=True)
@@ -913,7 +971,7 @@ class Controller:
 
         return transaction
 
-    def create_relayed_with_contract_call_with_move_balance_with_signal_error(self, relayer: "Account", sender: "Account", contract: Address, amount: int, relayed_version: int) -> Transaction:
+    def create_relayed_with_contract_call(self, relayer: "Account", sender: "Account", contract: Address, function: str, arguments: list[Any], gas_limit: int, amount: int, relayed_version: int) -> Transaction:
         if relayed_version == 1:
             # Relayer nonce is reserved before sender nonce, to ensure good ordering (if sender and relayer are the same account).
             relayer_nonce = self._reserve_nonce(relayer)
@@ -921,9 +979,9 @@ class Controller:
             inner_transaction = self.contracts_transactions_factory.create_transaction_for_execute(
                 sender=sender.address,
                 contract=contract,
-                function="add",
-                gas_limit=5000000,
-                arguments=[BigUIntValue(1), BigUIntValue(2), BigUIntValue(3), BigUIntValue(4), BigUIntValue(5)],
+                function=function,
+                gas_limit=gas_limit,
+                arguments=arguments,
                 native_transfer_amount=amount
             )
 
@@ -947,9 +1005,9 @@ class Controller:
             transaction = self.contracts_transactions_factory.create_transaction_for_execute(
                 sender=sender.address,
                 contract=contract,
-                function="add",
-                gas_limit=5000000,
-                arguments=[BigUIntValue(1), BigUIntValue(2), BigUIntValue(3), BigUIntValue(4), BigUIntValue(5)],
+                function=function,
+                gas_limit=gas_limit,
+                arguments=arguments,
                 native_transfer_amount=amount
             )
 
