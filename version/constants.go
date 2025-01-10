@@ -7,5 +7,5 @@ const (
 
 var (
 	// RosettaMiddlewareVersion is the version of this package (application)
-	RosettaMiddlewareVersion = "v0.5.3"
+	RosettaMiddlewareVersion = "v0.6.0"
 )
