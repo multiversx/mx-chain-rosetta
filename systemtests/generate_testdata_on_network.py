@@ -3,26 +3,26 @@ import time
 from argparse import ArgumentParser
 from multiprocessing.dummy import Pool
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional
 
-from multiversx_sdk import (Address, AddressComputer, Mnemonic,
-                            ProxyNetworkProvider, RelayedTransactionsFactory,
+from multiversx_sdk import (AccountOnNetwork, Address, AddressComputer,
+                            AwaitingOptions, Mnemonic, ProxyNetworkProvider,
+                            RelayedTransactionsFactory,
                             SmartContractController,
                             SmartContractTransactionsFactory, Token,
                             TokenManagementTransactionsFactory,
                             TokenManagementTransactionsOutcomeParser,
-                            TokenTransfer, Transaction, TransactionAwaiter,
-                            TransactionComputer, TransactionOnNetwork,
-                            TransactionsFactoryConfig,
+                            TokenTransfer, Transaction, TransactionComputer,
+                            TransactionOnNetwork, TransactionsFactoryConfig,
                             TransferTransactionsFactory, UserSecretKey,
                             UserSigner)
 from multiversx_sdk.abi import (AddressValue, BigUIntValue, Serializer,
                                 StringValue, U32Value)
 
 from systemtests.config import CONFIGURATIONS, Configuration
-from systemtests.constants import (
-    ADDITIONAL_GAS_LIMIT_FOR_RELAYED_V3,
-    TRANSACTION_AWAITING_POLLING_TIMEOUT_IN_MILLISECONDS)
+from systemtests.constants import (ADDITIONAL_GAS_LIMIT_FOR_RELAYED_V3,
+                                   AWAITING_PATIENCE_IN_MILLISECONDS,
+                                   AWAITING_POLLING_TIMEOUT_IN_MILLISECONDS)
 
 CONTRACT_PATH_ADDER = Path(__file__).parent / "contracts" / "adder.wasm"
 CONTRACT_PATH_DUMMY = Path(__file__).parent / "contracts" / "dummy.wasm"
@@ -98,7 +98,7 @@ def do_run(args: Any):
         receiver=accounts.get_user(shard=SOME_SHARD, index=1).address,
         amount=42,
         additional_gas_limit=42000,
-    ), await_completion=True)
+    ), await_processing_started=True)
 
     print("## Cross-shard, simple MoveBalance with refund")
     controller.send(controller.create_simple_move_balance(
@@ -106,7 +106,7 @@ def do_run(args: Any):
         receiver=accounts.get_user(shard=OTHER_SHARD, index=0).address,
         amount=42,
         additional_gas_limit=42000,
-    ), await_completion=True)
+    ), await_processing_started=True)
 
     print("## Intra-shard, invalid MoveBalance with refund")
     controller.send(controller.create_simple_move_balance(
@@ -114,7 +114,7 @@ def do_run(args: Any):
         receiver=accounts.get_user(shard=SOME_SHARD, index=3).address,
         amount=1000000000000000000000000,
         additional_gas_limit=42000,
-    ), await_completion=True)
+    ), await_processing_started=True)
 
     print("## Cross-shard, invalid MoveBalance with refund")
     controller.send(controller.create_simple_move_balance(
@@ -122,7 +122,7 @@ def do_run(args: Any):
         receiver=accounts.get_user(shard=OTHER_SHARD, index=1).address,
         amount=1000000000000000000000000,
         additional_gas_limit=42000,
-    ), await_completion=True)
+    ), await_processing_started=True)
 
     print("## Intra-shard, sending value to non-payable contract")
     controller.send(controller.create_simple_move_balance(
@@ -130,7 +130,7 @@ def do_run(args: Any):
         receiver=accounts.get_contract_address("adder", shard=SOME_SHARD, index=0),
         amount=42,
         additional_gas_limit=42000,
-    ), await_completion=True)
+    ), await_processing_started=True)
 
     print("## Cross-shard, sending value to non-payable contract")
     controller.send(controller.create_simple_move_balance(
@@ -138,7 +138,7 @@ def do_run(args: Any):
         receiver=accounts.get_contract_address("adder", shard=OTHER_SHARD, index=0),
         amount=42,
         additional_gas_limit=42000,
-    ), await_completion=True)
+    ), await_processing_started=True)
 
     print("## Intra-shard, native transfer within MultiESDTTransfer")
     controller.send(controller.create_native_transfer_within_multiesdt(
@@ -146,7 +146,7 @@ def do_run(args: Any):
         receiver=accounts.get_user(shard=SOME_SHARD, index=1).address,
         native_amount=42,
         custom_amount=7
-    ), await_completion=True)
+    ), await_processing_started=True)
 
     print("## Cross-shard, native transfer within MultiESDTTransfer")
     controller.send(controller.create_native_transfer_within_multiesdt(
@@ -154,7 +154,7 @@ def do_run(args: Any):
         receiver=accounts.get_user(shard=OTHER_SHARD, index=0).address,
         native_amount=42,
         custom_amount=7
-    ), await_completion=True)
+    ), await_processing_started=True)
 
     print("## Intra-shard, native transfer within MultiESDTTransfer, towards non-payable contract")
     controller.send(controller.create_native_transfer_within_multiesdt(
@@ -162,7 +162,7 @@ def do_run(args: Any):
         receiver=accounts.get_contract_address("adder", shard=SOME_SHARD, index=0),
         native_amount=42,
         custom_amount=7
-    ), await_completion=True)
+    ), await_processing_started=True)
 
     print("## Cross-shard, native transfer within MultiESDTTransfer, towards non-payable contract")
     controller.send(controller.create_native_transfer_within_multiesdt(
@@ -170,7 +170,7 @@ def do_run(args: Any):
         receiver=accounts.get_contract_address("adder", shard=OTHER_SHARD, index=0),
         native_amount=42,
         custom_amount=7
-    ), await_completion=True)
+    ), await_processing_started=True)
 
     print("## Cross-shard, transfer & execute with native & custom transfer")
     controller.send(controller.create_transfer_and_execute(
@@ -179,7 +179,7 @@ def do_run(args: Any):
         function="doSomething",
         native_amount=42,
         custom_amount=7,
-    ), await_completion=True)
+    ), await_processing_started=True)
 
     print("## Intra-shard, transfer & execute with native & custom transfer")
     controller.send(controller.create_transfer_and_execute(
@@ -188,39 +188,39 @@ def do_run(args: Any):
         function="doSomething",
         native_amount=42,
         custom_amount=7,
-    ), await_completion=True)
+    ), await_processing_started=True)
 
     print("## Direct contract deployment with MoveBalance")
     controller.send(controller.create_contract_deployment_with_move_balance(
         sender=accounts.get_user(shard=SOME_SHARD, index=0),
         amount=10000000000000000
-    ), await_completion=True)
+    ), await_processing_started=True)
 
     print("## Intra-shard, contract call with MoveBalance, with signal error")
     controller.send(controller.create_contract_call_with_move_balance_with_signal_error(
         sender=accounts.get_user(shard=SOME_SHARD, index=0),
         contract=accounts.get_contract_address("adder", shard=SOME_SHARD, index=0),
         amount=10000000000000000
-    ), await_completion=True)
+    ), await_processing_started=True)
 
     print("## Cross-shard, contract call with MoveBalance, with signal error")
     controller.send(controller.create_contract_call_with_move_balance_with_signal_error(
         sender=accounts.get_user(shard=SOME_SHARD, index=0),
         contract=accounts.get_contract_address("adder", shard=OTHER_SHARD, index=0),
         amount=10000000000000000
-    ), await_completion=True)
+    ), await_processing_started=True)
 
     print("## Direct contract deployment with MoveBalance, with signal error")
     controller.send(controller.create_contract_deployment_with_move_balance_with_signal_error(
         sender=accounts.get_user(shard=SOME_SHARD, index=0),
         amount=77
-    ), await_completion=True)
+    ), await_processing_started=True)
 
     print("## Intra-shard ClaimDeveloperRewards on directly owned contract")
     controller.send(controller.create_claim_developer_rewards_on_directly_owned_contract(
         sender=accounts.get_user(shard=SOME_SHARD, index=0),
         contract=accounts.get_contract_address("adder", shard=SOME_SHARD, index=0),
-    ), await_completion=True)
+    ), await_processing_started=True)
 
     print("## Cross-shard ClaimDeveloperRewards on directly owned contract")
     controller.do_change_contract_owner(
@@ -237,13 +237,13 @@ def do_run(args: Any):
     controller.send(controller.create_claim_developer_rewards_on_child_contract(
         sender=accounts.get_user(shard=SOME_SHARD, index=0),
         parent_contract=accounts.get_contract_address("developerRewards", shard=SOME_SHARD, index=0),
-    ), await_completion=True)
+    ), await_processing_started=True)
 
     print("## ClaimDeveloperRewards on child contract (owned by a contract); user & parent contract in different shards")
     controller.send(controller.create_claim_developer_rewards_on_child_contract(
         sender=accounts.get_user(shard=SOME_SHARD, index=0),
         parent_contract=accounts.get_contract_address("developerRewards", shard=OTHER_SHARD, index=0),
-    ), await_completion=True)
+    ), await_processing_started=True)
 
     print("## Intra-shard, transfer native within MultiESDTTransfer (fuzzy, with tx.value != 0)")
     controller.send(controller.create_native_transfer_within_multiesdt_fuzzy(
@@ -251,7 +251,7 @@ def do_run(args: Any):
         receiver=accounts.get_user(shard=SOME_SHARD, index=3).address,
         native_amount_as_value=42,
         native_amount_in_data=[43, 44]
-    ), await_completion=True)
+    ), await_processing_started=True)
 
     print("## Intra-shard, transfer native within MultiESDTTransfer (fuzzy, with tx.value == 0)")
     controller.send(controller.create_native_transfer_within_multiesdt_fuzzy(
@@ -259,7 +259,7 @@ def do_run(args: Any):
         receiver=accounts.get_user(shard=SOME_SHARD, index=3).address,
         native_amount_as_value=0,
         native_amount_in_data=[43, 44]
-    ), await_completion=True)
+    ), await_processing_started=True)
 
     print("## Cross-shard, transfer native within MultiESDTTransfer (fuzzy, with tx.value == 0)")
     controller.send(controller.create_native_transfer_within_multiesdt_fuzzy(
@@ -267,7 +267,7 @@ def do_run(args: Any):
         receiver=accounts.get_user(shard=OTHER_SHARD, index=3).address,
         native_amount_as_value=0,
         native_amount_in_data=[43, 44]
-    ), await_completion=True)
+    ), await_processing_started=True)
 
     for relayed_version in [1, 3]:
         print(f"## Relayed v{relayed_version}, intra-shard MoveBalance")
@@ -530,8 +530,11 @@ class Controller:
         self.relayed_transactions_factory = RelayedTransactionsFactory(self.transactions_factory_config)
         self.contracts_transactions_factory = SmartContractTransactionsFactory(self.transactions_factory_config)
         self.contracts_query_controller = SmartContractController(configuration.network_id, self.network_provider)
-        self.transaction_awaiter = TransactionAwaiter(self.network_provider, polling_interval_in_milliseconds=TRANSACTION_AWAITING_POLLING_TIMEOUT_IN_MILLISECONDS)
         self.transactions_hashes_accumulator: list[str] = []
+        self.awaiting_options = AwaitingOptions(
+            polling_interval_in_milliseconds=AWAITING_POLLING_TIMEOUT_IN_MILLISECONDS,
+            patience_in_milliseconds=AWAITING_PATIENCE_IN_MILLISECONDS
+        )
 
     def do_airdrops_for_native_currency(self):
         transactions: List[Transaction] = []
@@ -550,8 +553,8 @@ class Controller:
 
         self.send_multiple(transactions, chunk_size=99, wait_between_chunks=7)
 
-        print("Wait for the last transaction to be completed (optimization)...")
-        self.await_completed(transactions[-1:])
+        print("Wait for the last transaction to be processed (optimization)...")
+        self.await_processing_started(transactions[-1:])
 
     def issue_custom_currency(self, name: str):
         transaction = self.token_management_transactions_factory.create_transaction_for_issuing_fungible(
@@ -598,8 +601,8 @@ class Controller:
 
         self.send_multiple(transactions, chunk_size=99, wait_between_chunks=7)
 
-        print("Wait for the last transaction to be completed (optimization)...")
-        self.await_completed(transactions[-1:])
+        print("Wait for the last transaction to be processed (optimization)...")
+        self.await_processing_started(transactions[-1:])
 
     def do_create_contract_deployments(self):
         transactions_adder: List[Transaction] = []
@@ -1074,7 +1077,7 @@ class Controller:
         bytes_for_signing = self.transaction_computer.compute_bytes_for_signing(transaction)
         transaction.relayer_signature = relayer.signer.sign(bytes_for_signing)
 
-    def send_multiple(self, transactions: List[Transaction], chunk_size: int = 1024, wait_between_chunks: float = 0, await_completion: bool = False):
+    def send_multiple(self, transactions: List[Transaction], chunk_size: int = 1024, wait_between_chunks: float = 0, await_processing_started: bool = False, await_completion: bool = False):
         print(f"Sending {len(transactions)} transactions...")
 
         chunks = list(split_to_chunks(transactions, chunk_size))
@@ -1086,12 +1089,18 @@ class Controller:
             self.transactions_hashes_accumulator.extend([hash.hex() for hash in hashes if hash is not None])
             time.sleep(wait_between_chunks)
 
+        if await_processing_started or await_completion:
+            self.await_processing_started(transactions)
+
         if await_completion:
             self.await_completed(transactions)
 
-    def send(self, transaction: Transaction, await_completion: bool = False):
+    def send(self, transaction: Transaction, await_processing_started: bool = False, await_completion: bool = False):
         transaction_hash = self.network_provider.send_transaction(transaction)
         print(f"    🌍 {self.configuration.view_url.replace('{hash}', transaction_hash.hex())}")
+
+        if await_processing_started or await_completion:
+            self.await_processing_started([transaction])
 
         if await_completion:
             self.await_completed([transaction])
@@ -1101,17 +1110,30 @@ class Controller:
     def await_completed(self, transactions: List[Transaction]) -> List[TransactionOnNetwork]:
         print(f"    ⏳ Awaiting completion of {len(transactions)} transactions...")
 
-        # Short wait before starting requests, to avoid "transaction not found" errors.
-        time.sleep(3)
-
         def await_completed_one(transaction: Transaction) -> TransactionOnNetwork:
             transaction_hash = self.transaction_computer.compute_transaction_hash(transaction).hex()
-            transaction_on_network = self.transaction_awaiter.await_completed(transaction_hash)
+            transaction_on_network = self.network_provider.await_transaction_completed(transaction_hash, self.awaiting_options)
 
             print(f"    ✓ Completed: {self.configuration.view_url.replace('{hash}', transaction_hash)}")
             return transaction_on_network
 
         transactions_on_network = Pool(8).map(await_completed_one, transactions)
+        return transactions_on_network
+
+    def await_processing_started(self, transactions: List[Transaction]) -> List[TransactionOnNetwork]:
+        print(f"    ⏳ Awaiting processing start of {len(transactions)} transactions...")
+
+        def await_processing_started_one(transaction: Transaction) -> TransactionOnNetwork:
+            condition: Callable[[AccountOnNetwork], bool] = lambda account: account.nonce > transaction.nonce
+            self.network_provider.await_account_on_condition(transaction.sender, condition, self.awaiting_options)
+
+            transaction_hash = self.transaction_computer.compute_transaction_hash(transaction).hex()
+            transaction_on_network = self.network_provider.get_transaction(transaction_hash)
+
+            print(f"    ✓ Processing started: {self.configuration.view_url.replace('{hash}', transaction_hash)}")
+            return transaction_on_network
+
+        transactions_on_network = Pool(8).map(await_processing_started_one, transactions)
         return transactions_on_network
 
     def wait_until_epoch(self, epoch: int):
