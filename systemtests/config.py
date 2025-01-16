@@ -32,6 +32,9 @@ class Configuration:
     sponsor_secret_key: bytes = bytes.fromhex(os.environ.get("SPONSOR_SECRET_KEY", DEFAULT_SPONSOR_SECRET_KEY))
     users_mnemonic: str = os.environ.get("USERS_MNEMONIC", DEFAULT_USERS_MNEMONIC)
     num_users: int = 128
+    generate_relayed_v1: bool = False
+    generate_relayed_v2: bool = False
+    generate_relayed_v3: bool = False
 
 
 CONFIGURATIONS = {
@@ -86,7 +89,7 @@ CONFIGURATIONS = {
         proxy_url="https://testnet-gateway.multiversx.com",
         activation_epoch_sirius=1,
         activation_epoch_spica=33,
-        activation_epoch_relayed_v3=4294967295,
+        activation_epoch_relayed_v3=1182,
         check_construction_native_configuration_file="systemtests/mesh_cli_config/testnet-construction-native.json",
         check_construction_custom_configuration_file="systemtests/mesh_cli_config/testnet-construction-custom.json",
         check_data_configuration_file="systemtests/mesh_cli_config/check-data.json",
@@ -94,6 +97,7 @@ CONFIGURATIONS = {
         check_data_num_blocks=0,
         memento_file="systemtests/memento/testnet.json",
         view_url="https://testnet-explorer.multiversx.com/transactions/{hash}",
+        generate_relayed_v3=True
     ),
     "localnet": Configuration(
         network_shard=0,
@@ -114,7 +118,8 @@ CONFIGURATIONS = {
         check_data_num_blocks=0,
         memento_file="systemtests/memento/localnet.json",
         view_url="http://localhost:7950/transaction/{hash}?withResults=true&withLogs=true",
-        custom_currency_issue_cost=5000000000000000000
+        custom_currency_issue_cost=5000000000000000000,
+        generate_relayed_v3=True
     ),
     "internal": Configuration(
         network_shard=0,

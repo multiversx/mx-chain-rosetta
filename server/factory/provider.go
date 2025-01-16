@@ -94,6 +94,7 @@ func CreateNetworkProvider(args ArgsCreateNetworkProvider) (NetworkProvider, err
 		observersProvider,
 		disabledObserversProvider,
 		pubKeyConverter,
+		true,
 	)
 	if err != nil {
 		return nil, err

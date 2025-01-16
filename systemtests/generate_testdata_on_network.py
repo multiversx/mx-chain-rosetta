@@ -16,8 +16,9 @@ from multiversx_sdk import (AccountOnNetwork, Address, AddressComputer,
                             TransactionOnNetwork, TransactionsFactoryConfig,
                             TransferTransactionsFactory, UserSecretKey,
                             UserSigner)
-from multiversx_sdk.abi import (AddressValue, BigUIntValue, Serializer,
-                                StringValue, U32Value)
+from multiversx_sdk.abi import (AddressValue, BigUIntValue, BytesValue,
+                                I32Value, I64Value, Serializer, StringValue,
+                                U32Value)
 
 from systemtests.config import CONFIGURATIONS, Configuration
 from systemtests.constants import (ADDITIONAL_GAS_LIMIT_FOR_RELAYED_V3,
@@ -269,7 +270,11 @@ def do_run(args: Any):
         native_amount_in_data=[43, 44]
     ), await_processing_started=True)
 
-    for relayed_version in [1, 3]:
+    relayed_v1_marker = [1] if configuration.generate_relayed_v1 else []
+    relayed_v2_marker = [2] if configuration.generate_relayed_v2 else []
+    relayed_v3_marker = [3] if configuration.generate_relayed_v3 else []
+
+    for relayed_version in relayed_v1_marker + relayed_v3_marker:
         print(f"## Relayed v{relayed_version}, intra-shard MoveBalance")
         controller.send(controller.create_relayed_with_move_balance(
             relayer=accounts.get_user(shard=SOME_SHARD, index=0),
@@ -280,7 +285,7 @@ def do_run(args: Any):
             relayed_version=relayed_version,
         ), await_completion=True)
 
-    for relayed_version in [1, 3]:
+    for relayed_version in relayed_v1_marker + relayed_v3_marker:
         print(f"## Relayed v{relayed_version}, cross-shard MoveBalance")
         controller.send(controller.create_relayed_with_move_balance(
             relayer=accounts.get_user(shard=SOME_SHARD, index=0),
@@ -291,7 +296,7 @@ def do_run(args: Any):
             relayed_version=relayed_version,
         ), await_completion=True)
 
-    for relayed_version in [3]:
+    for relayed_version in relayed_v3_marker:
         print(f"## Relayed v{relayed_version}, intra-shard MoveBalance, with refund")
         controller.send(controller.create_relayed_with_move_balance(
             relayer=accounts.get_user(shard=SOME_SHARD, index=0),
@@ -302,7 +307,7 @@ def do_run(args: Any):
             relayed_version=relayed_version,
         ), await_completion=True)
 
-    for relayed_version in [3]:
+    for relayed_version in relayed_v3_marker:
         print(f"## Relayed v{relayed_version}, cross-shard MoveBalance, with refund")
         controller.send(controller.create_relayed_with_move_balance(
             relayer=accounts.get_user(shard=SOME_SHARD, index=0),
@@ -313,7 +318,7 @@ def do_run(args: Any):
             relayed_version=relayed_version,
         ), await_completion=True)
 
-    for relayed_version in [3]:
+    for relayed_version in relayed_v3_marker:
         print(f"## Relayed v{relayed_version}, invalid, intra-shard MoveBalance, with refund")
         controller.send(controller.create_relayed_with_move_balance(
             relayer=accounts.get_user(shard=SOME_SHARD, index=0),
@@ -324,7 +329,7 @@ def do_run(args: Any):
             relayed_version=relayed_version,
         ), await_completion=True)
 
-    for relayed_version in [3]:
+    for relayed_version in relayed_v3_marker:
         print(f"## Relayed v{relayed_version}, invalid, cross-shard MoveBalance, with refund")
         controller.send(controller.create_relayed_with_move_balance(
             relayer=accounts.get_user(shard=SOME_SHARD, index=0),
@@ -335,7 +340,7 @@ def do_run(args: Any):
             relayed_version=relayed_version,
         ), await_completion=True)
 
-    for relayed_version in [1, 3]:
+    for relayed_version in relayed_v1_marker + relayed_v3_marker:
         print(f"## Relayed v{relayed_version}, intra-shard MoveBalance (with bad receiver, system smart contract)")
         controller.send(controller.create_relayed_with_move_balance(
             relayer=accounts.get_user(shard=SOME_SHARD, index=0),
@@ -346,7 +351,7 @@ def do_run(args: Any):
             relayed_version=relayed_version,
         ), await_completion=True)
 
-    for relayed_version in [1, 2, 3]:
+    for relayed_version in relayed_v1_marker + relayed_v2_marker + relayed_v3_marker:
         print(f"## Relayed v{relayed_version}, intra-shard, with contract call")
         controller.send(controller.create_relayed_with_contract_call(
             relayer=accounts.get_user(shard=SOME_SHARD, index=0),
@@ -359,7 +364,7 @@ def do_run(args: Any):
             relayed_version=relayed_version,
         ), await_completion=True)
 
-    for relayed_version in [1, 2, 3]:
+    for relayed_version in relayed_v1_marker + relayed_v2_marker + relayed_v3_marker:
         print(f"## Relayed v{relayed_version}, cross-shard, with contract call")
         controller.send(controller.create_relayed_with_contract_call(
             relayer=accounts.get_user(shard=SOME_SHARD, index=0),
@@ -372,7 +377,7 @@ def do_run(args: Any):
             relayed_version=relayed_version,
         ), await_completion=True)
 
-    for relayed_version in [1, 2, 3]:
+    for relayed_version in relayed_v1_marker + relayed_v2_marker + relayed_v3_marker:
         print(f"## Relayed v{relayed_version}, intra-shard, with contract call, with signal error")
         controller.send(controller.create_relayed_with_contract_call(
             relayer=accounts.get_user(shard=SOME_SHARD, index=0),
@@ -385,7 +390,7 @@ def do_run(args: Any):
             relayed_version=relayed_version,
         ), await_completion=True)
 
-    for relayed_version in [1, 2, 3]:
+    for relayed_version in relayed_v1_marker + relayed_v2_marker + relayed_v3_marker:
         print(f"## Relayed v{relayed_version}, cross-shard, with contract call, with signal error")
         controller.send(controller.create_relayed_with_contract_call(
             relayer=accounts.get_user(shard=SOME_SHARD, index=0),
@@ -398,7 +403,7 @@ def do_run(args: Any):
             relayed_version=relayed_version,
         ), await_completion=True)
 
-    for relayed_version in [1, 3]:
+    for relayed_version in relayed_v1_marker + relayed_v3_marker:
         print(f"## Relayed v{relayed_version}, intra-shard, with contract call with MoveBalance, with signal error")
         controller.send(controller.create_relayed_with_contract_call(
             relayer=accounts.get_user(shard=SOME_SHARD, index=0),
@@ -411,7 +416,7 @@ def do_run(args: Any):
             relayed_version=relayed_version,
         ), await_completion=True)
 
-    for relayed_version in [1, 3]:
+    for relayed_version in relayed_v1_marker + relayed_v3_marker:
         print(f"## Relayed v{relayed_version}, cross-shard, with contract call with MoveBalance, with signal error")
         controller.send(controller.create_relayed_with_contract_call(
             relayer=accounts.get_user(shard=SOME_SHARD, index=0),
@@ -421,6 +426,44 @@ def do_run(args: Any):
             arguments=[BigUIntValue(41), BigUIntValue(42)],
             gas_limit=5_000_000,
             amount=1,
+            relayed_version=relayed_version,
+        ), await_completion=True)
+
+    for relayed_version in relayed_v3_marker:
+        print(f"## Relayed v{relayed_version}, intra-shard, with contract call, with MoveBalance, via forwarder (promises)")
+        controller.send(controller.create_relayed_with_contract_call(
+            relayer=accounts.get_user(shard=SOME_SHARD, index=0),
+            sender=accounts.get_user(shard=SOME_SHARD, index=1),
+            contract=accounts.get_contract_address("forwarder", shard=SOME_SHARD, index=0),
+            function="forward",
+            arguments=[
+                I32Value(1),
+                AddressValue.new_from_address(accounts.get_contract_address("dummy", shard=SOME_SHARD, index=0)),
+                BigUIntValue(42),
+                BytesValue(b"doSomething"),
+                I64Value(15_000_000),
+            ],
+            gas_limit=30_000_000,
+            amount=43,
+            relayed_version=relayed_version,
+        ), await_completion=True)
+
+    for relayed_version in relayed_v3_marker:
+        print(f"## Relayed v{relayed_version}, cross-shard, with contract call, with MoveBalance, via forwarder")
+        controller.send(controller.create_relayed_with_contract_call(
+            relayer=accounts.get_user(shard=SOME_SHARD, index=0),
+            sender=accounts.get_user(shard=SOME_SHARD, index=1),
+            contract=accounts.get_contract_address("forwarder", shard=SOME_SHARD, index=0),
+            function="forward",
+            arguments=[
+                I32Value(1),
+                AddressValue.new_from_address(accounts.get_contract_address("dummy", shard=OTHER_SHARD, index=0)),
+                BigUIntValue(42),
+                BytesValue(b"doSomething"),
+                I64Value(15_000_000),
+            ],
+            gas_limit=30_000_000,
+            amount=43,
             relayed_version=relayed_version,
         ), await_completion=True)
 
