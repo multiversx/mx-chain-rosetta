@@ -6,6 +6,7 @@ import (
 	"github.com/coinbase/rosetta-sdk-go/types"
 	"github.com/multiversx/mx-chain-core-go/data/api"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
+	"github.com/multiversx/mx-chain-rosetta/server/provider"
 )
 
 // TODO: newTransactionsTransformer(provider, block)
@@ -238,7 +239,7 @@ func (transformer *transactionsTransformer) normalTxToRosetta(tx *transaction.Ap
 }
 
 func (transformer *transactionsTransformer) decideFeePayer(tx *transaction.ApiTransactionResult) string {
-	if len(tx.RelayerAddress) > 0 {
+	if provider.IsRelayedTxV3(tx) {
 		return tx.RelayerAddress
 	}
 

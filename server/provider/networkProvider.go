@@ -467,7 +467,7 @@ func (provider *networkProvider) ComputeTransactionFeeForMoveBalance(tx *transac
 		gasLimit += extraGasLimitGuardedTx
 	}
 
-	isRelayedV3 := len(tx.RelayerAddress) > 0
+	isRelayedV3 := IsRelayedTxV3(tx)
 	if isRelayedV3 {
 		gasLimit += extraGasLimitRelayedTxV3
 	}

@@ -2,7 +2,7 @@ package services
 
 import (
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"testing"
 
 	"github.com/coinbase/rosetta-sdk-go/types"
@@ -229,6 +229,8 @@ func TestTransactionsTransformer_NormalTxToRosettaTx(t *testing.T) {
 			RelayerAddress:   testscommon.TestAddressCarol,
 			Value:            "1234",
 			InitiallyPaidFee: "50000000000000",
+			Signature:        "signature",
+			RelayerSignature: "signature",
 		}
 
 		expectedRosettaTx := &types.Transaction{
@@ -275,9 +277,11 @@ func TestTransactionsTransformer_decideFeePayer(t *testing.T) {
 
 	t.Run("when fee payer is relayer", func(t *testing.T) {
 		tx := &transaction.ApiTransactionResult{
-			Sender:         testscommon.TestAddressAlice,
-			Receiver:       testscommon.TestAddressBob,
-			RelayerAddress: testscommon.TestAddressCarol,
+			Sender:           testscommon.TestAddressAlice,
+			Receiver:         testscommon.TestAddressBob,
+			RelayerAddress:   testscommon.TestAddressCarol,
+			Signature:        "signature",
+			RelayerSignature: "signature",
 		}
 
 		feePayer := transformer.decideFeePayer(tx)
@@ -501,6 +505,8 @@ func TestTransactionsTransformer_InvalidTxToRosettaTx(t *testing.T) {
 			Value:            "1234",
 			Type:             string(transaction.TxTypeInvalid),
 			InitiallyPaidFee: "50000000000000",
+			Signature:        "signature",
+			RelayerSignature: "signature",
 		}
 
 		expectedTx := &types.Transaction{
@@ -1328,7 +1334,7 @@ func readJson(filePath string, value interface{}) error {
 		return err
 	}
 
-	content, err := ioutil.ReadAll(file)
+	content, err := io.ReadAll(file)
 	if err != nil {
 		return err
 	}
