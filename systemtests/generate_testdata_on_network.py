@@ -467,6 +467,44 @@ def do_run(args: Any):
             relayed_version=relayed_version,
         ), await_completion=True)
 
+    for relayed_version in relayed_v3_marker:
+        print(f"## Relayed v{relayed_version}, intra-shard, with contract call, with MoveBalance, via forwarder (promises), with signal error")
+        controller.send(controller.create_relayed_with_contract_call(
+            relayer=accounts.get_user(shard=SOME_SHARD, index=0),
+            sender=accounts.get_user(shard=SOME_SHARD, index=1),
+            contract=accounts.get_contract_address("forwarder", shard=SOME_SHARD, index=0),
+            function="forward",
+            arguments=[
+                I32Value(1),
+                AddressValue.new_from_address(accounts.get_contract_address("dummy", shard=SOME_SHARD, index=0)),
+                BigUIntValue(42),
+                BytesValue(b"missingMethod"),
+                I64Value(15_000_000),
+            ],
+            gas_limit=30_000_000,
+            amount=43,
+            relayed_version=relayed_version,
+        ), await_completion=True)
+
+    for relayed_version in relayed_v3_marker:
+        print(f"## Relayed v{relayed_version}, cross-shard, with contract call, with MoveBalance, via forwarder, with signal error")
+        controller.send(controller.create_relayed_with_contract_call(
+            relayer=accounts.get_user(shard=SOME_SHARD, index=0),
+            sender=accounts.get_user(shard=SOME_SHARD, index=1),
+            contract=accounts.get_contract_address("forwarder", shard=SOME_SHARD, index=0),
+            function="forward",
+            arguments=[
+                I32Value(1),
+                AddressValue.new_from_address(accounts.get_contract_address("dummy", shard=OTHER_SHARD, index=0)),
+                BigUIntValue(42),
+                BytesValue(b"missingMethod"),
+                I64Value(15_000_000),
+            ],
+            gas_limit=30_000_000,
+            amount=43,
+            relayed_version=relayed_version,
+        ), await_completion=True)
+
     memento.replace_run_transactions(controller.transactions_hashes_accumulator)
 
 
