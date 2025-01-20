@@ -550,6 +550,28 @@ def do_run(args: Any):
         ), await_completion=True)
 
     for relayed_version in relayed_v3_marker:
+        print(f"## Relayed v{relayed_version}, intra-shard MoveBalance, when relayer is same as receiver")
+        controller.send(controller.create_relayed_with_move_balance(
+            relayer=accounts.get_user(shard=SOME_SHARD, index=0),
+            sender=accounts.get_user(shard=SOME_SHARD, index=1),
+            receiver=accounts.get_user(shard=SOME_SHARD, index=0).address,
+            amount=42,
+            additional_gas_limit=0,
+            relayed_version=relayed_version,
+        ), await_completion=True)
+
+    for relayed_version in relayed_v3_marker:
+        print(f"## Relayed v{relayed_version}, intra-shard MoveBalance, with refund, when relayer is same as receiver")
+        controller.send(controller.create_relayed_with_move_balance(
+            relayer=accounts.get_user(shard=SOME_SHARD, index=0),
+            sender=accounts.get_user(shard=SOME_SHARD, index=1),
+            receiver=accounts.get_user(shard=SOME_SHARD, index=0).address,
+            amount=42,
+            additional_gas_limit=42000,
+            relayed_version=relayed_version,
+        ), await_completion=True)
+
+    for relayed_version in relayed_v3_marker:
         print(f"## Relayed v{relayed_version}, intra-shard, with contract call, when relayer is same as sender")
         controller.send(controller.create_relayed_with_contract_call(
             relayer=accounts.get_user(shard=SOME_SHARD, index=0),
