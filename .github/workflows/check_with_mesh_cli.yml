@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  test:
+  test-testnet:
     runs-on: ubuntu-latest
 
     steps:
@@ -28,24 +28,38 @@ jobs:
 
       - name: check:construction (native)
         run: |
-          PYTHONPATH=. python3 ./systemtests/check_with_mesh_cli.py --mode=construction-native --network=testnet
+          python3 ./systemtests/check_with_mesh_cli.py --mode=construction-native --network=testnet
           sleep 30
+        env:
+          PYTHONPATH: .
 
       - name: check:construction (custom)
         run: |
-          PYTHONPATH=. python3 ./systemtests/check_with_mesh_cli.py --mode=construction-custom --network=testnet
+          python3 ./systemtests/check_with_mesh_cli.py --mode=construction-custom --network=testnet
           sleep 30
+        env:
+          PYTHONPATH: .
 
-      - name: Generate sample transactions for check:data
+      - name: Generate testdata (setup)
         run: |
-          PYTHONPATH=. python3 ./systemtests/generate_testdata_on_network.py setup --network=testnet
-          PYTHONPATH=. python3 ./systemtests/generate_testdata_on_network.py run --network=testnet
+          python3 ./systemtests/generate_testdata_on_network.py setup --network=testnet
         env:
           USERS_MNEMONIC: ${{ secrets.USERS_MNEMONIC }}
           SPONSOR_SECRET_KEY: ${{ secrets.SPONSOR_SECRET_KEY }}
+          PYTHONPATH: .
+
+      - name: Generate testdata (run)
+        run: |
+          python3 ./systemtests/generate_testdata_on_network.py run --network=testnet
+        env:
+          USERS_MNEMONIC: ${{ secrets.USERS_MNEMONIC }}
+          SPONSOR_SECRET_KEY: ${{ secrets.SPONSOR_SECRET_KEY }}
+          PYTHONPATH: .
 
       - name: check:data
         run: |
-          PYTHONPATH=. python3 ./systemtests/check_with_mesh_cli.py --mode=data --network=testnet
+          python3 ./systemtests/check_with_mesh_cli.py --mode=data --network=testnet
+        env:
+          PYTHONPATH: .
 
 

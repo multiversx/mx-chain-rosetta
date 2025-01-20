@@ -29,7 +29,8 @@ func TestNewNetworkProvider(t *testing.T) {
 		GasLimitCustomTransfer:      200000,
 		MinGasPrice:                 1000000001,
 		MinGasLimit:                 50001,
-		ExtraGasLimitGuardedTx:      50001,
+		ExtraGasLimitGuardedTx:      50002,
+		ExtraGasLimitRelayedTxV3:    50003,
 		NativeCurrencySymbol:        "XeGLD",
 		CustomCurrencies: []resources.Currency{
 			{Symbol: "FOO-abcdef", Decimals: 6},
@@ -62,7 +63,8 @@ func TestNewNetworkProvider(t *testing.T) {
 	assert.Equal(t, uint64(200000), provider.GetNetworkConfig().GasLimitCustomTransfer)
 	assert.Equal(t, uint64(1000000001), provider.GetNetworkConfig().MinGasPrice)
 	assert.Equal(t, uint64(50001), provider.GetNetworkConfig().MinGasLimit)
-	assert.Equal(t, uint64(50001), provider.GetNetworkConfig().ExtraGasLimitGuardedTx)
+	assert.Equal(t, uint64(50002), provider.GetNetworkConfig().ExtraGasLimitGuardedTx)
+	assert.Equal(t, uint64(50003), provider.GetNetworkConfig().ExtraGasLimitRelayedTxV3)
 	assert.Equal(t, "XeGLD", provider.GetNativeCurrency().Symbol)
 	assert.Equal(t, []resources.Currency{
 		{Symbol: "FOO-abcdef", Decimals: 6},
@@ -388,6 +390,7 @@ func createDefaultArgsNewNetworkProvider() ArgsNewNetworkProvider {
 		MinGasPrice:                 1000000000,
 		MinGasLimit:                 50000,
 		ExtraGasLimitGuardedTx:      50000,
+		ExtraGasLimitRelayedTxV3:    50000,
 		NativeCurrencySymbol:        "XeGLD",
 		GenesisBlockHash:            strings.Repeat("0", 64),
 		GenesisTimestamp:            123456789,

@@ -1,2 +1,2 @@
-multiversx-sdk
+multiversx_sdk==1.0.0b1
 requests

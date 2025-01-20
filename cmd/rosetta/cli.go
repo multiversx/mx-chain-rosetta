@@ -120,6 +120,12 @@ VERSION:
 		Value: 50000,
 	}
 
+	cliFlagExtraGasLimitRelayedTxV3 = cli.UintFlag{
+		Name:  "extra-gas-limit-relayed-tx-v3",
+		Usage: "Specifies the extra gas limit for relayed transactions (necessary to compute fees in some circumstances).",
+		Value: 50000,
+	}
+
 	cliFlagGasPerDataByte = cli.UintFlag{
 		Name:  "gas-per-data-byte",
 		Usage: "Specifies the gas required per data byte (for transaction construction).",
@@ -205,6 +211,7 @@ func getAllCliFlags() []cli.Flag {
 		cliFlagMinGasPrice,
 		cliFlagMinGasLimit,
 		cliFlagExtraGasLimitGuardedTx,
+		cliFlagExtraGasLimitRelayedTxV3,
 		cliFlagGasPerDataByte,
 		cliFlagGasPriceModifier,
 		cliFlagGasLimitCustomTransfer,
@@ -237,6 +244,7 @@ type parsedCliFlags struct {
 	minGasPrice                 uint64
 	minGasLimit                 uint64
 	extraGasLimitGuardedTx      uint64
+	extraGasLimitRelayedTxV3    uint64
 	gasPerDataByte              uint64
 	gasPriceModifier            float64
 	gasLimitCustomTransfer      uint64
@@ -269,6 +277,7 @@ func getParsedCliFlags(ctx *cli.Context) parsedCliFlags {
 		minGasPrice:                 ctx.GlobalUint64(cliFlagMinGasPrice.Name),
 		minGasLimit:                 ctx.GlobalUint64(cliFlagMinGasLimit.Name),
 		extraGasLimitGuardedTx:      ctx.GlobalUint64(cliFlagExtraGasLimitGuardedTx.Name),
+		extraGasLimitRelayedTxV3:    ctx.GlobalUint64(cliFlagExtraGasLimitRelayedTxV3.Name),
 		gasPerDataByte:              ctx.GlobalUint64(cliFlagGasPerDataByte.Name),
 		gasPriceModifier:            ctx.GlobalFloat64(cliFlagGasPriceModifier.Name),
 		gasLimitCustomTransfer:      ctx.GlobalUint64(cliFlagGasLimitCustomTransfer.Name),

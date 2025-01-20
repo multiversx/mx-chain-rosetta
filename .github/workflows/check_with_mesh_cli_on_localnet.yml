@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  test:
+  test-localnet:
     runs-on: ubuntu-latest
 
     steps:
@@ -36,16 +36,23 @@ jobs:
           nohup mxpy localnet start --configfile=${GITHUB_WORKSPACE}/systemtests/localnet.toml > localnet.log 2>&1 & echo $! > localnet.pid
           sleep 60 # Allow time for the localnet to start
 
-      - name: Generate testdata
+      - name: Generate testdata (setup)
         run: |
-          source .env
-          PYTHONPATH=. python3 ./systemtests/generate_testdata_on_network.py setup --network localnet
-          PYTHONPATH=. python3 ./systemtests/generate_testdata_on_network.py run --network localnet
+          python3 ./systemtests/generate_testdata_on_network.py setup --network localnet
+        env:
+          PYTHONPATH: .
+
+      - name: Generate testdata (run)
+        run: |
+          python3 ./systemtests/generate_testdata_on_network.py run --network localnet
+        env:
+          PYTHONPATH: .
 
       - name: check:data
         run: |
-          source .env
-          PYTHONPATH=. python3 ./systemtests/check_with_mesh_cli.py --mode=data --network=localnet
+          python3 ./systemtests/check_with_mesh_cli.py --mode=data --network=localnet
+        env:
+          PYTHONPATH: .
 
       - name: Stop MultiversX localnet
         if: success() || failure()

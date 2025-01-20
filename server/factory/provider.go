@@ -42,6 +42,7 @@ type ArgsCreateNetworkProvider struct {
 	MinGasPrice                 uint64
 	MinGasLimit                 uint64
 	ExtraGasLimitGuardedTx      uint64
+	ExtraGasLimitRelayedTxV3    uint64
 	NativeCurrencySymbol        string
 	CustomCurrencies            []resources.Currency
 	GenesisBlockHash            string
@@ -73,7 +74,11 @@ func CreateNetworkProvider(args ArgsCreateNetworkProvider) (NetworkProvider, err
 		},
 	}
 
-	observersProvider, err := observer.NewSimpleNodesProvider(observers, notApplicableConfigurationFilePath)
+	observersProvider, err := observer.NewSimpleNodesProvider(
+		observers,
+		notApplicableConfigurationFilePath,
+		shardCoordinator.NumberOfShards(),
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -89,6 +94,7 @@ func CreateNetworkProvider(args ArgsCreateNetworkProvider) (NetworkProvider, err
 		observersProvider,
 		disabledObserversProvider,
 		pubKeyConverter,
+		true,
 	)
 	if err != nil {
 		return nil, err
@@ -115,7 +121,7 @@ func CreateNetworkProvider(args ArgsCreateNetworkProvider) (NetworkProvider, err
 		return nil, err
 	}
 
-	blockProcessor, err := process.NewBlockProcessor(&components.DisabledExternalStorageConnector{}, baseProcessor)
+	blockProcessor, err := process.NewBlockProcessor(baseProcessor)
 	if err != nil {
 		return nil, err
 	}
@@ -135,6 +141,7 @@ func CreateNetworkProvider(args ArgsCreateNetworkProvider) (NetworkProvider, err
 		MinGasPrice:                 args.MinGasPrice,
 		MinGasLimit:                 args.MinGasLimit,
 		ExtraGasLimitGuardedTx:      args.ExtraGasLimitGuardedTx,
+		ExtraGasLimitRelayedTxV3:    args.ExtraGasLimitRelayedTxV3,
 		NativeCurrencySymbol:        args.NativeCurrencySymbol,
 		CustomCurrencies:            args.CustomCurrencies,
 		GenesisBlockHash:            args.GenesisBlockHash,

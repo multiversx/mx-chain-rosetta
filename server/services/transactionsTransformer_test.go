@@ -2,7 +2,7 @@ package services
 
 import (
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"testing"
 
 	"github.com/coinbase/rosetta-sdk-go/types"
@@ -220,6 +220,73 @@ func TestTransactionsTransformer_NormalTxToRosettaTx(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, expectedRosettaTx, rosettaTx)
 	})
+
+	t.Run("relayed tx V3", func(t *testing.T) {
+		tx := &transaction.ApiTransactionResult{
+			Hash:             "aaaa",
+			Sender:           testscommon.TestAddressAlice,
+			Receiver:         testscommon.TestAddressBob,
+			RelayerAddress:   testscommon.TestAddressCarol,
+			Value:            "1234",
+			InitiallyPaidFee: "50000000000000",
+			Signature:        "signature",
+			RelayerSignature: "signature",
+		}
+
+		expectedRosettaTx := &types.Transaction{
+			TransactionIdentifier: hashToTransactionIdentifier("aaaa"),
+			Operations: []*types.Operation{
+				{
+					Type:    opTransfer,
+					Account: addressToAccountIdentifier(testscommon.TestAddressAlice),
+					Amount:  extension.valueToNativeAmount("-1234"),
+				},
+				{
+					Type:    opTransfer,
+					Account: addressToAccountIdentifier(testscommon.TestAddressBob),
+					Amount:  extension.valueToNativeAmount("1234"),
+				},
+				{
+					Type:    opFee,
+					Account: addressToAccountIdentifier(testscommon.TestAddressCarol),
+					Amount:  extension.valueToNativeAmount("-50000000000000"),
+				},
+			},
+			Metadata: extractTransactionMetadata(tx),
+		}
+
+		rosettaTx, err := transformer.normalTxToRosetta(tx)
+		require.NoError(t, err)
+		require.Equal(t, expectedRosettaTx, rosettaTx)
+	})
+}
+
+func TestTransactionsTransformer_decideFeePayer(t *testing.T) {
+	networkProvider := testscommon.NewNetworkProviderMock()
+	transformer := newTransactionsTransformer(networkProvider)
+
+	t.Run("when fee payer is sender", func(t *testing.T) {
+		tx := &transaction.ApiTransactionResult{
+			Sender:   testscommon.TestAddressAlice,
+			Receiver: testscommon.TestAddressBob,
+		}
+
+		feePayer := transformer.decideFeePayer(tx)
+		require.Equal(t, testscommon.TestAddressAlice, feePayer)
+	})
+
+	t.Run("when fee payer is relayer", func(t *testing.T) {
+		tx := &transaction.ApiTransactionResult{
+			Sender:           testscommon.TestAddressAlice,
+			Receiver:         testscommon.TestAddressBob,
+			RelayerAddress:   testscommon.TestAddressCarol,
+			Signature:        "signature",
+			RelayerSignature: "signature",
+		}
+
+		feePayer := transformer.decideFeePayer(tx)
+		require.Equal(t, testscommon.TestAddressCarol, feePayer)
+	})
 }
 
 func TestTransactionsTransformer_ExtractInnerTxOperationsIfRelayedCompletelyIntrashardWithSignalError(t *testing.T) {
@@ -391,41 +458,84 @@ func TestTransactionsTransformer_InvalidTxToRosettaTx(t *testing.T) {
 	extension := newNetworkProviderExtension(networkProvider)
 	transformer := newTransactionsTransformer(networkProvider)
 
-	tx := &transaction.ApiTransactionResult{
-		Hash:             "aaaa",
-		Sender:           testscommon.TestAddressAlice,
-		Receiver:         testscommon.TestAddressBob,
-		Value:            "1234",
-		Type:             string(transaction.TxTypeInvalid),
-		InitiallyPaidFee: "50000000000000",
-	}
+	t.Run("when fee payer is sender", func(t *testing.T) {
+		tx := &transaction.ApiTransactionResult{
+			Hash:             "aaaa",
+			Sender:           testscommon.TestAddressAlice,
+			Receiver:         testscommon.TestAddressBob,
+			Value:            "1234",
+			Type:             string(transaction.TxTypeInvalid),
+			InitiallyPaidFee: "50000000000000",
+		}
 
-	expectedTx := &types.Transaction{
-		TransactionIdentifier: hashToTransactionIdentifier("aaaa"),
-		Operations: []*types.Operation{
-			{
-				Status:  &opStatusFailure,
-				Type:    opTransfer,
-				Account: addressToAccountIdentifier(testscommon.TestAddressAlice),
-				Amount:  extension.valueToNativeAmount("-1234"),
+		expectedTx := &types.Transaction{
+			TransactionIdentifier: hashToTransactionIdentifier("aaaa"),
+			Operations: []*types.Operation{
+				{
+					Status:  &opStatusFailure,
+					Type:    opTransfer,
+					Account: addressToAccountIdentifier(testscommon.TestAddressAlice),
+					Amount:  extension.valueToNativeAmount("-1234"),
+				},
+				{
+					Status:  &opStatusFailure,
+					Type:    opTransfer,
+					Account: addressToAccountIdentifier(testscommon.TestAddressBob),
+					Amount:  extension.valueToNativeAmount("1234"),
+				},
+				{
+					Type:    opFeeOfInvalidTx,
+					Account: addressToAccountIdentifier(testscommon.TestAddressAlice),
+					Amount:  extension.valueToNativeAmount("-50000000000000"),
+				},
 			},
-			{
-				Status:  &opStatusFailure,
-				Type:    opTransfer,
-				Account: addressToAccountIdentifier(testscommon.TestAddressBob),
-				Amount:  extension.valueToNativeAmount("1234"),
-			},
-			{
-				Type:    opFeeOfInvalidTx,
-				Account: addressToAccountIdentifier(testscommon.TestAddressAlice),
-				Amount:  extension.valueToNativeAmount("-50000000000000"),
-			},
-		},
-		Metadata: extractTransactionMetadata(tx),
-	}
+			Metadata: extractTransactionMetadata(tx),
+		}
 
-	rosettaTx := transformer.invalidTxToRosettaTx(tx)
-	require.Equal(t, expectedTx, rosettaTx)
+		rosettaTx := transformer.invalidTxToRosettaTx(tx)
+		require.Equal(t, expectedTx, rosettaTx)
+	})
+
+	t.Run("when fee payer is relayer", func(t *testing.T) {
+		tx := &transaction.ApiTransactionResult{
+			Hash:             "aaaa",
+			Sender:           testscommon.TestAddressAlice,
+			Receiver:         testscommon.TestAddressBob,
+			RelayerAddress:   testscommon.TestAddressCarol,
+			Value:            "1234",
+			Type:             string(transaction.TxTypeInvalid),
+			InitiallyPaidFee: "50000000000000",
+			Signature:        "signature",
+			RelayerSignature: "signature",
+		}
+
+		expectedTx := &types.Transaction{
+			TransactionIdentifier: hashToTransactionIdentifier("aaaa"),
+			Operations: []*types.Operation{
+				{
+					Status:  &opStatusFailure,
+					Type:    opTransfer,
+					Account: addressToAccountIdentifier(testscommon.TestAddressAlice),
+					Amount:  extension.valueToNativeAmount("-1234"),
+				},
+				{
+					Status:  &opStatusFailure,
+					Type:    opTransfer,
+					Account: addressToAccountIdentifier(testscommon.TestAddressBob),
+					Amount:  extension.valueToNativeAmount("1234"),
+				},
+				{
+					Type:    opFeeOfInvalidTx,
+					Account: addressToAccountIdentifier(testscommon.TestAddressCarol),
+					Amount:  extension.valueToNativeAmount("-50000000000000"),
+				},
+			},
+			Metadata: extractTransactionMetadata(tx),
+		}
+
+		rosettaTx := transformer.invalidTxToRosettaTx(tx)
+		require.Equal(t, expectedTx, rosettaTx)
+	})
 }
 
 func TestTransactionsTransformer_TransformBlockTxsHavingContractDeployments(t *testing.T) {
@@ -1224,7 +1334,7 @@ func readJson(filePath string, value interface{}) error {
 		return err
 	}
 
-	content, err := ioutil.ReadAll(file)
+	content, err := io.ReadAll(file)
 	if err != nil {
 		return err
 	}
