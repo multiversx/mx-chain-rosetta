@@ -19,11 +19,13 @@ from multiversx_sdk import (AccountOnNetwork, Address, AddressComputer,
 from multiversx_sdk.abi import (AddressValue, BigUIntValue, BytesValue,
                                 I32Value, I64Value, Serializer, StringValue,
                                 U32Value)
+from multiversx_sdk.core.address import get_shard_of_pubkey
 
 from systemtests.config import CONFIGURATIONS, Configuration
 from systemtests.constants import (ADDITIONAL_GAS_LIMIT_FOR_RELAYED_V3,
                                    AWAITING_PATIENCE_IN_MILLISECONDS,
-                                   AWAITING_POLLING_TIMEOUT_IN_MILLISECONDS)
+                                   AWAITING_POLLING_TIMEOUT_IN_MILLISECONDS,
+                                   NUM_SHARDS)
 
 CONTRACT_PATH_ADDER = Path(__file__).parent / "contracts" / "adder.wasm"
 CONTRACT_PATH_DUMMY = Path(__file__).parent / "contracts" / "dummy.wasm"
@@ -664,15 +666,13 @@ class BunchOfAccounts:
     def __init__(self, configuration: Configuration, memento: "Memento") -> None:
         self.configuration = configuration
         self.mnemonic = Mnemonic(configuration.users_mnemonic)
+        self.mnemonic_last_index = 0
         self.sponsor = self._create_sponsor()
         self.users: List[Account] = []
         self.users_by_bech32: Dict[str, Account] = {}
         self.contracts: List[SmartContract] = []
 
-        for i in range(configuration.num_users):
-            user = self._create_user(i)
-            self.users.append(user)
-            self.users_by_bech32[user.address.to_bech32()] = user
+        self._create_users()
 
         for item in memento.get_contracts():
             self.contracts.append(item)
@@ -682,10 +682,39 @@ class BunchOfAccounts:
         sponsor_signer = UserSigner(sponsor_secret_key)
         return Account(sponsor_signer)
 
-    def _create_user(self, index: int) -> "Account":
-        user_secret_key = self.mnemonic.derive_key(index)
-        user_signer = UserSigner(user_secret_key)
-        return Account(user_signer)
+    def _create_users(self):
+        num_users_per_shard = self.configuration.num_users_per_shard
+        use_projected_shard = self.configuration.users_in_projected_shard
+
+        user_secret_keys_by_shard: list[list[UserSecretKey]] = [[] for _ in range(NUM_SHARDS)]
+        shard_identifiers = list(range(NUM_SHARDS))
+
+        while True:
+            user_secret_key = self.mnemonic.derive_key(self.mnemonic_last_index)
+            self.mnemonic_last_index += 1
+
+            user_pubkey = user_secret_key.generate_public_key()
+            user_shard = get_shard_of_pubkey(user_pubkey.get_bytes(), NUM_SHARDS)
+            user_projected_shard = user_pubkey.get_bytes()[-1]
+
+            if len(user_secret_keys_by_shard[user_shard]) == num_users_per_shard:
+                continue
+
+            if use_projected_shard:
+                if user_projected_shard in shard_identifiers:
+                    user_secret_keys_by_shard[user_shard].append(user_secret_key)
+            else:
+                user_secret_keys_by_shard[user_shard].append(user_secret_key)
+
+            if all(len(items) == num_users_per_shard for items in user_secret_keys_by_shard):
+                break
+
+        for user_secret_keys in user_secret_keys_by_shard:
+            for key in user_secret_keys:
+                user_signer = UserSigner(key)
+                user = Account(user_signer)
+                self.users.append(user)
+                self.users_by_bech32[user.address.to_bech32()] = user
 
     def get_user(self, shard: int, index: int) -> "Account":
         return [user for user in self.users if self._is_address_in_shard(user.address, shard)][index]
