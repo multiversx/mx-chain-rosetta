@@ -18,6 +18,9 @@ func extractTransactionMetadata(tx *transaction.ApiTransactionResult) objectsMap
 		"miniblockType":     tx.MiniBlockType,
 	}
 
+	if len(tx.RelayerAddress) > 0 {
+		metadata["relayer"] = tx.RelayerAddress
+	}
 	if len(tx.OriginalSender) > 0 {
 		metadata["originalSender"] = tx.OriginalSender
 	}
