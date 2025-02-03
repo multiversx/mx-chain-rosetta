@@ -40,6 +40,7 @@ func TestExtractTransactionMetadata(t *testing.T) {
 
 	require.Equal(t, expectedMetadata, extractTransactionMetadata(tx))
 
+	tx.RelayerAddress = "carol"
 	tx.OriginalSender = "alice"
 	tx.SenderUsername = []byte("alice")
 	tx.ReceiverUsername = []byte("bob")
@@ -49,6 +50,7 @@ func TestExtractTransactionMetadata(t *testing.T) {
 	tx.GasPrice = 42
 	tx.GasLimit = 43
 
+	expectedMetadata["relayer"] = "carol"
 	expectedMetadata["originalSender"] = "alice"
 	expectedMetadata["senderUsername"] = "alice"
 	expectedMetadata["receiverUsername"] = "bob"
