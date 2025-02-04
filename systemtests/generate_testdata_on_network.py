@@ -225,12 +225,6 @@ def do_run(args: Any):
         amount=10000000000000000
     ), await_processing_started=True)
 
-    print("## Direct contract deployment with MoveBalance, with signal error")
-    controller.send(controller.create_contract_deployment_with_move_balance_with_signal_error(
-        sender=accounts.get_user(shard=SOME_SHARD, index=0),
-        amount=77
-    ), await_processing_started=True)
-
     print("## Intra-shard ClaimDeveloperRewards on directly owned contract")
     controller.send(controller.create_claim_developer_rewards_on_directly_owned_contract(
         sender=accounts.get_user(shard=SOME_SHARD, index=0),
