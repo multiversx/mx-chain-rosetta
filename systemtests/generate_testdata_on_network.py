@@ -180,6 +180,8 @@ def do_run(args: Any):
         sender=accounts.get_user(shard=SOME_SHARD, index=1),
         contract=accounts.get_contract_address("dummy", shard=SOME_SHARD, index=0),
         function="doSomething",
+        arguments=[],
+        gas_limit=3_000_000,
         native_amount=42,
         custom_amount=7,
     ), await_processing_started=True)
@@ -189,12 +191,14 @@ def do_run(args: Any):
         sender=accounts.get_user(shard=SOME_SHARD, index=3),
         contract=accounts.get_contract_address("dummy", shard=SOME_SHARD, index=0),
         function="doSomething",
+        arguments=[],
+        gas_limit=3_000_000,
         native_amount=42,
         custom_amount=7,
     ), await_processing_started=True)
 
     print("## Direct contract deployment with MoveBalance")
-    controller.send(controller.create_contract_deployment_with_move_balance(
+    controller.send(controller.create_contract_deployment(
         sender=accounts.get_user(shard=SOME_SHARD, index=0),
         bytecode=CONTRACT_PATH_DUMMY,
         gas_limit=5_000_000,
@@ -203,7 +207,7 @@ def do_run(args: Any):
     ), await_processing_started=True)
 
     print("## Direct contract deployment with MoveBalance, with signal error")
-    controller.send(controller.create_contract_deployment_with_move_balance(
+    controller.send(controller.create_contract_deployment(
         sender=accounts.get_user(shard=SOME_SHARD, index=0),
         bytecode=CONTRACT_PATH_ADDER,
         gas_limit=5_000_000,
@@ -212,17 +216,25 @@ def do_run(args: Any):
     ), await_processing_started=True)
 
     print("## Intra-shard, contract call with MoveBalance, with signal error")
-    controller.send(controller.create_contract_call_with_move_balance_with_signal_error(
+    controller.send(controller.create_transfer_and_execute(
         sender=accounts.get_user(shard=SOME_SHARD, index=0),
         contract=accounts.get_contract_address("adder", shard=SOME_SHARD, index=0),
-        amount=10000000000000000
+        function="missingFunction",
+        arguments=[BigUIntValue(42)],
+        gas_limit=5_000_000,
+        native_amount=10000000000000000,
+        custom_amount=0,
     ), await_processing_started=True)
 
     print("## Cross-shard, contract call with MoveBalance, with signal error")
-    controller.send(controller.create_contract_call_with_move_balance_with_signal_error(
+    controller.send(controller.create_transfer_and_execute(
         sender=accounts.get_user(shard=SOME_SHARD, index=0),
         contract=accounts.get_contract_address("adder", shard=OTHER_SHARD, index=0),
-        amount=10000000000000000
+        function="missingFunction",
+        arguments=[BigUIntValue(42)],
+        gas_limit=5_000_000,
+        native_amount=10000000000000000,
+        custom_amount=0,
     ), await_processing_started=True)
 
     print("## Intra-shard ClaimDeveloperRewards on directly owned contract")
@@ -1099,7 +1111,7 @@ class Controller:
 
         return transaction
 
-    def create_transfer_and_execute(self, sender: "Account", contract: Address, function: str, native_amount: int, custom_amount: int, seal_for_broadcast: bool = True) -> Transaction:
+    def create_transfer_and_execute(self, sender: "Account", contract: Address, function: str, arguments: list[Any], gas_limit: int, native_amount: int, custom_amount: int) -> Transaction:
         token_transfers: List[TokenTransfer] = []
 
         if custom_amount:
@@ -1110,14 +1122,14 @@ class Controller:
             sender=sender.address,
             contract=contract,
             function=function,
-            gas_limit=3000000,
+            arguments=arguments,
+            gas_limit=gas_limit,
             native_transfer_amount=native_amount,
             token_transfers=token_transfers
         )
 
-        if seal_for_broadcast:
-            self.apply_nonce(transaction)
-            self.sign(transaction)
+        self.apply_nonce(transaction)
+        self.sign(transaction)
 
         return transaction
 
@@ -1169,27 +1181,12 @@ class Controller:
 
         raise ValueError(f"Unsupported relayed version: {relayed_version}")
 
-    def create_contract_deployment_with_move_balance(self, sender: "Account", bytecode: Path, arguments: list[Any], gas_limit: int, amount: int) -> Transaction:
+    def create_contract_deployment(self, sender: "Account", bytecode: Path, arguments: list[Any], gas_limit: int, amount: int) -> Transaction:
         transaction = self.contracts_transactions_factory.create_transaction_for_deploy(
             sender=sender.address,
             bytecode=bytecode,
             gas_limit=gas_limit,
             arguments=arguments,
-            native_transfer_amount=amount
-        )
-
-        self.apply_nonce(transaction)
-        self.sign(transaction)
-
-        return transaction
-
-    def create_contract_call_with_move_balance_with_signal_error(self, sender: "Account", contract: Address, amount: int) -> Transaction:
-        transaction = self.contracts_transactions_factory.create_transaction_for_execute(
-            sender=sender.address,
-            contract=contract,
-            function="missingFunction",
-            gas_limit=5000000,
-            arguments=[BigUIntValue(1), BigUIntValue(2), BigUIntValue(3), BigUIntValue(4), BigUIntValue(5)],
             native_transfer_amount=amount
         )
 
