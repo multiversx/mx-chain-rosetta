@@ -96,55 +96,61 @@ def do_run(args: Any):
     controller.wait_until_epoch(configuration.activation_epoch_relayed_v3)
 
     print("## Intra-shard, simple MoveBalance with refund")
-    controller.send(controller.create_simple_move_balance(
+    controller.send(controller.create_transfer(
         sender=accounts.get_user(shard=SOME_SHARD, index=0),
         receiver=accounts.get_user(shard=SOME_SHARD, index=1).address,
-        amount=42,
+        native_amount=42,
+        custom_amount=0,
         additional_gas_limit=42000,
     ), await_processing_started=True)
 
     print("## Cross-shard, simple MoveBalance with refund")
-    controller.send(controller.create_simple_move_balance(
+    controller.send(controller.create_transfer(
         sender=accounts.get_user(shard=SOME_SHARD, index=1),
         receiver=accounts.get_user(shard=OTHER_SHARD, index=0).address,
-        amount=42,
+        native_amount=42,
+        custom_amount=0,
         additional_gas_limit=42000,
     ), await_processing_started=True)
 
     print("## Intra-shard, invalid MoveBalance with refund")
-    controller.send(controller.create_simple_move_balance(
+    controller.send(controller.create_transfer(
         sender=accounts.get_user(shard=SOME_SHARD, index=2),
         receiver=accounts.get_user(shard=SOME_SHARD, index=3).address,
-        amount=1000000000000000000000000,
+        native_amount=1000000000000000000000000,
+        custom_amount=0,
         additional_gas_limit=42000,
     ), await_processing_started=True)
 
     print("## Cross-shard, invalid MoveBalance with refund")
-    controller.send(controller.create_simple_move_balance(
+    controller.send(controller.create_transfer(
         sender=accounts.get_user(shard=SOME_SHARD, index=3),
         receiver=accounts.get_user(shard=OTHER_SHARD, index=1).address,
-        amount=1000000000000000000000000,
+        native_amount=1000000000000000000000000,
+        custom_amount=0,
         additional_gas_limit=42000,
     ), await_processing_started=True)
 
     print("## Intra-shard, sending value to non-payable contract")
-    controller.send(controller.create_simple_move_balance(
+    controller.send(controller.create_transfer(
         sender=accounts.get_user(shard=SOME_SHARD, index=0),
         receiver=accounts.get_contract_address("adder", shard=SOME_SHARD, index=0),
-        amount=42,
+        native_amount=42,
+        custom_amount=0,
         additional_gas_limit=42000,
     ), await_processing_started=True)
 
     print("## Cross-shard, sending value to non-payable contract")
-    controller.send(controller.create_simple_move_balance(
+    controller.send(controller.create_transfer(
         sender=accounts.get_user(shard=SOME_SHARD, index=1),
         receiver=accounts.get_contract_address("adder", shard=OTHER_SHARD, index=0),
-        amount=42,
+        native_amount=42,
+        custom_amount=0,
         additional_gas_limit=42000,
     ), await_processing_started=True)
 
     print("## Intra-shard, native transfer within MultiESDTTransfer")
-    controller.send(controller.create_native_transfer_within_multiesdt(
+    controller.send(controller.create_transfer(
         sender=accounts.get_user(shard=SOME_SHARD, index=0),
         receiver=accounts.get_user(shard=SOME_SHARD, index=1).address,
         native_amount=42,
@@ -152,7 +158,7 @@ def do_run(args: Any):
     ), await_processing_started=True)
 
     print("## Cross-shard, native transfer within MultiESDTTransfer")
-    controller.send(controller.create_native_transfer_within_multiesdt(
+    controller.send(controller.create_transfer(
         sender=accounts.get_user(shard=SOME_SHARD, index=1),
         receiver=accounts.get_user(shard=OTHER_SHARD, index=0).address,
         native_amount=42,
@@ -160,7 +166,7 @@ def do_run(args: Any):
     ), await_processing_started=True)
 
     print("## Intra-shard, native transfer within MultiESDTTransfer, towards non-payable contract")
-    controller.send(controller.create_native_transfer_within_multiesdt(
+    controller.send(controller.create_transfer(
         sender=accounts.get_user(shard=SOME_SHARD, index=0),
         receiver=accounts.get_contract_address("adder", shard=SOME_SHARD, index=0),
         native_amount=42,
@@ -168,7 +174,7 @@ def do_run(args: Any):
     ), await_processing_started=True)
 
     print("## Cross-shard, native transfer within MultiESDTTransfer, towards non-payable contract")
-    controller.send(controller.create_native_transfer_within_multiesdt(
+    controller.send(controller.create_transfer(
         sender=accounts.get_user(shard=SOME_SHARD, index=1),
         receiver=accounts.get_contract_address("adder", shard=OTHER_SHARD, index=0),
         native_amount=42,
@@ -1053,29 +1059,21 @@ class Controller:
         self.send(transaction)
         self.await_completed([transaction])
 
-    def create_simple_move_balance(self, sender: "Account", receiver: Address, amount: int, additional_gas_limit: int = 0) -> Transaction:
-        transaction = self.transfer_transactions_factory.create_transaction_for_native_token_transfer(
-            sender=sender.address,
-            receiver=receiver,
-            native_amount=amount
-        )
+    def create_transfer(self, sender: "Account", receiver: Address, native_amount: int, custom_amount: int, additional_gas_limit: int = 0) -> Transaction:
+        token_transfers: List[TokenTransfer] = []
 
-        transaction.gas_limit += additional_gas_limit
-
-        self.apply_nonce(transaction)
-        self.sign(transaction)
-
-        return transaction
-
-    def create_native_transfer_within_multiesdt(self, sender: "Account", receiver: Address, native_amount: int, custom_amount: int) -> Transaction:
-        custom_currency = self.memento.get_custom_currencies()[0]
+        if custom_amount:
+            custom_currency = self.memento.get_custom_currencies()[0]
+            token_transfers = [TokenTransfer(Token(custom_currency), custom_amount)]
 
         transaction = self.transfer_transactions_factory.create_transaction_for_transfer(
             sender=sender.address,
             receiver=receiver,
             native_amount=native_amount,
-            token_transfers=[TokenTransfer(Token(custom_currency), custom_amount)]
+            token_transfers=token_transfers
         )
+
+        transaction.gas_limit += additional_gas_limit
 
         self.apply_nonce(transaction)
         self.sign(transaction)
