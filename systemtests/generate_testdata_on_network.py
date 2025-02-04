@@ -196,7 +196,19 @@ def do_run(args: Any):
     print("## Direct contract deployment with MoveBalance")
     controller.send(controller.create_contract_deployment_with_move_balance(
         sender=accounts.get_user(shard=SOME_SHARD, index=0),
-        amount=10000000000000000
+        bytecode=CONTRACT_PATH_DUMMY,
+        gas_limit=5_000_000,
+        arguments=[],
+        amount=10000000000000000,
+    ), await_processing_started=True)
+
+    print("## Direct contract deployment with MoveBalance, with signal error")
+    controller.send(controller.create_contract_deployment_with_move_balance(
+        sender=accounts.get_user(shard=SOME_SHARD, index=0),
+        bytecode=CONTRACT_PATH_ADDER,
+        gas_limit=5_000_000,
+        arguments=[BigUIntValue(41), BigUIntValue(42)],
+        amount=77
     ), await_processing_started=True)
 
     print("## Intra-shard, contract call with MoveBalance, with signal error")
@@ -1163,26 +1175,12 @@ class Controller:
 
         raise ValueError(f"Unsupported relayed version: {relayed_version}")
 
-    def create_contract_deployment_with_move_balance(self, sender: "Account", amount: int) -> Transaction:
+    def create_contract_deployment_with_move_balance(self, sender: "Account", bytecode: Path, arguments: list[Any], gas_limit: int, amount: int) -> Transaction:
         transaction = self.contracts_transactions_factory.create_transaction_for_deploy(
             sender=sender.address,
-            bytecode=CONTRACT_PATH_DUMMY,
-            gas_limit=5000000,
-            arguments=[BigUIntValue(0)],
-            native_transfer_amount=amount
-        )
-
-        self.apply_nonce(transaction)
-        self.sign(transaction)
-
-        return transaction
-
-    def create_contract_deployment_with_move_balance_with_signal_error(self, sender: "Account", amount: int) -> Transaction:
-        transaction = self.contracts_transactions_factory.create_transaction_for_deploy(
-            sender=sender.address,
-            bytecode=CONTRACT_PATH_ADDER,
-            gas_limit=5000000,
-            arguments=[BigUIntValue(1), BigUIntValue(2), BigUIntValue(3), BigUIntValue(4), BigUIntValue(5)],
+            bytecode=bytecode,
+            gas_limit=gas_limit,
+            arguments=arguments,
             native_transfer_amount=amount
         )
 
