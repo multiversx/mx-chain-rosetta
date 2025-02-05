@@ -317,7 +317,7 @@ def do_run(args: Any):
         receiver=accounts.get_user(shard=SOME_SHARD, index=2).address,
         value=0,
         data="MultiESDTNFTTransfer@" + Serializer().serialize([
-            AddressValue.new_from_address(accounts.get_user(shard=SOME_SHARD, index=3).address),
+            AddressValue.new_from_address(accounts.get_user(shard=OTHER_SHARD, index=3).address),
             U32Value(2),
             StringValue("EGLD-000000"),
             U32Value(0),
@@ -792,6 +792,66 @@ def do_run(args: Any):
             relayed_version=relayed_version,
         ), await_completion=True)
 
+    print("## Relayed v3, intra-shard, transfer native within multi-transfer (fuzzy, with tx.value != 0)")
+    controller.send(controller.create_arbitrary_transaction(
+        sender=accounts.get_user(shard=SOME_SHARD, index=2),
+        # receiver := sender, since we're using multi-transfer.
+        receiver=accounts.get_user(shard=SOME_SHARD, index=2).address,
+        value=42,
+        data="MultiESDTNFTTransfer@" + Serializer().serialize([
+            AddressValue.new_from_address(accounts.get_user(shard=SOME_SHARD, index=3).address),
+            U32Value(2),
+            StringValue("EGLD-000000"),
+            U32Value(0),
+            U32Value(42),
+            StringValue("EGLD-000000"),
+            U32Value(0),
+            U32Value(43)
+        ]),
+        gas_limit=5_000_000,
+        relayer=accounts.get_user(shard=SOME_SHARD, index=0),
+    ), await_processing_started=True)
+
+    print("## Relayed v3, intra-shard, transfer native within multi-transfer (fuzzy, with tx.value == 0, but transfer to self)")
+    controller.send(controller.create_arbitrary_transaction(
+        sender=accounts.get_user(shard=SOME_SHARD, index=3),
+        # receiver := sender, since we're using multi-transfer.
+        receiver=accounts.get_user(shard=SOME_SHARD, index=3).address,
+        value=0,
+        data="MultiESDTNFTTransfer@" + Serializer().serialize([
+            AddressValue.new_from_address(accounts.get_user(shard=SOME_SHARD, index=3).address),
+            U32Value(2),
+            StringValue("EGLD-000000"),
+            U32Value(0),
+            U32Value(42),
+            StringValue("EGLD-000000"),
+            U32Value(0),
+            U32Value(43)
+        ]),
+        gas_limit=5_000_000,
+        relayer=accounts.get_user(shard=SOME_SHARD, index=0),
+    ), await_processing_started=True)
+
+    print("## Relayed v3, cross-shard, transfer native within multi-transfer (fuzzy, with tx.value == 0)")
+    controller.send(controller.create_arbitrary_transaction(
+        sender=accounts.get_user(shard=SOME_SHARD, index=2),
+        # receiver := sender, since we're using multi-transfer.
+        receiver=accounts.get_user(shard=SOME_SHARD, index=2).address,
+        value=0,
+        data="MultiESDTNFTTransfer@" + Serializer().serialize([
+            AddressValue.new_from_address(accounts.get_user(shard=OTHER_SHARD, index=3).address),
+            U32Value(2),
+            StringValue("EGLD-000000"),
+            U32Value(0),
+            U32Value(42),
+            StringValue("EGLD-000000"),
+            U32Value(0),
+            U32Value(43)
+        ]),
+        gas_limit=5_000_000,
+        relayer=accounts.get_user(shard=SOME_SHARD, index=0),
+    ), await_processing_started=True)
+
     memento.replace_run_transactions(controller.transactions_hashes_accumulator)
 
 
@@ -1168,7 +1228,7 @@ class Controller:
         self.send(transaction)
         self.await_completed([transaction])
 
-    def create_arbitrary_transaction(self, sender: "Account", receiver: Address, value: int, data: str, gas_limit: int) -> Transaction:
+    def create_arbitrary_transaction(self, sender: "Account", receiver: Address, value: int, data: str, gas_limit: int, relayer: Optional["Account"] = None) -> Transaction:
         transaction = Transaction(
             sender=sender.address,
             receiver=receiver,
@@ -1178,8 +1238,14 @@ class Controller:
             data=data.encode()
         )
 
+        if relayer is not None:
+            transaction.relayer = relayer.address
+
         self.apply_nonce(transaction)
         self.sign(transaction)
+
+        if relayer is not None:
+            self.sign_as_relayer_v3(transaction)
 
         return transaction
 
