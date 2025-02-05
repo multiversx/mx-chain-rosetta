@@ -1,4 +1,5 @@
 import json
+import os
 import time
 from argparse import ArgumentParser
 from multiprocessing.dummy import Pool
@@ -850,6 +851,26 @@ def do_run(args: Any):
         ]),
         gas_limit=5_000_000,
         relayer=accounts.get_user(shard=SOME_SHARD, index=0),
+    ), await_processing_started=True)
+
+    print("## Relayed v3, fuzzy, SaveKeyValue")
+    controller.send(controller.create_arbitrary_transaction(
+        sender=accounts.get_user(shard=SOME_SHARD, index=0),
+        receiver=accounts.get_user(shard=SOME_SHARD, index=0).address,
+        value=0,
+        data=f"SaveKeyValue@{os.urandom(4).hex()}@{os.urandom(4).hex()}",
+        gas_limit=1_000_000,
+        relayer=accounts.get_user(shard=SOME_SHARD, index=0),
+    ), await_processing_started=True)
+
+    print("## Relayed v3, fuzzy, SetGuardian")
+    controller.send(controller.create_arbitrary_transaction(
+        sender=accounts.get_user(shard=SOME_SHARD, index=1),
+        receiver=accounts.get_user(shard=SOME_SHARD, index=1).address,
+        value=0,
+        data=f"SetGuardian@{os.urandom(32).hex()}@{os.urandom(4).hex()}",
+        gas_limit=1_000_000,
+        relayer=accounts.get_user(shard=SOME_SHARD, index=1),
     ), await_processing_started=True)
 
     memento.replace_run_transactions(controller.transactions_hashes_accumulator)
