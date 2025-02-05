@@ -272,28 +272,61 @@ def do_run(args: Any):
         parent_contract=accounts.get_contract_address("developerRewards", shard=OTHER_SHARD, index=0),
     ), await_processing_started=True)
 
-    print("## Intra-shard, transfer native within MultiESDTTransfer (fuzzy, with tx.value != 0)")
-    controller.send(controller.create_native_transfer_within_multiesdt_fuzzy(
+    print("## Intra-shard, transfer native within multi-transfer (fuzzy, with tx.value != 0)")
+    controller.send(controller.create_arbitrary_transaction(
         sender=accounts.get_user(shard=SOME_SHARD, index=2),
-        receiver=accounts.get_user(shard=SOME_SHARD, index=3).address,
-        native_amount_as_value=42,
-        native_amount_in_data=[43, 44]
+        # receiver := sender, since we're using multi-transfer.
+        receiver=accounts.get_user(shard=SOME_SHARD, index=2).address,
+        value=42,
+        data="MultiESDTNFTTransfer@" + Serializer().serialize([
+            AddressValue.new_from_address(accounts.get_user(shard=SOME_SHARD, index=3).address),
+            U32Value(2),
+            StringValue("EGLD-000000"),
+            U32Value(0),
+            U32Value(42),
+            StringValue("EGLD-000000"),
+            U32Value(0),
+            U32Value(43)
+        ]),
+        gas_limit=5_000_000
     ), await_processing_started=True)
 
-    print("## Intra-shard, transfer native within MultiESDTTransfer (fuzzy, with tx.value == 0)")
-    controller.send(controller.create_native_transfer_within_multiesdt_fuzzy(
+    print("## Intra-shard, transfer native within multi-transfer (fuzzy, with tx.value == 0, but transfer to self)")
+    controller.send(controller.create_arbitrary_transaction(
         sender=accounts.get_user(shard=SOME_SHARD, index=3),
+        # receiver := sender, since we're using multi-transfer.
         receiver=accounts.get_user(shard=SOME_SHARD, index=3).address,
-        native_amount_as_value=0,
-        native_amount_in_data=[43, 44]
+        value=0,
+        data="MultiESDTNFTTransfer@" + Serializer().serialize([
+            AddressValue.new_from_address(accounts.get_user(shard=SOME_SHARD, index=3).address),
+            U32Value(2),
+            StringValue("EGLD-000000"),
+            U32Value(0),
+            U32Value(42),
+            StringValue("EGLD-000000"),
+            U32Value(0),
+            U32Value(43)
+        ]),
+        gas_limit=5_000_000
     ), await_processing_started=True)
 
-    print("## Cross-shard, transfer native within MultiESDTTransfer (fuzzy, with tx.value == 0)")
-    controller.send(controller.create_native_transfer_within_multiesdt_fuzzy(
+    print("## Cross-shard, transfer native within multi-transfer (fuzzy, with tx.value == 0)")
+    controller.send(controller.create_arbitrary_transaction(
         sender=accounts.get_user(shard=SOME_SHARD, index=2),
-        receiver=accounts.get_user(shard=OTHER_SHARD, index=3).address,
-        native_amount_as_value=0,
-        native_amount_in_data=[43, 44]
+        # receiver := sender, since we're using multi-transfer.
+        receiver=accounts.get_user(shard=SOME_SHARD, index=2).address,
+        value=0,
+        data="MultiESDTNFTTransfer@" + Serializer().serialize([
+            AddressValue.new_from_address(accounts.get_user(shard=SOME_SHARD, index=3).address),
+            U32Value(2),
+            StringValue("EGLD-000000"),
+            U32Value(0),
+            U32Value(42),
+            StringValue("EGLD-000000"),
+            U32Value(0),
+            U32Value(43)
+        ]),
+        gas_limit=5_000_000
     ), await_processing_started=True)
 
     relayed_v1_marker = [1] if configuration.generate_relayed_v1 else []
@@ -1135,6 +1168,21 @@ class Controller:
         self.send(transaction)
         self.await_completed([transaction])
 
+    def create_arbitrary_transaction(self, sender: "Account", receiver: Address, value: int, data: str, gas_limit: int) -> Transaction:
+        transaction = Transaction(
+            sender=sender.address,
+            receiver=receiver,
+            gas_limit=gas_limit,
+            chain_id=self.configuration.network_id,
+            value=value,
+            data=data.encode()
+        )
+
+        self.apply_nonce(transaction)
+        self.sign(transaction)
+
+        return transaction
+
     def create_transfer(self, sender: "Account", receiver: Address, native_amount: int, custom_amount: int, additional_gas_limit: int = 0) -> Transaction:
         token_transfers: List[TokenTransfer] = []
 
@@ -1150,35 +1198,6 @@ class Controller:
         )
 
         transaction.gas_limit += additional_gas_limit
-
-        self.apply_nonce(transaction)
-        self.sign(transaction)
-
-        return transaction
-
-    def create_native_transfer_within_multiesdt_fuzzy(self, sender: "Account", receiver: Address, native_amount_as_value: int, native_amount_in_data: list[int]) -> Transaction:
-        serializer = Serializer(parts_separator="@")
-
-        data_args = [
-            AddressValue(receiver.pubkey),
-            U32Value(len(native_amount_in_data))
-        ]
-
-        for amount in native_amount_in_data:
-            data_args.append(StringValue("EGLD-000000"))
-            data_args.append(U32Value(0))
-            data_args.append(U32Value(amount))
-
-        data = "MultiESDTNFTTransfer@" + serializer.serialize(data_args)
-
-        transaction = Transaction(
-            sender=sender.address,
-            receiver=sender.address,
-            gas_limit=5000000,
-            chain_id=self.configuration.network_id,
-            value=native_amount_as_value,
-            data=data.encode()
-        )
 
         self.apply_nonce(transaction)
         self.sign(transaction)
