@@ -27,8 +27,20 @@ jobs:
                   cd $GITHUB_WORKSPACE/cmd/rosetta && go build .
                   cd $GITHUB_WORKSPACE/systemtests && go build ./proxyToObserverAdapter.go
 
-            - name: check:data
+            - name: check:data (shard 0)
               run: |
-                  python3 ./systemtests/check_with_mesh_cli.py --mode=data --network=testnet
+                  python3 ./systemtests/check_with_mesh_cli.py --mode=data --network=testnet --network-shard=0
+              env:
+                  PYTHONPATH: .
+
+            - name: check:data (shard 1)
+              run: |
+                  python3 ./systemtests/check_with_mesh_cli.py --mode=data --network=testnet --network-shard=1
+              env:
+                  PYTHONPATH: .
+
+            - name: check:data (shard 2)
+              run: |
+                  python3 ./systemtests/check_with_mesh_cli.py --mode=data --network=testnet --network-shard=2
               env:
                   PYTHONPATH: .

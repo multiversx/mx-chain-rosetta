@@ -252,14 +252,15 @@ PYTHONPATH=. python3 ./systemtests/generate_testdata_on_network.py run --network
 Run the checks:
 
 ```
-PYTHONPATH=. python3 ./systemtests/check_with_mesh_cli.py --mode=data --network=testnet
+PYTHONPATH=. python3 ./systemtests/check_with_mesh_cli.py --mode=data --network=testnet --network-shard=0
+```
 
 # Or, continuously:
-while PYTHONPATH=. python3 ./systemtests/check_with_mesh_cli.py --mode=data --network=testnet; do sleep 5; done
+while PYTHONPATH=. python3 ./systemtests/check_with_mesh_cli.py --mode=data --network=testnet --network-shard=0; do sleep 5; done
 ```
 
 ### Check:construction
 
 ```
-PYTHONPATH=. python3 ./systemtests/check_with_mesh_cli.py --mode=construction-native --network=testnet
+PYTHONPATH=. python3 ./systemtests/check_with_mesh_cli.py --mode=construction-native --network=testnet --network-shard=0
 ```

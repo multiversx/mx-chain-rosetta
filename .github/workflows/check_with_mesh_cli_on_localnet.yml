@@ -50,7 +50,7 @@ jobs:
 
       - name: check:data
         run: |
-          python3 ./systemtests/check_with_mesh_cli.py --mode=data --network=localnet
+          python3 ./systemtests/check_with_mesh_cli.py --mode=data --network=localnet --network-shard=0
         env:
           PYTHONPATH: .
 

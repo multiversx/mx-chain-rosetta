@@ -10,7 +10,6 @@ DEFAULT_USERS_MNEMONIC = "moral volcano peasant pass circle pen over picture fla
 
 @dataclass
 class Configuration:
-    network_shard: int
     network_id: str
     network_name: str
     native_currency: str
@@ -39,7 +38,6 @@ class Configuration:
 
 CONFIGURATIONS = {
     "mainnet": Configuration(
-        network_shard=0,
         network_id="1",
         network_name="untitled",
         native_currency="EGLD",
@@ -59,12 +57,11 @@ CONFIGURATIONS = {
         view_url="https://explorer.multiversx.com/transactions/{hash}",
     ),
     "devnet": Configuration(
-        network_shard=0,
         network_id="D",
         network_name="untitled",
         native_currency="EGLD",
         config_file_custom_currencies="systemtests/rosetta_config/devnet-custom-currencies.json",
-        num_historical_epochs=1,
+        num_historical_epochs=3,
         observer_url="",
         proxy_url="https://devnet-gateway.multiversx.com",
         activation_epoch_sirius=629,
@@ -79,12 +76,11 @@ CONFIGURATIONS = {
         view_url="https://devnet-explorer.multiversx.com/transactions/{hash}",
     ),
     "testnet": Configuration(
-        network_shard=0,
         network_id="T",
         network_name="untitled",
         native_currency="EGLD",
         config_file_custom_currencies="systemtests/rosetta_config/testnet-custom-currencies.json",
-        num_historical_epochs=1,
+        num_historical_epochs=3,
         observer_url="",
         proxy_url="https://testnet-gateway.multiversx.com",
         activation_epoch_sirius=1,
@@ -100,7 +96,6 @@ CONFIGURATIONS = {
         generate_relayed_v3=True
     ),
     "localnet": Configuration(
-        network_shard=0,
         network_id="localnet",
         network_name="untitled",
         native_currency="EGLD",
@@ -122,7 +117,6 @@ CONFIGURATIONS = {
         generate_relayed_v3=True
     ),
     "internal": Configuration(
-        network_shard=0,
         network_id="1",
         network_name="untitled",
         native_currency="EGLD",
