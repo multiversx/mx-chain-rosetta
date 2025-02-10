@@ -30,7 +30,8 @@ class Configuration:
     memento_file: str = ""
     sponsor_secret_key: bytes = bytes.fromhex(os.environ.get("SPONSOR_SECRET_KEY", DEFAULT_SPONSOR_SECRET_KEY))
     users_mnemonic: str = os.environ.get("USERS_MNEMONIC", DEFAULT_USERS_MNEMONIC)
-    num_users: int = 128
+    num_users_per_shard: int = 16
+    users_in_projected_shard: bool = False
     generate_relayed_v1: bool = False
     generate_relayed_v2: bool = False
     generate_relayed_v3: bool = False
@@ -66,7 +67,7 @@ CONFIGURATIONS = {
         proxy_url="https://devnet-gateway.multiversx.com",
         activation_epoch_sirius=629,
         activation_epoch_spica=2327,
-        activation_epoch_relayed_v3=4294967295,
+        activation_epoch_relayed_v3=2991,
         check_construction_native_configuration_file="systemtests/mesh_cli_config/devnet-construction-native.json",
         check_construction_custom_configuration_file="systemtests/mesh_cli_config/devnet-construction-custom.json",
         check_data_configuration_file="systemtests/mesh_cli_config/check-data.json",
@@ -74,6 +75,8 @@ CONFIGURATIONS = {
         check_data_num_blocks=0,
         memento_file="systemtests/memento/devnet.json",
         view_url="https://devnet-explorer.multiversx.com/transactions/{hash}",
+        users_in_projected_shard=True,
+        generate_relayed_v3=True
     ),
     "testnet": Configuration(
         network_id="T",

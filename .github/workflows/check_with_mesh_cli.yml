@@ -51,6 +51,9 @@ jobs:
       - name: Generate testdata (run)
         run: |
           python3 ./systemtests/generate_testdata_on_network.py run --network=testnet
+
+          # Allow the blocks that hold the sample transactions to become "final".
+          sleep 30
         env:
           USERS_MNEMONIC: ${{ secrets.USERS_MNEMONIC }}
           SPONSOR_SECRET_KEY: ${{ secrets.SPONSOR_SECRET_KEY }}

@@ -28,7 +28,7 @@ port_first_validator_rest_api = 10200
 
 [software.mx_chain_go]
 resolution = "remote"
-archive_url = "https://github.com/multiversx/mx-chain-go/archive/refs/tags/v1.8.8.zip"
+archive_url = "https://github.com/multiversx/mx-chain-go/archive/refs/tags/v1.8.11.zip"
 archive_download_folder = "~/multiversx-sdk/localnet_software_remote/downloaded/mx-chain-go"
 archive_extraction_folder = "~/multiversx-sdk/localnet_software_remote/extracted/mx-chain-go"
 local_path = "~/multiversx-sdk/localnet_software_local/mx-chain-go"

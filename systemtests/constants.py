@@ -1,5 +1,6 @@
 from pathlib import Path
 
+NUM_SHARDS = 3
 PATH_REPOSITORY = Path(__file__).parent.parent
 PATH_ROSETTA = PATH_REPOSITORY / "cmd" / "rosetta" / "rosetta"
 PATH_PROXY_TO_OBSERVER_ADAPTER = PATH_REPOSITORY / "systemtests" / "proxyToObserverAdapter"
