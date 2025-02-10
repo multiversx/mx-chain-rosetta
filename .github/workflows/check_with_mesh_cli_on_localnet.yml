@@ -38,13 +38,13 @@ jobs:
 
       - name: Generate testdata (setup)
         run: |
-          python3 ./systemtests/generate_testdata_on_network.py setup --network localnet
+          python3 ./systemtests/generate_testdata_on_network.py setup --network=localnet
         env:
           PYTHONPATH: .
 
       - name: Generate testdata (run)
         run: |
-          python3 ./systemtests/generate_testdata_on_network.py run --network localnet
+          python3 ./systemtests/generate_testdata_on_network.py run --network=localnet
           
           # Allow the blocks that hold the sample transactions to become "final".
           sleep 30
