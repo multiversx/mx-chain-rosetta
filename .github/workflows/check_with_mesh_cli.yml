@@ -28,14 +28,14 @@ jobs:
 
       - name: check:construction (native)
         run: |
-          python3 ./systemtests/check_with_mesh_cli.py --mode=construction-native --network=testnet
+          python3 ./systemtests/check_with_mesh_cli.py --mode=construction-native --network=testnet --shard=0
           sleep 30
         env:
           PYTHONPATH: .
 
       - name: check:construction (custom)
         run: |
-          python3 ./systemtests/check_with_mesh_cli.py --mode=construction-custom --network=testnet
+          python3 ./systemtests/check_with_mesh_cli.py --mode=construction-custom --network=testnet --shard=0
           sleep 30
         env:
           PYTHONPATH: .
@@ -61,7 +61,7 @@ jobs:
 
       - name: check:data
         run: |
-          python3 ./systemtests/check_with_mesh_cli.py --mode=data --network=testnet
+          python3 ./systemtests/check_with_mesh_cli.py --mode=data --network=testnet --shard=0 --num-blocks=3000
         env:
           PYTHONPATH: .
 

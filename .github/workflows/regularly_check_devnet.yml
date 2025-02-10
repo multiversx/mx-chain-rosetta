@@ -3,7 +3,7 @@ name: Regularly check devnet
 on:
     workflow_dispatch:
     schedule:
-        - cron: "0 */2 * * *"
+        - cron: "0 */4 * * *"
 
 jobs:
     check-devnet:
@@ -27,8 +27,20 @@ jobs:
                   cd $GITHUB_WORKSPACE/cmd/rosetta && go build .
                   cd $GITHUB_WORKSPACE/systemtests && go build ./proxyToObserverAdapter.go
 
-            - name: check:data
+            - name: check:data (shard 0)
               run: |
-                  python3 ./systemtests/check_with_mesh_cli.py --mode=data --network=devnet
+                  python3 ./systemtests/check_with_mesh_cli.py --mode=data --network=devnet --shard=0 --num-blocks=3000
+              env:
+                  PYTHONPATH: .
+
+            - name: check:data (shard 1)
+              run: |
+                  python3 ./systemtests/check_with_mesh_cli.py --mode=data --network=devnet --shard=1 --num-blocks=3000
+              env:
+                  PYTHONPATH: .
+
+            - name: check:data (shard 2)
+              run: |
+                  python3 ./systemtests/check_with_mesh_cli.py --mode=data --network=devnet --shard=2 --num-blocks=3000
               env:
                   PYTHONPATH: .
