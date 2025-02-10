@@ -24,7 +24,6 @@ class Configuration:
     check_construction_custom_configuration_file: str
     check_data_configuration_file: str
     check_data_directory: str
-    check_data_num_blocks: int
     view_url: str
     custom_currency_issue_cost: int = 50000000000000000
     memento_file: str = ""
@@ -53,7 +52,6 @@ CONFIGURATIONS = {
         check_construction_custom_configuration_file="",
         check_data_configuration_file="systemtests/mesh_cli_config/check-data.json",
         check_data_directory="systemtests/mainnet-data",
-        check_data_num_blocks=4096,
         memento_file="systemtests/memento/mainnet.json",
         view_url="https://explorer.multiversx.com/transactions/{hash}",
     ),
@@ -72,7 +70,6 @@ CONFIGURATIONS = {
         check_construction_custom_configuration_file="systemtests/mesh_cli_config/devnet-construction-custom.json",
         check_data_configuration_file="systemtests/mesh_cli_config/check-data.json",
         check_data_directory="systemtests/devnet-data",
-        check_data_num_blocks=0,
         memento_file="systemtests/memento/devnet.json",
         view_url="https://devnet-explorer.multiversx.com/transactions/{hash}",
         users_in_projected_shard=True,
@@ -93,7 +90,6 @@ CONFIGURATIONS = {
         check_construction_custom_configuration_file="systemtests/mesh_cli_config/testnet-construction-custom.json",
         check_data_configuration_file="systemtests/mesh_cli_config/check-data.json",
         check_data_directory="systemtests/testnet-data",
-        check_data_num_blocks=0,
         memento_file="systemtests/memento/testnet.json",
         view_url="https://testnet-explorer.multiversx.com/transactions/{hash}",
         generate_relayed_v3=True
@@ -113,7 +109,6 @@ CONFIGURATIONS = {
         check_construction_custom_configuration_file="systemtests/mesh_cli_config/localnet-construction-custom.json",
         check_data_configuration_file="systemtests/mesh_cli_config/check-data.json",
         check_data_directory="systemtests/localnet-data",
-        check_data_num_blocks=0,
         memento_file="systemtests/memento/localnet.json",
         view_url="http://localhost:7950/transaction/{hash}?withResults=true&withLogs=true",
         custom_currency_issue_cost=5000000000000000000,
@@ -134,7 +129,6 @@ CONFIGURATIONS = {
         check_construction_custom_configuration_file="systemtests/mesh_cli_config/internal-construction-custom.json",
         check_data_configuration_file="systemtests/mesh_cli_config/check-data.json",
         check_data_directory="systemtests/internal-data",
-        check_data_num_blocks=0,
         memento_file="systemtests/memento/internal.json",
         view_url=f"{os.environ.get('INTERNAL_TESTNET_EXPLORER_URL', '')}/transactions/{{hash}}",
         custom_currency_issue_cost=5000000000000000000

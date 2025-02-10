@@ -28,7 +28,7 @@ jobs:
 
       - name: check:data
         run: |
-          python3 ./systemtests/check_with_mesh_cli.py --mode=data --network=mainnet --network-shard=0
+          python3 ./systemtests/check_with_mesh_cli.py --mode=data --network=mainnet --shard=0
         env:
           MAINNET_PROXY_URL: ${{ secrets.MAINNET_PROXY_URL }}
           PYTHONPATH: .
