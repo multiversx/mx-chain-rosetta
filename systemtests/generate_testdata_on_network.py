@@ -1003,7 +1003,7 @@ def do_run_relayed_builtin_functions(memento: "Memento", accounts: "BunchOfAccou
 
     # BuiltInFunctionESDTFreeze
 
-    for (sender, relayer) in [("sponsor", "b"), ("sponsor", "a")]:
+    for (sender, relayer) in [("sponsor", "a"), ("sponsor", "sponsor")]:
         print(f"## BuiltInFunctionESDTFreeze, sender={sender}, relayer={relayer}")
 
         controller.send(controller.create_transfer_and_execute(
@@ -1020,7 +1020,7 @@ def do_run_relayed_builtin_functions(memento: "Memento", accounts: "BunchOfAccou
 
     # BuiltInFunctionESDTUnFreeze
 
-    for (sender, relayer) in [("sponsor", "b"), ("sponsor", "a")]:
+    for (sender, relayer) in [("sponsor", "a"), ("sponsor", "sponsor")]:
         print(f"## BuiltInFunctionESDTUnFreeze, sender={sender}, relayer={relayer}")
 
         controller.send(controller.create_transfer_and_execute(
@@ -1029,6 +1029,53 @@ def do_run_relayed_builtin_functions(memento: "Memento", accounts: "BunchOfAccou
             function="unFreeze",
             # UnFreeze token for "a".
             arguments=[TokenIdentifierValue(custom_token.identifier), AddressValue.new_from_address(named_accounts["a"].address)],
+            gas_limit=70_000_000,
+            native_amount=0,
+            custom_amount=0,
+            relayer=named_accounts[relayer],
+        ), await_completion=True)
+
+    # BuiltInFunctionESDTWipe
+    # Note: not successful, token must be frozen first.
+
+    for (sender, relayer) in [("sponsor", "a"), ("sponsor", "sponsor")]:
+        print(f"## BuiltInFunctionESDTWipe, sender={sender}, relayer={relayer}")
+
+        controller.send(controller.create_transfer_and_execute(
+            sender=named_accounts[sender],
+            contract=Address.new_from_bech32("erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqzllls8a5w6u"),
+            function="wipe",
+            # UnFreeze token for "p".
+            arguments=[TokenIdentifierValue(custom_token.identifier), AddressValue.new_from_address(named_accounts["p"].address)],
+            gas_limit=70_000_000,
+            native_amount=0,
+            custom_amount=0,
+            relayer=named_accounts[relayer],
+        ), await_processing_started=True)
+
+    # BuiltInFunctionESDTPause with BuiltInFunctionESDTUnPause
+
+    for (sender, relayer) in [("sponsor", "a"), ("sponsor", "sponsor")]:
+        print(f"## BuiltInFunctionESDTPause, sender={sender}, relayer={relayer}")
+
+        controller.send(controller.create_transfer_and_execute(
+            sender=named_accounts[sender],
+            contract=Address.new_from_bech32("erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqzllls8a5w6u"),
+            function="pause",
+            arguments=[TokenIdentifierValue(custom_token.identifier)],
+            gas_limit=70_000_000,
+            native_amount=0,
+            custom_amount=0,
+            relayer=named_accounts[relayer],
+        ), await_completion=True)
+
+        print(f"## BuiltInFunctionESDTUnPause, sender={sender}, relayer={relayer}")
+
+        controller.send(controller.create_transfer_and_execute(
+            sender=named_accounts[sender],
+            contract=Address.new_from_bech32("erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqzllls8a5w6u"),
+            function="unPause",
+            arguments=[TokenIdentifierValue(custom_token.identifier)],
             gas_limit=70_000_000,
             native_amount=0,
             custom_amount=0,
