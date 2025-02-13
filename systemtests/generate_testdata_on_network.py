@@ -985,7 +985,7 @@ def do_run_relayed_builtin_functions(memento: "Memento", accounts: "BunchOfAccou
             relayer=named_accounts[relayer],
         ), await_completion=True)
 
-    # BuiltInFunctionESDTBurn / BuiltInFunctionESDTLocalBurn
+    # BuiltInFunctionESDTLocalBurn
 
     for (sender, relayer) in [("a", "b"), ("a", "a")]:
         print(f"## BuiltInFunctionESDTBurn, sender={sender}, relayer={relayer}")
@@ -994,6 +994,22 @@ def do_run_relayed_builtin_functions(memento: "Memento", accounts: "BunchOfAccou
             sender=named_accounts[sender],
             contract=named_accounts[sender].address,
             function="ESDTLocalBurn",
+            arguments=[TokenIdentifierValue(custom_token.identifier), U32Value(1)],
+            gas_limit=300_000,
+            native_amount=0,
+            custom_amount=0,
+            relayer=named_accounts[relayer],
+        ), await_processing_started=True)
+
+    # BuiltInFunctionESDTLocalMint
+
+    for (sender, relayer) in [("sponsor", "a"), ("sponsor", "sponsor")]:
+        print(f"## BuiltInFunctionESDTLocalMint, sender={sender}, relayer={relayer}")
+
+        controller.send(controller.create_transfer_and_execute(
+            sender=named_accounts[sender],
+            contract=named_accounts[sender].address,
+            function="ESDTLocalMint",
             arguments=[TokenIdentifierValue(custom_token.identifier), U32Value(1)],
             gas_limit=300_000,
             native_amount=0,
@@ -1265,6 +1281,24 @@ class Controller:
         print(f"Token identifier: {token_identifier}")
 
         self.memento.add_custom_currency(token_identifier)
+
+        # Set some roles:
+        transaction = self.token_management_transactions_factory.create_transaction_for_setting_special_role_on_fungible_token(
+            sender=self.accounts.sponsor.address,
+            user=self.accounts.sponsor.address,
+            token_identifier=token_identifier,
+            add_role_local_mint=True,
+            add_role_local_burn=True,
+            add_role_esdt_transfer_role=True
+        )
+
+        self.apply_nonce(transaction)
+        self.sign(transaction)
+        self.send(transaction)
+
+        [transaction_on_network] = self.await_completed([transaction])
+        [outcome] = self.token_management_outcome_parser.parse_set_special_role(transaction_on_network)
+        print("Roles set:", outcome.roles)
 
     def do_airdrops_for_custom_currencies(self):
         currencies = self.memento.get_custom_currencies()
