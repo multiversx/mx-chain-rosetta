@@ -19,7 +19,7 @@ from multiversx_sdk import (AccountOnNetwork, Address, AddressComputer,
                             UserSigner)
 from multiversx_sdk.abi import (AddressValue, BigUIntValue, BytesValue,
                                 I32Value, I64Value, Serializer, StringValue,
-                                U32Value)
+                                TokenIdentifierValue, U32Value)
 from multiversx_sdk.core.address import get_shard_of_pubkey
 
 from systemtests.config import CONFIGURATIONS, Configuration
@@ -95,6 +95,10 @@ def do_run(args: Any):
     controller = Controller(configuration, accounts, memento)
 
     controller.wait_until_epoch(configuration.activation_epoch_relayed_v3)
+
+    do_run_relayed_builtin_functions(memento, accounts, controller)
+    # TODO: integrate "do_run_relayed_builtin_functions" into main flow.
+    return
 
     print("## Intra-shard, simple MoveBalance with refund")
     controller.send(controller.create_transfer(
@@ -876,6 +880,162 @@ def do_run(args: Any):
     memento.replace_run_transactions(controller.transactions_hashes_accumulator)
 
 
+def do_run_relayed_builtin_functions(memento: "Memento", accounts: "BunchOfAccounts", controller: "Controller"):
+    named_accounts = {
+        "sponsor": accounts.sponsor,
+        "a": accounts.get_user(shard=0, index=0),
+        "b": accounts.get_user(shard=0, index=1),
+        "c": accounts.get_user(shard=0, index=2),
+        "m": accounts.get_user(shard=1, index=0),
+        "n": accounts.get_user(shard=1, index=1),
+        "p": accounts.get_user(shard=1, index=2),
+    }
+
+    named_contracts = {
+        # Owned by "a".
+        "x": accounts.get_contract_address("dummy", shard=0, index=0),
+        # Ownership transferred to "a".
+        "y": accounts.get_contract_address("dummy", shard=1, index=0),
+    }
+
+    custom_token = Token(memento.get_custom_currencies()[0])
+
+    # Ownership transferred to "a".
+    controller.do_change_contract_owner(contract=named_contracts["y"], new_owner=named_accounts["a"])
+
+    # BuiltInFunctionClaimDeveloperRewards
+
+    for (sender, contract, relayer) in [("a", "x", "a"), ("a", "x", "b"), ("a", "y", "a"), ("a", "y", "b")]:
+        print(f"## BuiltInFunctionClaimDeveloperRewards, sender={sender}, contract={contract}, relayer={relayer}")
+
+        controller.send(controller.create_transfer_and_execute(
+            sender=named_accounts[sender],
+            contract=named_contracts[contract],
+            function="ClaimDeveloperRewards",
+            arguments=[],
+            gas_limit=6_000_000,
+            native_amount=0,
+            custom_amount=0,
+            relayer=named_accounts[relayer],
+        ), await_processing_started=True)
+
+    # BuiltInFunctionChangeOwnerAddress
+
+    for (sender, contract, relayer) in [("a", "x", "b"), ("a", "x", "a"), ("a", "y", "b"), ("a", "y", "a")]:
+        print(f"## BuiltInFunctionChangeOwnerAddress, sender={sender}, contract={contract}, relayer={relayer}")
+
+        controller.send(controller.create_transfer_and_execute(
+            sender=named_accounts[sender],
+            contract=named_contracts[contract],
+            function="ChangeOwnerAddress",
+            # Keep "a" as the owner.
+            arguments=[AddressValue.new_from_address(named_accounts["a"].address)],
+            gas_limit=6_000_000,
+            native_amount=0,
+            custom_amount=0,
+            relayer=named_accounts[relayer],
+        ), await_processing_started=True)
+
+    # BuiltInFunctionSetUserName
+
+    for (sender, relayer) in [("a", "a"), ("a", "b")]:
+        print(f"## BuiltInFunctionSetUserName, sender={sender}, relayer={relayer}")
+
+        controller.send(controller.create_transfer_and_execute(
+            sender=named_accounts[sender],
+            contract=Address.new_from_bech32("erd1qqqqqqqqqqqqqpgqx4ca3eu4k6w63hl8pjjyq2cp7ul7a4ukqz0skq6fxj"),
+            function="SetUserName",
+            arguments=[StringValue("test.elrond")],
+            gas_limit=6_000_000,
+            native_amount=0,
+            custom_amount=0,
+            relayer=named_accounts[relayer],
+        ), await_processing_started=True)
+
+    # BuiltInFunctionSaveKeyValue
+
+    for (sender, relayer) in [("a", "a"), ("b", "b")]:
+        print(f"## BuiltInFunctionSaveKeyValue, sender={sender}, relayer={relayer}")
+
+        controller.send(controller.create_transfer_and_execute(
+            sender=named_accounts[sender],
+            contract=named_accounts[sender].address,
+            function="SaveKeyValue",
+            arguments=[StringValue("test"), StringValue("test")],
+            gas_limit=1_000_000,
+            native_amount=0,
+            custom_amount=0,
+            relayer=named_accounts[relayer],
+        ), await_processing_started=True)
+
+    # BuiltInFunctionESDTTransfer
+
+    for (sender, receiver, relayer) in [
+        ("a", "b", "c"), ("a", "a", "c"), ("a", "b", "b"), ("a", "a", "a"),
+        ("a", "m", "c"), ("a", "m", "a")
+    ]:
+        print(f"## BuiltInFunctionESDTTransfer, sender={sender}, receiver={receiver}, relayer={relayer}")
+
+        controller.send(controller.create_transfer(
+            sender=named_accounts[sender],
+            receiver=named_accounts[receiver].address,
+            native_amount=0,
+            custom_amount=43,
+            additional_gas_limit=0,
+            relayer=named_accounts[relayer],
+        ), await_completion=True)
+
+    # BuiltInFunctionESDTBurn / BuiltInFunctionESDTLocalBurn
+
+    for (sender, relayer) in [("a", "b"), ("a", "a")]:
+        print(f"## BuiltInFunctionESDTBurn, sender={sender}, relayer={relayer}")
+
+        controller.send(controller.create_transfer_and_execute(
+            sender=named_accounts[sender],
+            contract=named_accounts[sender].address,
+            function="ESDTLocalBurn",
+            arguments=[TokenIdentifierValue(custom_token.identifier), U32Value(1)],
+            gas_limit=300_000,
+            native_amount=0,
+            custom_amount=0,
+            relayer=named_accounts[relayer],
+        ), await_processing_started=True)
+
+    # BuiltInFunctionESDTFreeze
+
+    for (sender, relayer) in [("sponsor", "b"), ("sponsor", "a")]:
+        print(f"## BuiltInFunctionESDTFreeze, sender={sender}, relayer={relayer}")
+
+        controller.send(controller.create_transfer_and_execute(
+            sender=named_accounts[sender],
+            contract=Address.new_from_bech32("erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqzllls8a5w6u"),
+            function="freeze",
+            # Freeze token for "a".
+            arguments=[TokenIdentifierValue(custom_token.identifier), AddressValue.new_from_address(named_accounts["a"].address)],
+            gas_limit=70_000_000,
+            native_amount=0,
+            custom_amount=0,
+            relayer=named_accounts[relayer],
+        ), await_completion=True)
+
+    # BuiltInFunctionESDTUnFreeze
+
+    for (sender, relayer) in [("sponsor", "b"), ("sponsor", "a")]:
+        print(f"## BuiltInFunctionESDTUnFreeze, sender={sender}, relayer={relayer}")
+
+        controller.send(controller.create_transfer_and_execute(
+            sender=named_accounts[sender],
+            contract=Address.new_from_bech32("erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqzllls8a5w6u"),
+            function="unFreeze",
+            # UnFreeze token for "a".
+            arguments=[TokenIdentifierValue(custom_token.identifier), AddressValue.new_from_address(named_accounts["a"].address)],
+            gas_limit=70_000_000,
+            native_amount=0,
+            custom_amount=0,
+            relayer=named_accounts[relayer],
+        ), await_completion=True)
+
+
 class BunchOfAccounts:
     def __init__(self, configuration: Configuration, memento: "Memento") -> None:
         self.configuration = configuration
@@ -1270,7 +1430,7 @@ class Controller:
 
         return transaction
 
-    def create_transfer(self, sender: "Account", receiver: Address, native_amount: int, custom_amount: int, additional_gas_limit: int = 0) -> Transaction:
+    def create_transfer(self, sender: "Account", receiver: Address, native_amount: int, custom_amount: int, additional_gas_limit: int = 0, relayer: Optional["Account"] = None) -> Transaction:
         token_transfers: List[TokenTransfer] = []
 
         if custom_amount:
@@ -1286,12 +1446,19 @@ class Controller:
 
         transaction.gas_limit += additional_gas_limit
 
+        if relayer is not None:
+            transaction.relayer = relayer.address
+            transaction.gas_limit += ADDITIONAL_GAS_LIMIT_FOR_RELAYED_V3
+
         self.apply_nonce(transaction)
         self.sign(transaction)
 
+        if relayer is not None:
+            self.sign_as_relayer_v3(transaction)
+
         return transaction
 
-    def create_transfer_and_execute(self, sender: "Account", contract: Address, function: str, arguments: list[Any], gas_limit: int, native_amount: int, custom_amount: int) -> Transaction:
+    def create_transfer_and_execute(self, sender: "Account", contract: Address, function: str, arguments: list[Any], gas_limit: int, native_amount: int, custom_amount: int, relayer: Optional["Account"] = None) -> Transaction:
         token_transfers: List[TokenTransfer] = []
 
         if custom_amount:
@@ -1308,8 +1475,14 @@ class Controller:
             token_transfers=token_transfers
         )
 
+        if relayer is not None:
+            transaction.relayer = relayer.address
+
         self.apply_nonce(transaction)
         self.sign(transaction)
+
+        if relayer is not None:
+            self.sign_as_relayer_v3(transaction)
 
         return transaction
 
