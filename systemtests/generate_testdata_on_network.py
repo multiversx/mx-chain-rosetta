@@ -82,6 +82,12 @@ def do_setup(args: Any):
     print("Do contract deployments...")
     controller.do_create_contract_deployments()
 
+    print("Issue non-fungible token...")
+    controller.issue_non_fungible_token("NFT")
+
+    print("Do airdrops for non-fungible tokens...")
+    controller.do_airdrops_for_non_fungible_tokens()
+
     print("Setup done.")
 
 
@@ -1321,6 +1327,101 @@ class Controller:
         print("Wait for the last transaction to be processed (optimization)...")
         self.await_processing_started(transactions[-1:])
 
+    def issue_non_fungible_token(self, name: str):
+        transaction = self.token_management_transactions_factory.create_transaction_for_issuing_non_fungible(
+            sender=self.accounts.sponsor.address,
+            token_name=name,
+            token_ticker=name,
+            can_freeze=True,
+            can_wipe=True,
+            can_pause=True,
+            can_change_owner=True,
+            can_upgrade=True,
+            can_add_special_roles=True,
+            can_transfer_nft_create_role=True
+        )
+
+        self.apply_nonce(transaction)
+        self.sign(transaction)
+        self.send(transaction)
+
+        [transaction_on_network] = self.await_completed([transaction])
+        [issue_outcome] = self.token_management_outcome_parser.parse_issue_non_fungible(transaction_on_network)
+        token_identifier = issue_outcome.token_identifier
+
+        print(f"Non-fungible token identifier: {token_identifier}")
+
+        self.memento.add_non_fungible_token(token_identifier)
+
+        # Set some roles:
+        transaction = self.token_management_transactions_factory.create_transaction_for_setting_special_role_on_non_fungible_token(
+            sender=self.accounts.sponsor.address,
+            user=self.accounts.sponsor.address,
+            token_identifier=token_identifier,
+            add_role_nft_create=True,
+            add_role_nft_burn=True,
+            add_role_nft_update_attributes=True,
+            add_role_nft_add_uri=True,
+            add_role_nft_update=True,
+            add_role_esdt_modify_royalties=True,
+            add_role_esdt_set_new_uri=True,
+            add_role_esdt_modify_creator=True,
+            add_role_nft_recreate=True
+        )
+
+        self.apply_nonce(transaction)
+        self.sign(transaction)
+        self.send(transaction)
+
+        [transaction_on_network] = self.await_completed([transaction])
+        [outcome] = self.token_management_outcome_parser.parse_set_special_role(transaction_on_network)
+        print("Roles set:", outcome.roles)
+
+        # Now create a few tokens:
+        create_transactions: List[Transaction] = []
+
+        for i in range(100):
+            transaction = self.token_management_transactions_factory.create_transaction_for_creating_nft(
+                sender=self.accounts.sponsor.address,
+                token_identifier=token_identifier,
+                initial_quantity=1,
+                name=f"{name} #{i}",
+                royalties=1000,
+                hash="abba",
+                attributes=bytes.fromhex("abba"),
+                uris=["a", "b", "c"]
+            )
+
+            self.apply_nonce(transaction)
+            self.sign(transaction)
+            create_transactions.append(transaction)
+
+        self.send_multiple(create_transactions, chunk_size=99, wait_between_chunks=7)
+
+        print("Wait for the last transaction to be completed (optimization)...")
+        self.await_completed(create_transactions[-1:])
+
+    def do_airdrops_for_non_fungible_tokens(self):
+        identifiers = self.memento.get_non_fungible_tokens()
+        transactions: List[Transaction] = []
+
+        for index, user in enumerate(self.accounts.users):
+            for identifier in identifiers:
+                transaction = self.transfer_transactions_factory.create_transaction_for_transfer(
+                    sender=self.accounts.sponsor.address,
+                    receiver=user.address,
+                    token_transfers=[TokenTransfer(Token(identifier, index + 1), 1)]
+                )
+
+                self.apply_nonce(transaction)
+                self.sign(transaction)
+                transactions.append(transaction)
+
+        self.send_multiple(transactions, chunk_size=99, wait_between_chunks=7)
+
+        print("Wait for the last transaction to be processed (optimization)...")
+        self.await_processing_started(transactions[-1:])
+
     def do_create_contract_deployments(self):
         transactions_adder: List[Transaction] = []
         transactions_dummy: List[Transaction] = []
@@ -1511,12 +1612,11 @@ class Controller:
 
         return transaction
 
-    def create_transfer(self, sender: "Account", receiver: Address, native_amount: int, custom_amount: int, additional_gas_limit: int = 0, relayer: Optional["Account"] = None) -> Transaction:
+    def create_transfer(self, sender: "Account", receiver: Address, native_amount: int, custom_transfers: list[tuple[str, int, int]], additional_gas_limit: int = 0, relayer: Optional["Account"] = None) -> Transaction:
         token_transfers: List[TokenTransfer] = []
 
-        if custom_amount:
-            custom_currency = self.memento.get_custom_currencies()[0]
-            token_transfers = [TokenTransfer(Token(custom_currency), custom_amount)]
+        for (currency, nonce, amount) in custom_transfers:
+            token_transfers.append(TokenTransfer(Token(currency, nonce), amount))
 
         transaction = self.transfer_transactions_factory.create_transaction_for_transfer(
             sender=sender.address,
@@ -1883,6 +1983,7 @@ class Memento:
         self.path = path
         self._contracts: List[SmartContract] = []
         self._custom_currencies: List[str] = []
+        self._non_fungible_tokens: List[str] = []
         self._run_transactions: List[str] = []
 
     def clear(self):
@@ -1895,16 +1996,25 @@ class Memento:
         self._custom_currencies.append(currency)
         self.save()
 
-    def get_custom_currencies(self) -> List[str]:
+    def add_non_fungible_token(self, identifier: str):
+        self.load()
+        self._non_fungible_tokens.append(identifier)
+        self.save()
+
+    def get_custom_currencies(self) -> list[str]:
         self.load()
         return self._custom_currencies
+
+    def get_non_fungible_tokens(self) -> list[str]:
+        self.load()
+        return self._non_fungible_tokens
 
     def add_contract(self, tag: str, address: str):
         self.load()
         self._contracts.append(SmartContract(tag, address))
         self.save()
 
-    def get_contracts(self, tag: Optional[str] = None) -> List[SmartContract]:
+    def get_contracts(self, tag: Optional[str] = None) -> list[SmartContract]:
         self.load()
 
         contracts = self._contracts
@@ -1928,6 +2038,7 @@ class Memento:
         contracts_raw = data.get("contracts", [])
         self._contracts = [SmartContract.from_dictionary(item) for item in contracts_raw]
         self._custom_currencies = data.get("customCurrencies", [])
+        self._non_fungible_tokens = data.get("nonFungibleTokens", [])
         self._run_transactions = data.get("runTransactions", [])
 
     def save(self):
@@ -1936,6 +2047,7 @@ class Memento:
         data = {
             "contracts": contracts_raw,
             "customCurrencies": self._custom_currencies,
+            "nonFungibleTokens": self._non_fungible_tokens,
             "runTransactions": self._run_transactions,
         }
 
