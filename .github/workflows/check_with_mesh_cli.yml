@@ -1,7 +1,7 @@
 name: Check with Mesh CLI (testnet)
 
 on:
-  pull_request:
+  # pull_request:
   workflow_dispatch:
 
 jobs:
