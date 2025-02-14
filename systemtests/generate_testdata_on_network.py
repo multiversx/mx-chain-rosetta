@@ -106,19 +106,16 @@ def do_run(args: Any):
     memento = Memento(Path(configuration.memento_file))
     accounts = BunchOfAccounts(configuration, memento)
     controller = Controller(configuration, accounts, memento)
+    fungible_token = memento.get_custom_currencies()[0]
 
     controller.wait_until_epoch(configuration.activation_epoch_relayed_v3)
-
-    do_run_relayed_builtin_functions(memento, accounts, controller)
-    # TODO: integrate "do_run_relayed_builtin_functions" into main flow.
-    return
 
     print("## Intra-shard, simple MoveBalance with refund")
     controller.send(controller.create_transfer(
         sender=accounts.get_user(shard=SOME_SHARD, index=0),
         receiver=accounts.get_user(shard=SOME_SHARD, index=1).address,
         native_amount=42,
-        custom_amount=0,
+        custom_transfers=[],
         additional_gas_limit=42000,
     ), await_processing_started=True)
 
@@ -127,7 +124,7 @@ def do_run(args: Any):
         sender=accounts.get_user(shard=SOME_SHARD, index=1),
         receiver=accounts.get_user(shard=OTHER_SHARD, index=0).address,
         native_amount=42,
-        custom_amount=0,
+        custom_transfers=[],
         additional_gas_limit=42000,
     ), await_processing_started=True)
 
@@ -136,7 +133,7 @@ def do_run(args: Any):
         sender=accounts.get_user(shard=SOME_SHARD, index=2),
         receiver=accounts.get_user(shard=SOME_SHARD, index=3).address,
         native_amount=1000000000000000000000000,
-        custom_amount=0,
+        custom_transfers=[],
         additional_gas_limit=42000,
     ), await_processing_started=True)
 
@@ -145,7 +142,7 @@ def do_run(args: Any):
         sender=accounts.get_user(shard=SOME_SHARD, index=3),
         receiver=accounts.get_user(shard=OTHER_SHARD, index=1).address,
         native_amount=1000000000000000000000000,
-        custom_amount=0,
+        custom_transfers=[],
         additional_gas_limit=42000,
     ), await_processing_started=True)
 
@@ -154,7 +151,7 @@ def do_run(args: Any):
         sender=accounts.get_user(shard=SOME_SHARD, index=0),
         receiver=accounts.get_contract_address("adder", shard=SOME_SHARD, index=0),
         native_amount=42,
-        custom_amount=0,
+        custom_transfers=[],
         additional_gas_limit=42000,
     ), await_processing_started=True)
 
@@ -163,7 +160,7 @@ def do_run(args: Any):
         sender=accounts.get_user(shard=SOME_SHARD, index=1),
         receiver=accounts.get_contract_address("adder", shard=OTHER_SHARD, index=0),
         native_amount=42,
-        custom_amount=0,
+        custom_transfers=[],
         additional_gas_limit=42000,
     ), await_processing_started=True)
 
@@ -172,7 +169,7 @@ def do_run(args: Any):
         sender=accounts.get_user(shard=SOME_SHARD, index=0),
         receiver=accounts.get_user(shard=SOME_SHARD, index=1).address,
         native_amount=42,
-        custom_amount=7
+        custom_transfers=[(fungible_token, 0, 7)],
     ), await_processing_started=True)
 
     print("## Cross-shard, native transfer within MultiESDTTransfer")
@@ -180,7 +177,7 @@ def do_run(args: Any):
         sender=accounts.get_user(shard=SOME_SHARD, index=1),
         receiver=accounts.get_user(shard=OTHER_SHARD, index=0).address,
         native_amount=42,
-        custom_amount=7
+        custom_transfers=[(fungible_token, 0, 7)],
     ), await_processing_started=True)
 
     print("## Intra-shard, native transfer within MultiESDTTransfer, towards non-payable contract")
@@ -188,7 +185,7 @@ def do_run(args: Any):
         sender=accounts.get_user(shard=SOME_SHARD, index=0),
         receiver=accounts.get_contract_address("adder", shard=SOME_SHARD, index=0),
         native_amount=42,
-        custom_amount=7
+        custom_transfers=[(fungible_token, 0, 7)],
     ), await_processing_started=True)
 
     print("## Cross-shard, native transfer within MultiESDTTransfer, towards non-payable contract")
@@ -196,7 +193,7 @@ def do_run(args: Any):
         sender=accounts.get_user(shard=SOME_SHARD, index=1),
         receiver=accounts.get_contract_address("adder", shard=OTHER_SHARD, index=0),
         native_amount=42,
-        custom_amount=7
+        custom_transfers=[(fungible_token, 0, 7)],
     ), await_processing_started=True)
 
     print("## Cross-shard, transfer & execute with native & custom transfer")
@@ -870,27 +867,7 @@ def do_run(args: Any):
         relayer=accounts.get_user(shard=SOME_SHARD, index=0),
     ), await_processing_started=True)
 
-    print("## Relayed v3, fuzzy, SaveKeyValue")
-    controller.send(controller.create_arbitrary_transaction(
-        sender=accounts.get_user(shard=SOME_SHARD, index=0),
-        receiver=accounts.get_user(shard=SOME_SHARD, index=0).address,
-        value=0,
-        data=f"SaveKeyValue@{os.urandom(4).hex()}@{os.urandom(4).hex()}",
-        gas_limit=1_000_000,
-        relayer=accounts.get_user(shard=SOME_SHARD, index=0),
-    ), await_processing_started=True)
-
-    print("## Relayed v3, fuzzy, SetGuardian")
-    controller.send(controller.create_arbitrary_transaction(
-        sender=accounts.get_user(shard=SOME_SHARD, index=1),
-        receiver=accounts.get_user(shard=SOME_SHARD, index=1).address,
-        value=0,
-        data=f"SetGuardian@{os.urandom(32).hex()}@{os.urandom(4).hex()}",
-        gas_limit=1_000_000,
-        relayer=accounts.get_user(shard=SOME_SHARD, index=1),
-    ), await_processing_started=True)
-
-    memento.replace_run_transactions(controller.transactions_hashes_accumulator)
+    do_run_relayed_builtin_functions(memento, accounts, controller)
 
 
 def do_run_relayed_builtin_functions(memento: "Memento", accounts: "BunchOfAccounts", controller: "Controller"):
@@ -2194,20 +2171,20 @@ class Controller:
         self.transactions_hashes_accumulator.append(transaction_hash.hex())
 
     def await_completed(self, transactions: List[Transaction]) -> List[TransactionOnNetwork]:
-        print(f"    ⏳ Awaiting completion of {len(transactions)} transactions...")
+        # print(f"    ⏳ Awaiting completion of {len(transactions)} transactions...")
 
         def await_completed_one(transaction: Transaction) -> TransactionOnNetwork:
             transaction_hash = self.transaction_computer.compute_transaction_hash(transaction).hex()
             transaction_on_network = self.network_provider.await_transaction_completed(transaction_hash, self.awaiting_options)
 
-            print(f"    ✓ Completed: {self.configuration.view_url.replace('{hash}', transaction_hash)}")
+            # print(f"    ✓ Completed: {self.configuration.view_url.replace('{hash}', transaction_hash)}")
             return transaction_on_network
 
         transactions_on_network = Pool(8).map(await_completed_one, transactions)
         return transactions_on_network
 
     def await_processing_started(self, transactions: List[Transaction]) -> List[TransactionOnNetwork]:
-        print(f"    ⏳ Awaiting processing start of {len(transactions)} transactions...")
+        # print(f"    ⏳ Awaiting processing start of {len(transactions)} transactions...")
 
         def await_processing_started_one(transaction: Transaction) -> TransactionOnNetwork:
             condition: Callable[[AccountOnNetwork], bool] = lambda account: account.nonce > transaction.nonce
@@ -2216,7 +2193,7 @@ class Controller:
             transaction_hash = self.transaction_computer.compute_transaction_hash(transaction).hex()
             transaction_on_network = self.network_provider.get_transaction(transaction_hash)
 
-            print(f"    ✓ Processing started: {self.configuration.view_url.replace('{hash}', transaction_hash)}")
+            # print(f"    ✓ Processing started: {self.configuration.view_url.replace('{hash}', transaction_hash)}")
             return transaction_on_network
 
         transactions_on_network = Pool(8).map(await_processing_started_one, transactions)
@@ -2269,7 +2246,6 @@ class Memento:
         self._custom_currencies: List[str] = []
         self._non_fungible_tokens: List[str] = []
         self._semi_fungible_tokens: List[str] = []
-        self._run_transactions: List[str] = []
 
     def clear(self):
         self._contracts = []
@@ -2318,11 +2294,6 @@ class Memento:
 
         return contracts
 
-    def replace_run_transactions(self, transactions_hashes: list[str]):
-        self.load()
-        self._run_transactions = transactions_hashes
-        self.save()
-
     def load(self):
         if not self.path.exists():
             return
@@ -2334,7 +2305,6 @@ class Memento:
         self._custom_currencies = data.get("customCurrencies", [])
         self._non_fungible_tokens = data.get("nonFungibleTokens", [])
         self._semi_fungible_tokens = data.get("semiFungibleTokens", [])
-        self._run_transactions = data.get("runTransactions", [])
 
     def save(self):
         contracts_raw = [contract.to_dictionary() for contract in self._contracts]
@@ -2344,7 +2314,6 @@ class Memento:
             "customCurrencies": self._custom_currencies,
             "nonFungibleTokens": self._non_fungible_tokens,
             "semiFungibleTokens": self._semi_fungible_tokens,
-            "runTransactions": self._run_transactions,
         }
 
         self.path.parent.mkdir(parents=True, exist_ok=True)
