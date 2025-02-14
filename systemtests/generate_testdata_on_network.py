@@ -907,6 +907,7 @@ def do_run_relayed_builtin_functions(memento: "Memento", accounts: "BunchOfAccou
     }
 
     named_addresses = {
+        "sponsor": named_accounts["sponsor"].address,
         "a": named_accounts["a"].address,
         "b": named_accounts["b"].address,
         "c": named_accounts["c"].address,
@@ -1043,7 +1044,23 @@ def do_run_relayed_builtin_functions(memento: "Memento", accounts: "BunchOfAccou
         ), await_completion=True)
 
     # ESDTNFTCreate
-    # TODO
+
+    for (sender, relayer) in [("sponsor", "a"), ("sponsor", "sponsor")]:
+        print(f"## ESDTNFTCreate, sender={sender}, relayer={relayer}")
+
+        transaction = controller.token_management_transactions_factory.create_transaction_for_creating_nft(
+            sender=named_addresses[sender],
+            token_identifier=non_fungible_token,
+            initial_quantity=1,
+            name=f"dummy",
+            royalties=1000,
+            hash="abba",
+            attributes=bytes.fromhex("abba"),
+            uris=["a", "b", "c"]
+        )
+
+        controller.relay_arbitrary_transaction(transaction, relayer=named_accounts[relayer], apply_nonce=True)
+        controller.send(transaction, await_processing_started=True)
 
     # ESDTNFTAddQuantity
     # TODO
@@ -1601,6 +1618,16 @@ class Controller:
             self.sign_as_relayer_v3(transaction)
 
         return transaction
+
+    def relay_arbitrary_transaction(self, transaction: Transaction, relayer: "Account", apply_nonce: bool) -> None:
+        transaction.relayer = relayer.address
+        transaction.gas_limit += ADDITIONAL_GAS_LIMIT_FOR_RELAYED_V3
+
+        if apply_nonce:
+            self.apply_nonce(transaction)
+
+        self.sign(transaction)
+        self.sign_as_relayer_v3(transaction)
 
     def create_transfer(self, sender: "Account", receiver: Address, native_amount: int, custom_transfers: list[tuple[str, int, int]], additional_gas_limit: int = 0, relayer: Optional["Account"] = None) -> Transaction:
         token_transfers: List[TokenTransfer] = []
