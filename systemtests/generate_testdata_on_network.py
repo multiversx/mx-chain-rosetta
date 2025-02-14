@@ -1,5 +1,6 @@
 import json
 import os
+import random
 import time
 from argparse import ArgumentParser
 from multiprocessing.dummy import Pool
@@ -87,6 +88,12 @@ def do_setup(args: Any):
 
     print("Do airdrops for non-fungible tokens...")
     controller.do_airdrops_for_non_fungible_tokens()
+
+    print("Issue semi-fungible token...")
+    controller.issue_semi_fungible_token("SFT")
+
+    print("Do airdrops for semi-fungible tokens...")
+    controller.do_airdrops_for_semi_fungible_tokens()
 
     print("Setup done.")
 
@@ -921,6 +928,7 @@ def do_run_relayed_builtin_functions(memento: "Memento", accounts: "BunchOfAccou
 
     fungible_token = memento.get_custom_currencies()[0]
     non_fungible_token = memento.get_non_fungible_tokens()[0]
+    semi_fungible_token = memento.get_semi_fungible_tokens()[0]
 
     # Ownership transferred to "a".
     controller.do_change_contract_owner(contract=named_contracts["y"], new_owner=named_accounts["a"])
@@ -1063,19 +1071,190 @@ def do_run_relayed_builtin_functions(memento: "Memento", accounts: "BunchOfAccou
         controller.send(transaction, await_processing_started=True)
 
     # ESDTNFTAddQuantity
-    # TODO
+    # https://docs.multiversx.com/tokens/nft-tokens/#add-quantity-sft-only
+
+    for (sender, relayer) in [("sponsor", "a"), ("sponsor", "sponsor")]:
+        print(f"## ESDTNFTAddQuantity, sender={sender}, relayer={relayer}")
+
+        transaction = controller.token_management_transactions_factory.create_transaction_for_adding_quantity(
+            sender=named_addresses[sender],
+            token_identifier=semi_fungible_token,
+            token_nonce=7,
+            quantity_to_add=42,
+        )
+
+        # Gas limit set by default (by the SDKs) seems a bit too much
+        transaction.gas_limit = 500_000
+        controller.relay_arbitrary_transaction(transaction, relayer=named_accounts[relayer], apply_nonce=True)
+        controller.send(transaction, await_processing_started=True)
 
     # ESDTNFTBurn
-    # TODO
+    # https://docs.multiversx.com/tokens/nft-tokens/#burn-quantity
+
+    for (sender, relayer) in [("sponsor", "a"), ("sponsor", "sponsor")]:
+        print(f"## ESDTNFTBurn, sender={sender}, relayer={relayer}")
+
+        transaction = controller.token_management_transactions_factory.create_transaction_for_burning_quantity(
+            sender=named_addresses[sender],
+            token_identifier=semi_fungible_token,
+            token_nonce=7,
+            quantity_to_burn=41,
+        )
+
+        # Gas limit set by default (by the SDKs) seems a bit too much
+        transaction.gas_limit = 500_000
+        controller.relay_arbitrary_transaction(transaction, relayer=named_accounts[relayer], apply_nonce=True)
+        controller.send(transaction, await_processing_started=True)
 
     # ESDTNFTAddURI
-    # TODO
+    # https://docs.multiversx.com/tokens/nft-tokens/#add-uris-to-nft
+
+    for (sender, relayer) in [("sponsor", "a"), ("sponsor", "sponsor")]:
+        print(f"## ESDTNFTAddURI, sender={sender}, relayer={relayer}")
+
+        controller.send(controller.create_transfer_and_execute(
+            sender=named_accounts[sender],
+            contract=named_accounts[sender].address,
+            function="ESDTNFTAddURI",
+            arguments=[TokenIdentifierValue(non_fungible_token), U32Value(0x64), StringValue("e"), StringValue("f"), StringValue("g")],
+            gas_limit=500_000,
+            native_amount=0,
+            custom_amount=0,
+            relayer=named_accounts[relayer],
+        ), await_processing_started=True)
+
+    # ESDTSetNewURIs
+
+    for (sender, relayer) in [("sponsor", "a"), ("sponsor", "sponsor")]:
+        print(f"## ESDTSetNewURIs, sender={sender}, relayer={relayer}")
+
+        controller.send(controller.create_transfer_and_execute(
+            sender=named_accounts[sender],
+            contract=named_accounts[sender].address,
+            function="ESDTSetNewURIs",
+            arguments=[TokenIdentifierValue(non_fungible_token), U32Value(0x65), StringValue("new")],
+            gas_limit=1_000_000,
+            native_amount=0,
+            custom_amount=0,
+            relayer=named_accounts[relayer],
+        ), await_processing_started=True)
 
     # ESDTNFTUpdateAttributes
-    # TODO
+    # https://docs.multiversx.com/tokens/nft-tokens/#change-nft-attributes
+
+    for (sender, relayer) in [("sponsor", "a"), ("sponsor", "sponsor")]:
+        print(f"## ESDTNFTUpdateAttributes, sender={sender}, relayer={relayer}")
+
+        transaction = controller.token_management_transactions_factory.create_transaction_for_updating_attributes(
+            sender=named_addresses[sender],
+            token_identifier=non_fungible_token,
+            token_nonce=0x64,
+            attributes=b"new-attributes",
+        )
+
+        # Gas limit set by default (by the SDKs) seems a bit too much
+        transaction.gas_limit = 500_000
+        controller.relay_arbitrary_transaction(transaction, relayer=named_accounts[relayer], apply_nonce=True)
+        controller.send(transaction, await_processing_started=True)
+
+    # ESDTModifyRoyalties
+    # https://docs.multiversx.com/tokens/nft-tokens/#modify-royalties
+
+    for (sender, relayer) in [("sponsor", "a"), ("sponsor", "sponsor")]:
+        print(f"## ESDTModifyRoyalties, sender={sender}, relayer={relayer}")
+
+        transaction = controller.token_management_transactions_factory.create_transaction_for_modifying_royalties(
+            sender=named_addresses[sender],
+            token_identifier=non_fungible_token,
+            token_nonce=0x64,
+            new_royalties=random.randint(1000, 10_000),
+        )
+
+        # Gas limit set by default(by the SDKs) seems a bit too much
+        transaction.gas_limit = 3_000_000
+        controller.relay_arbitrary_transaction(transaction, relayer=named_accounts[relayer], apply_nonce=True)
+        controller.send(transaction, await_processing_started=True)
+
+    # ESDTModifyCreator
+    # https://docs.multiversx.com/tokens/nft-tokens/#modify-creator
+
+    for (sender, relayer) in [("sponsor", "a"), ("sponsor", "sponsor")]:
+        print(f"## ESDTModifyCreator, sender={sender}, relayer={relayer}")
+
+        transaction = controller.token_management_transactions_factory.create_transaction_for_modifying_creator(
+            sender=named_addresses[sender],
+            token_identifier=non_fungible_token,
+            token_nonce=0x64
+        )
+
+        # Gas limit set by default(by the SDKs) seems a bit too much
+        transaction.gas_limit = 3_000_000
+        controller.relay_arbitrary_transaction(transaction, relayer=named_accounts[relayer], apply_nonce=True)
+        controller.send(transaction, await_processing_started=True)
+
+    # ESDTMetaDataUpdate
+    # https://docs.multiversx.com/tokens/nft-tokens/#metadata-update
+
+    for (sender, relayer) in [("sponsor", "a"), ("sponsor", "sponsor")]:
+        print(f"## ESDTMetaDataUpdate, sender={sender}, relayer={relayer}")
+
+        transaction = controller.token_management_transactions_factory.create_transaction_for_updating_metadata(
+            sender=named_addresses[sender],
+            token_identifier=non_fungible_token,
+            token_nonce=0x64,
+            new_token_name="new-name",
+            new_royalties=random.randint(1000, 10_000),
+            new_hash="abba",
+            new_attributes=b"new-attributes",
+            new_uris=["x", "y"]
+        )
+
+        # Gas limit set by default(by the SDKs) seems a bit too much
+        transaction.gas_limit = 3_000_000
+        controller.relay_arbitrary_transaction(transaction, relayer=named_accounts[relayer], apply_nonce=True)
+        controller.send(transaction, await_processing_started=True)
+
+    # ESDTMetaDataRecreate
+    # https://docs.multiversx.com/tokens/nft-tokens/#metadata-recreate
+
+    for (sender, relayer) in [("sponsor", "a"), ("sponsor", "sponsor")]:
+        print(f"## ESDTMetaDataRecreate, sender={sender}, relayer={relayer}")
+
+        transaction = controller.token_management_transactions_factory.create_transaction_for_nft_metadata_recreate(
+            sender=named_addresses[sender],
+            token_identifier=non_fungible_token,
+            token_nonce=0x64,
+            new_token_name="new-name",
+            new_royalties=random.randint(1000, 10_000),
+            new_hash="abba",
+            new_attributes=b"new-attributes",
+            new_uris=["x", "y"]
+        )
+
+        # Gas limit set by default(by the SDKs) seems a bit too much
+        transaction.gas_limit = 3_000_000
+        controller.relay_arbitrary_transaction(transaction, relayer=named_accounts[relayer], apply_nonce=True)
+        controller.send(transaction, await_processing_started=True)
 
     # MultiESDTNFTTransfer
-    # TODO
+
+    for (sender, receiver, relayer) in [
+        # Send, then receive back.
+        ("a", "b", "c"), ("b", "a", "c"),
+        # Send, then receive back.
+        ("a", "m", "c"), ("m", "a", "n"),
+        # Send, then receive back (varying relaying patterns).
+        ("a", "b", "a"), ("b", "a", "a"),
+    ]:
+        print(f"## MultiESDTNFTTransfer, sender={sender}, receiver={receiver}, relayer={relayer}")
+
+        controller.send(controller.create_transfer(
+            sender=named_accounts[sender],
+            receiver=named_addresses[receiver],
+            native_amount=3,
+            custom_transfers=[(non_fungible_token, 1, 1), (semi_fungible_token, 1, 42)],
+            relayer=named_accounts[relayer],
+        ), await_completion=True)
 
     # MigrateDataTrie
 
@@ -1104,12 +1283,6 @@ def do_run_relayed_builtin_functions(memento: "Memento", accounts: "BunchOfAccou
             gas_limit=1_000_000,
             relayer=named_accounts[relayer],
         ), await_processing_started=True)
-
-    # UnGuardAccount
-    # TODO
-
-    # GuardAccount
-    # TODO
 
 
 class BunchOfAccounts:
@@ -1418,6 +1591,95 @@ class Controller:
                     sender=self.accounts.sponsor.address,
                     receiver=user.address,
                     token_transfers=[TokenTransfer(Token(identifier, index + 1), 1)]
+                )
+
+                self.apply_nonce(transaction)
+                self.sign(transaction)
+                transactions.append(transaction)
+
+        self.send_multiple(transactions, chunk_size=99, wait_between_chunks=7)
+
+        print("Wait for the last transaction to be processed (optimization)...")
+        self.await_processing_started(transactions[-1:])
+
+    def issue_semi_fungible_token(self, name: str):
+        transaction = self.token_management_transactions_factory.create_transaction_for_issuing_semi_fungible(
+            sender=self.accounts.sponsor.address,
+            token_name=name,
+            token_ticker=name,
+            can_freeze=True,
+            can_wipe=True,
+            can_pause=True,
+            can_change_owner=True,
+            can_upgrade=True,
+            can_add_special_roles=True,
+            can_transfer_nft_create_role=True
+        )
+
+        self.apply_nonce(transaction)
+        self.sign(transaction)
+        self.send(transaction)
+
+        [transaction_on_network] = self.await_completed([transaction])
+        [issue_outcome] = self.token_management_outcome_parser.parse_issue_semi_fungible(transaction_on_network)
+        token_identifier = issue_outcome.token_identifier
+
+        print(f"Semi-fungible token identifier: {token_identifier}")
+
+        self.memento.add_semi_fungible_token(token_identifier)
+
+        # Set some roles:
+        transaction = self.token_management_transactions_factory.create_transaction_for_setting_special_role_on_semi_fungible_token(
+            sender=self.accounts.sponsor.address,
+            user=self.accounts.sponsor.address,
+            token_identifier=token_identifier,
+            add_role_nft_create=True,
+            add_role_nft_burn=True,
+            add_role_nft_add_quantity=True,
+        )
+
+        self.apply_nonce(transaction)
+        self.sign(transaction)
+        self.send(transaction)
+
+        [transaction_on_network] = self.await_completed([transaction])
+        [outcome] = self.token_management_outcome_parser.parse_set_special_role(transaction_on_network)
+        print("Roles set:", outcome.roles)
+
+        # Now create a few tokens:
+        create_transactions: List[Transaction] = []
+
+        for i in range(100):
+            transaction = self.token_management_transactions_factory.create_transaction_for_creating_nft(
+                sender=self.accounts.sponsor.address,
+                token_identifier=token_identifier,
+                initial_quantity=100_000,
+                name=f"{name} #{i}",
+                royalties=1000,
+                hash="abba",
+                attributes=bytes.fromhex("abba"),
+                uris=["a", "b", "c"]
+            )
+
+            self.apply_nonce(transaction)
+            self.sign(transaction)
+            create_transactions.append(transaction)
+
+        self.send_multiple(create_transactions, chunk_size=99, wait_between_chunks=7)
+
+        print("Wait for the last transaction to be completed (optimization)...")
+        self.await_completed(create_transactions[-1:])
+
+    def do_airdrops_for_semi_fungible_tokens(self):
+        identifiers = self.memento.get_semi_fungible_tokens()
+        transactions: List[Transaction] = []
+
+        for index, user in enumerate(self.accounts.users):
+            for identifier in identifiers:
+                transaction = self.transfer_transactions_factory.create_transaction_for_transfer(
+                    sender=self.accounts.sponsor.address,
+                    receiver=user.address,
+                    token_transfers=[TokenTransfer(Token(identifier, index + 1), 100)]
                 )
 
                 self.apply_nonce(transaction)
@@ -2001,6 +2263,7 @@ class Memento:
         self._contracts: List[SmartContract] = []
         self._custom_currencies: List[str] = []
         self._non_fungible_tokens: List[str] = []
+        self._semi_fungible_tokens: List[str] = []
         self._run_transactions: List[str] = []
 
     def clear(self):
@@ -2018,6 +2281,11 @@ class Memento:
         self._non_fungible_tokens.append(identifier)
         self.save()
 
+    def add_semi_fungible_token(self, identifier: str):
+        self.load()
+        self._semi_fungible_tokens.append(identifier)
+        self.save()
+
     def get_custom_currencies(self) -> list[str]:
         self.load()
         return self._custom_currencies
@@ -2025,6 +2293,10 @@ class Memento:
     def get_non_fungible_tokens(self) -> list[str]:
         self.load()
         return self._non_fungible_tokens
+
+    def get_semi_fungible_tokens(self) -> list[str]:
+        self.load()
+        return self._semi_fungible_tokens
 
     def add_contract(self, tag: str, address: str):
         self.load()
@@ -2056,6 +2328,7 @@ class Memento:
         self._contracts = [SmartContract.from_dictionary(item) for item in contracts_raw]
         self._custom_currencies = data.get("customCurrencies", [])
         self._non_fungible_tokens = data.get("nonFungibleTokens", [])
+        self._semi_fungible_tokens = data.get("semiFungibleTokens", [])
         self._run_transactions = data.get("runTransactions", [])
 
     def save(self):
@@ -2065,6 +2338,7 @@ class Memento:
             "contracts": contracts_raw,
             "customCurrencies": self._custom_currencies,
             "nonFungibleTokens": self._non_fungible_tokens,
+            "semiFungibleTokens": self._semi_fungible_tokens,
             "runTransactions": self._run_transactions,
         }
 
