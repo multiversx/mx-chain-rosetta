@@ -934,6 +934,7 @@ def do_run_relayed_builtin_functions(memento: "Memento", accounts: "BunchOfAccou
     controller.do_change_contract_owner(contract=named_contracts["y"], new_owner=named_accounts["a"])
 
     # ClaimDeveloperRewards
+    # https://docs.multiversx.com/developers/built-in-functions/#claimdeveloperrewards
 
     for (sender, contract, relayer) in [("a", "x", "a"), ("a", "x", "b"), ("a", "y", "a"), ("a", "y", "b")]:
         print(f"## ClaimDeveloperRewards, sender={sender}, contract={contract}, relayer={relayer}")
@@ -950,6 +951,7 @@ def do_run_relayed_builtin_functions(memento: "Memento", accounts: "BunchOfAccou
         ), await_processing_started=True)
 
     # ChangeOwnerAddress
+    # https://docs.multiversx.com/developers/built-in-functions/#changeowneraddress
 
     for (sender, contract, relayer) in [("a", "x", "b"), ("a", "x", "a"), ("a", "y", "b"), ("a", "y", "a")]:
         print(f"## ChangeOwnerAddress, sender={sender}, contract={contract}, relayer={relayer}")
@@ -967,6 +969,7 @@ def do_run_relayed_builtin_functions(memento: "Memento", accounts: "BunchOfAccou
         ), await_processing_started=True)
 
     # SaveKeyValue
+    # https://docs.multiversx.com/developers/built-in-functions/#savekeyvalue
 
     for (sender, relayer) in [("a", "a"), ("b", "b")]:
         print(f"## SaveKeyValue, sender={sender}, relayer={relayer}")
@@ -1000,6 +1003,7 @@ def do_run_relayed_builtin_functions(memento: "Memento", accounts: "BunchOfAccou
         ), await_completion=True)
 
     # ESDTLocalMint
+    # https://docs.multiversx.com/tokens/fungible-tokens/#minting
 
     for (sender, relayer) in [("sponsor", "a"), ("sponsor", "sponsor")]:
         print(f"## ESDTLocalMint, sender={sender}, relayer={relayer}")
@@ -1016,6 +1020,7 @@ def do_run_relayed_builtin_functions(memento: "Memento", accounts: "BunchOfAccou
         ), await_processing_started=True)
 
     # ESDTLocalBurn
+    # https://docs.multiversx.com/tokens/fungible-tokens/#burning
 
     for (sender, relayer) in [("a", "b"), ("a", "a")]:
         print(f"## ESDTLocalBurn, sender={sender}, relayer={relayer}")
@@ -1052,6 +1057,7 @@ def do_run_relayed_builtin_functions(memento: "Memento", accounts: "BunchOfAccou
         ), await_completion=True)
 
     # ESDTNFTCreate
+    # https://docs.multiversx.com/tokens/nft-tokens/#creation-of-an-nft
 
     for (sender, relayer) in [("sponsor", "a"), ("sponsor", "sponsor")]:
         print(f"## ESDTNFTCreate, sender={sender}, relayer={relayer}")
@@ -1475,7 +1481,6 @@ class Controller:
             token_identifier=token_identifier,
             add_role_local_mint=True,
             add_role_local_burn=True,
-            add_role_esdt_transfer_role=True
         )
 
         self.apply_nonce(transaction)
