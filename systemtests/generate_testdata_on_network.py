@@ -891,7 +891,8 @@ def do_run_relayed_builtin_functions(memento: "Memento", accounts: "BunchOfAccou
     }
 
     # Addresses of "named_accounts" and "named_contracts".
-    named_addresses = {name: account.address for name, account in {**named_accounts, **named_contracts}.items()}
+    named_addresses = {**{name: account.address for name, account in named_accounts.items()},
+                       **{name: contract for name, contract in named_contracts.items()}}
 
     fungible_token = memento.get_custom_currencies()[0]
     non_fungible_token = memento.get_non_fungible_tokens()[0]
