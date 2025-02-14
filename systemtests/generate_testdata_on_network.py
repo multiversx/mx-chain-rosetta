@@ -83,16 +83,16 @@ def do_setup(args: Any):
     print("Do contract deployments...")
     controller.do_create_contract_deployments()
 
-    print("Issue non-fungible token...")
-    controller.issue_non_fungible_token("NFT")
+    print("Create some NFTs...")
+    controller.create_non_fungible_tokens("NFT")
 
-    print("Do airdrops for non-fungible tokens...")
+    print("Do airdrops for NFTs...")
     controller.do_airdrops_for_non_fungible_tokens()
 
-    print("Issue semi-fungible token...")
-    controller.issue_semi_fungible_token("SFT")
+    print("Create some SFTs...")
+    controller.create_semi_fungible_tokens("SFT")
 
-    print("Do airdrops for semi-fungible tokens...")
+    print("Do airdrops for SFTs...")
     controller.do_airdrops_for_semi_fungible_tokens()
 
     print("Setup done.")
@@ -199,7 +199,7 @@ def do_run(args: Any):
     print("## Cross-shard, transfer & execute with native & custom transfer")
     controller.send(controller.create_transfer_and_execute(
         sender=accounts.get_user(shard=SOME_SHARD, index=1),
-        contract=accounts.get_contract_address("dummy", shard=SOME_SHARD, index=0),
+        receiver=accounts.get_contract_address("dummy", shard=SOME_SHARD, index=0),
         function="doSomething",
         arguments=[],
         gas_limit=3_000_000,
@@ -210,7 +210,7 @@ def do_run(args: Any):
     print("## Intra-shard, transfer & execute with native & custom transfer")
     controller.send(controller.create_transfer_and_execute(
         sender=accounts.get_user(shard=SOME_SHARD, index=3),
-        contract=accounts.get_contract_address("dummy", shard=SOME_SHARD, index=0),
+        receiver=accounts.get_contract_address("dummy", shard=SOME_SHARD, index=0),
         function="doSomething",
         arguments=[],
         gas_limit=3_000_000,
@@ -239,7 +239,7 @@ def do_run(args: Any):
     print("## Intra-shard, contract call with MoveBalance, with signal error")
     controller.send(controller.create_transfer_and_execute(
         sender=accounts.get_user(shard=SOME_SHARD, index=0),
-        contract=accounts.get_contract_address("adder", shard=SOME_SHARD, index=0),
+        receiver=accounts.get_contract_address("adder", shard=SOME_SHARD, index=0),
         function="missingFunction",
         arguments=[BigUIntValue(42)],
         gas_limit=5_000_000,
@@ -250,7 +250,7 @@ def do_run(args: Any):
     print("## Cross-shard, contract call with MoveBalance, with signal error")
     controller.send(controller.create_transfer_and_execute(
         sender=accounts.get_user(shard=SOME_SHARD, index=0),
-        contract=accounts.get_contract_address("adder", shard=OTHER_SHARD, index=0),
+        receiver=accounts.get_contract_address("adder", shard=OTHER_SHARD, index=0),
         function="missingFunction",
         arguments=[BigUIntValue(42)],
         gas_limit=5_000_000,
@@ -890,18 +890,8 @@ def do_run_relayed_builtin_functions(memento: "Memento", accounts: "BunchOfAccou
         "z": accounts.get_contract_address("adder", shard=0, index=0),
     }
 
-    named_addresses = {
-        "sponsor": named_accounts["sponsor"].address,
-        "a": named_accounts["a"].address,
-        "b": named_accounts["b"].address,
-        "c": named_accounts["c"].address,
-        "m": named_accounts["m"].address,
-        "n": named_accounts["n"].address,
-        "p": named_accounts["p"].address,
-        "x": named_contracts["x"],
-        "y": named_contracts["y"],
-        "z": named_contracts["z"],
-    }
+    # Addresses of "named_accounts" and "named_contracts".
+    named_addresses = {name: account.address for name, account in {**named_accounts, **named_contracts}.items()}
 
     fungible_token = memento.get_custom_currencies()[0]
     non_fungible_token = memento.get_non_fungible_tokens()[0]
@@ -918,7 +908,7 @@ def do_run_relayed_builtin_functions(memento: "Memento", accounts: "BunchOfAccou
 
         controller.send(controller.create_transfer_and_execute(
             sender=named_accounts[sender],
-            contract=named_contracts[contract],
+            receiver=named_contracts[contract],
             function="ClaimDeveloperRewards",
             arguments=[],
             gas_limit=6_000_000,
@@ -935,7 +925,7 @@ def do_run_relayed_builtin_functions(memento: "Memento", accounts: "BunchOfAccou
 
         controller.send(controller.create_transfer_and_execute(
             sender=named_accounts[sender],
-            contract=named_contracts[contract],
+            receiver=named_contracts[contract],
             function="ChangeOwnerAddress",
             # Keep "a" as the owner.
             arguments=[AddressValue.new_from_address(named_accounts["a"].address)],
@@ -953,7 +943,7 @@ def do_run_relayed_builtin_functions(memento: "Memento", accounts: "BunchOfAccou
 
         controller.send(controller.create_transfer_and_execute(
             sender=named_accounts[sender],
-            contract=named_accounts[sender].address,
+            receiver=named_accounts[sender].address,
             function="SaveKeyValue",
             arguments=[StringValue("test"), StringValue("test")],
             gas_limit=1_000_000,
@@ -963,6 +953,7 @@ def do_run_relayed_builtin_functions(memento: "Memento", accounts: "BunchOfAccou
         ), await_processing_started=True)
 
     # ESDTTransfer
+    # https://docs.multiversx.com/tokens/fungible-tokens#transfers
 
     for (sender, receiver, relayer) in [
         ("a", "b", "c"), ("a", "a", "c"), ("a", "b", "b"), ("a", "a", "a"),
@@ -987,7 +978,7 @@ def do_run_relayed_builtin_functions(memento: "Memento", accounts: "BunchOfAccou
 
         controller.send(controller.create_transfer_and_execute(
             sender=named_accounts[sender],
-            contract=named_accounts[sender].address,
+            receiver=named_accounts[sender].address,
             function="ESDTLocalMint",
             arguments=[TokenIdentifierValue(fungible_token), U32Value(1)],
             gas_limit=300_000,
@@ -1004,7 +995,7 @@ def do_run_relayed_builtin_functions(memento: "Memento", accounts: "BunchOfAccou
 
         controller.send(controller.create_transfer_and_execute(
             sender=named_accounts[sender],
-            contract=named_accounts[sender].address,
+            receiver=named_accounts[sender].address,
             function="ESDTLocalBurn",
             arguments=[TokenIdentifierValue(fungible_token), U32Value(1)],
             gas_limit=300_000,
@@ -1014,6 +1005,7 @@ def do_run_relayed_builtin_functions(memento: "Memento", accounts: "BunchOfAccou
         ), await_processing_started=True)
 
     # ESDTNFTTransfer
+    # https://docs.multiversx.com/tokens/nft-tokens/#transfers
 
     for (sender, receiver, relayer) in [
         # Send, then receive back.
@@ -1097,7 +1089,7 @@ def do_run_relayed_builtin_functions(memento: "Memento", accounts: "BunchOfAccou
 
         controller.send(controller.create_transfer_and_execute(
             sender=named_accounts[sender],
-            contract=named_accounts[sender].address,
+            receiver=named_accounts[sender].address,
             function="ESDTNFTAddURI",
             arguments=[TokenIdentifierValue(non_fungible_token), U32Value(0x64), StringValue("e"), StringValue("f"), StringValue("g")],
             gas_limit=500_000,
@@ -1113,7 +1105,7 @@ def do_run_relayed_builtin_functions(memento: "Memento", accounts: "BunchOfAccou
 
         controller.send(controller.create_transfer_and_execute(
             sender=named_accounts[sender],
-            contract=named_accounts[sender].address,
+            receiver=named_accounts[sender].address,
             function="ESDTSetNewURIs",
             arguments=[TokenIdentifierValue(non_fungible_token), U32Value(0x65), StringValue("new")],
             gas_limit=1_000_000,
@@ -1489,7 +1481,7 @@ class Controller:
         print("Wait for the last transaction to be processed (optimization)...")
         self.await_processing_started(transactions[-1:])
 
-    def issue_non_fungible_token(self, name: str):
+    def create_non_fungible_tokens(self, name: str):
         transaction = self.token_management_transactions_factory.create_transaction_for_issuing_non_fungible(
             sender=self.accounts.sponsor.address,
             token_name=name,
@@ -1584,7 +1576,7 @@ class Controller:
         print("Wait for the last transaction to be processed (optimization)...")
         self.await_processing_started(transactions[-1:])
 
-    def issue_semi_fungible_token(self, name: str):
+    def create_semi_fungible_tokens(self, name: str):
         transaction = self.token_management_transactions_factory.create_transaction_for_issuing_semi_fungible(
             sender=self.accounts.sponsor.address,
             token_name=name,
@@ -1900,7 +1892,7 @@ class Controller:
 
         return transaction
 
-    def create_transfer_and_execute(self, sender: "Account", contract: Address, function: str, arguments: list[Any], gas_limit: int, native_amount: int, custom_amount: int, relayer: Optional["Account"] = None) -> Transaction:
+    def create_transfer_and_execute(self, sender: "Account", receiver: Address, function: str, arguments: list[Any], gas_limit: int, native_amount: int, custom_amount: int, relayer: Optional["Account"] = None) -> Transaction:
         token_transfers: List[TokenTransfer] = []
 
         if custom_amount:
@@ -1909,7 +1901,7 @@ class Controller:
 
         transaction = self.contracts_transactions_factory.create_transaction_for_execute(
             sender=sender.address,
-            contract=contract,
+            contract=receiver,
             function=function,
             arguments=arguments,
             gas_limit=gas_limit,
@@ -2171,21 +2163,17 @@ class Controller:
         self.transactions_hashes_accumulator.append(transaction_hash.hex())
 
     def await_completed(self, transactions: List[Transaction]) -> List[TransactionOnNetwork]:
-        # print(f"    ⏳ Awaiting completion of {len(transactions)} transactions...")
-
         def await_completed_one(transaction: Transaction) -> TransactionOnNetwork:
             transaction_hash = self.transaction_computer.compute_transaction_hash(transaction).hex()
             transaction_on_network = self.network_provider.await_transaction_completed(transaction_hash, self.awaiting_options)
 
-            # print(f"    ✓ Completed: {self.configuration.view_url.replace('{hash}', transaction_hash)}")
+            print(f"    ✓ Completed: {self.configuration.view_url.replace('{hash}', transaction_hash)}")
             return transaction_on_network
 
         transactions_on_network = Pool(8).map(await_completed_one, transactions)
         return transactions_on_network
 
     def await_processing_started(self, transactions: List[Transaction]) -> List[TransactionOnNetwork]:
-        # print(f"    ⏳ Awaiting processing start of {len(transactions)} transactions...")
-
         def await_processing_started_one(transaction: Transaction) -> TransactionOnNetwork:
             condition: Callable[[AccountOnNetwork], bool] = lambda account: account.nonce > transaction.nonce
             self.network_provider.await_account_on_condition(transaction.sender, condition, self.awaiting_options)
@@ -2193,7 +2181,7 @@ class Controller:
             transaction_hash = self.transaction_computer.compute_transaction_hash(transaction).hex()
             transaction_on_network = self.network_provider.get_transaction(transaction_hash)
 
-            # print(f"    ✓ Processing started: {self.configuration.view_url.replace('{hash}', transaction_hash)}")
+            print(f"    ✓ Processing started: {self.configuration.view_url.replace('{hash}', transaction_hash)}")
             return transaction_on_network
 
         transactions_on_network = Pool(8).map(await_processing_started_one, transactions)
