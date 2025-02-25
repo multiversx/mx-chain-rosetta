@@ -1,0 +1,47 @@
+name: Regularly check mainnet
+
+on:
+    pull_request:
+    workflow_dispatch:
+    schedule:
+        - cron: "0 */4 * * *"
+
+jobs:
+    check-mainnet:
+        runs-on: ubuntu-latest
+
+        steps:
+            - uses: actions/setup-python@v5
+              with:
+                  python-version: 3.11
+
+            - uses: actions/checkout@v4
+
+            - name: Install dependencies
+              run: |
+                  pip install -r ./requirements-dev.txt
+                  curl -sSfL https://raw.githubusercontent.com/coinbase/mesh-cli/master/scripts/install.sh | sh -s -- -b "$HOME/.local/bin"
+                  echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+            - name: Build
+              run: |
+                  cd $GITHUB_WORKSPACE/cmd/rosetta && go build .
+                  cd $GITHUB_WORKSPACE/systemtests && go build ./proxyToObserverAdapter.go
+
+            - name: check:data (shard 0)
+              run: |
+                  python3 ./systemtests/check_with_mesh_cli.py --mode=data --network=mainnet --shard=0 --num-blocks=3000
+              env:
+                  PYTHONPATH: .
+
+            - name: check:data (shard 1)
+              run: |
+                  python3 ./systemtests/check_with_mesh_cli.py --mode=data --network=mainnet --shard=1 --num-blocks=3000
+              env:
+                  PYTHONPATH: .
+
+            - name: check:data (shard 2)
+              run: |
+                  python3 ./systemtests/check_with_mesh_cli.py --mode=data --network=mainnet --shard=2 --num-blocks=3000
+              env:
+                  PYTHONPATH: .
