@@ -17,21 +17,6 @@ ENV_MAINNET_PROXY_URL = os.environ.get("MAINNET_PROXY_URL")
 ENV_DEVNET_PROXY_URL = os.environ.get("DEVNET_PROXY_URL")
 ENV_TESTNET_PROXY_URL = os.environ.get("TESTNET_PROXY_URL")
 
-if ENV_SPONSOR_SECRET_KEY:
-    print("Environment variable SPONSOR_SECRET_KEY is set.")
-
-if ENV_USERS_MNEMONIC:
-    print("Environment variable USERS_MNEMONIC is set.")
-
-if ENV_MAINNET_PROXY_URL:
-    print("Environment variable MAINNET_PROXY_URL is set.")
-
-if ENV_DEVNET_PROXY_URL:
-    print("Environment variable DEVNET_PROXY_URL is set.")
-
-if ENV_TESTNET_PROXY_URL:
-    print("Environment variable TESTNET_PROXY_URL is set.")
-
 
 @dataclass
 class Configuration:
