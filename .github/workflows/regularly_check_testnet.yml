@@ -31,16 +31,19 @@ jobs:
               run: |
                   python3 ./systemtests/check_with_mesh_cli.py --mode=data --network=testnet --shard=0 --num-blocks=3000
               env:
+                  TESTNET_PROXY_URL: ${{ secrets.TESTNET_PROXY_URL }}
                   PYTHONPATH: .
 
             - name: check:data (shard 1)
               run: |
                   python3 ./systemtests/check_with_mesh_cli.py --mode=data --network=testnet --shard=1 --num-blocks=3000
               env:
+                  TESTNET_PROXY_URL: ${{ secrets.TESTNET_PROXY_URL }}
                   PYTHONPATH: .
 
             - name: check:data (shard 2)
               run: |
                   python3 ./systemtests/check_with_mesh_cli.py --mode=data --network=testnet --shard=2 --num-blocks=3000
               env:
+                  TESTNET_PROXY_URL: ${{ secrets.TESTNET_PROXY_URL }}
                   PYTHONPATH: .

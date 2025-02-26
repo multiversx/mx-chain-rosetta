@@ -7,6 +7,16 @@ DEFAULT_SPONSOR_SECRET_KEY = "b8ca6f8203fb4b545a8e83c5384da033c415db155b53fb5b8e
 # https://github.com/multiversx/mx-sdk-testwallets/blob/main/users/mnemonic.txt.
 DEFAULT_USERS_MNEMONIC = "moral volcano peasant pass circle pen over picture flat shop clap goat never lyrics gather prepare woman film husband gravity behind test tiger improve"
 
+DEFAULT_MAINNET_PROXY_URL = "https://gateway.multiversx.com"
+DEFAULT_DEVNET_PROXY_URL = "https://devnet-gateway.multiversx.com"
+DEFAULT_TESTNET_PROXY_URL = "https://testnet-gateway.multiversx.com"
+
+ENV_SPONSOR_SECRET_KEY = os.environ.get("SPONSOR_SECRET_KEY")
+ENV_USERS_MNEMONIC = os.environ.get("USERS_MNEMONIC")
+ENV_MAINNET_PROXY_URL = os.environ.get("MAINNET_PROXY_URL")
+ENV_DEVNET_PROXY_URL = os.environ.get("DEVNET_PROXY_URL")
+ENV_TESTNET_PROXY_URL = os.environ.get("TESTNET_PROXY_URL")
+
 
 @dataclass
 class Configuration:
@@ -27,8 +37,8 @@ class Configuration:
     view_url: str
     custom_currency_issue_cost: int = 50000000000000000
     memento_file: str = ""
-    sponsor_secret_key: bytes = bytes.fromhex(os.environ.get("SPONSOR_SECRET_KEY", DEFAULT_SPONSOR_SECRET_KEY))
-    users_mnemonic: str = os.environ.get("USERS_MNEMONIC", DEFAULT_USERS_MNEMONIC)
+    sponsor_secret_key: bytes = bytes.fromhex(ENV_SPONSOR_SECRET_KEY or DEFAULT_SPONSOR_SECRET_KEY)
+    users_mnemonic: str = ENV_USERS_MNEMONIC or DEFAULT_USERS_MNEMONIC
     num_users_per_shard: int = 16
     users_in_projected_shard: bool = False
     generate_relayed_v1: bool = False
@@ -44,7 +54,7 @@ CONFIGURATIONS = {
         config_file_custom_currencies="systemtests/rosetta_config/mainnet-custom-currencies.json",
         num_historical_epochs=1,
         observer_url="",
-        proxy_url=os.environ.get("MAINNET_PROXY_URL", "https://gateway.multiversx.com"),
+        proxy_url=ENV_MAINNET_PROXY_URL or DEFAULT_MAINNET_PROXY_URL,
         activation_epoch_sirius=1265,
         activation_epoch_spica=1538,
         activation_epoch_relayed_v3=4294967295,
@@ -62,7 +72,7 @@ CONFIGURATIONS = {
         config_file_custom_currencies="systemtests/rosetta_config/devnet-custom-currencies.json",
         num_historical_epochs=3,
         observer_url="",
-        proxy_url="https://devnet-gateway.multiversx.com",
+        proxy_url=ENV_DEVNET_PROXY_URL or DEFAULT_DEVNET_PROXY_URL,
         activation_epoch_sirius=629,
         activation_epoch_spica=2327,
         activation_epoch_relayed_v3=2991,
@@ -82,7 +92,7 @@ CONFIGURATIONS = {
         config_file_custom_currencies="systemtests/rosetta_config/testnet-custom-currencies.json",
         num_historical_epochs=3,
         observer_url="",
-        proxy_url="https://testnet-gateway.multiversx.com",
+        proxy_url=ENV_TESTNET_PROXY_URL or DEFAULT_TESTNET_PROXY_URL,
         activation_epoch_sirius=1,
         activation_epoch_spica=33,
         activation_epoch_relayed_v3=1182,
