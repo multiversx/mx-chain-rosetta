@@ -31,6 +31,7 @@ jobs:
           python3 ./systemtests/check_with_mesh_cli.py --mode=construction-native --network=testnet --shard=0
           sleep 30
         env:
+          TESTNET_PROXY_URL: ${{ secrets.TESTNET_PROXY_URL }}
           PYTHONPATH: .
 
       - name: check:construction (custom)
@@ -38,6 +39,7 @@ jobs:
           python3 ./systemtests/check_with_mesh_cli.py --mode=construction-custom --network=testnet --shard=0
           sleep 30
         env:
+          TESTNET_PROXY_URL: ${{ secrets.TESTNET_PROXY_URL }}
           PYTHONPATH: .
 
       - name: Generate testdata (setup)
@@ -46,6 +48,7 @@ jobs:
         env:
           USERS_MNEMONIC: ${{ secrets.USERS_MNEMONIC }}
           SPONSOR_SECRET_KEY: ${{ secrets.SPONSOR_SECRET_KEY }}
+          TESTNET_PROXY_URL: ${{ secrets.TESTNET_PROXY_URL }}
           PYTHONPATH: .
 
       - name: Generate testdata (run)
@@ -57,12 +60,14 @@ jobs:
         env:
           USERS_MNEMONIC: ${{ secrets.USERS_MNEMONIC }}
           SPONSOR_SECRET_KEY: ${{ secrets.SPONSOR_SECRET_KEY }}
+          TESTNET_PROXY_URL: ${{ secrets.TESTNET_PROXY_URL }}
           PYTHONPATH: .
 
       - name: check:data
         run: |
           python3 ./systemtests/check_with_mesh_cli.py --mode=data --network=testnet --shard=0 --num-blocks=3000
         env:
+          TESTNET_PROXY_URL: ${{ secrets.TESTNET_PROXY_URL }}
           PYTHONPATH: .
 
 

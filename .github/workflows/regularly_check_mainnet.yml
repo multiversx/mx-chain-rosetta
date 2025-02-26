@@ -1,6 +1,7 @@
 name: Regularly check mainnet
 
 on:
+    pull_request:
     workflow_dispatch:
     schedule:
         - cron: "0 */4 * * *"
@@ -31,16 +32,19 @@ jobs:
               run: |
                   python3 ./systemtests/check_with_mesh_cli.py --mode=data --network=mainnet --shard=0 --num-blocks=3000
               env:
+                  MAINNET_PROXY_URL: ${{ secrets.MAINNET_PROXY_URL }}
                   PYTHONPATH: .
 
             - name: check:data (shard 1)
               run: |
                   python3 ./systemtests/check_with_mesh_cli.py --mode=data --network=mainnet --shard=1 --num-blocks=3000
               env:
+                  MAINNET_PROXY_URL: ${{ secrets.MAINNET_PROXY_URL }}
                   PYTHONPATH: .
 
             - name: check:data (shard 2)
               run: |
                   python3 ./systemtests/check_with_mesh_cli.py --mode=data --network=mainnet --shard=2 --num-blocks=3000
               env:
+                  MAINNET_PROXY_URL: ${{ secrets.MAINNET_PROXY_URL }}
                   PYTHONPATH: .
