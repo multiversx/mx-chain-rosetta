@@ -32,6 +32,11 @@ var (
 		Name:     "sleep",
 		Required: true,
 	}
+
+	cliFlagPort = cli.UintFlag{
+		Name:     "port",
+		Required: true,
+	}
 )
 
 func main() {
@@ -41,6 +46,7 @@ func main() {
 		cliFlagProxyUrl,
 		cliFlagShard,
 		cliFlagSleep,
+		cliFlagPort,
 	}
 
 	err := app.Run(os.Args)
@@ -66,7 +72,8 @@ func startAdapter(ctx *cli.Context) error {
 	router.GET("/address/:address", adapter.getAccount)
 	router.POST("/transaction/send", adapter.sendTransaction)
 
-	return router.Run(":8080")
+	port := ctx.GlobalUint(cliFlagPort.Name)
+	return router.Run(fmt.Sprintf(":%d", port))
 }
 
 type adapter struct {

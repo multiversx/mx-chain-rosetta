@@ -61,11 +61,12 @@ def run_rosetta(configuration: Configuration, shard: int):
     """
 
     current_epoch = get_current_epoch(configuration, shard)
-    observer_url = configuration.observer_url or constants.URL_OBSERVER_SURROGATE
+    observer_surrogate = f"http://localhost:{configuration.proxy_adapter_port}"
+    observer_url = configuration.observer_url or observer_surrogate
 
     command = [
         str(constants.PATH_ROSETTA),
-        f"--port={constants.PORT_ROSETTA}",
+        f"--port={configuration.rosetta_port}",
         f"--observer-http-url={observer_url}",
         f"--observer-actual-shard={shard}",
         f"--network-id={configuration.network_id}",
@@ -92,7 +93,8 @@ def optionally_run_proxy_to_observer_adapter(configuration: Configuration, shard
         str(constants.PATH_PROXY_TO_OBSERVER_ADAPTER),
         f"--proxy={configuration.proxy_url}",
         f"--shard={shard}",
-        f"--sleep={constants.ADAPTER_DELAY_IN_MILLISECONDS}"
+        f"--sleep={constants.ADAPTER_DELAY_IN_MILLISECONDS}",
+        f"--port={configuration.proxy_adapter_port}"
     ]
 
     return subprocess.Popen(command)
@@ -121,8 +123,8 @@ def run_mesh_cli_with_check_construction_native(configuration: Configuration):
         "rosetta-cli",
         "check:construction",
         f"--configuration-file={configuration.check_construction_native_configuration_file}",
-        f"--online-url=http://localhost:{constants.PORT_ROSETTA}",
-        f"--offline-url=http://localhost:{constants.PORT_ROSETTA}",
+        f"--online-url=http://localhost:{configuration.rosetta_port}",
+        f"--offline-url=http://localhost:{configuration.rosetta_port}",
     ]
 
     return subprocess.Popen(command)
@@ -133,8 +135,8 @@ def run_mesh_cli_with_check_construction_custom(configuration: Configuration):
         "rosetta-cli",
         "check:construction",
         f"--configuration-file={configuration.check_construction_custom_configuration_file}",
-        f"--online-url=http://localhost:{constants.PORT_ROSETTA}",
-        f"--offline-url=http://localhost:{constants.PORT_ROSETTA}",
+        f"--online-url=http://localhost:{configuration.rosetta_port}",
+        f"--offline-url=http://localhost:{configuration.rosetta_port}",
     ]
 
     return subprocess.Popen(command)
@@ -148,7 +150,8 @@ def run_mesh_cli_with_check_data(configuration: Configuration, shard: int, num_b
         --online-url=http://localhost:7091 --data-dir=devnet-data
     """
 
-    shutil.rmtree(configuration.check_data_directory, ignore_errors=True)
+    data_dir = f"{configuration.check_data_directory}-{shard}"
+    shutil.rmtree(data_dir, ignore_errors=True)
 
     start_block = get_start_block_for_check_data(configuration, shard, num_blocks)
 
@@ -156,8 +159,8 @@ def run_mesh_cli_with_check_data(configuration: Configuration, shard: int, num_b
         "rosetta-cli",
         "check:data",
         f"--configuration-file={configuration.check_data_configuration_file}",
-        f"--online-url=http://localhost:{constants.PORT_ROSETTA}",
-        f"--data-dir={configuration.check_data_directory}",
+        f"--online-url=http://localhost:{configuration.rosetta_port}",
+        f"--data-dir={data_dir}",
         f"--start-block={start_block}"
     ]
 
