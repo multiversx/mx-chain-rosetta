@@ -256,6 +256,8 @@ PYTHONPATH=. python3 ./systemtests/check_with_mesh_cli.py --mode=data --network=
 ```
 
 # Or, continuously:
+
+```
 while PYTHONPATH=. python3 ./systemtests/check_with_mesh_cli.py --mode=data --network=testnet --shard=0; do sleep 5; done
 ```
 
