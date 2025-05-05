@@ -1,13 +1,13 @@
 transfer(1){
   transfer{
     transfer.network = {"network":"untitled", "blockchain":"MultiversX"};
-    custom_currency = {"symbol":"ROSETTA-449e95", "decimals":4};
+    custom_currency = {"symbol":"ROSETTA-cd8029", "decimals":4};
     sender = {
       "account_identifier": {
         "address": "erd1ldjsdetjvegjdnda0qw2h62kq6rpvrklkc5pw9zxm0nwulfhtyqqtyc4vq"
       },
       "currency": {
-          "symbol": "ROSETTA-449e95",
+          "symbol": "ROSETTA-cd8029",
           "decimals": 4
       }
     };
@@ -24,7 +24,7 @@ transfer(1){
         "address": "erd1xtslmt67utuewwv8jsx729mxjxaa8dvyyzp7492hy99dl7hvcuqq30l98v"
       },
       "currency": {
-          "symbol": "ROSETTA-449e95",
+          "symbol": "ROSETTA-cd8029",
           "decimals": 4
       }
     };
