@@ -1,7 +1,6 @@
 name: Check with Mesh CLI (mainnet)
 
 on:
-  pull_request:
   workflow_dispatch:
 
 jobs:
