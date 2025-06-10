@@ -15,4 +15,4 @@ jobs:
               env:
                   GH_TOKEN: ${{ secrets.MX_AUTO_AUDIT_WORKFLOWS }}
               run: |
-                  gh workflow run semgrep_ce.yml --repo multiversx/mx-auto-audit --ref init -f repository=mx-chain-rosetta -f branch=workflows-06-10
+                  gh workflow run semgrep_ce.yml --repo multiversx/mx-auto-audit --ref init -f repository=${{ github.event.repository.name }} -f branch=${{ github.ref_name }}
