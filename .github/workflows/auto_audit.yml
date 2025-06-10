@@ -15,4 +15,7 @@ jobs:
               env:
                   GH_TOKEN: ${{ secrets.MX_AUTO_AUDIT_WORKFLOWS }}
               run: |
-                  gh workflow run semgrep_ce.yml --repo multiversx/mx-auto-audit --ref init -f repository=${{ github.event.repository.name }} -f branch=${{ github.ref_name }}
+                  REPOSITORY=${{ github.event.repository.name }}
+                  BRANCH=${{ github.head_ref || github.ref_name }}
+
+                  gh workflow run semgrep_ce.yml --repo multiversx/mx-auto-audit --ref init -f repository=$REPOSITORY -f branch=$BRANCH
