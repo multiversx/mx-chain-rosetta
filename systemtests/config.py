@@ -43,8 +43,6 @@ class Configuration:
     users_mnemonic: str = ENV_USERS_MNEMONIC or DEFAULT_USERS_MNEMONIC
     num_users_per_shard: int = 16
     users_in_projected_shard: bool = False
-    generate_relayed_v1: bool = False
-    generate_relayed_v2: bool = False
     generate_relayed_v3: bool = False
 
 
