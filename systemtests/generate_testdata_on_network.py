@@ -108,8 +108,6 @@ def do_run(args: Any):
     controller = Controller(configuration, accounts, memento)
     fungible_token = memento.get_custom_currencies()[0]
 
-    controller.wait_until_epoch(configuration.activation_epoch_relayed_v3)
-
     print("## Intra-shard, simple MoveBalance with refund")
     controller.send(controller.create_transfer(
         sender=accounts.get_user(shard=SOME_SHARD, index=0),
@@ -344,12 +342,8 @@ def do_run(args: Any):
         gas_limit=5_000_000
     ), await_processing_started=True)
 
-    relayed_v1_marker = [1] if configuration.generate_relayed_v1 else []
-    relayed_v2_marker = [2] if configuration.generate_relayed_v2 else []
-    relayed_v3_marker = [3] if configuration.generate_relayed_v3 else []
-
-    for relayed_version in relayed_v1_marker + relayed_v3_marker:
-        print(f"## Relayed v{relayed_version}, intra-shard MoveBalance")
+    if configuration.generate_relayed_v3:
+        print("## Relayed intra-shard MoveBalance")
         controller.send(controller.create_relayed_transfer(
             relayer=accounts.get_user(shard=SOME_SHARD, index=0),
             sender=accounts.get_user(shard=SOME_SHARD, index=1),
@@ -357,11 +351,10 @@ def do_run(args: Any):
             native_amount=42,
             custom_amount=0,
             additional_gas_limit=0,
-            relayed_version=relayed_version,
         ), await_completion=True)
 
-    for relayed_version in relayed_v1_marker + relayed_v3_marker:
-        print(f"## Relayed v{relayed_version}, cross-shard MoveBalance")
+    if configuration.generate_relayed_v3:
+        print("## Relayed cross-shard MoveBalance")
         controller.send(controller.create_relayed_transfer(
             relayer=accounts.get_user(shard=SOME_SHARD, index=0),
             sender=accounts.get_user(shard=SOME_SHARD, index=1),
@@ -369,11 +362,10 @@ def do_run(args: Any):
             native_amount=42,
             custom_amount=0,
             additional_gas_limit=0,
-            relayed_version=relayed_version,
         ), await_completion=True)
 
-    for relayed_version in relayed_v3_marker:
-        print(f"## Relayed v{relayed_version}, intra-shard MoveBalance, with refund")
+    if configuration.generate_relayed_v3:
+        print("## Relayed intra-shard MoveBalance, with refund")
         controller.send(controller.create_relayed_transfer(
             relayer=accounts.get_user(shard=SOME_SHARD, index=0),
             sender=accounts.get_user(shard=SOME_SHARD, index=1),
@@ -381,11 +373,10 @@ def do_run(args: Any):
             native_amount=42,
             custom_amount=0,
             additional_gas_limit=42000,
-            relayed_version=relayed_version,
         ), await_completion=True)
 
-    for relayed_version in relayed_v3_marker:
-        print(f"## Relayed v{relayed_version}, cross-shard MoveBalance, with refund")
+    if configuration.generate_relayed_v3:
+        print("## Relayed cross-shard MoveBalance, with refund")
         controller.send(controller.create_relayed_transfer(
             relayer=accounts.get_user(shard=SOME_SHARD, index=0),
             sender=accounts.get_user(shard=SOME_SHARD, index=1),
@@ -393,11 +384,10 @@ def do_run(args: Any):
             native_amount=42,
             custom_amount=0,
             additional_gas_limit=42000,
-            relayed_version=relayed_version,
         ), await_completion=True)
 
-    for relayed_version in relayed_v3_marker:
-        print(f"## Relayed v{relayed_version}, invalid, intra-shard MoveBalance, with refund")
+    if configuration.generate_relayed_v3:
+        print("## Relayed invalid, intra-shard MoveBalance, with refund")
         controller.send(controller.create_relayed_transfer(
             relayer=accounts.get_user(shard=SOME_SHARD, index=0),
             sender=accounts.get_user(shard=SOME_SHARD, index=1),
@@ -405,11 +395,10 @@ def do_run(args: Any):
             native_amount=1000000000000000000000000,
             custom_amount=0,
             additional_gas_limit=42000,
-            relayed_version=relayed_version,
         ), await_completion=True)
 
-    for relayed_version in relayed_v3_marker:
-        print(f"## Relayed v{relayed_version}, invalid, cross-shard MoveBalance, with refund")
+    if configuration.generate_relayed_v3:
+        print(f"## Relayed invalid, cross-shard MoveBalance, with refund")
         controller.send(controller.create_relayed_transfer(
             relayer=accounts.get_user(shard=SOME_SHARD, index=0),
             sender=accounts.get_user(shard=SOME_SHARD, index=1),
@@ -417,11 +406,10 @@ def do_run(args: Any):
             native_amount=1000000000000000000000000,
             custom_amount=0,
             additional_gas_limit=42000,
-            relayed_version=relayed_version,
         ), await_completion=True)
 
-    for relayed_version in relayed_v3_marker:
-        print(f"## Relayed v{relayed_version}, intra-shard multi-transfer (with native)")
+    if configuration.generate_relayed_v3:
+        print("## Relayed intra-shard multi-transfer (with native)")
         controller.send(controller.create_relayed_transfer(
             relayer=accounts.get_user(shard=SOME_SHARD, index=0),
             sender=accounts.get_user(shard=SOME_SHARD, index=1),
@@ -429,11 +417,10 @@ def do_run(args: Any):
             native_amount=42,
             custom_amount=43,
             additional_gas_limit=0,
-            relayed_version=relayed_version,
         ), await_completion=True)
 
-    for relayed_version in relayed_v3_marker:
-        print(f"## Relayed v{relayed_version}, intra-shard custom transfer")
+    if configuration.generate_relayed_v3:
+        print("## Relayed intra-shard custom transfer")
         controller.send(controller.create_relayed_transfer(
             relayer=accounts.get_user(shard=SOME_SHARD, index=0),
             sender=accounts.get_user(shard=SOME_SHARD, index=1),
@@ -441,11 +428,10 @@ def do_run(args: Any):
             native_amount=0,
             custom_amount=43,
             additional_gas_limit=0,
-            relayed_version=relayed_version,
         ), await_completion=True)
 
-    for relayed_version in relayed_v1_marker + relayed_v3_marker:
-        print(f"## Relayed v{relayed_version}, intra-shard MoveBalance (with bad receiver, system smart contract)")
+    if configuration.generate_relayed_v3:
+        print("## Relayed intra-shard MoveBalance (with bad receiver, system smart contract)")
         controller.send(controller.create_relayed_transfer(
             relayer=accounts.get_user(shard=SOME_SHARD, index=0),
             sender=accounts.get_user(shard=SOME_SHARD, index=2),
@@ -453,11 +439,10 @@ def do_run(args: Any):
             native_amount=42,
             custom_amount=0,
             additional_gas_limit=0,
-            relayed_version=relayed_version,
         ), await_completion=True)
 
-    for relayed_version in relayed_v1_marker + relayed_v2_marker + relayed_v3_marker:
-        print(f"## Relayed v{relayed_version}, intra-shard, with contract call")
+    if configuration.generate_relayed_v3:
+        print("## Relayed intra-shard, with contract call")
         controller.send(controller.create_relayed_transfer_and_execute(
             relayer=accounts.get_user(shard=SOME_SHARD, index=0),
             sender=accounts.get_user(shard=SOME_SHARD, index=1),
@@ -467,11 +452,10 @@ def do_run(args: Any):
             gas_limit=5_000_000,
             native_amount=0,
             custom_amount=0,
-            relayed_version=relayed_version,
         ), await_completion=True)
 
-    for relayed_version in relayed_v1_marker + relayed_v2_marker + relayed_v3_marker:
-        print(f"## Relayed v{relayed_version}, cross-shard, with contract call")
+    if configuration.generate_relayed_v3:
+        print("## Relayed cross-shard, with contract call")
         controller.send(controller.create_relayed_transfer_and_execute(
             relayer=accounts.get_user(shard=SOME_SHARD, index=0),
             sender=accounts.get_user(shard=SOME_SHARD, index=1),
@@ -481,11 +465,10 @@ def do_run(args: Any):
             gas_limit=5_000_000,
             native_amount=0,
             custom_amount=0,
-            relayed_version=relayed_version,
         ), await_completion=True)
 
-    for relayed_version in relayed_v1_marker + relayed_v2_marker + relayed_v3_marker:
-        print(f"## Relayed v{relayed_version}, intra-shard, with contract call, with signal error")
+    if configuration.generate_relayed_v3:
+        print("## Relayed intra-shard, with contract call, with signal error")
         controller.send(controller.create_relayed_transfer_and_execute(
             relayer=accounts.get_user(shard=SOME_SHARD, index=0),
             sender=accounts.get_user(shard=SOME_SHARD, index=1),
@@ -495,11 +478,10 @@ def do_run(args: Any):
             gas_limit=5_000_000,
             native_amount=0,
             custom_amount=0,
-            relayed_version=relayed_version,
         ), await_completion=True)
 
-    for relayed_version in relayed_v1_marker + relayed_v2_marker + relayed_v3_marker:
-        print(f"## Relayed v{relayed_version}, cross-shard, with contract call, with signal error")
+    if configuration.generate_relayed_v3:
+        print("## Relayed cross-shard, with contract call, with signal error")
         controller.send(controller.create_relayed_transfer_and_execute(
             relayer=accounts.get_user(shard=SOME_SHARD, index=0),
             sender=accounts.get_user(shard=SOME_SHARD, index=1),
@@ -509,11 +491,10 @@ def do_run(args: Any):
             gas_limit=5_000_000,
             native_amount=0,
             custom_amount=0,
-            relayed_version=relayed_version,
         ), await_completion=True)
 
-    for relayed_version in relayed_v1_marker + relayed_v3_marker:
-        print(f"## Relayed v{relayed_version}, intra-shard, with contract call with MoveBalance, with signal error")
+    if configuration.generate_relayed_v3:
+        print("## Relayed intra-shard, with contract call with MoveBalance, with signal error")
         controller.send(controller.create_relayed_transfer_and_execute(
             relayer=accounts.get_user(shard=SOME_SHARD, index=0),
             sender=accounts.get_user(shard=SOME_SHARD, index=1),
@@ -523,11 +504,10 @@ def do_run(args: Any):
             gas_limit=5_000_000,
             native_amount=1,
             custom_amount=0,
-            relayed_version=relayed_version,
         ), await_completion=True)
 
-    for relayed_version in relayed_v1_marker + relayed_v3_marker:
-        print(f"## Relayed v{relayed_version}, cross-shard, with contract call with MoveBalance, with signal error")
+    if configuration.generate_relayed_v3:
+        print("## Relayed cross-shard, with contract call with MoveBalance, with signal error")
         controller.send(controller.create_relayed_transfer_and_execute(
             relayer=accounts.get_user(shard=SOME_SHARD, index=0),
             sender=accounts.get_user(shard=SOME_SHARD, index=1),
@@ -537,11 +517,10 @@ def do_run(args: Any):
             gas_limit=5_000_000,
             native_amount=1,
             custom_amount=0,
-            relayed_version=relayed_version,
         ), await_completion=True)
 
-    for relayed_version in relayed_v3_marker:
-        print(f"## Relayed v{relayed_version}, intra-shard, with contract call, with MoveBalance, via forwarder (promises)")
+    if configuration.generate_relayed_v3:
+        print("## Relayed intra-shard, with contract call, with MoveBalance, via forwarder (promises)")
         controller.send(controller.create_relayed_transfer_and_execute(
             relayer=accounts.get_user(shard=SOME_SHARD, index=0),
             sender=accounts.get_user(shard=SOME_SHARD, index=1),
@@ -555,12 +534,12 @@ def do_run(args: Any):
                 I64Value(15_000_000),
             ],
             gas_limit=30_000_000,
-            native_amount=43, custom_amount=0,
-            relayed_version=relayed_version,
+            native_amount=43,
+            custom_amount=0,
         ), await_completion=True)
 
-    for relayed_version in relayed_v3_marker:
-        print(f"## Relayed v{relayed_version}, cross-shard, with contract call, with MoveBalance, via forwarder (promises)")
+    if configuration.generate_relayed_v3:
+        print("## Relayed cross-shard, with contract call, with MoveBalance, via forwarder (promises)")
         controller.send(controller.create_relayed_transfer_and_execute(
             relayer=accounts.get_user(shard=SOME_SHARD, index=0),
             sender=accounts.get_user(shard=SOME_SHARD, index=1),
@@ -576,11 +555,10 @@ def do_run(args: Any):
             gas_limit=30_000_000,
             native_amount=43,
             custom_amount=0,
-            relayed_version=relayed_version,
         ), await_completion=True)
 
-    for relayed_version in relayed_v3_marker:
-        print(f"## Relayed v{relayed_version}, intra-shard, with contract call, with MoveBalance, via forwarder (promises), with signal error")
+    if configuration.generate_relayed_v3:
+        print("## Relayed intra-shard, with contract call, with MoveBalance, via forwarder (promises), with signal error")
         controller.send(controller.create_relayed_transfer_and_execute(
             relayer=accounts.get_user(shard=SOME_SHARD, index=0),
             sender=accounts.get_user(shard=SOME_SHARD, index=1),
@@ -596,11 +574,10 @@ def do_run(args: Any):
             gas_limit=30_000_000,
             native_amount=43,
             custom_amount=0,
-            relayed_version=relayed_version,
         ), await_completion=True)
 
-    for relayed_version in relayed_v3_marker:
-        print(f"## Relayed v{relayed_version}, cross-shard, with contract call, with MoveBalance, via forwarder, with signal error")
+    if configuration.generate_relayed_v3:
+        print("## Relayed cross-shard, with contract call, with MoveBalance, via forwarder, with signal error")
         controller.send(controller.create_relayed_transfer_and_execute(
             relayer=accounts.get_user(shard=SOME_SHARD, index=0),
             sender=accounts.get_user(shard=SOME_SHARD, index=1),
@@ -616,11 +593,10 @@ def do_run(args: Any):
             gas_limit=30_000_000,
             native_amount=43,
             custom_amount=0,
-            relayed_version=relayed_version,
         ), await_completion=True)
 
-    for relayed_version in relayed_v3_marker:
-        print(f"## Relayed v{relayed_version}, intra-shard MoveBalance, when relayer is same as sender")
+    if configuration.generate_relayed_v3:
+        print("## Relayed intra-shard MoveBalance, when relayer is same as sender")
         controller.send(controller.create_relayed_transfer(
             relayer=accounts.get_user(shard=SOME_SHARD, index=0),
             sender=accounts.get_user(shard=SOME_SHARD, index=0),
@@ -628,11 +604,10 @@ def do_run(args: Any):
             native_amount=42,
             custom_amount=0,
             additional_gas_limit=0,
-            relayed_version=relayed_version,
         ), await_completion=True)
 
-    for relayed_version in relayed_v3_marker:
-        print(f"## Relayed v{relayed_version}, cross-shard MoveBalance, when relayer is same as sender")
+    if configuration.generate_relayed_v3:
+        print("## Relayed cross-shard MoveBalance, when relayer is same as sender")
         controller.send(controller.create_relayed_transfer(
             relayer=accounts.get_user(shard=SOME_SHARD, index=0),
             sender=accounts.get_user(shard=SOME_SHARD, index=0),
@@ -640,11 +615,10 @@ def do_run(args: Any):
             native_amount=42,
             custom_amount=0,
             additional_gas_limit=0,
-            relayed_version=relayed_version,
         ), await_completion=True)
 
-    for relayed_version in relayed_v3_marker:
-        print(f"## Relayed v{relayed_version}, intra-shard MoveBalance, with refund, when relayer is same as sender")
+    if configuration.generate_relayed_v3:
+        print("## Relayed intra-shard MoveBalance, with refund, when relayer is same as sender")
         controller.send(controller.create_relayed_transfer(
             relayer=accounts.get_user(shard=SOME_SHARD, index=0),
             sender=accounts.get_user(shard=SOME_SHARD, index=0),
@@ -652,11 +626,10 @@ def do_run(args: Any):
             native_amount=42,
             custom_amount=0,
             additional_gas_limit=42000,
-            relayed_version=relayed_version,
         ), await_completion=True)
 
-    for relayed_version in relayed_v3_marker:
-        print(f"## Relayed v{relayed_version}, cross-shard MoveBalance, with refund, when relayer is same as sender")
+    if configuration.generate_relayed_v3:
+        print("## Relayed cross-shard MoveBalance, with refund, when relayer is same as sender")
         controller.send(controller.create_relayed_transfer(
             relayer=accounts.get_user(shard=SOME_SHARD, index=0),
             sender=accounts.get_user(shard=SOME_SHARD, index=0),
@@ -664,11 +637,10 @@ def do_run(args: Any):
             native_amount=42,
             custom_amount=0,
             additional_gas_limit=42000,
-            relayed_version=relayed_version,
         ), await_completion=True)
 
-    for relayed_version in relayed_v3_marker:
-        print(f"## Relayed v{relayed_version}, intra-shard MoveBalance, when relayer is same as receiver")
+    if configuration.generate_relayed_v3:
+        print("## Relayed intra-shard MoveBalance, when relayer is same as receiver")
         controller.send(controller.create_relayed_transfer(
             relayer=accounts.get_user(shard=SOME_SHARD, index=0),
             sender=accounts.get_user(shard=SOME_SHARD, index=1),
@@ -676,11 +648,10 @@ def do_run(args: Any):
             native_amount=42,
             custom_amount=0,
             additional_gas_limit=0,
-            relayed_version=relayed_version,
         ), await_completion=True)
 
-    for relayed_version in relayed_v3_marker:
-        print(f"## Relayed v{relayed_version}, intra-shard MoveBalance, with refund, when relayer is same as receiver")
+    if configuration.generate_relayed_v3:
+        print("## Relayed intra-shard MoveBalance, with refund, when relayer is same as receiver")
         controller.send(controller.create_relayed_transfer(
             relayer=accounts.get_user(shard=SOME_SHARD, index=0),
             sender=accounts.get_user(shard=SOME_SHARD, index=1),
@@ -688,11 +659,10 @@ def do_run(args: Any):
             native_amount=42,
             custom_amount=0,
             additional_gas_limit=42000,
-            relayed_version=relayed_version,
         ), await_completion=True)
 
-    for relayed_version in relayed_v3_marker:
-        print(f"## Relayed v{relayed_version}, intra-shard MoveBalance, when relayer is same as sender & receiver")
+    if configuration.generate_relayed_v3:
+        print("## Relayed intra-shard MoveBalance, when relayer is same as sender & receiver")
         controller.send(controller.create_relayed_transfer(
             relayer=accounts.get_user(shard=SOME_SHARD, index=0),
             sender=accounts.get_user(shard=SOME_SHARD, index=0),
@@ -700,11 +670,10 @@ def do_run(args: Any):
             native_amount=42,
             custom_amount=0,
             additional_gas_limit=0,
-            relayed_version=relayed_version,
         ), await_completion=True)
 
-    for relayed_version in relayed_v3_marker:
-        print(f"## Relayed v{relayed_version}, intra-shard MoveBalance, with refund, when relayer is same as sender & receiver")
+    if configuration.generate_relayed_v3:
+        print("## Relayed intra-shard MoveBalance, with refund, when relayer is same as sender & receiver")
         controller.send(controller.create_relayed_transfer(
             relayer=accounts.get_user(shard=SOME_SHARD, index=0),
             sender=accounts.get_user(shard=SOME_SHARD, index=0),
@@ -712,11 +681,10 @@ def do_run(args: Any):
             native_amount=42,
             custom_amount=0,
             additional_gas_limit=42000,
-            relayed_version=relayed_version,
         ), await_completion=True)
 
-    for relayed_version in relayed_v3_marker:
-        print(f"## Relayed v{relayed_version}, intra-shard, with contract call, when relayer is same as sender")
+    if configuration.generate_relayed_v3:
+        print("## Relayed intra-shard, with contract call, when relayer is same as sender")
         controller.send(controller.create_relayed_transfer_and_execute(
             relayer=accounts.get_user(shard=SOME_SHARD, index=0),
             sender=accounts.get_user(shard=SOME_SHARD, index=0),
@@ -726,11 +694,10 @@ def do_run(args: Any):
             gas_limit=5_000_000,
             native_amount=0,
             custom_amount=0,
-            relayed_version=relayed_version,
         ), await_completion=True)
 
-    for relayed_version in relayed_v3_marker:
-        print(f"## Relayed v{relayed_version}, cross-shard, with contract call, when relayer is same as sender")
+    if configuration.generate_relayed_v3:
+        print("## Relayed cross-shard, with contract call, when relayer is same as sender")
         controller.send(controller.create_relayed_transfer_and_execute(
             relayer=accounts.get_user(shard=SOME_SHARD, index=0),
             sender=accounts.get_user(shard=SOME_SHARD, index=0),
@@ -740,11 +707,10 @@ def do_run(args: Any):
             gas_limit=5_000_000,
             native_amount=0,
             custom_amount=0,
-            relayed_version=relayed_version,
         ), await_completion=True)
 
-    for relayed_version in relayed_v3_marker:
-        print(f"## Relayed v{relayed_version}, intra-shard, with contract call, with MoveBalance, via forwarder (promises), when relayer is same as sender")
+    if configuration.generate_relayed_v3:
+        print("## Relayed intra-shard, with contract call, with MoveBalance, via forwarder (promises), when relayer is same as sender")
         controller.send(controller.create_relayed_transfer_and_execute(
             relayer=accounts.get_user(shard=SOME_SHARD, index=0),
             sender=accounts.get_user(shard=SOME_SHARD, index=0),
@@ -760,11 +726,10 @@ def do_run(args: Any):
             gas_limit=30_000_000,
             native_amount=43,
             custom_amount=0,
-            relayed_version=relayed_version,
         ), await_completion=True)
 
-    for relayed_version in relayed_v3_marker:
-        print(f"## Relayed v{relayed_version}, cross-shard, with contract call, with MoveBalance, via forwarder (promises), when relayer is same as sender")
+    if configuration.generate_relayed_v3:
+        print("## Relayed cross-shard, with contract call, with MoveBalance, via forwarder (promises), when relayer is same as sender")
         controller.send(controller.create_relayed_transfer_and_execute(
             relayer=accounts.get_user(shard=SOME_SHARD, index=0),
             sender=accounts.get_user(shard=SOME_SHARD, index=0),
@@ -780,11 +745,10 @@ def do_run(args: Any):
             gas_limit=30_000_000,
             native_amount=43,
             custom_amount=0,
-            relayed_version=relayed_version,
         ), await_completion=True)
 
-    for relayed_version in relayed_v3_marker:
-        print(f"## Relayed v{relayed_version}, intra-shard multi-transfer (with native), when relayer is same as receiver")
+    if configuration.generate_relayed_v3:
+        print("## Relayed intra-shard multi-transfer (with native), when relayer is same as receiver")
         controller.send(controller.create_relayed_transfer(
             relayer=accounts.get_user(shard=SOME_SHARD, index=0),
             sender=accounts.get_user(shard=SOME_SHARD, index=1),
@@ -792,11 +756,10 @@ def do_run(args: Any):
             native_amount=42,
             custom_amount=43,
             additional_gas_limit=0,
-            relayed_version=relayed_version,
         ), await_completion=True)
 
-    for relayed_version in relayed_v3_marker:
-        print(f"## Relayed v{relayed_version}, intra-shard custom transfer, when relayer is same as receiver")
+    if configuration.generate_relayed_v3:
+        print("## Relayed intra-shard custom transfer, when relayer is same as receiver")
         controller.send(controller.create_relayed_transfer(
             relayer=accounts.get_user(shard=SOME_SHARD, index=0),
             sender=accounts.get_user(shard=SOME_SHARD, index=1),
@@ -804,7 +767,6 @@ def do_run(args: Any):
             native_amount=0,
             custom_amount=43,
             additional_gas_limit=0,
-            relayed_version=relayed_version,
         ), await_completion=True)
 
     print("## Relayed v3, intra-shard, transfer native within multi-transfer (fuzzy, with tx.value != 0)")
@@ -1975,144 +1937,54 @@ class Controller:
 
         return transaction
 
-    def create_relayed_transfer(self, relayer: "Account", sender: "Account", receiver: Address, native_amount: int, custom_amount: int, additional_gas_limit: int, relayed_version: int) -> Transaction:
+    def create_relayed_transfer(self, relayer: "Account", sender: "Account", receiver: Address, native_amount: int, custom_amount: int, additional_gas_limit: int) -> Transaction:
         token_transfers: List[TokenTransfer] = []
 
         if custom_amount:
             custom_currency = self.memento.get_custom_currencies()[0]
             token_transfers = [TokenTransfer(Token(custom_currency), custom_amount)]
 
-        if relayed_version == 1:
-            # Relayer nonce is reserved before sender nonce, to ensure good ordering (if sender and relayer are the same account).
-            relayer_nonce = self._reserve_nonce(relayer)
+        transaction = self.transfer_transactions_factory.create_transaction_for_transfer(
+            sender=sender.address,
+            receiver=receiver,
+            native_amount=native_amount,
+            token_transfers=token_transfers
+        )
 
-            inner_transaction = self.transfer_transactions_factory.create_transaction_for_transfer(
-                sender=sender.address,
-                receiver=receiver,
-                native_amount=native_amount,
-                token_transfers=token_transfers
-            )
+        transaction.relayer = relayer.address
+        transaction.gas_limit += additional_gas_limit
+        transaction.gas_limit += ADDITIONAL_GAS_LIMIT_FOR_RELAYED_V3
 
-            inner_transaction.gas_limit += additional_gas_limit
+        self.apply_nonce(transaction)
+        self.sign(transaction)
+        self.sign_as_relayer_v3(transaction)
 
-            self.apply_nonce(inner_transaction)
-            self.sign(inner_transaction)
+        return transaction
 
-            transaction = self.relayed_transactions_factory.create_relayed_v1_transaction(
-                inner_transaction=inner_transaction,
-                relayer_address=relayer.address,
-            )
-
-            transaction.nonce = relayer_nonce
-            self.sign(transaction)
-
-            return transaction
-
-        if relayed_version == 2:
-            raise ValueError("not implemented")
-
-        if relayed_version == 3:
-            transaction = self.transfer_transactions_factory.create_transaction_for_transfer(
-                sender=sender.address,
-                receiver=receiver,
-                native_amount=native_amount,
-                token_transfers=token_transfers
-            )
-
-            transaction.relayer = relayer.address
-            transaction.gas_limit += additional_gas_limit
-            transaction.gas_limit += ADDITIONAL_GAS_LIMIT_FOR_RELAYED_V3
-
-            self.apply_nonce(transaction)
-            self.sign(transaction)
-            self.sign_as_relayer_v3(transaction)
-
-            return transaction
-
-        raise ValueError(f"Unsupported relayed version: {relayed_version}")
-
-    def create_relayed_transfer_and_execute(self, relayer: "Account", sender: "Account", contract: Address, function: str, arguments: list[Any], gas_limit: int, native_amount: int, custom_amount: int, relayed_version: int) -> Transaction:
+    def create_relayed_transfer_and_execute(self, relayer: "Account", sender: "Account", contract: Address, function: str, arguments: list[Any], gas_limit: int, native_amount: int, custom_amount: int) -> Transaction:
         token_transfers: List[TokenTransfer] = []
 
         if custom_amount:
             custom_currency = self.memento.get_custom_currencies()[0]
             token_transfers = [TokenTransfer(Token(custom_currency), custom_amount)]
 
-        if relayed_version == 1:
-            # Relayer nonce is reserved before sender nonce, to ensure good ordering (if sender and relayer are the same account).
-            relayer_nonce = self._reserve_nonce(relayer)
+        transaction = self.contracts_transactions_factory.create_transaction_for_execute(
+            sender=sender.address,
+            contract=contract,
+            function=function,
+            gas_limit=gas_limit,
+            arguments=arguments,
+            native_transfer_amount=native_amount,
+            token_transfers=token_transfers
+        )
 
-            inner_transaction = self.contracts_transactions_factory.create_transaction_for_execute(
-                sender=sender.address,
-                contract=contract,
-                function=function,
-                gas_limit=gas_limit,
-                arguments=arguments,
-                native_transfer_amount=native_amount,
-                token_transfers=token_transfers
-            )
+        transaction.relayer = relayer.address
+        transaction.gas_limit += ADDITIONAL_GAS_LIMIT_FOR_RELAYED_V3
+        self.apply_nonce(transaction)
+        self.sign(transaction)
+        self.sign_as_relayer_v3(transaction)
 
-            self.apply_nonce(inner_transaction)
-            self.sign(inner_transaction)
-
-            transaction = self.relayed_transactions_factory.create_relayed_v1_transaction(
-                inner_transaction=inner_transaction,
-                relayer_address=relayer.address,
-            )
-
-            transaction.nonce = relayer_nonce
-            self.sign(transaction)
-
-            return transaction
-
-        if relayed_version == 2:
-            # Relayer nonce is reserved before sender nonce, to ensure good ordering (if sender and relayer are the same account).
-            relayer_nonce = self._reserve_nonce(relayer)
-
-            inner_transaction = self.contracts_transactions_factory.create_transaction_for_execute(
-                sender=sender.address,
-                contract=contract,
-                function=function,
-                gas_limit=0,
-                arguments=arguments,
-                native_transfer_amount=native_amount,
-                token_transfers=token_transfers
-            )
-
-            self.apply_nonce(inner_transaction)
-            self.sign(inner_transaction)
-
-            transaction = self.relayed_transactions_factory.create_relayed_v2_transaction(
-                inner_transaction=inner_transaction,
-                inner_transaction_gas_limit=gas_limit,
-                relayer_address=relayer.address,
-            )
-
-            transaction.nonce = relayer_nonce
-            self.sign(transaction)
-
-            return transaction
-
-        if relayed_version == 3:
-            transaction = self.contracts_transactions_factory.create_transaction_for_execute(
-                sender=sender.address,
-                contract=contract,
-                function=function,
-                gas_limit=gas_limit,
-                arguments=arguments,
-                native_transfer_amount=native_amount,
-                token_transfers=token_transfers
-            )
-
-            transaction.relayer = relayer.address
-            transaction.gas_limit += ADDITIONAL_GAS_LIMIT_FOR_RELAYED_V3
-            self.apply_nonce(transaction)
-            self.sign(transaction)
-            self.sign_as_relayer_v3(transaction)
-
-            return transaction
-
-        raise ValueError(f"Unsupported relayed version: {relayed_version}")
+        return transaction
 
     def apply_nonce(self, transaction: Transaction):
         sender = self.accounts.get_account_by_bech32(transaction.sender.to_bech32())

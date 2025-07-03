@@ -43,8 +43,6 @@ class Configuration:
     users_mnemonic: str = ENV_USERS_MNEMONIC or DEFAULT_USERS_MNEMONIC
     num_users_per_shard: int = 16
     users_in_projected_shard: bool = False
-    generate_relayed_v1: bool = False
-    generate_relayed_v2: bool = False
     generate_relayed_v3: bool = False
 
 
@@ -81,7 +79,7 @@ CONFIGURATIONS = {
         rosetta_port=7092,
         activation_epoch_sirius=629,
         activation_epoch_spica=2327,
-        activation_epoch_relayed_v3=2991,
+        activation_epoch_relayed_v3=1,
         check_construction_native_configuration_file="systemtests/mesh_cli_config/devnet-construction-native.json",
         check_construction_custom_configuration_file="systemtests/mesh_cli_config/devnet-construction-custom.json",
         check_data_configuration_file="systemtests/mesh_cli_config/check-data.json",
@@ -124,7 +122,7 @@ CONFIGURATIONS = {
         rosetta_port=7094,
         activation_epoch_sirius=1,
         activation_epoch_spica=1,
-        activation_epoch_relayed_v3=2,
+        activation_epoch_relayed_v3=1,
         check_construction_native_configuration_file="systemtests/mesh_cli_config/localnet-construction-native.json",
         check_construction_custom_configuration_file="systemtests/mesh_cli_config/localnet-construction-custom.json",
         check_data_configuration_file="systemtests/mesh_cli_config/check-data.json",
@@ -146,7 +144,7 @@ CONFIGURATIONS = {
         rosetta_port=7095,
         activation_epoch_sirius=1,
         activation_epoch_spica=1,
-        activation_epoch_relayed_v3=2,
+        activation_epoch_relayed_v3=1,
         check_construction_native_configuration_file="systemtests/mesh_cli_config/internal-construction-native.json",
         check_construction_custom_configuration_file="systemtests/mesh_cli_config/internal-construction-custom.json",
         check_data_configuration_file="systemtests/mesh_cli_config/check-data.json",

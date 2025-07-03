@@ -1,2 +1,2 @@
-multiversx_sdk==1.0.0b1
-requests
+multiversx_sdk==1.6.2
+requests>=2.32.0,<3.0.0
