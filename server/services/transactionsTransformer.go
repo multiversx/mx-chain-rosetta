@@ -142,7 +142,10 @@ func (transformer *transactionsTransformer) unsignedTxToRosettaTx(
 		}
 	}
 
-	// Handle developer rewards ...
+	// Handle developer rewards: in case of claiming developer rewards in a cross-shard fashion,
+	// the rewards amount is visible both as a SCR and as logs (events).
+	// Here, we simply ignore all SCRs which hold a developer reward.
+	// All such amounts are already considered within "addOperationsGivenTransactionEvents".
 	if transformer.featuresDetector.doesContractResultHoldRewardsOfClaimDeveloperRewards(scr, txsInBlock) {
 		return &types.Transaction{
 			TransactionIdentifier: hashToTransactionIdentifier(scr.Hash),
