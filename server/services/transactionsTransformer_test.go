@@ -1260,7 +1260,7 @@ func TestTransactionsTransformer_TransformBlockTxsHavingClaimDeveloperRewards(t 
 	blocks, err := readTestBlocks("testdata/blocks_with_claim_developer_rewards.json")
 	require.Nil(t, err)
 
-	t.Run("recover operations", func(t *testing.T) {
+	t.Run("recover operations using ClaimDeveloperRewards events", func(t *testing.T) {
 		txs, err := transformer.transformBlockTxs(blocks[0])
 		require.Nil(t, err)
 		require.Len(t, txs, 2)
