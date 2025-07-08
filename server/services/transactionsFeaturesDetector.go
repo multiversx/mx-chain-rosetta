@@ -19,6 +19,9 @@ func newTransactionsFeaturesDetector(provider NetworkProvider) *transactionsFeat
 }
 
 // Example SCRs can be found here: https://api.multiversx.com/transactions?function=ClaimDeveloperRewards
+// Unfortunately, the network does not provide a way to easily and properly detect whether a SCR
+// is the result of claiming developer rewards. Here, we apply a best-effort (and suboptimal) strategy:
+// we scan through all the other items in the block, in order to find a parent transaction that matches the operation in question.
 func (detector *transactionsFeaturesDetector) doesContractResultHoldRewardsOfClaimDeveloperRewards(
 	contractResult *transaction.ApiTransactionResult,
 	allTransactionsInBlock []*transaction.ApiTransactionResult,
