@@ -5,17 +5,16 @@ import (
 )
 
 const (
-	opGenesisBalanceMovement     = "GenesisBalanceMovement"
-	opTransfer                   = "Transfer"
-	opFee                        = "Fee"
-	opReward                     = "Reward"
-	opScResult                   = "SmartContractResult"
-	opFeeRefundAsScResult        = "FeeRefundAsSmartContractResult"
-	opDeveloperRewardsAsScResult = "DeveloperRewardsAsSmartContractResult"
-	opDeveloperRewards           = "DeveloperRewards"
-	opFeeOfInvalidTx             = "FeeOfInvalidTransaction"
-	opFeeRefund                  = "FeeRefund"
-	opCustomTransfer             = "CustomTransfer"
+	opGenesisBalanceMovement = "GenesisBalanceMovement"
+	opTransfer               = "Transfer"
+	opFee                    = "Fee"
+	opReward                 = "Reward"
+	opScResult               = "SmartContractResult"
+	opFeeRefundAsScResult    = "FeeRefundAsSmartContractResult"
+	opDeveloperRewards       = "DeveloperRewards"
+	opFeeOfInvalidTx         = "FeeOfInvalidTransaction"
+	opFeeRefund              = "FeeRefund"
+	opCustomTransfer         = "CustomTransfer"
 )
 
 var (
@@ -27,7 +26,6 @@ var (
 		opReward,
 		opScResult,
 		opFeeRefundAsScResult,
-		opDeveloperRewardsAsScResult,
 		opDeveloperRewards,
 		opFeeOfInvalidTx,
 		opFeeRefund,
