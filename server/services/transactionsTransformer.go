@@ -142,19 +142,11 @@ func (transformer *transactionsTransformer) unsignedTxToRosettaTx(
 		}
 	}
 
-	if !transformer.areClaimDeveloperRewardsEventsEnabled(scr.Epoch) {
-		// Handle developer rewards in a legacy manner (without looking at events / logs)
-		if transformer.featuresDetector.doesContractResultHoldRewardsOfClaimDeveloperRewards(scr, txsInBlock) {
-			return &types.Transaction{
-				TransactionIdentifier: hashToTransactionIdentifier(scr.Hash),
-				Operations: []*types.Operation{
-					{
-						Type:    opDeveloperRewardsAsScResult,
-						Account: addressToAccountIdentifier(scr.Receiver),
-						Amount:  transformer.extension.valueToNativeAmount(scr.Value),
-					},
-				},
-			}
+	// Handle developer rewards ...
+	if transformer.featuresDetector.doesContractResultHoldRewardsOfClaimDeveloperRewards(scr, txsInBlock) {
+		return &types.Transaction{
+			TransactionIdentifier: hashToTransactionIdentifier(scr.Hash),
+			Operations:            []*types.Operation{},
 		}
 	}
 
@@ -585,18 +577,16 @@ func (transformer *transactionsTransformer) addOperationsGivenTransactionEvents(
 		rosettaTx.Operations = append(rosettaTx.Operations, operations...)
 	}
 
-	if transformer.areClaimDeveloperRewardsEventsEnabled(tx.Epoch) {
-		for _, event := range eventsClaimDeveloperRewards {
-			operations := []*types.Operation{
-				{
-					Type:    opDeveloperRewards,
-					Account: addressToAccountIdentifier(event.receiverAddress),
-					Amount:  transformer.extension.valueToNativeAmount(event.value),
-				},
-			}
-
-			rosettaTx.Operations = append(rosettaTx.Operations, operations...)
+	for _, event := range eventsClaimDeveloperRewards {
+		operations := []*types.Operation{
+			{
+				Type:    opDeveloperRewards,
+				Account: addressToAccountIdentifier(event.receiverAddress),
+				Amount:  transformer.extension.valueToNativeAmount(event.value),
+			},
 		}
+
+		rosettaTx.Operations = append(rosettaTx.Operations, operations...)
 	}
 
 	return nil
@@ -635,8 +625,4 @@ func (transformer *transactionsTransformer) extractOperationsFromEventESDT(event
 	}
 
 	return make([]*types.Operation, 0)
-}
-
-func (transformer *transactionsTransformer) areClaimDeveloperRewardsEventsEnabled(epoch uint32) bool {
-	return transformer.provider.IsReleaseSpicaActive(epoch)
 }
