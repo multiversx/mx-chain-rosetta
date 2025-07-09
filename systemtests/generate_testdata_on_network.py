@@ -69,8 +69,6 @@ def do_setup(args: Any):
 
     memento.clear()
 
-    controller.wait_until_epoch(configuration.activation_epoch_sirius)
-
     print("Do airdrops for native currency...")
     controller.do_airdrops_for_native_currency()
 

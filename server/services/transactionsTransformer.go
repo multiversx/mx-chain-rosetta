@@ -200,14 +200,12 @@ func (transformer *transactionsTransformer) normalTxToRosetta(tx *transaction.Ap
 
 	transfersValue := isNonZeroAmount(tx.Value)
 
-	if transformer.provider.IsReleaseSiriusActive(tx.Epoch) {
-		// Special handling of:
-		// - intra-shard contract calls, bearing value, which fail with signal error
-		// - direct contract deployments, bearing value, which fail with signal error
-		// For these, the protocol does not generate an explicit SCR with the value refund (before Sirius, in some cases, it did).
-		// However, since the value remains at the sender, we don't emit any operations in these circumstances.
-		transfersValue = transfersValue && !transformer.featuresDetector.isContractDeploymentWithSignalErrorOrIntrashardContractCallWithSignalError(tx)
-	}
+	// Special handling of:
+	// - intra-shard contract calls, bearing value, which fail with signal error
+	// - direct contract deployments, bearing value, which fail with signal error
+	// For these, the protocol does not generate an explicit SCR with the value refund (before Sirius, in some cases, it did).
+	// However, since the value remains at the sender, we don't emit any operations in these circumstances.
+	transfersValue = transfersValue && !transformer.featuresDetector.isContractDeploymentWithSignalErrorOrIntrashardContractCallWithSignalError(tx)
 
 	if transfersValue {
 		operations = append(operations, &types.Operation{
