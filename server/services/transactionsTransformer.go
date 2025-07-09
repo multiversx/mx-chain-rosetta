@@ -142,19 +142,25 @@ func (transformer *transactionsTransformer) unsignedTxToRosettaTx(
 		}
 	}
 
-	if !transformer.areClaimDeveloperRewardsEventsEnabled(scr.Epoch) {
-		// Handle developer rewards in a legacy manner (without looking at events / logs)
-		if transformer.featuresDetector.doesContractResultHoldRewardsOfClaimDeveloperRewards(scr, txsInBlock) {
-			return &types.Transaction{
-				TransactionIdentifier: hashToTransactionIdentifier(scr.Hash),
-				Operations: []*types.Operation{
-					{
-						Type:    opDeveloperRewardsAsScResult,
-						Account: addressToAccountIdentifier(scr.Receiver),
-						Amount:  transformer.extension.valueToNativeAmount(scr.Value),
-					},
-				},
-			}
+	// Handle developer rewards:
+	//
+	// (a) When the developer rewards are claimed in an intra-shard fashion, the network generates misleading SCRs.
+	// In addition to the regular refund SCR, there's a SCR that notarizes the rewards as a misleading balance transfer, from the developer to self:
+	//	- https://explorer.multiversx.com/transactions?function=ClaimDeveloperRewards&senderShard=0&receiverShard=0
+	//	- and so on...
+	//
+	// (b) When the developer rewards are claimed in a cross-shard fashion, the network generates misleading SCRs.
+	// In addition to the regular refund SCR, there's a SCR that notarizes the rewards as a misleading balance transfer, from the contract to the developer:
+	// - https://explorer.multiversx.com/transactions?function=ClaimDeveloperRewards&senderShard=0&receiverShard=1
+	// - and so on ...
+	//
+	// Either way, correct transaction events with identifier "ClaimDeveloperRewards" are generated.
+	// Here, we simply ignore all SCRs which **seem to hold a developer reward**,
+	// since they are properly handled by "addOperationsGivenTransactionEvents".
+	if transformer.featuresDetector.doesContractResultHoldRewardsOfClaimDeveloperRewards(scr, txsInBlock) {
+		return &types.Transaction{
+			TransactionIdentifier: hashToTransactionIdentifier(scr.Hash),
+			Operations:            []*types.Operation{},
 		}
 	}
 
@@ -585,18 +591,16 @@ func (transformer *transactionsTransformer) addOperationsGivenTransactionEvents(
 		rosettaTx.Operations = append(rosettaTx.Operations, operations...)
 	}
 
-	if transformer.areClaimDeveloperRewardsEventsEnabled(tx.Epoch) {
-		for _, event := range eventsClaimDeveloperRewards {
-			operations := []*types.Operation{
-				{
-					Type:    opDeveloperRewards,
-					Account: addressToAccountIdentifier(event.receiverAddress),
-					Amount:  transformer.extension.valueToNativeAmount(event.value),
-				},
-			}
-
-			rosettaTx.Operations = append(rosettaTx.Operations, operations...)
+	for _, event := range eventsClaimDeveloperRewards {
+		operations := []*types.Operation{
+			{
+				Type:    opDeveloperRewards,
+				Account: addressToAccountIdentifier(event.receiverAddress),
+				Amount:  transformer.extension.valueToNativeAmount(event.value),
+			},
 		}
+
+		rosettaTx.Operations = append(rosettaTx.Operations, operations...)
 	}
 
 	return nil
@@ -635,8 +639,4 @@ func (transformer *transactionsTransformer) extractOperationsFromEventESDT(event
 	}
 
 	return make([]*types.Operation, 0)
-}
-
-func (transformer *transactionsTransformer) areClaimDeveloperRewardsEventsEnabled(epoch uint32) bool {
-	return transformer.provider.IsReleaseSpicaActive(epoch)
 }

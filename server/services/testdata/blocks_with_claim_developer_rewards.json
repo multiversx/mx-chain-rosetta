@@ -8,30 +8,48 @@
                         "type": "normal",
                         "processingTypeOnSource": "BuiltInFunctionCall",
                         "processingTypeOnDestination": "BuiltInFunctionCall",
-                        "hash": "96b1a0533ff17df3d1777889117023d0b178cc80fa72535d1b8ec1a13bcf3a75",
-                        "epoch": 20,
+                        "hash": "e0cb3e108c4e04a6d2406d718c20f976b365de3d1dd0067fd2fae996f7c9cbd1",
+                        "nonce": 536,
+                        "round": 1092226,
+                        "epoch": 909,
                         "value": "0",
-                        "receiver": "erd1qqqqqqqqqqqqqpgqagjekf5mxv86hy5c62vvtug5vc6jmgcsq6uq8reras",
+                        "receiver": "erd1qqqqqqqqqqqqqpgq2kndhnp65u9jvg79pz6luthf2tcfc9f6q6uq28n2n9",
                         "sender": "erd1tn62hjp72rznp8vq0lplva5csav6rccpqqdungpxtqz0g2hcq6uq9k4cc6",
+                        "gasPrice": 1000000000,
+                        "gasLimit": 8000000,
                         "data": "Q2xhaW1EZXZlbG9wZXJSZXdhcmRz",
-                        "signature": "132aa54ec093c21e2d0d447bf9a9b1da5c33d4120da66fb53dbc78d1d3d007e2314fa06348302f503e96a91b697dd943189df0ad4c3750416a704de2ac007e06",
+                        "signature": "b8771fe3f0184bed47f002543f5302b93bfeace7cf1c3ef138522e4c53e162745359d4eb4fa2cf40036ebc1c4db9e8269ea5b81047aa6d9f6965c5792d84e40e",
                         "sourceShard": 0,
                         "destinationShard": 0,
+                        "miniblockType": "TxBlock",
+                        "miniblockHash": "2684c32382e5acd3912d8ae7adfa934e1950d24927f0b99baae6617182a1eae8",
                         "logs": {
-                            "address": "erd1qqqqqqqqqqqqqpgqagjekf5mxv86hy5c62vvtug5vc6jmgcsq6uq8reras",
+                            "address": "erd1qqqqqqqqqqqqqpgq2kndhnp65u9jvg79pz6luthf2tcfc9f6q6uq28n2n9",
                             "events": [
                                 {
-                                    "address": "erd1qqqqqqqqqqqqqpgqagjekf5mxv86hy5c62vvtug5vc6jmgcsq6uq8reras",
+                                    "address": "erd1qqqqqqqqqqqqqpgq2kndhnp65u9jvg79pz6luthf2tcfc9f6q6uq28n2n9",
+                                    "identifier": "ClaimDeveloperRewards",
+                                    "topics": [
+                                        "AZ012mtA",
+                                        "XPSryD5QxTCdgH/D9naYh1mh4wEAG8mgJlgE9Cr4Brg="
+                                    ],
+                                    "data": null,
+                                    "additionalData": null
+                                },
+                                {
+                                    "address": "erd1qqqqqqqqqqqqqpgq2kndhnp65u9jvg79pz6luthf2tcfc9f6q6uq28n2n9",
                                     "identifier": "completedTxEvent",
                                     "topics": [
-                                        "lrGgUz/xffPRd3iJEXAj0LF4zID6clNdG47BoTvPOnU="
+                                        "4Ms+EIxOBKbSQG1xjCD5drNl3j0d0AZ/0vrplvfJy9E="
                                     ],
                                     "data": null,
                                     "additionalData": null
                                 }
                             ]
                         },
+                        "status": "success",
                         "operation": "ClaimDeveloperRewards",
+                        "function": "ClaimDeveloperRewards",
                         "initiallyPaidFee": "160685000000000"
                     }
                 ]
@@ -42,33 +60,50 @@
                         "type": "unsigned",
                         "processingTypeOnSource": "MoveBalance",
                         "processingTypeOnDestination": "MoveBalance",
-                        "hash": "d05c5f65f564d740aa1e81f7a96581d739783a43c232a6c86112afa1e6c318c4",
-                        "epoch": 20,
+                        "hash": "7969b30a33e9d925cacda530a4afa74269cd4e366f0598486e23b70f5e10cf98",
+                        "nonce": 0,
+                        "round": 1092226,
+                        "epoch": 909,
                         "value": "1774725000000",
                         "receiver": "erd1tn62hjp72rznp8vq0lplva5csav6rccpqqdungpxtqz0g2hcq6uq9k4cc6",
                         "sender": "erd1tn62hjp72rznp8vq0lplva5csav6rccpqqdungpxtqz0g2hcq6uq9k4cc6",
-                        "previousTransactionHash": "96b1a0533ff17df3d1777889117023d0b178cc80fa72535d1b8ec1a13bcf3a75",
-                        "originalTransactionHash": "96b1a0533ff17df3d1777889117023d0b178cc80fa72535d1b8ec1a13bcf3a75",
+                        "gasPrice": 1000000000,
+                        "previousTransactionHash": "e0cb3e108c4e04a6d2406d718c20f976b365de3d1dd0067fd2fae996f7c9cbd1",
+                        "originalTransactionHash": "e0cb3e108c4e04a6d2406d718c20f976b365de3d1dd0067fd2fae996f7c9cbd1",
                         "originalSender": "erd1tn62hjp72rznp8vq0lplva5csav6rccpqqdungpxtqz0g2hcq6uq9k4cc6",
                         "sourceShard": 0,
-                        "destinationShard": 0
+                        "destinationShard": 0,
+                        "miniblockType": "SmartContractResultBlock",
+                        "miniblockHash": "8ba6961a4191dc4f42296eab4f68a56048fd257c943f4e787e31befb8b155d84",
+                        "status": "success",
+                        "operation": "transfer",
+                        "callType": "directCall",
+                        "options": 0
                     },
                     {
                         "type": "unsigned",
                         "processingTypeOnSource": "MoveBalance",
                         "processingTypeOnDestination": "MoveBalance",
-                        "hash": "bc89442d5e77113f0b4e7383e5d078776fc6724690ba9f98d1704202c324e090",
-                        "epoch": 20,
+                        "hash": "06f81486996225b597bc7ed89b4062cd895491b33b1e81f34205ef48272bd644",
+                        "nonce": 537,
+                        "round": 1092226,
+                        "epoch": 909,
                         "value": "29185000000000",
                         "receiver": "erd1tn62hjp72rznp8vq0lplva5csav6rccpqqdungpxtqz0g2hcq6uq9k4cc6",
-                        "sender": "erd1qqqqqqqqqqqqqpgqagjekf5mxv86hy5c62vvtug5vc6jmgcsq6uq8reras",
-                        "previousTransactionHash": "96b1a0533ff17df3d1777889117023d0b178cc80fa72535d1b8ec1a13bcf3a75",
-                        "originalTransactionHash": "96b1a0533ff17df3d1777889117023d0b178cc80fa72535d1b8ec1a13bcf3a75",
+                        "sender": "erd1qqqqqqqqqqqqqpgq2kndhnp65u9jvg79pz6luthf2tcfc9f6q6uq28n2n9",
+                        "gasPrice": 1000000000,
+                        "data": "QDZmNmI=",
+                        "previousTransactionHash": "e0cb3e108c4e04a6d2406d718c20f976b365de3d1dd0067fd2fae996f7c9cbd1",
+                        "originalTransactionHash": "e0cb3e108c4e04a6d2406d718c20f976b365de3d1dd0067fd2fae996f7c9cbd1",
                         "sourceShard": 0,
                         "destinationShard": 0,
-                        "nonce": 29,
-                        "data": "QDZmNmI=",
-                        "isRefund": true
+                        "miniblockType": "SmartContractResultBlock",
+                        "miniblockHash": "8ba6961a4191dc4f42296eab4f68a56048fd257c943f4e787e31befb8b155d84",
+                        "status": "success",
+                        "operation": "transfer",
+                        "isRefund": true,
+                        "callType": "directCall",
+                        "options": 0
                     }
                 ]
             }
