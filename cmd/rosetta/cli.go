@@ -177,6 +177,7 @@ VERSION:
 		Name:     "activation-epoch-sirius",
 		Usage:    "Deprecated (not used anymore).",
 		Required: false,
+		Hidden:   true,
 		Value:    0,
 	}
 
