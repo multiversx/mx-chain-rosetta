@@ -45,10 +45,6 @@ func (controller *transactionEventsController) extractEventSCDeploy(tx *transact
 }
 
 func (controller *transactionEventsController) extractEventTransferValueOnly(tx *transaction.ApiTransactionResult) ([]*eventTransferValueOnly, error) {
-	if !controller.provider.IsReleaseSiriusActive(tx.Epoch) {
-		return make([]*eventTransferValueOnly, 0), nil
-	}
-
 	rawEvents := controller.findManyEventsByIdentifier(tx, transactionEventTransferValueOnly)
 	typedEvents := make([]*eventTransferValueOnly, 0)
 

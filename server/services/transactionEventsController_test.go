@@ -206,33 +206,6 @@ func TestTransactionEventsController_ExtractEvents(t *testing.T) {
 		require.Equal(t, "erd1tn62hjp72rznp8vq0lplva5csav6rccpqqdungpxtqz0g2hcq6uq9k4cc6", events[0].deployerAddress)
 	})
 
-	t.Run("transferValueOnly, before Sirius (not handled at all)", func(t *testing.T) {
-		topic0 := testscommon.TestContractFooShard0.PubKey
-		topic1 := testscommon.TestContractBarShard0.PubKey
-		topic2 := big.NewInt(100).Bytes()
-
-		tx := &transaction.ApiTransactionResult{
-			Epoch: 41,
-			Logs: &transaction.ApiLogs{
-				Events: []*transaction.Events{
-					{
-						Identifier: "transferValueOnly",
-						Address:    "erd1qqqqqqqqqqqqqpgqmmud45gkr78scw8numnn290dsyzc7z6kq6uqw2jcza",
-						Topics: [][]byte{
-							topic0,
-							topic1,
-							topic2,
-						},
-					},
-				},
-			},
-		}
-
-		events, err := controller.extractEventTransferValueOnly(tx)
-		require.NoError(t, err)
-		require.Len(t, events, 0)
-	})
-
 	t.Run("transferValueOnly, after Sirius, effective (intra-shard ExecuteOnDestContext)", func(t *testing.T) {
 		topic0 := big.NewInt(100).Bytes()
 		topic1 := testscommon.TestContractBarShard0.PubKey

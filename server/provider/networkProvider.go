@@ -43,7 +43,6 @@ type ArgsNewNetworkProvider struct {
 	FirstHistoricalEpoch        uint32
 	NumHistoricalEpochs         uint32
 	ShouldHandleContracts       bool
-	ActivationEpochSirius       uint32
 	ActivationEpochSpica        uint32
 
 	ObserverFacade observerFacade
@@ -67,7 +66,6 @@ type networkProvider struct {
 	firstHistoricalEpoch        uint32
 	numHistoricalEpochs         uint32
 	shouldHandleContracts       bool
-	activationEpochSirius       uint32
 	activationEpochSpica        uint32
 
 	observerFacade observerFacade
@@ -109,7 +107,6 @@ func NewNetworkProvider(args ArgsNewNetworkProvider) (*networkProvider, error) {
 		firstHistoricalEpoch:        args.FirstHistoricalEpoch,
 		numHistoricalEpochs:         args.NumHistoricalEpochs,
 		shouldHandleContracts:       args.ShouldHandleContracts,
-		activationEpochSirius:       args.ActivationEpochSirius,
 		activationEpochSpica:        args.ActivationEpochSpica,
 
 		observerFacade: args.ObserverFacade,
@@ -476,11 +473,6 @@ func (provider *networkProvider) ComputeTransactionFeeForMoveBalance(tx *transac
 	return fee
 }
 
-// IsReleaseSiriusActive returns whether the Sirius release is active in the provided epoch
-func (provider *networkProvider) IsReleaseSiriusActive(epoch uint32) bool {
-	return epoch >= provider.activationEpochSirius
-}
-
 // IsReleaseSpicaActive returns whether the Spica release is active in the provided epoch
 func (provider *networkProvider) IsReleaseSpicaActive(epoch uint32) bool {
 	return epoch >= provider.activationEpochSpica
@@ -499,7 +491,6 @@ func (provider *networkProvider) LogDescription() {
 		"firstHistoricalEpoch", provider.firstHistoricalEpoch,
 		"numHistoricalEpochs", provider.numHistoricalEpochs,
 		"shouldHandleContracts", provider.shouldHandleContracts,
-		"activationEpochSirius", provider.activationEpochSirius,
 		"activationEpochSpica", provider.activationEpochSpica,
 		"nativeCurrency", provider.GetNativeCurrency().Symbol,
 		"customCurrencies", provider.GetCustomCurrenciesSymbols(),

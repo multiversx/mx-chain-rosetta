@@ -200,14 +200,12 @@ func (transformer *transactionsTransformer) normalTxToRosetta(tx *transaction.Ap
 
 	transfersValue := isNonZeroAmount(tx.Value)
 
-	if transformer.provider.IsReleaseSiriusActive(tx.Epoch) {
-		// Special handling of:
-		// - intra-shard contract calls, bearing value, which fail with signal error
-		// - direct contract deployments, bearing value, which fail with signal error
-		// For these, the protocol does not generate an explicit SCR with the value refund (before Sirius, in some cases, it did).
-		// However, since the value remains at the sender, we don't emit any operations in these circumstances.
-		transfersValue = transfersValue && !transformer.featuresDetector.isContractDeploymentWithSignalErrorOrIntrashardContractCallWithSignalError(tx)
-	}
+	// Special handling of:
+	// - intra-shard contract calls, bearing value, which fail with signal error
+	// - direct contract deployments, bearing value, which fail with signal error
+	// For these, the protocol does not generate an explicit SCR with the value refund (before Sirius, in some cases, it did).
+	// However, since the value remains at the sender, we don't emit any operations in these circumstances.
+	transfersValue = transfersValue && !transformer.featuresDetector.isContractDeploymentWithSignalErrorOrIntrashardContractCallWithSignalError(tx)
 
 	if transfersValue {
 		operations = append(operations, &types.Operation{
@@ -230,13 +228,6 @@ func (transformer *transactionsTransformer) normalTxToRosetta(tx *transaction.Ap
 		Amount:  transformer.extension.valueToNativeAmount("-" + tx.InitiallyPaidFee),
 	})
 
-	innerTxOperationsIfRelayedCompletelyIntrashardWithSignalError, err := transformer.extractInnerTxOperationsIfBeforeSiriusRelayedCompletelyIntrashardWithSignalError(tx)
-	if err != nil {
-		return nil, err
-	}
-
-	operations = append(operations, innerTxOperationsIfRelayedCompletelyIntrashardWithSignalError...)
-
 	return &types.Transaction{
 		TransactionIdentifier: hashToTransactionIdentifier(tx.Hash),
 		Operations:            operations,
@@ -250,57 +241,6 @@ func (transformer *transactionsTransformer) decideFeePayer(tx *transaction.ApiTr
 	}
 
 	return tx.Sender
-}
-
-// extractInnerTxOperationsIfBeforeSiriusRelayedCompletelyIntrashardWithSignalError recovers the inner transaction operations (native balance transfers)
-// for a transaction that is relayed and completely intrashard, and has a signal error, and was processed before the activation of Sirius features.
-// Before Sirius, such a transaction is accompanied by an SCR with the value refund, thus Rosetta has to recover the inner transaction operations, as well,
-// to show the complete picture (that the operations cancel each other out).
-// After Sirius, the protocol does not generate an SCR with the value refund for such transactions, so this workaround is not needed.
-// Additional references:
-// - https://github.com/multiversx/mx-chain-rosetta/pull/81/files
-// - https://console.cloud.google.com/bigquery?sq=667383445384:bfeb7de9aeec453192612ddc7fa9d94e
-func (transformer *transactionsTransformer) extractInnerTxOperationsIfBeforeSiriusRelayedCompletelyIntrashardWithSignalError(tx *transaction.ApiTransactionResult) ([]*types.Operation, error) {
-	if transformer.provider.IsReleaseSiriusActive(tx.Epoch) {
-		return []*types.Operation{}, nil
-	}
-
-	// Only relayed V1 is handled. Relayed V2 cannot bear native value in the inner transaction.
-	isRelayedTransaction := isRelayedV1Transaction(tx)
-	if !isRelayedTransaction {
-		return []*types.Operation{}, nil
-	}
-
-	innerTx, err := parseInnerTxOfRelayedV1(tx)
-	if err != nil {
-		return []*types.Operation{}, err
-	}
-
-	if isZeroBigIntOrNil(&innerTx.Value) {
-		return []*types.Operation{}, nil
-	}
-
-	if !transformer.featuresDetector.isRelayedV1TransactionCompletelyIntrashardWithSignalError(tx, innerTx) {
-		return []*types.Operation{}, nil
-	}
-
-	log.Info("extractInnerTxOperationsIfBeforeSiriusRelayedCompletelyIntrashardWithSignalError", "tx", tx.Hash)
-
-	senderAddress := transformer.provider.ConvertPubKeyToAddress(innerTx.SenderPubKey)
-	receiverAddress := transformer.provider.ConvertPubKeyToAddress(innerTx.ReceiverPubKey)
-
-	return []*types.Operation{
-		{
-			Type:    opTransfer,
-			Account: addressToAccountIdentifier(senderAddress),
-			Amount:  transformer.extension.valueToNativeAmount("-" + innerTx.Value.String()),
-		},
-		{
-			Type:    opTransfer,
-			Account: addressToAccountIdentifier(receiverAddress),
-			Amount:  transformer.extension.valueToNativeAmount(innerTx.Value.String()),
-		},
-	}, nil
 }
 
 func (transformer *transactionsTransformer) refundReceiptToRosettaTx(receipt *transaction.ApiReceipt) (*types.Transaction, error) {

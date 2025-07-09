@@ -175,9 +175,10 @@ VERSION:
 
 	cliFlagActivationEpochSirius = cli.UintFlag{
 		Name:     "activation-epoch-sirius",
-		Usage:    "Specifies the activation epoch for Sirius release.",
+		Usage:    "Deprecated (not used anymore).",
 		Required: false,
-		Value:    1265,
+		Hidden:   true,
+		Value:    0,
 	}
 
 	cliFlagActivationEpochSpica = cli.UintFlag{
@@ -253,7 +254,6 @@ type parsedCliFlags struct {
 	numHistoricalEpochs         uint32
 	shouldHandleContracts       bool
 	configFileCustomCurrencies  string
-	activationEpochSirius       uint32
 	activationEpochSpica        uint32
 	shouldEnablePprofEndpoints  bool
 }
@@ -286,7 +286,6 @@ func getParsedCliFlags(ctx *cli.Context) parsedCliFlags {
 		numHistoricalEpochs:         uint32(ctx.GlobalUint(cliFlagNumHistoricalEpochs.Name)),
 		shouldHandleContracts:       ctx.GlobalBool(cliFlagShouldHandleContracts.Name),
 		configFileCustomCurrencies:  ctx.GlobalString(cliFlagConfigFileCustomCurrencies.Name),
-		activationEpochSirius:       uint32(ctx.GlobalUint(cliFlagActivationEpochSirius.Name)),
 		activationEpochSpica:        uint32(ctx.GlobalUint(cliFlagActivationEpochSpica.Name)),
 		shouldEnablePprofEndpoints:  ctx.GlobalBool(cliFlagShouldEnablePprofEndpoints.Name),
 	}
