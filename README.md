@@ -1,5 +1,10 @@
 # Rosetta API for MultiversX
 
+[![CodeQL](https://github.com/multiversx/mx-chain-rosetta/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/multiversx/mx-chain-rosetta/actions/workflows/codeql-analysis.yml)
+[![Go](https://github.com/multiversx/mx-chain-rosetta/actions/workflows/pr-build.yml/badge.svg)](https://github.com/multiversx/mx-chain-rosetta/actions/workflows/pr-build.yml)
+[![codecov](https://codecov.io/gh/multiversx/mx-chain-rosetta/graph/badge.svg?token=JKUHPTDPJ9)](https://codecov.io/gh/multiversx/mx-chain-rosetta)
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/multiversx/mx-chain-rosetta)
+
 ## Overview
 
 **MultiversX runs on a sharded architecture** - transaction, data and network sharding are leveraged. 
@@ -255,7 +260,7 @@ Run the checks:
 PYTHONPATH=. python3 ./systemtests/check_with_mesh_cli.py --mode=data --network=testnet --shard=0
 ```
 
-# Or, continuously:
+Or, continuously:
 
 ```
 while PYTHONPATH=. python3 ./systemtests/check_with_mesh_cli.py --mode=data --network=testnet --shard=0; do sleep 5; done
