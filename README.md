@@ -11,7 +11,7 @@
 
 In the Rosetta implementation, we've decided to provide a single-shard perspective to the API consumer. That is, **one Rosetta instance** would observe **a single _regular_ shard** of the network - the shard is selected by the owner of the instance.
 
-Currently, the Rosetta implementation only supports the native currency (EGLD), while custom currencies ([ESDTs](https://docs.multiversx.com/tokens/esdt-tokens)) will be supported in the near future. At that point, Rosetta would observe the _metachain_, as well.
+The implementation supports both the native currency (EGLD) and custom fungible currencies - [ESDTs](https://docs.multiversx.com/tokens/esdt-tokens).
 
 ## Docker setup
 
@@ -231,7 +231,7 @@ oldest_block_identifier = first block of oldest_epoch
 
 ## Implementation validation
 
-In order to validate the Rosetta implementation using `mesh-cli`, please follow [MultiversX/rosetta-checks](https://github.com/multiversx/mx-chain-rosetta-checks).
+In order to validate the Rosetta implementation using `mesh-cli`, follow [multiversx/mx-chain-rosetta-checks](https://github.com/multiversx/mx-chain-rosetta-checks) or the **system tests** section (below).
 
 ## System tests
 
