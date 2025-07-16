@@ -3,6 +3,9 @@ name: Regularly check testnet
 on:
     workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
     check-testnet:
         runs-on: ubuntu-latest
