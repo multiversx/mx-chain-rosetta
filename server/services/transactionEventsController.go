@@ -77,7 +77,8 @@ func (controller *transactionEventsController) decideEffectiveEventTransferValue
 		return nil, nil
 	}
 
-	if string(event.Data) != transactionEventDataExecuteOnDestContext && string(event.Data) != transactionEventDataAsyncCall && string(event.Data) != transactionEventTransferAndExecute {
+	eventData := string(event.Data)
+	if eventData != transactionEventDataExecuteOnDestContext && eventData != transactionEventDataAsyncCall && eventData != transactionEventTransferAndExecute {
 		// Ineffective event, since the balance change is already captured by a SCR.
 		return nil, nil
 	}
