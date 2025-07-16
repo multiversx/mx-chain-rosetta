@@ -48,7 +48,7 @@ const (
 
 	transactionEventDataExecuteOnDestContext = "ExecuteOnDestContext"
 	transactionEventDataAsyncCall            = "AsyncCall"
-	transactionEventTransferAndExecute       = "TransferAndExecute"
+	transactionEventDataTransferAndExecute   = "TransferAndExecute"
 )
 
 const (
