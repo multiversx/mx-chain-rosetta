@@ -29,7 +29,7 @@ var (
 	durationAlarmThresholdAccountServiceGetAccountBalance = time.Duration(500) * time.Millisecond
 )
 
-var (
+const (
 	transactionEventSignalError                             = core.SignalErrorOperation
 	transactionEventSCDeploy                                = core.SCDeployIdentifier
 	transactionEventTransferValueOnly                       = "transferValueOnly"
@@ -48,9 +48,10 @@ var (
 
 	transactionEventDataExecuteOnDestContext = "ExecuteOnDestContext"
 	transactionEventDataAsyncCall            = "AsyncCall"
+	transactionEventDataTransferAndExecute   = "TransferAndExecute"
 )
 
-var (
+const (
 	numTopicsOfEventESDTTransfer                    = 4
 	numTopicsPerTransferOfEventMultiESDTNFTTransfer = 3
 	numTopicsOfEventESDTLocalBurn                   = 3

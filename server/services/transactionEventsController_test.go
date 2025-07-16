@@ -235,6 +235,35 @@ func TestTransactionEventsController_ExtractEvents(t *testing.T) {
 		require.Equal(t, "100", events[0].value)
 	})
 
+	t.Run("transferValueOnly, after Sirius, effective (intra-shard TransferAndExecute)", func(t *testing.T) {
+		topic0 := big.NewInt(100).Bytes()
+		topic1 := testscommon.TestContractBarShard0.PubKey
+
+		tx := &transaction.ApiTransactionResult{
+			Epoch: 43,
+			Logs: &transaction.ApiLogs{
+				Events: []*transaction.Events{
+					{
+						Identifier: "transferValueOnly",
+						Address:    testscommon.TestContractFooShard0.Address,
+						Topics: [][]byte{
+							topic0,
+							topic1,
+						},
+						Data: []byte("TransferAndExecute"),
+					},
+				},
+			},
+		}
+
+		events, err := controller.extractEventTransferValueOnly(tx)
+		require.NoError(t, err)
+		require.Len(t, events, 1)
+		require.Equal(t, testscommon.TestContractFooShard0.Address, events[0].sender)
+		require.Equal(t, testscommon.TestContractBarShard0.Address, events[0].receiver)
+		require.Equal(t, "100", events[0].value)
+	})
+
 	t.Run("transferValueOnly, after Sirius, ineffective (cross-shard AsyncCall)", func(t *testing.T) {
 		topic0 := big.NewInt(100).Bytes()
 		topic1 := testscommon.TestContractBarShard1.PubKey
