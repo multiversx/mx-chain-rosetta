@@ -3,6 +3,9 @@ name: Check with Mesh CLI (localnet)
 on:
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   test-localnet:
     runs-on: ubuntu-latest

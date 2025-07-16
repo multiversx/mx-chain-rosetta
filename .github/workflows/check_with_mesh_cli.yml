@@ -3,6 +3,9 @@ name: Check with Mesh CLI (testnet)
 on:
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   test-testnet:
     runs-on: ubuntu-latest
