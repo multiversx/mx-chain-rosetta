@@ -48,6 +48,7 @@ var (
 
 	transactionEventDataExecuteOnDestContext = "ExecuteOnDestContext"
 	transactionEventDataAsyncCall            = "AsyncCall"
+	transactionEventTransferAndExecute       = "TransferAndExecute"
 )
 
 var (
