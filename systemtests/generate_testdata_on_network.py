@@ -767,67 +767,71 @@ def do_run(args: Any):
             additional_gas_limit=0,
         ), await_completion=True)
 
-    print("## Relayed v3, intra-shard, transfer native within multi-transfer (fuzzy, with tx.value != 0)")
-    controller.send(controller.create_arbitrary_transaction(
-        sender=accounts.get_user(shard=SOME_SHARD, index=2),
-        # receiver := sender, since we're using multi-transfer.
-        receiver=accounts.get_user(shard=SOME_SHARD, index=2).address,
-        value=42,
-        data="MultiESDTNFTTransfer@" + Serializer().serialize([
-            AddressValue.new_from_address(accounts.get_user(shard=SOME_SHARD, index=3).address),
-            U32Value(2),
-            StringValue("EGLD-000000"),
-            U32Value(0),
-            U32Value(42),
-            StringValue("EGLD-000000"),
-            U32Value(0),
-            U32Value(43)
-        ]),
-        gas_limit=5_000_000,
-        relayer=accounts.get_user(shard=SOME_SHARD, index=0),
-    ), await_processing_started=True)
+    if configuration.generate_relayed_v3:
+        print("## Relayed, intra-shard, transfer native within multi-transfer (fuzzy, with tx.value != 0)")
+        controller.send(controller.create_arbitrary_transaction(
+            sender=accounts.get_user(shard=SOME_SHARD, index=2),
+            # receiver := sender, since we're using multi-transfer.
+            receiver=accounts.get_user(shard=SOME_SHARD, index=2).address,
+            value=42,
+            data="MultiESDTNFTTransfer@" + Serializer().serialize([
+                AddressValue.new_from_address(accounts.get_user(shard=SOME_SHARD, index=3).address),
+                U32Value(2),
+                StringValue("EGLD-000000"),
+                U32Value(0),
+                U32Value(42),
+                StringValue("EGLD-000000"),
+                U32Value(0),
+                U32Value(43)
+            ]),
+            gas_limit=5_000_000,
+            relayer=accounts.get_user(shard=SOME_SHARD, index=0),
+        ), await_processing_started=True)
 
-    print("## Relayed v3, intra-shard, transfer native within multi-transfer (fuzzy, with tx.value == 0, but transfer to self)")
-    controller.send(controller.create_arbitrary_transaction(
-        sender=accounts.get_user(shard=SOME_SHARD, index=3),
-        # receiver := sender, since we're using multi-transfer.
-        receiver=accounts.get_user(shard=SOME_SHARD, index=3).address,
-        value=0,
-        data="MultiESDTNFTTransfer@" + Serializer().serialize([
-            AddressValue.new_from_address(accounts.get_user(shard=SOME_SHARD, index=3).address),
-            U32Value(2),
-            StringValue("EGLD-000000"),
-            U32Value(0),
-            U32Value(42),
-            StringValue("EGLD-000000"),
-            U32Value(0),
-            U32Value(43)
-        ]),
-        gas_limit=5_000_000,
-        relayer=accounts.get_user(shard=SOME_SHARD, index=0),
-    ), await_processing_started=True)
+    if configuration.generate_relayed_v3:
+        print("## Relayed, intra-shard, transfer native within multi-transfer (fuzzy, with tx.value == 0, but transfer to self)")
+        controller.send(controller.create_arbitrary_transaction(
+            sender=accounts.get_user(shard=SOME_SHARD, index=3),
+            # receiver := sender, since we're using multi-transfer.
+            receiver=accounts.get_user(shard=SOME_SHARD, index=3).address,
+            value=0,
+            data="MultiESDTNFTTransfer@" + Serializer().serialize([
+                AddressValue.new_from_address(accounts.get_user(shard=SOME_SHARD, index=3).address),
+                U32Value(2),
+                StringValue("EGLD-000000"),
+                U32Value(0),
+                U32Value(42),
+                StringValue("EGLD-000000"),
+                U32Value(0),
+                U32Value(43)
+            ]),
+            gas_limit=5_000_000,
+            relayer=accounts.get_user(shard=SOME_SHARD, index=0),
+        ), await_processing_started=True)
 
-    print("## Relayed v3, cross-shard, transfer native within multi-transfer (fuzzy, with tx.value == 0)")
-    controller.send(controller.create_arbitrary_transaction(
-        sender=accounts.get_user(shard=SOME_SHARD, index=2),
-        # receiver := sender, since we're using multi-transfer.
-        receiver=accounts.get_user(shard=SOME_SHARD, index=2).address,
-        value=0,
-        data="MultiESDTNFTTransfer@" + Serializer().serialize([
-            AddressValue.new_from_address(accounts.get_user(shard=OTHER_SHARD, index=3).address),
-            U32Value(2),
-            StringValue("EGLD-000000"),
-            U32Value(0),
-            U32Value(42),
-            StringValue("EGLD-000000"),
-            U32Value(0),
-            U32Value(43)
-        ]),
-        gas_limit=5_000_000,
-        relayer=accounts.get_user(shard=SOME_SHARD, index=0),
-    ), await_processing_started=True)
+    if configuration.generate_relayed_v3:
+        print("## Relayed, cross-shard, transfer native within multi-transfer (fuzzy, with tx.value == 0)")
+        controller.send(controller.create_arbitrary_transaction(
+            sender=accounts.get_user(shard=SOME_SHARD, index=2),
+            # receiver := sender, since we're using multi-transfer.
+            receiver=accounts.get_user(shard=SOME_SHARD, index=2).address,
+            value=0,
+            data="MultiESDTNFTTransfer@" + Serializer().serialize([
+                AddressValue.new_from_address(accounts.get_user(shard=OTHER_SHARD, index=3).address),
+                U32Value(2),
+                StringValue("EGLD-000000"),
+                U32Value(0),
+                U32Value(42),
+                StringValue("EGLD-000000"),
+                U32Value(0),
+                U32Value(43)
+            ]),
+            gas_limit=5_000_000,
+            relayer=accounts.get_user(shard=SOME_SHARD, index=0),
+        ), await_processing_started=True)
 
-    do_run_relayed_builtin_functions(memento, accounts, controller)
+    if configuration.generate_relayed_v3:
+        do_run_relayed_builtin_functions(memento, accounts, controller)
 
 
 def do_run_relayed_builtin_functions(memento: "Memento", accounts: "BunchOfAccounts", controller: "Controller"):
