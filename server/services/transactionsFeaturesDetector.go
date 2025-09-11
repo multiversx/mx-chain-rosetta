@@ -77,21 +77,6 @@ func (detector *transactionsFeaturesDetector) isInvalidTransactionOfTypeMoveBala
 	return withSendingValueToNonPayableContract || withMetaTransactionIsInvalid
 }
 
-func (detector *transactionsFeaturesDetector) isRelayedV1TransactionCompletelyIntrashardWithSignalError(tx *transaction.ApiTransactionResult, innerTx *innerTransactionOfRelayedV1) bool {
-	innerTxSenderShard := detector.networkProvider.ComputeShardIdOfPubKey(innerTx.SenderPubKey)
-	innerTxReceiverShard := detector.networkProvider.ComputeShardIdOfPubKey(innerTx.ReceiverPubKey)
-
-	isCompletelyIntrashard := tx.SourceShard == tx.DestinationShard &&
-		innerTxSenderShard == innerTxReceiverShard &&
-		innerTxSenderShard == tx.SourceShard
-	if !isCompletelyIntrashard {
-		return false
-	}
-
-	isWithSignalError := detector.eventsController.hasAnySignalError(tx)
-	return isWithSignalError
-}
-
 func (detector *transactionsFeaturesDetector) isContractDeploymentWithSignalErrorOrIntrashardContractCallWithSignalError(tx *transaction.ApiTransactionResult) bool {
 	return detector.isContractDeploymentWithSignalError(tx) || (detector.isIntrashard(tx) && detector.isContractCallWithSignalError(tx))
 }
