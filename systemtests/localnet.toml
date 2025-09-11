@@ -1,7 +1,7 @@
 [general]
 log_level = "*:DEBUG"
 genesis_delay_seconds = 10
-rounds_per_epoch = 50
+rounds_per_epoch = 70
 round_duration_milliseconds = 6000
 
 [metashard]

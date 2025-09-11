@@ -46,7 +46,7 @@ def main():
     subparser_setup.add_argument("--network", choices=CONFIGURATIONS.keys(), required=True)
     subparser_setup.set_defaults(func=do_setup)
 
-    # Remove this ~Supernova (necessary only for a short period of time).
+    # Remove this after ~Supernova (necessary only for a short period of time).
     subparser_run = subparsers.add_parser("run-for-relayed-v1-v2")
     subparser_run.add_argument("--network", choices=CONFIGURATIONS.keys(), required=True)
     subparser_run.set_defaults(func=do_run_for_relayed_v1_v2)
@@ -101,6 +101,7 @@ def do_setup(args: Any):
     print("Setup done.")
 
 
+# Remove this after ~Supernova
 def do_run_for_relayed_v1_v2(args: Any):
     print("Phase [run_for_relayed_v1_v2] started...")
 
@@ -110,9 +111,55 @@ def do_run_for_relayed_v1_v2(args: Any):
     accounts = BunchOfAccounts(configuration, memento)
     controller = Controller(configuration, accounts, memento)
 
-    # send relayed v1, v2.
+    controller.send(controller.create_legacy_relayed_transfer_and_execute(
+        relayer=accounts.get_user(shard=SOME_SHARD, index=0),
+        sender=accounts.get_user(shard=SOME_SHARD, index=1),
+        contract=accounts.get_contract_address("dummy", shard=SOME_SHARD, index=0),
+        function="doSomething",
+        arguments=[],
+        gas_limit=3_000_000,
+        native_amount=0,
+        custom_amount=0,
+        relayed_version=1
+    ), await_processing_started=True)
+
+    controller.send(controller.create_legacy_relayed_transfer_and_execute(
+        relayer=accounts.get_user(shard=SOME_SHARD, index=0),
+        sender=accounts.get_user(shard=SOME_SHARD, index=1),
+        contract=accounts.get_contract_address("dummy", shard=SOME_SHARD, index=0),
+        function="doSomething",
+        arguments=[],
+        gas_limit=3_000_000,
+        native_amount=0,
+        custom_amount=0,
+        relayed_version=2
+    ), await_processing_started=True)
+
     controller.wait_until_epoch(configuration.deactivation_epoch_relayed_v1v2)
-    # send relayed v1, v2 (again)
+
+    controller.send(controller.create_legacy_relayed_transfer_and_execute(
+        relayer=accounts.get_user(shard=SOME_SHARD, index=0),
+        sender=accounts.get_user(shard=SOME_SHARD, index=1),
+        contract=accounts.get_contract_address("dummy", shard=SOME_SHARD, index=0),
+        function="doSomething",
+        arguments=[],
+        gas_limit=3_000_000,
+        native_amount=0,
+        custom_amount=0,
+        relayed_version=1
+    ), await_processing_started=True)
+
+    controller.send(controller.create_legacy_relayed_transfer_and_execute(
+        relayer=accounts.get_user(shard=SOME_SHARD, index=0),
+        sender=accounts.get_user(shard=SOME_SHARD, index=1),
+        contract=accounts.get_contract_address("dummy", shard=SOME_SHARD, index=0),
+        function="doSomething",
+        arguments=[],
+        gas_limit=3_000_000,
+        native_amount=0,
+        custom_amount=0,
+        relayed_version=2
+    ), await_processing_started=True)
 
 
 def do_run(args: Any):
@@ -2006,6 +2053,71 @@ class Controller:
         self.sign_as_relayer_v3(transaction)
 
         return transaction
+
+    # Remove this after ~Supernova
+    def create_legacy_relayed_transfer_and_execute(self, relayer: "Account", sender: "Account", contract: Address, function: str, arguments: list[Any], gas_limit: int, native_amount: int, custom_amount: int, relayed_version: int) -> Transaction:
+        token_transfers: List[TokenTransfer] = []
+
+        if custom_amount:
+            custom_currency = self.memento.get_custom_currencies()[0]
+            token_transfers = [TokenTransfer(Token(custom_currency), custom_amount)]
+
+        if relayed_version == 1:
+            # Relayer nonce is reserved before sender nonce, to ensure good ordering (if sender and relayer are the same account).
+            relayer_nonce = self._reserve_nonce(relayer)
+
+            inner_transaction = self.contracts_transactions_factory.create_transaction_for_execute(
+                sender=sender.address,
+                contract=contract,
+                function=function,
+                gas_limit=gas_limit,
+                arguments=arguments,
+                native_transfer_amount=native_amount,
+                token_transfers=token_transfers
+            )
+
+            self.apply_nonce(inner_transaction)
+            self.sign(inner_transaction)
+
+            transaction = self.relayed_transactions_factory.create_relayed_v1_transaction(
+                inner_transaction=inner_transaction,
+                relayer_address=relayer.address,
+            )
+
+            transaction.nonce = relayer_nonce
+            self.sign(transaction)
+
+            return transaction
+
+        if relayed_version == 2:
+            # Relayer nonce is reserved before sender nonce, to ensure good ordering (if sender and relayer are the same account).
+            relayer_nonce = self._reserve_nonce(relayer)
+
+            inner_transaction = self.contracts_transactions_factory.create_transaction_for_execute(
+                sender=sender.address,
+                contract=contract,
+                function=function,
+                gas_limit=0,
+                arguments=arguments,
+                native_transfer_amount=native_amount,
+                token_transfers=token_transfers
+            )
+
+            self.apply_nonce(inner_transaction)
+            self.sign(inner_transaction)
+
+            transaction = self.relayed_transactions_factory.create_relayed_v2_transaction(
+                inner_transaction=inner_transaction,
+                inner_transaction_gas_limit=gas_limit,
+                relayer_address=relayer.address,
+            )
+
+            transaction.nonce = relayer_nonce
+            self.sign(transaction)
+
+            return transaction
+
+        raise ValueError(f"Unsupported legacy relayed version: {relayed_version}")
 
     def apply_nonce(self, transaction: Transaction):
         sender = self.accounts.get_account_by_bech32(transaction.sender.to_bech32())
