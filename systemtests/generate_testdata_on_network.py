@@ -86,6 +86,8 @@ def do_setup(args: Any):
     print("Do contract deployments...")
     controller.do_create_contract_deployments()
 
+    controller.wait_until_epoch(configuration.custom_tokens_completness_epoch)
+
     print("Create some NFTs...")
     controller.create_non_fungible_tokens("NFT")
 
