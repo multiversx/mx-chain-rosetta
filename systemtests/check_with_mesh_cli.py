@@ -75,7 +75,6 @@ def run_rosetta(configuration: Configuration, shard: int):
         f"--config-custom-currencies={configuration.config_file_custom_currencies}",
         f"--first-historical-epoch={current_epoch}",
         f"--num-historical-epochs={configuration.num_historical_epochs}",
-        f"--activation-epoch-spica={configuration.activation_epoch_spica}",
         "--log-level=*:DEBUG",
         "--handle-contracts",
         "--pprof"
