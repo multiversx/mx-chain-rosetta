@@ -46,6 +46,11 @@ def main():
     subparser_setup.add_argument("--network", choices=CONFIGURATIONS.keys(), required=True)
     subparser_setup.set_defaults(func=do_setup)
 
+    # Remove this ~Supernova (necessary only for a short period of time).
+    subparser_run = subparsers.add_parser("run-for-relayed-v1-v2")
+    subparser_run.add_argument("--network", choices=CONFIGURATIONS.keys(), required=True)
+    subparser_run.set_defaults(func=do_run_for_relayed_v1_v2)
+
     subparser_run = subparsers.add_parser("run")
     subparser_run.add_argument("--network", choices=CONFIGURATIONS.keys(), required=True)
     subparser_run.set_defaults(func=do_run)
@@ -94,6 +99,20 @@ def do_setup(args: Any):
     controller.do_airdrops_for_semi_fungible_tokens()
 
     print("Setup done.")
+
+
+def do_run_for_relayed_v1_v2(args: Any):
+    print("Phase [run_for_relayed_v1_v2] started...")
+
+    network = args.network
+    configuration = CONFIGURATIONS[network]
+    memento = Memento(Path(configuration.memento_file))
+    accounts = BunchOfAccounts(configuration, memento)
+    controller = Controller(configuration, accounts, memento)
+
+    # send relayed v1, v2.
+    controller.wait_until_epoch(configuration.deactivation_epoch_relayed_v1v2)
+    # send relayed v1, v2 (again)
 
 
 def do_run(args: Any):
