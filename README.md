@@ -252,6 +252,7 @@ Optional: generate sample data (transactions):
 ```
 PYTHONPATH=. python3 ./systemtests/generate_testdata_on_network.py setup --network testnet
 PYTHONPATH=. python3 ./systemtests/generate_testdata_on_network.py run --network testnet
+PYTHONPATH=. python3 ./systemtests/generate_testdata_on_network.py run-for-relayed-v1-v2 --network testnet
 ```
 
 Run the checks:

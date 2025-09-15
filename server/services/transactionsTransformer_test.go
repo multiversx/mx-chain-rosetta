@@ -19,8 +19,6 @@ func TestTransactionsTransformer_NormalTxToRosettaTx(t *testing.T) {
 	extension := newNetworkProviderExtension(networkProvider)
 	transformer := newTransactionsTransformer(networkProvider)
 
-	networkProvider.MockActivationEpochSirius = 42
-
 	t.Run("move balance tx", func(t *testing.T) {
 		tx := &transaction.ApiTransactionResult{
 			Hash:             "aaaa",
@@ -1116,7 +1114,6 @@ func TestTransactionsTransformer_TransformBlockTxsHavingNFTBurn(t *testing.T) {
 func TestTransactionsTransformer_TransformBlockTxsHavingClaimDeveloperRewards(t *testing.T) {
 	networkProvider := testscommon.NewNetworkProviderMock()
 	networkProvider.MockObservedActualShard = 0
-	networkProvider.MockActivationEpochSpica = 42
 
 	extension := newNetworkProviderExtension(networkProvider)
 	transformer := newTransactionsTransformer(networkProvider)

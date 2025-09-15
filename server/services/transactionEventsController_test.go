@@ -176,8 +176,6 @@ func TestTransactionEventsController_ExtractEvents(t *testing.T) {
 	networkProvider := testscommon.NewNetworkProviderMock()
 	controller := newTransactionEventsController(networkProvider)
 
-	networkProvider.MockActivationEpochSirius = 42
-
 	t.Run("SCDeploy", func(t *testing.T) {
 		topic0, _ := hex.DecodeString("00000000000000000500def8dad1161f8f0c38f3e6e73515ed81058f0b5606b8")
 		topic1, _ := hex.DecodeString("5cf4abc83e50c5309d807fc3f676988759a1e301001bc9a0265804f42af806b8")

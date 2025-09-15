@@ -182,10 +182,10 @@ VERSION:
 	}
 
 	cliFlagActivationEpochSpica = cli.UintFlag{
-		Name:     "activation-epoch-spica",
-		Usage:    "Specifies the activation epoch for Spica release.",
-		Required: false,
-		Value:    1575,
+		Name:   "activation-epoch-spica",
+		Usage:  "Deprecated (not used anymore).",
+		Hidden: true,
+		Value:  0,
 	}
 
 	cliFlagShouldEnablePprofEndpoints = cli.BoolFlag{
@@ -254,7 +254,6 @@ type parsedCliFlags struct {
 	numHistoricalEpochs         uint32
 	shouldHandleContracts       bool
 	configFileCustomCurrencies  string
-	activationEpochSpica        uint32
 	shouldEnablePprofEndpoints  bool
 }
 
@@ -286,7 +285,6 @@ func getParsedCliFlags(ctx *cli.Context) parsedCliFlags {
 		numHistoricalEpochs:         uint32(ctx.GlobalUint(cliFlagNumHistoricalEpochs.Name)),
 		shouldHandleContracts:       ctx.GlobalBool(cliFlagShouldHandleContracts.Name),
 		configFileCustomCurrencies:  ctx.GlobalString(cliFlagConfigFileCustomCurrencies.Name),
-		activationEpochSpica:        uint32(ctx.GlobalUint(cliFlagActivationEpochSpica.Name)),
 		shouldEnablePprofEndpoints:  ctx.GlobalBool(cliFlagShouldEnablePprofEndpoints.Name),
 	}
 }

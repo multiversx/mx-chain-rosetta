@@ -34,5 +34,4 @@ type NetworkProvider interface {
 	ComputeReceiptHash(apiReceipt *transaction.ApiReceipt) (string, error)
 	ComputeTransactionFeeForMoveBalance(tx *transaction.ApiTransactionResult) *big.Int
 	GetMempoolTransactionByHash(hash string) (*transaction.ApiTransactionResult, error)
-	IsReleaseSpicaActive(epoch uint32) bool
 }
