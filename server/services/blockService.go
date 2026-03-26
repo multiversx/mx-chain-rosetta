@@ -220,7 +220,7 @@ func (service *blockService) convertToRosettaBlock(block *api.Block) (*types.Blo
 		Block: &types.Block{
 			BlockIdentifier:       blockToIdentifier(block),
 			ParentBlockIdentifier: parentBlockIdentifier,
-			Timestamp:             timestampInMilliseconds(int64(block.Timestamp)),
+			Timestamp:             getTimestamp(block.Timestamp, block.TimestampMs),
 			Transactions:          transactions,
 			Metadata: objectsMap{
 				"shard":  block.Shard,

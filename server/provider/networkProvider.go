@@ -195,7 +195,8 @@ func (provider *networkProvider) getBlockSummaryByNonce(nonce uint64) (resources
 		Nonce:             blockResponse.Data.Block.Nonce,
 		Hash:              blockResponse.Data.Block.Hash,
 		PreviousBlockHash: blockResponse.Data.Block.PrevBlockHash,
-		Timestamp:         int64(blockResponse.Data.Block.Timestamp),
+		Timestamp:         blockResponse.Data.Block.Timestamp,
+		TimestampMs:       blockResponse.Data.Block.TimestampMs,
 	}, nil
 }
 
@@ -285,6 +286,7 @@ func createBlockCopy(block *api.Block) *api.Block {
 		StateRootHash: block.StateRootHash,
 		Status:        block.Status,
 		Timestamp:     block.Timestamp,
+		TimestampMs:   block.TimestampMs,
 		MiniBlocks:    miniblocksCopy,
 	}
 }
