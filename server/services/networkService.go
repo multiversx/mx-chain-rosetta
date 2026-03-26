@@ -56,7 +56,7 @@ func (service *networkService) NetworkStatus(
 
 	networkStatusResponse := &types.NetworkStatusResponse{
 		CurrentBlockIdentifier: blockSummaryToIdentifier(&nodeStatus.LatestBlock),
-		CurrentBlockTimestamp:  getTimestamp(nodeStatus.LatestBlock.Timestamp, nodeStatus.LatestBlock.TimestampMs),
+		CurrentBlockTimestamp:  getTimestampInMS(nodeStatus.LatestBlock.Timestamp, nodeStatus.LatestBlock.TimestampMs),
 		GenesisBlockIdentifier: service.extension.getGenesisBlockIdentifier(),
 		OldestBlockIdentifier:  blockSummaryToIdentifier(&nodeStatus.OldestBlockWithHistoricalState),
 		SyncStatus: &types.SyncStatus{

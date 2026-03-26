@@ -72,11 +72,11 @@ func timestampInMilliseconds(timestamp int64) int64 {
 	return timestamp * 1000
 }
 
-func getTimestamp(timestamp int64, timestampMS int64) int64 {
+func getTimestampInMS(timestampSec int64, timestampMS int64) int64 {
 	if timestampMS > 0 {
 		return timestampMS
 	}
-	return timestampInMilliseconds(timestamp)
+	return timestampInMilliseconds(timestampSec)
 }
 
 func stringToHex(value string) string {
