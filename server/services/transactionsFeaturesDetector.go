@@ -110,7 +110,7 @@ func (detector *transactionsFeaturesDetector) isEventWithAsyncCallAndHasAnAsyncC
 
 	for _, eventWithError := range transferValueEvents {
 		if !eventWithError.asyncCallbackWithError {
-			return false
+			continue
 		}
 
 		haveSenderAndReceiverInMirror := currentEvent.senderAddress == eventWithError.receiver &&
