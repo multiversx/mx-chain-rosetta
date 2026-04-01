@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/multiversx/mx-chain-core-go/core"
+	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
 )
 
 var (
@@ -48,7 +49,13 @@ const (
 
 	transactionEventDataExecuteOnDestContext = "ExecuteOnDestContext"
 	transactionEventDataAsyncCall            = "AsyncCall"
+	transactionEventDataAsyncCallback        = "AsyncCallback"
 	transactionEventDataTransferAndExecute   = "TransferAndExecute"
+)
+
+const (
+	errorCodeUserError                                = int(vmcommon.UserError)
+	numElementsInAdditionalDataAsyncCallbackWithError = 4
 )
 
 const (

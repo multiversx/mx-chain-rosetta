@@ -6,9 +6,10 @@ import (
 )
 
 type eventTransferValueOnly struct {
-	sender   string
-	receiver string
-	value    string
+	sender                 string
+	receiver               string
+	value                  string
+	asyncCallbackWithError bool
 }
 
 type eventESDT struct {
@@ -18,6 +19,7 @@ type eventESDT struct {
 	identifier      string
 	nonceAsBytes    []byte
 	value           string
+	asyncCall       bool
 }
 
 // newEventESDTFromBasicTopics creates an eventESDT from the given topics. The following topics are expected:

@@ -343,6 +343,11 @@ func (transformer *transactionsTransformer) addOperationsGivenTransactionEvents(
 		return err
 	}
 
+	eventsTransferValueIdentifierAsyncCallbackUserError, err := transformer.eventsController.extractEventTransferValueWithAsyncCallbackUserError(tx)
+	if err != nil {
+		return err
+	}
+
 	eventsESDTTransfer, err := transformer.eventsController.extractEventsESDTOrESDTNFTTransfers(tx)
 	if err != nil {
 		return err
@@ -425,6 +430,11 @@ func (transformer *transactionsTransformer) addOperationsGivenTransactionEvents(
 	}
 
 	for _, event := range eventsESDTTransfer {
+		shouldIgnore := transformer.featuresDetector.isEventWithAsyncCallAndHasAnAsyncCallBackWithError(event, eventsTransferValueIdentifierAsyncCallbackUserError)
+		if shouldIgnore {
+			continue
+		}
+
 		operations := transformer.extractOperationsFromEventESDT(event)
 		rosettaTx.Operations = append(rosettaTx.Operations, operations...)
 	}
