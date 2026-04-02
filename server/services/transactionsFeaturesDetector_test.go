@@ -211,29 +211,29 @@ func TestTransactionsFeaturesDetector_isEventWithAsyncCallAndHasAnAsyncCallBackW
 	})
 
 	t.Run("no transfer value events should return false", func(t *testing.T) {
-		require.False(t, detector.isEventWithAsyncCallAndHasAnAsyncCallBackWithError(&eventESDT{asyncCall: true}, nil))
+		require.False(t, detector.isEventWithAsyncCallAndHasAnAsyncCallBackWithError(&eventESDT{isAsyncCall: true}, nil))
 	})
 
 	t.Run("no transfer value events with async callback", func(t *testing.T) {
 		events := []*eventTransferValueOnly{
 			{
-				asyncCallbackWithError: false,
+				isAsyncCallbackWithError: false,
 			},
 		}
-		require.False(t, detector.isEventWithAsyncCallAndHasAnAsyncCallBackWithError(&eventESDT{asyncCall: true}, events))
+		require.False(t, detector.isEventWithAsyncCallAndHasAnAsyncCallBackWithError(&eventESDT{isAsyncCall: true}, events))
 	})
 
 	t.Run("sender and receiver are not in mirror should return false", func(t *testing.T) {
 		esdt := &eventESDT{
-			asyncCall:       true,
+			isAsyncCall:     true,
 			senderAddress:   "sender",
 			receiverAddress: "receiver",
 		}
 		events := []*eventTransferValueOnly{
 			{
-				asyncCallbackWithError: true,
-				sender:                 "sender",
-				receiver:               "receiver",
+				isAsyncCallbackWithError: true,
+				sender:                   "sender",
+				receiver:                 "receiver",
 			},
 		}
 		require.False(t, detector.isEventWithAsyncCallAndHasAnAsyncCallBackWithError(esdt, events))
@@ -241,15 +241,15 @@ func TestTransactionsFeaturesDetector_isEventWithAsyncCallAndHasAnAsyncCallBackW
 
 	t.Run("async callback with error and correct sender and receiver should return true", func(t *testing.T) {
 		esdt := &eventESDT{
-			asyncCall:       true,
+			isAsyncCall:     true,
 			senderAddress:   "sender",
 			receiverAddress: "receiver",
 		}
 		events := []*eventTransferValueOnly{
 			{
-				asyncCallbackWithError: true,
-				sender:                 "receiver",
-				receiver:               "sender",
+				isAsyncCallbackWithError: true,
+				sender:                   "receiver",
+				receiver:                 "sender",
 			},
 		}
 		require.True(t, detector.isEventWithAsyncCallAndHasAnAsyncCallBackWithError(esdt, events))

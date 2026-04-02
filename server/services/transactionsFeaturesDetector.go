@@ -104,12 +104,12 @@ func (detector *transactionsFeaturesDetector) isSmartContractResultIneffectiveRe
 }
 
 func (detector *transactionsFeaturesDetector) isEventWithAsyncCallAndHasAnAsyncCallBackWithError(currentEvent *eventESDT, transferValueEvents []*eventTransferValueOnly) bool {
-	if !currentEvent.asyncCall {
+	if !currentEvent.isAsyncCall {
 		return false
 	}
 
 	for _, eventWithError := range transferValueEvents {
-		if !eventWithError.asyncCallbackWithError {
+		if !eventWithError.isAsyncCallbackWithError {
 			continue
 		}
 

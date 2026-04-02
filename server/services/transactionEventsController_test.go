@@ -344,10 +344,10 @@ func TestTransactionEventsController_ExtractEvents(t *testing.T) {
 		require.NoError(t, err)
 		require.Len(t, events, 1)
 		require.Equal(t, &eventTransferValueOnly{
-			sender:                 "erd1qqqqqqqqqqqqqpgqagjekf5mxv86hy5c62vvtug5vc6jmgcsq6uq8reras",
-			receiver:               "erd1qqqqqqqqqqqqqpgqdstpe4fepzl4w8683xw88t5kcjkxz0zaq6uquj6ztu",
-			value:                  "",
-			asyncCallbackWithError: true,
+			sender:                   "erd1qqqqqqqqqqqqqpgqagjekf5mxv86hy5c62vvtug5vc6jmgcsq6uq8reras",
+			receiver:                 "erd1qqqqqqqqqqqqqpgqdstpe4fepzl4w8683xw88t5kcjkxz0zaq6uquj6ztu",
+			value:                    "",
+			isAsyncCallbackWithError: true,
 		}, events[0])
 	})
 

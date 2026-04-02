@@ -49,7 +49,7 @@ func (controller *transactionEventsController) extractEventTransferValueOnly(tx 
 }
 
 func (controller *transactionEventsController) extractEventTransferValueWithAsyncCallbackUserError(tx *transaction.ApiTransactionResult) ([]*eventTransferValueOnly, error) {
-	return controller.extractEventTransferValueWithDecideFunction(tx, controller.decideEffectiveEventTransferValueWithAsyncCallbackAndUserError)
+	return controller.extractEventTransferValueWithDecideFunction(tx, controller.detectEventTransferValueWithAsyncCallbackAndUserError)
 }
 
 func (controller *transactionEventsController) extractEventTransferValueWithDecideFunction(
@@ -73,7 +73,7 @@ func (controller *transactionEventsController) extractEventTransferValueWithDeci
 	return typedEvents, nil
 }
 
-func (controller *transactionEventsController) decideEffectiveEventTransferValueWithAsyncCallbackAndUserError(event *transaction.Events) (*eventTransferValueOnly, error) {
+func (controller *transactionEventsController) detectEventTransferValueWithAsyncCallbackAndUserError(event *transaction.Events) (*eventTransferValueOnly, error) {
 	numTopics := len(event.Topics)
 	if numTopics != numTopicsOfEventTransferValueOnlyAfterSirius {
 		return nil, fmt.Errorf("%w: bad number of topics for 'transferValueOnly' = %d", errCannotRecognizeEvent, numTopics)
@@ -82,7 +82,7 @@ func (controller *transactionEventsController) decideEffectiveEventTransferValue
 	receiverPubKey := event.Topics[1]
 	eventData := string(event.Data)
 	if eventData != transactionEventDataAsyncCallback {
-		// Ineffective event, since is not an AsyncCallback
+		// not of interest, since is not an AsyncCallback
 		return nil, nil
 	}
 
@@ -109,9 +109,9 @@ func (controller *transactionEventsController) decideEffectiveEventTransferValue
 
 	receiver := controller.provider.ConvertPubKeyToAddress(receiverPubKey)
 	return &eventTransferValueOnly{
-		sender:                 sender,
-		receiver:               receiver,
-		asyncCallbackWithError: true,
+		sender:                   sender,
+		receiver:                 receiver,
+		isAsyncCallbackWithError: true,
 	}, nil
 }
 
@@ -211,7 +211,7 @@ func (controller *transactionEventsController) extractEventsESDTOrESDTNFTTransfe
 		}
 
 		if string(event.Data) == transactionEventDataAsyncCall {
-			typedEvent.asyncCall = true
+			typedEvent.isAsyncCall = true
 		}
 
 		receiverPubkey := event.Topics[3]
