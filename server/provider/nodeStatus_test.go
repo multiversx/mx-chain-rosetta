@@ -260,6 +260,29 @@ func TestNetworkProvider_GetLatestBlockNonce(t *testing.T) {
 		require.Nil(t, err)
 		require.Equal(t, uint64(40), nonce)
 	})
+
+	t.Run("when LastExecutedNonce is greater than or equal to HighestFinalNonce minus two", func(t *testing.T) {
+		t.Parallel()
+
+		observerFacade.CallGetRestEndPointCalled = func(baseUrl, path string, value interface{}) (int, error) {
+			if path == "/node/status" {
+				value.(*resources.NodeStatusApiResponse).Data = resources.NodeStatusApiResponsePayload{
+					Status: resources.NodeStatus{
+						HighestFinalNonce: 42,
+						LastExecutedNonce: 40,
+					},
+				}
+
+				return 0, nil
+			}
+
+			return 0, errors.New("unexpected request")
+		}
+
+		nonce, err := provider.getLatestBlockNonce()
+		require.Nil(t, err)
+		require.Equal(t, uint64(40), nonce)
+	})
 }
 
 func TestGetOldestNonceWithHistoricalStateGivenNodeStatus(t *testing.T) {
