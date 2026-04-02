@@ -221,8 +221,6 @@ func (provider *networkProvider) GetBlockByNonce(nonce uint64) (*api.Block, erro
 		return nil, err
 	}
 
-	prinBlockDetails(block)
-
 	// The block (copy) returned by doGetBlockByNonce() is now mutated.
 	// The mutated copy is not held in a cache (not needed).
 	err = provider.simplifyBlockWithScheduledTransactions(block)
@@ -231,23 +229,6 @@ func (provider *networkProvider) GetBlockByNonce(nonce uint64) (*api.Block, erro
 	}
 
 	return block, nil
-}
-
-func prinBlockDetails(block *api.Block) {
-	var args []interface{}
-	args = append(args, "blockNonce", block.Nonce)
-
-	for _, mb := range block.MiniBlocks {
-		num := len(mb.Transactions)
-		if len(mb.Receipts) > 0 {
-			num = len(mb.Receipts)
-		}
-
-		args = append(args, "miniBlockType", mb.Type)
-		args = append(args, "numTxs", num)
-	}
-
-	log.Debug("block details", args...)
 }
 
 func (provider *networkProvider) doGetBlockByNonce(nonce uint64) (*api.Block, error) {
