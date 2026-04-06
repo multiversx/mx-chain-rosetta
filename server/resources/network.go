@@ -34,6 +34,7 @@ type NodeStatus struct {
 	CurrentEpoch         uint32 `json:"erd_epoch_number"`
 	HighestNonce         uint64 `json:"erd_nonce"`
 	HighestFinalNonce    uint64 `json:"erd_highest_final_nonce"`
+	LastExecutedNonce    uint64 `json:"erd_last_executed_nonce"`
 }
 
 // EpochStartApiResponse is an API resource

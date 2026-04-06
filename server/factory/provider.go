@@ -1,6 +1,8 @@
 package factory
 
 import (
+	"time"
+
 	"github.com/multiversx/mx-chain-core-go/core/pubkeyConverter"
 	hasherFactory "github.com/multiversx/mx-chain-core-go/hashing/factory"
 	marshalFactory "github.com/multiversx/mx-chain-core-go/marshal/factory"
@@ -12,6 +14,7 @@ import (
 	"github.com/multiversx/mx-chain-rosetta/server/factory/components"
 	"github.com/multiversx/mx-chain-rosetta/server/provider"
 	"github.com/multiversx/mx-chain-rosetta/server/resources"
+	"github.com/multiversx/mx-chain-storage-go/timecache"
 )
 
 const (
@@ -119,7 +122,16 @@ func CreateNetworkProvider(args ArgsCreateNetworkProvider) (NetworkProvider, err
 		return nil, err
 	}
 
-	blockProcessor, err := process.NewBlockProcessor(baseProcessor)
+	cacheDuration := time.Duration(30) * time.Second
+	timedCache, err := timecache.NewTimeCacher(timecache.ArgTimeCacher{
+		DefaultSpan: cacheDuration,
+		CacheExpiry: cacheDuration,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	blockProcessor, err := process.NewBlockProcessor(baseProcessor, timedCache)
 	if err != nil {
 		return nil, err
 	}

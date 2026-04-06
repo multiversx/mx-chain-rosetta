@@ -28,7 +28,7 @@ func (provider *networkProvider) GetAccount(address string) (*resources.AccountO
 	return data, nil
 }
 
-// GetAccountNativeBalance gets the native balance by address
+// GetAccountBalance gets the native balance by address
 func (provider *networkProvider) GetAccountBalance(address string, tokenIdentifier string, options resources.AccountQueryOptions) (*resources.AccountBalanceOnBlock, error) {
 	isNativeBalance := tokenIdentifier == provider.nativeCurrency.Symbol
 	if isNativeBalance {

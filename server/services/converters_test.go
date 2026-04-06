@@ -64,3 +64,10 @@ func TestHexToAmount(t *testing.T) {
 	require.Nil(t, err)
 	require.Equal(t, "100", amount)
 }
+
+func TestGetTimestamp(t *testing.T) {
+
+	require.Equal(t, int64(0), getTimestampInMS(0, 0))
+	require.Equal(t, int64(500000), getTimestampInMS(500, 0))
+	require.Equal(t, int64(500200), getTimestampInMS(500, 500200))
+}

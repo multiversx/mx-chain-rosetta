@@ -6,10 +6,10 @@ require (
 	github.com/coinbase/rosetta-sdk-go v0.8.3
 	github.com/coinbase/rosetta-sdk-go/types v1.0.0
 	github.com/gin-gonic/gin v1.10.0
-	github.com/multiversx/mx-chain-core-go v1.4.0
-	github.com/multiversx/mx-chain-go v1.10.1
+	github.com/multiversx/mx-chain-core-go v1.4.2-0.20260219122727-014ae9f9311f
+	github.com/multiversx/mx-chain-go v1.11.1
 	github.com/multiversx/mx-chain-logger-go v1.1.0
-	github.com/multiversx/mx-chain-proxy-go v1.3.0
+	github.com/multiversx/mx-chain-proxy-go v1.4.0
 	github.com/multiversx/mx-chain-storage-go v1.1.0
 	github.com/stretchr/testify v1.10.0
 	github.com/urfave/cli v1.22.16
@@ -44,7 +44,7 @@ require (
 	github.com/mr-tron/base58 v1.2.0 // indirect
 	github.com/multiversx/mx-chain-communication-go v1.3.0 // indirect
 	github.com/multiversx/mx-chain-crypto-go v1.3.0 // indirect
-	github.com/multiversx/mx-chain-es-indexer-go v1.9.1 // indirect
+	github.com/multiversx/mx-chain-es-indexer-go v1.9.3-0.20260112102658-97d6a0ceb5f6 // indirect
 	github.com/multiversx/mx-chain-vm-common-go v1.6.0 // indirect
 	github.com/pelletier/go-toml v1.9.3 // indirect
 	github.com/pelletier/go-toml/v2 v2.2.2 // indirect

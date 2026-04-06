@@ -18,6 +18,7 @@ type BlockSummary struct {
 	Hash              string
 	PreviousBlockHash string
 	Timestamp         int64
+	TimestampMs       int64
 }
 
 // Currency is an internal resource
