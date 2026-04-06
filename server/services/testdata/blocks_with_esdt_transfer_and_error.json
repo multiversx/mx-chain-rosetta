@@ -1,0 +1,229 @@
+[
+  {
+    "comment": "block with ESDT transfer (fungible) and error",
+    "miniBlocks": [
+      {
+        "hash": "25906b7e92179c39a494a680ae771aae9db6bb60f489edde5ce158e71ed72046",
+        "type": "TxBlock",
+        "processingType": "Normal",
+        "constructionState": "Final",
+        "sourceShard": 1,
+        "destinationShard": 1,
+        "transactions": [
+          {
+            "type": "normal",
+            "processingTypeOnSource": "BuiltInFunctionCall",
+            "processingTypeOnDestination": "SCInvoking",
+            "hash": "dd59dbfb06682d18a8a8571dd7039d388ee0f44ba6438022426ba4f0a6abf319",
+            "nonce": 1051,
+            "round": 29791109,
+            "epoch": 2068,
+            "value": "0",
+            "receiver": "erd1qqqqqqqqqqqqqpgq4eehfw7kfnc8x9cf9nfejgmtknuz6kygx7tsvhn3uc",
+            "sender": "erd1g4sw9ylunfgtj03vt8kvjc0kxg8m6cue32pcwh6nsyvqqnlkx7ts272l67",
+            "gasPrice": 1000000000,
+            "gasLimit": 25000000,
+            "data": "RVNEVFRyYW5zZmVyQDU3NDU0NzRjNDQyZDYyNjQzNDY0MzczOUA4YWM3MjMwNDg5ZTgwMDAwQDY1Nzg2NTYzNzU3NDY1NDE3MjYyNjk3NDcyNjE2NzY1QDdmZDNiZGQyMDI0MjdjMDBANTg0NTQ3NGM0NDJkNjUzNDMxMzM2NTY0",
+            "signature": "523b11c9ad97873ca5ad8201322af26a065feac5368ab3011f74647469f5edb720e993d181fd9abca18c183b4d88793c4d395e30551fd173005a6fe419b0240c",
+            "sourceShard": 1,
+            "destinationShard": 1,
+            "miniblockType": "TxBlock",
+            "miniblockHash": "25906b7e92179c39a494a680ae771aae9db6bb60f489edde5ce158e71ed72046",
+            "logs": {
+              "address": "erd1qqqqqqqqqqqqqpgq4eehfw7kfnc8x9cf9nfejgmtknuz6kygx7tsvhn3uc",
+              "events": [
+                {
+                  "address": "erd1g4sw9ylunfgtj03vt8kvjc0kxg8m6cue32pcwh6nsyvqqnlkx7ts272l67",
+                  "identifier": "ESDTTransfer",
+                  "topics": [
+                    "V0VHTEQtYmQ0ZDc5",
+                    "",
+                    "iscjBInoAAA=",
+                    "AAAAAAAAAAAFAK5zdLvWTPBzFwks05kja7T4LViIN5c="
+                  ],
+                  "data": null,
+                  "additionalData": [
+                    "",
+                    "RVNEVFRyYW5zZmVy",
+                    "V0VHTEQtYmQ0ZDc5",
+                    "iscjBInoAAA=",
+                    "ZXhlY3V0ZUFyYml0cmFnZQ==",
+                    "f9O90gJCfAA=",
+                    "WEVHTEQtZTQxM2Vk"
+                  ]
+                },
+                {
+                  "address": "erd1qqqqqqqqqqqqqpgq4eehfw7kfnc8x9cf9nfejgmtknuz6kygx7tsvhn3uc",
+                  "identifier": "ESDTTransfer",
+                  "topics": [
+                    "V0VHTEQtYmQ0ZDc5",
+                    "",
+                    "iscjBInoAAA=",
+                    "AAAAAAAAAAAFAGyiHzN/2mg3jFVMfE9AtTqQDqGRVIM="
+                  ],
+                  "data": "QXN5bmNDYWxs",
+                  "additionalData": [
+                    "QXN5bmNDYWxs",
+                    "RVNEVFRyYW5zZmVy",
+                    "V0VHTEQtYmQ0ZDc5",
+                    "iscjBInoAAA=",
+                    "c3dhcFRva2Vuc0ZpeGVkSW5wdXQ=",
+                    "WEVHTEQtZTQxM2Vk",
+                    "f9O90gJCfAA="
+                  ]
+                },
+                {
+                  "address": "erd1qqqqqqqqqqqqqpgqdj3p7vmlmf5r0rz4f37y7s9482gqagv32jpsj8g69g",
+                  "identifier": "transferValueOnly",
+                  "topics": [
+                    "",
+                    "AAAAAAAAAAAFAK5zdLvWTPBzFwks05kja7T4LViIN5c="
+                  ],
+                  "data": "QXN5bmNDYWxsYmFjaw==",
+                  "additionalData": [
+                    "QXN5bmNDYWxsYmFjaw==",
+                    "Y2FsbEJhY2s=",
+                    "BA==",
+                    "U2xpcHBhZ2UgZXhjZWVkZWQ="
+                  ]
+                },
+                {
+                  "address": "erd1g4sw9ylunfgtj03vt8kvjc0kxg8m6cue32pcwh6nsyvqqnlkx7ts272l67",
+                  "identifier": "internalVMErrors",
+                  "topics": [
+                    "AAAAAAAAAAAFAK5zdLvWTPBzFwks05kja7T4LViIN5c=",
+                    "ZXhlY3V0ZUFyYml0cmFnZQ=="
+                  ],
+                  "data": "CglydW50aW1lLmdvOjg0NCBbZXJyb3Igc2lnbmFsbGVkIGJ5IHNtYXJ0Y29udHJhY3RdIFtzd2FwVG9rZW5zRml4ZWRJbnB1dF0KCXJ1bnRpbWUuZ286ODQ0IFtlcnJvciBzaWduYWxsZWQgYnkgc21hcnRjb250cmFjdF0gW3N3YXBUb2tlbnNGaXhlZElucHV0XQoJcnVudGltZS5nbzo4NDQgW2Vycm9yIHNpZ25hbGxlZCBieSBzbWFydGNvbnRyYWN0XSBbc3dhcFRva2Vuc0ZpeGVkSW5wdXRdCglydW50aW1lLmdvOjg0MSBbU2xpcHBhZ2UgZXhjZWVkZWRd",
+                  "additionalData": [
+                    "CglydW50aW1lLmdvOjg0NCBbZXJyb3Igc2lnbmFsbGVkIGJ5IHNtYXJ0Y29udHJhY3RdIFtzd2FwVG9rZW5zRml4ZWRJbnB1dF0KCXJ1bnRpbWUuZ286ODQ0IFtlcnJvciBzaWduYWxsZWQgYnkgc21hcnRjb250cmFjdF0gW3N3YXBUb2tlbnNGaXhlZElucHV0XQoJcnVudGltZS5nbzo4NDQgW2Vycm9yIHNpZ25hbGxlZCBieSBzbWFydGNvbnRyYWN0XSBbc3dhcFRva2Vuc0ZpeGVkSW5wdXRdCglydW50aW1lLmdvOjg0MSBbU2xpcHBhZ2UgZXhjZWVkZWRd"
+                  ]
+                },
+                {
+                  "address": "erd1qqqqqqqqqqqqqpgq4eehfw7kfnc8x9cf9nfejgmtknuz6kygx7tsvhn3uc",
+                  "identifier": "completedTxEvent",
+                  "topics": [
+                    "3Vnb+wZoLRioqFcd1wOdOI7g9EumQ4AiQmuk8Kar8xk="
+                  ],
+                  "data": null,
+                  "additionalData": null
+                }
+              ]
+            },
+            "status": "success",
+            "tokens": [
+              "WEGLD-bd4d79"
+            ],
+            "esdtValues": [
+              "10000000000000000000"
+            ],
+            "operation": "ESDTTransfer",
+            "function": "executeArbitrage",
+            "initiallyPaidFee": "491065000000000",
+            "chainID": "1",
+            "version": 2,
+            "options": 0
+          }
+        ],
+        "indexOfFirstTxProcessed": 0,
+        "indexOfLastTxProcessed": 39
+      },
+      {
+        "hash": "9ffbaf706ac92b240eecc2934a8f7449093a5472db6b8010dfb48821028557f1",
+        "type": "SmartContractResultBlock",
+        "processingType": "Normal",
+        "isFromReceiptsStorage": true,
+        "sourceShard": 1,
+        "destinationShard": 1,
+        "transactions": [
+          {
+            "type": "unsigned",
+            "processingTypeOnSource": "SCInvoking",
+            "processingTypeOnDestination": "SCInvoking",
+            "hash": "0be42df46e8908ad15431c7c88367c751534d95a9e2002c8572f2776a278e43d",
+            "nonce": 0,
+            "round": 29791109,
+            "epoch": 2068,
+            "value": "0",
+            "receiver": "erd1qqqqqqqqqqqqqpgq4eehfw7kfnc8x9cf9nfejgmtknuz6kygx7tsvhn3uc",
+            "sender": "erd1g4sw9ylunfgtj03vt8kvjc0kxg8m6cue32pcwh6nsyvqqnlkx7ts272l67",
+            "gasPrice": 1000000000,
+            "gasLimit": 24556500,
+            "data": "ZXhlY3V0ZUFyYml0cmFnZUA3ZmQzYmRkMjAyNDI3YzAwQDU4NDU0NzRjNDQyZDY1MzQzMTMzNjU2NA==",
+            "previousTransactionHash": "dd59dbfb06682d18a8a8571dd7039d388ee0f44ba6438022426ba4f0a6abf319",
+            "originalTransactionHash": "dd59dbfb06682d18a8a8571dd7039d388ee0f44ba6438022426ba4f0a6abf319",
+            "originalSender": "erd1g4sw9ylunfgtj03vt8kvjc0kxg8m6cue32pcwh6nsyvqqnlkx7ts272l67",
+            "sourceShard": 1,
+            "destinationShard": 1,
+            "miniblockType": "SmartContractResultBlock",
+            "miniblockHash": "9ffbaf706ac92b240eecc2934a8f7449093a5472db6b8010dfb48821028557f1",
+            "status": "success",
+            "operation": "transfer",
+            "function": "executeArbitrage",
+            "callType": "directCall",
+            "options": 0
+          },
+          {
+            "type": "unsigned",
+            "processingTypeOnSource": "BuiltInFunctionCall",
+            "processingTypeOnDestination": "SCInvoking",
+            "hash": "751e080418ec1284a0372883c97f0a6f20f422ddbf69b52db9e75930dc03fdf4",
+            "nonce": 0,
+            "round": 29791109,
+            "epoch": 2068,
+            "value": "0",
+            "receiver": "erd1qqqqqqqqqqqqqpgqdj3p7vmlmf5r0rz4f37y7s9482gqagv32jpsj8g69g",
+            "sender": "erd1qqqqqqqqqqqqqpgq4eehfw7kfnc8x9cf9nfejgmtknuz6kygx7tsvhn3uc",
+            "gasPrice": 1000000000,
+            "data": "RVNEVFRyYW5zZmVyQDU3NDU0NzRjNDQyZDYyNjQzNDY0MzczOUA4YWM3MjMwNDg5ZTgwMDAwQDczNzc2MTcwNTQ2ZjZiNjU2ZTczNDY2OTc4NjU2NDQ5NmU3MDc1NzRANTg0NTQ3NGM0NDJkNjUzNDMxMzM2NTY0QDdmZDNiZGQyMDI0MjdjMDBAMzZjOGRhZTk0Yzc0NjNmYzk4ZjRhNTYxMzExNDBlZDI1ODFkNWJiMjcwNzgwNGQ2MGNkZGVkODE1YjhjYjUyM0BkZDU5ZGJmYjA2NjgyZDE4YThhODU3MWRkNzAzOWQzODhlZTBmNDRiYTY0MzgwMjI0MjZiYTRmMGE2YWJmMzE5",
+            "previousTransactionHash": "dd59dbfb06682d18a8a8571dd7039d388ee0f44ba6438022426ba4f0a6abf319",
+            "originalTransactionHash": "dd59dbfb06682d18a8a8571dd7039d388ee0f44ba6438022426ba4f0a6abf319",
+            "originalSender": "erd1g4sw9ylunfgtj03vt8kvjc0kxg8m6cue32pcwh6nsyvqqnlkx7ts272l67",
+            "sourceShard": 1,
+            "destinationShard": 1,
+            "miniblockType": "SmartContractResultBlock",
+            "miniblockHash": "9ffbaf706ac92b240eecc2934a8f7449093a5472db6b8010dfb48821028557f1",
+            "status": "success",
+            "tokens": [
+              "WEGLD-bd4d79"
+            ],
+            "esdtValues": [
+              "10000000000000000000"
+            ],
+            "operation": "ESDTTransfer",
+            "function": "swapTokensFixedInput",
+            "callType": "asynchronousCall",
+            "options": 0
+          },
+          {
+            "type": "unsigned",
+            "processingTypeOnSource": "MoveBalance",
+            "processingTypeOnDestination": "MoveBalance",
+            "hash": "ed0412c3ae465216c50d60c30fb37cdfa61520ff773193fee457405f68c4a07a",
+            "nonce": 1052,
+            "round": 29791109,
+            "epoch": 2068,
+            "value": "29655420000000",
+            "receiver": "erd1g4sw9ylunfgtj03vt8kvjc0kxg8m6cue32pcwh6nsyvqqnlkx7ts272l67",
+            "sender": "erd1qqqqqqqqqqqqqpgq4eehfw7kfnc8x9cf9nfejgmtknuz6kygx7tsvhn3uc",
+            "gasPrice": 1000000000,
+            "data": "QDZmNmI=",
+            "previousTransactionHash": "dd59dbfb06682d18a8a8571dd7039d388ee0f44ba6438022426ba4f0a6abf319",
+            "originalTransactionHash": "dd59dbfb06682d18a8a8571dd7039d388ee0f44ba6438022426ba4f0a6abf319",
+            "sourceShard": 1,
+            "destinationShard": 1,
+            "miniblockType": "SmartContractResultBlock",
+            "miniblockHash": "9ffbaf706ac92b240eecc2934a8f7449093a5472db6b8010dfb48821028557f1",
+            "status": "success",
+            "operation": "transfer",
+            "isRefund": true,
+            "callType": "directCall",
+            "options": 0
+          }
+        ],
+        "indexOfFirstTxProcessed": 0,
+        "indexOfLastTxProcessed": 0
+      }
+    ]
+  }
+]

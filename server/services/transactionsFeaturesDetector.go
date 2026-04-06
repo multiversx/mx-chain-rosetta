@@ -102,3 +102,23 @@ func (detector *transactionsFeaturesDetector) isIntrashard(tx *transaction.ApiTr
 func (detector *transactionsFeaturesDetector) isSmartContractResultIneffectiveRefund(scr *transaction.ApiTransactionResult) bool {
 	return scr.IsRefund && scr.Sender == scr.Receiver && detector.networkProviderExtension.isContractAddress(scr.Sender)
 }
+
+func (detector *transactionsFeaturesDetector) isEventWithAsyncCallAndHasAnAsyncCallBackWithError(currentEvent *eventESDT, transferValueEvents []*eventTransferValueOnly) bool {
+	if !currentEvent.isAsyncCall {
+		return false
+	}
+
+	for _, eventWithError := range transferValueEvents {
+		if !eventWithError.isAsyncCallbackWithError {
+			continue
+		}
+
+		haveSenderAndReceiverInMirror := currentEvent.senderAddress == eventWithError.receiver &&
+			currentEvent.receiverAddress == eventWithError.sender
+		if haveSenderAndReceiverInMirror {
+			return true
+		}
+	}
+
+	return false
+}

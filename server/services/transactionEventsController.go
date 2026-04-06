@@ -45,11 +45,22 @@ func (controller *transactionEventsController) extractEventSCDeploy(tx *transact
 }
 
 func (controller *transactionEventsController) extractEventTransferValueOnly(tx *transaction.ApiTransactionResult) ([]*eventTransferValueOnly, error) {
+	return controller.extractEventTransferValueWithDecideFunction(tx, controller.decideEffectiveEventTransferValueOnlyAfterSirius)
+}
+
+func (controller *transactionEventsController) extractEventTransferValueWithAsyncCallbackUserError(tx *transaction.ApiTransactionResult) ([]*eventTransferValueOnly, error) {
+	return controller.extractEventTransferValueWithDecideFunction(tx, controller.detectEventTransferValueWithAsyncCallbackAndUserError)
+}
+
+func (controller *transactionEventsController) extractEventTransferValueWithDecideFunction(
+	tx *transaction.ApiTransactionResult,
+	decide func(event *transaction.Events) (*eventTransferValueOnly, error),
+) ([]*eventTransferValueOnly, error) {
 	rawEvents := controller.findManyEventsByIdentifier(tx, transactionEventTransferValueOnly)
 	typedEvents := make([]*eventTransferValueOnly, 0)
 
 	for _, event := range rawEvents {
-		typedEvent, err := controller.decideEffectiveEventTransferValueOnlyAfterSirius(event)
+		typedEvent, err := decide(event)
 		if err != nil {
 			return nil, err
 		}
@@ -60,6 +71,48 @@ func (controller *transactionEventsController) extractEventTransferValueOnly(tx 
 	}
 
 	return typedEvents, nil
+}
+
+func (controller *transactionEventsController) detectEventTransferValueWithAsyncCallbackAndUserError(event *transaction.Events) (*eventTransferValueOnly, error) {
+	numTopics := len(event.Topics)
+	if numTopics != numTopicsOfEventTransferValueOnlyAfterSirius {
+		return nil, fmt.Errorf("%w: bad number of topics for 'transferValueOnly' = %d", errCannotRecognizeEvent, numTopics)
+	}
+
+	receiverPubKey := event.Topics[1]
+	eventData := string(event.Data)
+	if eventData != transactionEventDataAsyncCallback {
+		// not of interest, since is not an AsyncCallback
+		return nil, nil
+	}
+
+	numElementsAdditionalData := len(event.AdditionalData)
+	if numElementsAdditionalData != numElementsInAdditionalDataAsyncCallbackWithError {
+		return nil, nil
+	}
+
+	userErrorCode := int(new(big.Int).SetBytes(event.AdditionalData[2]).Int64())
+	if userErrorCode != errorCodeUserError {
+		return nil, nil
+	}
+
+	sender := event.Address
+	senderPubKey, err := controller.provider.ConvertAddressToPubKey(sender)
+	if err != nil {
+		return nil, err
+	}
+	isIntraShard := controller.provider.ComputeShardIdOfPubKey(senderPubKey) == controller.provider.ComputeShardIdOfPubKey(receiverPubKey)
+	if !isIntraShard {
+		// Ineffective event, the issue with this type of event is intra shard
+		return nil, nil
+	}
+
+	receiver := controller.provider.ConvertPubKeyToAddress(receiverPubKey)
+	return &eventTransferValueOnly{
+		sender:                   sender,
+		receiver:                 receiver,
+		isAsyncCallbackWithError: true,
+	}, nil
 }
 
 // See: https://github.com/multiversx/mx-specs/blob/main/releases/protocol/release-specs-v1.6.0-Sirius.md#17-logs--events-changes-5490
@@ -89,8 +142,8 @@ func (controller *transactionEventsController) decideEffectiveEventTransferValue
 		return nil, err
 	}
 
-	isIntrashard := controller.provider.ComputeShardIdOfPubKey(senderPubKey) == controller.provider.ComputeShardIdOfPubKey(receiverPubKey)
-	if !isIntrashard {
+	isIntraShard := controller.provider.ComputeShardIdOfPubKey(senderPubKey) == controller.provider.ComputeShardIdOfPubKey(receiverPubKey)
+	if !isIntraShard {
 		// Ineffective event, since the balance change is already captured by a SCR.
 		return nil, nil
 	}
@@ -155,6 +208,10 @@ func (controller *transactionEventsController) extractEventsESDTOrESDTNFTTransfe
 		typedEvent, err := newEventESDTFromBasicTopics(event.Topics)
 		if err != nil {
 			return nil, err
+		}
+
+		if string(event.Data) == transactionEventDataAsyncCall {
+			typedEvent.isAsyncCall = true
 		}
 
 		receiverPubkey := event.Topics[3]

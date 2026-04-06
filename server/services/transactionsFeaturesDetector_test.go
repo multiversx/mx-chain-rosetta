@@ -201,3 +201,57 @@ func TestTransactionsFeaturesDetector_isSmartContractResultIneffectiveRefund(t *
 		IsRefund: false,
 	}))
 }
+
+func TestTransactionsFeaturesDetector_isEventWithAsyncCallAndHasAnAsyncCallBackWithError(t *testing.T) {
+	networkProvider := testscommon.NewNetworkProviderMock()
+	detector := newTransactionsFeaturesDetector(networkProvider)
+
+	t.Run("event is not an async call should return false", func(t *testing.T) {
+		require.False(t, detector.isEventWithAsyncCallAndHasAnAsyncCallBackWithError(&eventESDT{}, nil))
+	})
+
+	t.Run("no transfer value events should return false", func(t *testing.T) {
+		require.False(t, detector.isEventWithAsyncCallAndHasAnAsyncCallBackWithError(&eventESDT{isAsyncCall: true}, nil))
+	})
+
+	t.Run("no transfer value events with async callback", func(t *testing.T) {
+		events := []*eventTransferValueOnly{
+			{
+				isAsyncCallbackWithError: false,
+			},
+		}
+		require.False(t, detector.isEventWithAsyncCallAndHasAnAsyncCallBackWithError(&eventESDT{isAsyncCall: true}, events))
+	})
+
+	t.Run("sender and receiver are not in mirror should return false", func(t *testing.T) {
+		esdt := &eventESDT{
+			isAsyncCall:     true,
+			senderAddress:   "sender",
+			receiverAddress: "receiver",
+		}
+		events := []*eventTransferValueOnly{
+			{
+				isAsyncCallbackWithError: true,
+				sender:                   "sender",
+				receiver:                 "receiver",
+			},
+		}
+		require.False(t, detector.isEventWithAsyncCallAndHasAnAsyncCallBackWithError(esdt, events))
+	})
+
+	t.Run("async callback with error and correct sender and receiver should return true", func(t *testing.T) {
+		esdt := &eventESDT{
+			isAsyncCall:     true,
+			senderAddress:   "sender",
+			receiverAddress: "receiver",
+		}
+		events := []*eventTransferValueOnly{
+			{
+				isAsyncCallbackWithError: true,
+				sender:                   "receiver",
+				receiver:                 "sender",
+			},
+		}
+		require.True(t, detector.isEventWithAsyncCallAndHasAnAsyncCallBackWithError(esdt, events))
+	})
+}

@@ -314,6 +314,100 @@ func TestTransactionEventsController_ExtractEvents(t *testing.T) {
 		require.Len(t, events, 0)
 	})
 
+	t.Run("transferValueOnly with AsyncCallback and user error", func(t *testing.T) {
+		topic1 := testscommon.TestContractBarShard0.PubKey
+
+		tx := &transaction.ApiTransactionResult{
+			Epoch: 43,
+			Logs: &transaction.ApiLogs{
+				Events: []*transaction.Events{
+					{
+						Identifier: "transferValueOnly",
+						Address:    testscommon.TestContractFooShard0.Address,
+						Topics: [][]byte{
+							nil,
+							topic1,
+						},
+						Data: []byte("AsyncCallback"),
+						AdditionalData: [][]byte{
+							[]byte("AsyncCallback"),
+							nil,
+							{0x04},
+							nil,
+						},
+					},
+				},
+			},
+		}
+
+		events, err := controller.extractEventTransferValueWithAsyncCallbackUserError(tx)
+		require.NoError(t, err)
+		require.Len(t, events, 1)
+		require.Equal(t, &eventTransferValueOnly{
+			sender:                   "erd1qqqqqqqqqqqqqpgqagjekf5mxv86hy5c62vvtug5vc6jmgcsq6uq8reras",
+			receiver:                 "erd1qqqqqqqqqqqqqpgqdstpe4fepzl4w8683xw88t5kcjkxz0zaq6uquj6ztu",
+			value:                    "",
+			isAsyncCallbackWithError: true,
+		}, events[0])
+	})
+
+	t.Run("transferValueOnly with AsyncCallback no user error should be ignored", func(t *testing.T) {
+		topic1 := testscommon.TestContractBarShard0.PubKey
+		tx := &transaction.ApiTransactionResult{
+			Epoch: 43,
+			Logs: &transaction.ApiLogs{
+				Events: []*transaction.Events{
+					{
+						Identifier: "transferValueOnly",
+						Address:    testscommon.TestContractFooShard0.Address,
+						Topics: [][]byte{
+							nil,
+							topic1,
+						},
+						Data: []byte("AsyncCallback"),
+						AdditionalData: [][]byte{
+							[]byte("AsyncCallback"),
+							nil,
+							nil,
+							nil,
+						},
+					},
+				},
+			},
+		}
+
+		events, err := controller.extractEventTransferValueWithAsyncCallbackUserError(tx)
+		require.NoError(t, err)
+		require.Len(t, events, 0)
+	})
+	t.Run("transferValueOnly with AsyncCallback incorrect num of additional data", func(t *testing.T) {
+		topic1 := testscommon.TestContractBarShard0.PubKey
+		tx := &transaction.ApiTransactionResult{
+			Epoch: 43,
+			Logs: &transaction.ApiLogs{
+				Events: []*transaction.Events{
+					{
+						Identifier: "transferValueOnly",
+						Address:    testscommon.TestContractFooShard0.Address,
+						Topics: [][]byte{
+							nil,
+							topic1,
+						},
+						Data: []byte("AsyncCallback"),
+						AdditionalData: [][]byte{
+							[]byte("AsyncCallback"),
+							nil,
+						},
+					},
+				},
+			},
+		}
+
+		events, err := controller.extractEventTransferValueWithAsyncCallbackUserError(tx)
+		require.NoError(t, err)
+		require.Len(t, events, 0)
+	})
+
 	t.Run("ESDTNFTCreate", func(t *testing.T) {
 		tx := &transaction.ApiTransactionResult{
 			Logs: &transaction.ApiLogs{
