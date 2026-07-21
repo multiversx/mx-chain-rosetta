@@ -28,10 +28,10 @@ github.com/cloudwego/base64x v0.1.4 h1:jwCgWpFanWmN8xoIUHa2rtzmkd5J2plF/dnLS6Xd/
 github.com/cloudwego/base64x v0.1.4/go.mod h1:0zlkT4Wn5C6NdauXdJRhSKRlJvmclQ1hhJgA0rcu/8w=
 github.com/cloudwego/iasm v0.2.0 h1:1KNIy1I1H9hNNFEEH3DVnI4UujN+1zjpuk6gwHLTssg=
 github.com/cloudwego/iasm v0.2.0/go.mod h1:8rXZaNYT2n95jn+zTI1sDr+IgcD2GVs0nlbbQPiEFhY=
-github.com/coinbase/rosetta-sdk-go v0.8.3 h1:IYqd+Ser5NVh0s7p8p2Ir82iCvi75E1l0NH2H4NEr0Y=
-github.com/coinbase/rosetta-sdk-go v0.8.3/go.mod h1:ChOHc+BNq7zqJDDkui0DA124GOvlAiRbdgAc1U9GMDQ=
-github.com/coinbase/rosetta-sdk-go/types v1.0.0 h1:jpVIwLcPoOeCR6o1tU+Xv7r5bMONNbHU7MuEHboiFuA=
-github.com/coinbase/rosetta-sdk-go/types v1.0.0/go.mod h1:eq7W2TMRH22GTW0N0beDnN931DW0/WOI1R2sdHNHG4c=
+github.com/coinbase/rosetta-sdk-go v0.12.0 h1:x3T5ScBw0J5fmu9Nkx4QNI+s8NqvSYupb39RIOm5HjQ=
+github.com/coinbase/rosetta-sdk-go v0.12.0/go.mod h1:rdzdWYdC3AKsR7IDXKFu7HW7sa9q+czdYGxw44vNRSQ=
+github.com/coinbase/rosetta-sdk-go/types v1.7.2 h1:iRt/R+Esn4GNyd2cijjKPiIine/nAlUaCleaAdj8d+A=
+github.com/coinbase/rosetta-sdk-go/types v1.7.2/go.mod h1:bN5JAIEG/dGZNnYzsfizeHhzFOf9s5rkJoaNM/7L5QI=
 github.com/cpuguy83/go-md2man/v2 v2.0.5 h1:ZtcqGrnekaHpVLArFSe4HK5DoKx1T0rq2DwVB0alcyc=
 github.com/cpuguy83/go-md2man/v2 v2.0.5/go.mod h1:tgQtvFlXSQOSOSIRvRPT7W67SCa46tRHOmNcaadrF8o=
 github.com/davecgh/go-spew v0.0.0-20171005155431-ecdeabc65495/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=

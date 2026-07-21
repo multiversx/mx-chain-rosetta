@@ -81,3 +81,8 @@ func (service *offlineService) NetworkList(
 ) (*types.NetworkListResponse, *types.Error) {
 	return nil, service.errFactory.newErr(ErrOfflineMode)
 }
+
+// AllAccountBalances is not implemented yet
+func (service *offlineService) AllAccountBalances(_ context.Context, _ *types.AllAccountBalancesRequest) (*types.AllAccountBalancesResponse, *types.Error) {
+	return nil, service.errFactory.newErr(ErrOfflineMode)
+}
