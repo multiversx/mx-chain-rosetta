@@ -415,6 +415,10 @@ func (service *constructionService) ConstructionSubmit(
 	}, nil
 }
 
+// ConstructionPreprocessOperations will validate the requested operations and options,
+// prepare the corresponding transaction (handling native or custom currency transfers)
+// and return the resulting operations along with the maximum fee and metadata required
+// for the subsequent payload construction
 func (service *constructionService) ConstructionPreprocessOperations(
 	_ context.Context,
 	request *types.ConstructionPreprocessOperationsRequest,
@@ -429,12 +433,12 @@ func (service *constructionService) ConstructionPreprocessOperations(
 		requestOptions.Sender = *request.FromAddress
 	}
 
-	nativeCurrencySymbol := service.extension.getNativeCurrencySymbol()
 	isNative := service.extension.isNativeCurrencySymbol(requestOptions.CurrencySymbol)
 	if !isNative && !service.provider.HasCustomCurrency(requestOptions.CurrencySymbol) {
 		return nil, service.errFactory.newErrWithOriginal(ErrConstruction, fmt.Errorf("unsupported currency: %s", requestOptions.CurrencySymbol))
 	}
 
+	nativeCurrencySymbol := service.extension.getNativeCurrencySymbol()
 	if request.ConstructOp == "transfer" {
 		err = requestOptions.validate(nativeCurrencySymbol)
 		if err != nil {
