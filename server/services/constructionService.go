@@ -444,6 +444,10 @@ func (service *constructionService) ConstructionPreprocessOperations(
 		if err != nil {
 			return nil, service.errFactory.newErrWithOriginal(ErrConstruction, err)
 		}
+		err = validateTransferAmount(requestOptions.Amount)
+		if err != nil {
+			return nil, service.errFactory.newErrWithOriginal(ErrConstruction, err)
+		}
 	} else {
 		return nil, service.errFactory.newErrWithOriginal(ErrNotImplemented, fmt.Errorf("unsupported construct_op: %s", request.ConstructOp))
 	}
@@ -458,6 +462,11 @@ func (service *constructionService) ConstructionPreprocessOperations(
 	if !isNative {
 		tx.Value = amountZero
 		tx.Data = service.computeDataForCustomCurrencyTransfer(requestOptions.CurrencySymbol, requestOptions.Amount)
+	} else if isCustomCurrencyTransfer(string(tx.Data)) {
+		return nil, service.errFactory.newErrWithOriginal(
+			ErrConstruction,
+			errors.New("for native currency transfers, option 'data' must not encode a custom currency (ESDT) transfer"),
+		)
 	}
 
 	operations, err := service.createOperationsFromPreparedTx(tx)
@@ -465,7 +474,7 @@ func (service *constructionService) ConstructionPreprocessOperations(
 		return nil, service.errFactory.newErrWithOriginal(ErrConstruction, err)
 	}
 
-	fee, gasLimit, gasPrice, errTyped := service.computeFeeComponents(requestOptions, tx.Data)
+	_, gasLimit, gasPrice, errTyped := service.computeFeeComponents(requestOptions, tx.Data)
 	if errTyped != nil {
 		return nil, errTyped
 	}
@@ -473,13 +482,15 @@ func (service *constructionService) ConstructionPreprocessOperations(
 	requestOptions.GasLimit = gasLimit
 	requestOptions.GasPrice = gasPrice
 
+	maxFee := service.computeMaxFee(requestOptions, gasLimit, gasPrice)
+
 	metadataBytes, err := json.Marshal(requestOptions)
 	if err != nil {
 		return nil, service.errFactory.newErrWithOriginal(ErrConstruction, err)
 	}
 	return &types.ConstructionPreprocessOperationsResponse{
 		Operations: operations,
-		MaxFee:     service.extension.valueToNativeAmount(fee.String()),
+		MaxFee:     service.extension.valueToNativeAmount(maxFee.String()),
 		Metadata:   new(string(metadataBytes)),
 	}, nil
 }

@@ -2,6 +2,8 @@ package services
 
 import (
 	"context"
+	"encoding/json"
+	"math/big"
 	"testing"
 
 	"github.com/coinbase/rosetta-sdk-go/types"
@@ -763,6 +765,94 @@ func TestConstructionService_ConstructionPreprocessOperations(t *testing.T) {
 		require.Equal(t, expectedOperations, response.Operations)
 		require.Equal(t, "57500000000000", response.MaxFee.Value)
 		require.NotNil(t, response.Metadata)
+	})
+
+	t.Run("native transfer with custom currency shaped data", func(t *testing.T) {
+		t.Parallel()
+
+		response, errTyped := service.ConstructionPreprocessOperations(context.Background(),
+			&types.ConstructionPreprocessOperationsRequest{
+				ConstructOp: "transfer",
+				Options: map[string]interface{}{
+					"sender":         testscommon.TestAddressAlice,
+					"receiver":       testscommon.TestAddressBob,
+					"amount":         "1234",
+					"currencySymbol": "XeGLD",
+					"data":           []byte("ESDTTransfer@544553542d616263646566@2a"),
+				},
+			},
+		)
+
+		require.Equal(t, int32(ErrConstruction), errTyped.Code)
+		require.Nil(t, response)
+	})
+
+	t.Run("native transfer with malformed amount", func(t *testing.T) {
+		t.Parallel()
+
+		response, errTyped := service.ConstructionPreprocessOperations(context.Background(),
+			&types.ConstructionPreprocessOperationsRequest{
+				ConstructOp: "transfer",
+				Options: map[string]interface{}{
+					"sender":         testscommon.TestAddressAlice,
+					"receiver":       testscommon.TestAddressBob,
+					"amount":         "not-a-number",
+					"currencySymbol": "XeGLD",
+				},
+			},
+		)
+
+		require.Equal(t, int32(ErrConstruction), errTyped.Code)
+		require.Nil(t, response)
+	})
+
+	t.Run("native transfer with explicit gas limit", func(t *testing.T) {
+		t.Parallel()
+
+		response, errTyped := service.ConstructionPreprocessOperations(context.Background(),
+			&types.ConstructionPreprocessOperationsRequest{
+				ConstructOp: "transfer",
+				Options: map[string]interface{}{
+					"sender":         testscommon.TestAddressAlice,
+					"receiver":       testscommon.TestAddressBob,
+					"amount":         "1234",
+					"currencySymbol": "XeGLD",
+					"gasLimit":       1000000,
+				},
+			},
+		)
+
+		require.Nil(t, errTyped)
+
+		var metadata struct {
+			GasLimit uint64 `json:"gasLimit"`
+			GasPrice uint64 `json:"gasPrice"`
+		}
+		err := json.Unmarshal([]byte(*response.Metadata), &metadata)
+		require.Nil(t, err)
+		require.Equal(t, uint64(1000000), metadata.GasLimit)
+
+		expectedMaxFee := big.NewInt(1000000 * 1000000000)
+		require.Equal(t, expectedMaxFee.String(), response.MaxFee.Value)
+	})
+
+	t.Run("custom transfer with negative amount", func(t *testing.T) {
+		t.Parallel()
+
+		response, errTyped := service.ConstructionPreprocessOperations(context.Background(),
+			&types.ConstructionPreprocessOperationsRequest{
+				ConstructOp: "transfer",
+				Options: map[string]interface{}{
+					"sender":         testscommon.TestAddressAlice,
+					"receiver":       testscommon.TestAddressBob,
+					"amount":         "-1234",
+					"currencySymbol": "TEST-abcdef",
+				},
+			},
+		)
+
+		require.Equal(t, int32(ErrConstruction), errTyped.Code)
+		require.Nil(t, response)
 	})
 
 	t.Run("from_address fallback", func(t *testing.T) {

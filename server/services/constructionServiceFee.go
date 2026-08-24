@@ -36,6 +36,18 @@ func (service *constructionService) computeFeeComponents(options *constructionOp
 	return fee, gasLimit, gasPrice, nil
 }
 
+func (service *constructionService) computeMaxFee(options *constructionOptions, gasLimit uint64, gasPrice uint64) *big.Int {
+	networkConfig := service.provider.GetNetworkConfig()
+
+	executionGasLimit := uint64(0)
+	if !service.extension.isNativeCurrencySymbol(options.CurrencySymbol) {
+		executionGasLimit = networkConfig.GasLimitCustomTransfer
+	}
+	movementGasLimit := gasLimit - executionGasLimit
+
+	return computeFee(movementGasLimit, executionGasLimit, gasPrice, networkConfig.GasPriceModifier)
+}
+
 func computeFee(movementGasLimit uint64, executionGasLimit uint64, gasPrice uint64, gasPriceModifier float64) *big.Int {
 	movementFee := multiplyUint64(movementGasLimit, gasPrice)
 	executionGasPrice := uint64(float64(gasPrice) * gasPriceModifier)
