@@ -482,7 +482,7 @@ func (service *constructionService) ConstructionPreprocessOperations(
 	requestOptions.GasLimit = gasLimit
 	requestOptions.GasPrice = gasPrice
 
-	maxFee := service.computeMaxFee(requestOptions, gasLimit, gasPrice)
+	maxFee := service.computeMaxFee(tx.Data, gasLimit, gasPrice)
 
 	metadataBytes, err := json.Marshal(requestOptions)
 	if err != nil {

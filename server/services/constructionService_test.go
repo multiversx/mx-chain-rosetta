@@ -832,7 +832,37 @@ func TestConstructionService_ConstructionPreprocessOperations(t *testing.T) {
 		require.Nil(t, err)
 		require.Equal(t, uint64(1000000), metadata.GasLimit)
 
-		expectedMaxFee := big.NewInt(1000000 * 1000000000)
+		expectedMaxFee := big.NewInt(50000*1000000000 + 950000*10000000)
+		require.Equal(t, expectedMaxFee.String(), response.MaxFee.Value)
+	})
+
+	t.Run("custom transfer with explicit gas limit", func(t *testing.T) {
+		t.Parallel()
+
+		response, errTyped := service.ConstructionPreprocessOperations(context.Background(),
+			&types.ConstructionPreprocessOperationsRequest{
+				ConstructOp: "transfer",
+				Options: map[string]interface{}{
+					"sender":         testscommon.TestAddressAlice,
+					"receiver":       testscommon.TestAddressBob,
+					"amount":         "1234",
+					"currencySymbol": "TEST-abcdef",
+					"gasLimit":       1000000,
+				},
+			},
+		)
+
+		require.Nil(t, errTyped)
+
+		var metadata struct {
+			GasLimit uint64 `json:"gasLimit"`
+			GasPrice uint64 `json:"gasPrice"`
+		}
+		err := json.Unmarshal([]byte(*response.Metadata), &metadata)
+		require.Nil(t, err)
+		require.Equal(t, uint64(1000000), metadata.GasLimit)
+
+		expectedMaxFee := big.NewInt(110000*1000000000 + 890000*10000000)
 		require.Equal(t, expectedMaxFee.String(), response.MaxFee.Value)
 	})
 
