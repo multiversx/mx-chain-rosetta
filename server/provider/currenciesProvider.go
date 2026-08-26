@@ -49,7 +49,7 @@ func (provider *currenciesProvider) GetCustomCurrencies() []resources.Currency {
 	return provider.customCurrencies
 }
 
-// GetCustomCurrencyBySymbol gets a custom currency (ESDT) by symbol (identifier)
+// GetCustomCurrenciesSymbols returns the enabled custom currency (ESDT) symbols.
 func (provider *currenciesProvider) GetCustomCurrenciesSymbols() []string {
 	return provider.customCurrenciesSymbols
 }

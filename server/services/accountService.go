@@ -109,3 +109,8 @@ func (service *accountService) getNativeSymbol() string {
 func (service *accountService) AccountCoins(_ context.Context, _ *types.AccountCoinsRequest) (*types.AccountCoinsResponse, *types.Error) {
 	return nil, service.errFactory.newErr(ErrNotImplemented)
 }
+
+// AllAccountBalances implements the /account/all-balances.
+func (service *accountService) AllAccountBalances(_ context.Context, _ *types.AllAccountBalancesRequest) (*types.AllAccountBalancesResponse, *types.Error) {
+	return nil, service.errFactory.newErr(ErrNotImplemented)
+}

@@ -2,6 +2,7 @@ package services
 
 import (
 	"errors"
+	"math/big"
 )
 
 type constructionOptions struct {
@@ -38,6 +39,19 @@ func (options *constructionOptions) coalesceGasPrice(minGasPrice uint64) uint64 
 	}
 
 	return options.GasPrice
+}
+
+func validateTransferAmount(amount string) error {
+	bigAmount, ok := big.NewInt(0).SetString(amount, 10)
+	if !ok {
+		return errors.New("option 'amount' is not a valid integer")
+	}
+
+	if bigAmount.Sign() <= 0 {
+		return errors.New("option 'amount' must be a positive integer")
+	}
+
+	return nil
 }
 
 func (options *constructionOptions) validate(nativeCurrencySymbol string) error {

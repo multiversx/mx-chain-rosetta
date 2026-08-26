@@ -36,6 +36,20 @@ func (service *constructionService) computeFeeComponents(options *constructionOp
 	return fee, gasLimit, gasPrice, nil
 }
 
+// computeMaxFee returns the maximum fee chargeable for a transaction built with the given options,
+// taking into account the user-provided gas limit, so it stays consistent with the metadata returned
+// to the client. Following the protocol's gas categorization (see SplitTxGasInCategoriesInEpoch),
+// movement gas is MinGasLimit + GasPerDataByte * len(data), charged at the base gas price, while all
+// remaining gas is processing gas, charged with the gas price modifier.
+func (service *constructionService) computeMaxFee(computedData []byte, gasLimit uint64, gasPrice uint64) *big.Int {
+	networkConfig := service.provider.GetNetworkConfig()
+
+	movementGasLimit := networkConfig.MinGasLimit + networkConfig.GasPerDataByte*uint64(len(computedData))
+	processingGasLimit := gasLimit - movementGasLimit
+
+	return computeFee(movementGasLimit, processingGasLimit, gasPrice, networkConfig.GasPriceModifier)
+}
+
 func computeFee(movementGasLimit uint64, executionGasLimit uint64, gasPrice uint64, gasPriceModifier float64) *big.Int {
 	movementFee := multiplyUint64(movementGasLimit, gasPrice)
 	executionGasPrice := uint64(float64(gasPrice) * gasPriceModifier)

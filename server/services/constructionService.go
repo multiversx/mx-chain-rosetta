@@ -414,3 +414,83 @@ func (service *constructionService) ConstructionSubmit(
 		},
 	}, nil
 }
+
+// ConstructionPreprocessOperations will validate the requested operations and options,
+// prepare the corresponding transaction (handling native or custom currency transfers)
+// and return the resulting operations along with the maximum fee and metadata required
+// for the subsequent payload construction
+func (service *constructionService) ConstructionPreprocessOperations(
+	_ context.Context,
+	request *types.ConstructionPreprocessOperationsRequest,
+) (*types.ConstructionPreprocessOperationsResponse, *types.Error) {
+	log.Debug("constructionService.ConstructionPreprocessOperations()", "construct_op", request.ConstructOp, "from_address", request.FromAddress)
+
+	requestOptions, err := newConstructionOptions(request.Options)
+	if err != nil {
+		return nil, service.errFactory.newErrWithOriginal(ErrConstruction, err)
+	}
+	if request.FromAddress != nil && len(*request.FromAddress) > 0 && len(requestOptions.Sender) == 0 {
+		requestOptions.Sender = *request.FromAddress
+	}
+
+	isNative := service.extension.isNativeCurrencySymbol(requestOptions.CurrencySymbol)
+	if !isNative && !service.provider.HasCustomCurrency(requestOptions.CurrencySymbol) {
+		return nil, service.errFactory.newErrWithOriginal(ErrConstruction, fmt.Errorf("unsupported currency: %s", requestOptions.CurrencySymbol))
+	}
+
+	nativeCurrencySymbol := service.extension.getNativeCurrencySymbol()
+	if request.ConstructOp == "transfer" {
+		err = requestOptions.validate(nativeCurrencySymbol)
+		if err != nil {
+			return nil, service.errFactory.newErrWithOriginal(ErrConstruction, err)
+		}
+		err = validateTransferAmount(requestOptions.Amount)
+		if err != nil {
+			return nil, service.errFactory.newErrWithOriginal(ErrConstruction, err)
+		}
+	} else {
+		return nil, service.errFactory.newErrWithOriginal(ErrNotImplemented, fmt.Errorf("unsupported construct_op: %s", request.ConstructOp))
+	}
+
+	tx := &data.Transaction{
+		Sender:   requestOptions.Sender,
+		Receiver: requestOptions.Receiver,
+		Value:    requestOptions.Amount,
+		Data:     requestOptions.Data,
+	}
+
+	if !isNative {
+		tx.Value = amountZero
+		tx.Data = service.computeDataForCustomCurrencyTransfer(requestOptions.CurrencySymbol, requestOptions.Amount)
+	} else if isCustomCurrencyTransfer(string(tx.Data)) {
+		return nil, service.errFactory.newErrWithOriginal(
+			ErrConstruction,
+			errors.New("for native currency transfers, option 'data' must not encode a custom currency (ESDT) transfer"),
+		)
+	}
+
+	operations, err := service.createOperationsFromPreparedTx(tx)
+	if err != nil {
+		return nil, service.errFactory.newErrWithOriginal(ErrConstruction, err)
+	}
+
+	_, gasLimit, gasPrice, errTyped := service.computeFeeComponents(requestOptions, tx.Data)
+	if errTyped != nil {
+		return nil, errTyped
+	}
+
+	requestOptions.GasLimit = gasLimit
+	requestOptions.GasPrice = gasPrice
+
+	maxFee := service.computeMaxFee(tx.Data, gasLimit, gasPrice)
+
+	metadataBytes, err := json.Marshal(requestOptions)
+	if err != nil {
+		return nil, service.errFactory.newErrWithOriginal(ErrConstruction, err)
+	}
+	return &types.ConstructionPreprocessOperationsResponse{
+		Operations: operations,
+		MaxFee:     service.extension.valueToNativeAmount(maxFee.String()),
+		Metadata:   new(string(metadataBytes)),
+	}, nil
+}
