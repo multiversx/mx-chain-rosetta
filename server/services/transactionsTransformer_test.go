@@ -663,6 +663,65 @@ func TestTransactionsTransformer_ExtractOperationsFromEventESDT(t *testing.T) {
 	})
 }
 
+func TestTransactionsTransformer_SCCallWithTransferValueEvent(t *testing.T) {
+	networkProvider := testscommon.NewNetworkProviderMock()
+	networkProvider.MockCustomCurrencies = []resources.Currency{{Symbol: "WEGLD-bd4d79"}}
+	networkProvider.MockObservedActualShard = 2
+
+	extension := newNetworkProviderExtension(networkProvider)
+	transformer := newTransactionsTransformer(networkProvider)
+
+	blocks, err := readTestBlocks("testdata/blocks-with-sc-call-and-transfer-value.json")
+	require.Nil(t, err)
+
+	txs, err := transformer.transformBlockTxs(blocks[0])
+	require.Nil(t, err)
+	require.Len(t, txs, 1)
+
+	expectedTransferTx := &types.Transaction{
+		TransactionIdentifier: hashToTransactionIdentifier("e8a9d0fc8b8ddaf7e315bb4ae09bb36b1fe9911324c7e9f1dad5aa5ca516a063"),
+		Operations: []*types.Operation{
+			{
+				Type:                opTransfer,
+				OperationIdentifier: indexToOperationIdentifier(0),
+				Account:             addressToAccountIdentifier("erd1sj6cjk93pjvwsr27rh9cslw2rfp5fa5f9knuq493ypsefg09q4mqd3uqah"),
+				Amount:              extension.valueToNativeAmount("-3000000000000000000"),
+				Status:              &opStatusSuccess,
+			},
+			{
+				Type:                opTransfer,
+				OperationIdentifier: indexToOperationIdentifier(1),
+				Account:             addressToAccountIdentifier("erd1qqqqqqqqqqqqqpgqg5097f9tjmdyklv2p8yg6dh4skgle0wkpmtqvq2sc7"),
+				Amount:              extension.valueToNativeAmount("3000000000000000000"),
+				Status:              &opStatusSuccess,
+			},
+			{
+				Type:                opFee,
+				OperationIdentifier: indexToOperationIdentifier(2),
+				Account:             addressToAccountIdentifier("erd1sj6cjk93pjvwsr27rh9cslw2rfp5fa5f9knuq493ypsefg09q4mqd3uqah"),
+				Amount:              extension.valueToNativeAmount("-1122740000000000"),
+				Status:              &opStatusSuccess,
+			},
+			{
+				Type:                opTransfer,
+				OperationIdentifier: indexToOperationIdentifier(3),
+				Account:             addressToAccountIdentifier("erd1qqqqqqqqqqqqqpgqg5097f9tjmdyklv2p8yg6dh4skgle0wkpmtqvq2sc7"),
+				Amount:              extension.valueToNativeAmount("-3000000000000000000"),
+				Status:              &opStatusSuccess,
+			},
+			{
+				Type:                opTransfer,
+				OperationIdentifier: indexToOperationIdentifier(4),
+				Account:             addressToAccountIdentifier("erd1qqqqqqqqqqqqqpgq7ss34uc0cc2tgz0st5c8ppgkv2yh4pwupmtq8ykz9x"),
+				Amount:              extension.valueToNativeAmount("3000000000000000000"),
+				Status:              &opStatusSuccess,
+			},
+		},
+		Metadata: extractTransactionMetadata(blocks[0].MiniBlocks[0].Transactions[0]),
+	}
+	require.Equal(t, expectedTransferTx, txs[0])
+}
+
 func TestTransactionsTransformer_TransformBlockTxsHavingESDTTransferAndLogs(t *testing.T) {
 	networkProvider := testscommon.NewNetworkProviderMock()
 	networkProvider.MockCustomCurrencies = []resources.Currency{{Symbol: "WEGLD-bd4d79"}}

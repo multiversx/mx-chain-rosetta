@@ -51,6 +51,7 @@ const (
 	transactionEventDataAsyncCall            = "AsyncCall"
 	transactionEventDataAsyncCallback        = "AsyncCallback"
 	transactionEventDataTransferAndExecute   = "TransferAndExecute"
+	transactionEventDataDeployFromSource     = "DeployFromSource"
 )
 
 const (

@@ -1,0 +1,121 @@
+[
+  {
+    "comment": "block with sc call and tranfer value event",
+    "miniBlocks": [
+      {
+        "hash": "a19608cc58c95add11172aa9824e7a9ebbd2d1bfa4014e132eee69862f383670",
+        "type": "TxBlock",
+        "processingType": "Normal",
+        "constructionState": "Final",
+        "sourceShard": 2,
+        "destinationShard": 2,
+        "transactions": [
+          {
+            "type": "normal",
+            "processingTypeOnSource": "SCInvoking",
+            "processingTypeOnDestination": "SCInvoking",
+            "hash": "e8a9d0fc8b8ddaf7e315bb4ae09bb36b1fe9911324c7e9f1dad5aa5ca516a063",
+            "nonce": 3,
+            "round": 19123590,
+            "epoch": 6588,
+            "value": "3000000000000000000",
+            "receiver": "erd1qqqqqqqqqqqqqpgqg5097f9tjmdyklv2p8yg6dh4skgle0wkpmtqvq2sc7",
+            "sender": "erd1sj6cjk93pjvwsr27rh9cslw2rfp5fa5f9knuq493ypsefg09q4mqd3uqah",
+            "gasPrice": 1000000000,
+            "gasLimit": 80000000,
+            "data": "Q3JlYXRlTWFya2V0QDU3Njk2YzZjMjA2NTY3NmM2NDIwNjc2ZjIwNzU2ZTY0NjU3MjIwMzQyNDIwNzU2ZTc0Njk2YzIwNzQ2ODY1MjA2NTZlNjQyMDZmNjYyMDUzNjU3MDc0NjU2ZDYyNjU3MjNmQDZhYWE4NGMwQEBAQDU5NDU1M0A0ZTRmQDQ5NzQyMDc3Njk2YzZjMjA2NjZmNmM2YzZmNzcyMDQyNTQ0MzIwNzQ3MjY1NmU2NA==",
+            "signature": "f4160c6bf84bdd574242ca109a51cfab29bdc3f5878296b13164d2429e44e8fea5ed3befcd079159fe8b62ccc78f4fa8f998e05851683f03fe117c8683fa3a04",
+            "sourceShard": 2,
+            "destinationShard": 2,
+            "miniblockType": "TxBlock",
+            "miniblockHash": "a19608cc58c95add11172aa9824e7a9ebbd2d1bfa4014e132eee69862f383670",
+            "logs": {
+              "address": "erd1qqqqqqqqqqqqqpgqg5097f9tjmdyklv2p8yg6dh4skgle0wkpmtqvq2sc7",
+              "events": [
+                {
+                  "address": "erd1qqqqqqqqqqqqqpgqg5097f9tjmdyklv2p8yg6dh4skgle0wkpmtqvq2sc7",
+                  "identifier": "transferValueOnly",
+                  "topics": [
+                    "KaIkGvYsAAA=",
+                    "AAAAAAAAAAAFAPQhGvMPxhS0CfBdMHCFFmKJeoXcDtY="
+                  ],
+                  "data": "RGVwbG95RnJvbVNvdXJjZQ==",
+                  "additionalData": [
+                    "RGVwbG95RnJvbVNvdXJjZQ==",
+                    "aW5pdA==",
+                    "V2lsbCBlZ2xkIGdvIHVuZGVyIDQkIHVudGlsIHRoZSBlbmQgb2YgU2VwdGVtYmVyPw==",
+                    "aqqEwA==",
+                    "",
+                    "",
+                    "",
+                    "YNQ0ULXecd3m5Nu3ttLkbgCNEnxDxC1I/xEHy4QNDtY=",
+                    "AAAAAAAAAAAFAEUeXySrltpLfYoJyI029YWR/L3WDtY=",
+                    "hLWJWLEMmOgNXh3LiH3KGkNE9oktp8BUsSBhlKHlBXY=",
+                    "KaIkGvYsAAA=",
+                    "WUVT",
+                    "Tk8=",
+                    "SXQgd2lsbCBmb2xsb3cgQlRDIHRyZW5k"
+                  ]
+                },
+                {
+                  "address": "erd1qqqqqqqqqqqqqpgqg5097f9tjmdyklv2p8yg6dh4skgle0wkpmtqvq2sc7",
+                  "identifier": "CreateMarket",
+                  "topics": [
+                    "YmV0X2NyZWF0ZWQ=",
+                    "hLWJWLEMmOgNXh3LiH3KGkNE9oktp8BUsSBhlKHlBXY=",
+                    "AAAAAAAAAAAFAPQhGvMPxhS0CfBdMHCFFmKJeoXcDtY="
+                  ],
+                  "data": null,
+                  "additionalData": [
+                    ""
+                  ]
+                },
+                {
+                  "address": "erd1qqqqqqqqqqqqqpgq7ss34uc0cc2tgz0st5c8ppgkv2yh4pwupmtq8ykz9x",
+                  "identifier": "SCDeploy",
+                  "topics": [
+                    "AAAAAAAAAAAFAPQhGvMPxhS0CfBdMHCFFmKJeoXcDtY=",
+                    "AAAAAAAAAAAFAEUeXySrltpLfYoJyI029YWR/L3WDtY=",
+                    "P/iMOTjiban1fEQ+hrypS9ZL1yrqzo3yiAXOkeUlKVA="
+                  ],
+                  "data": null,
+                  "additionalData": null
+                },
+                {
+                  "address": "erd1qqqqqqqqqqqqqpgqg5097f9tjmdyklv2p8yg6dh4skgle0wkpmtqvq2sc7",
+                  "identifier": "writeLog",
+                  "topics": [
+                    "hLWJWLEMmOgNXh3LiH3KGkNE9oktp8BUsSBhlKHlBXY=",
+                    "QHRvbyBtdWNoIGdhcyBwcm92aWRlZCBmb3IgcHJvY2Vzc2luZzogZ2FzIHByb3ZpZGVkID0gNzk2NzQwMDAsIGdhcyB1c2VkID0gMTgzNjQ4MTM="
+                  ],
+                  "data": "QDZmNmI=",
+                  "additionalData": [
+                    "QDZmNmI="
+                  ]
+                },
+                {
+                  "address": "erd1qqqqqqqqqqqqqpgqg5097f9tjmdyklv2p8yg6dh4skgle0wkpmtqvq2sc7",
+                  "identifier": "completedTxEvent",
+                  "topics": [
+                    "6KnQ/IuN2vfjFbtK4Juzax/pkRMkx+nx2tWqXKUWoGM="
+                  ],
+                  "data": null,
+                  "additionalData": null
+                }
+              ]
+            },
+            "status": "success",
+            "operation": "transfer",
+            "function": "CreateMarket",
+            "initiallyPaidFee": "1122740000000000",
+            "chainID": "D",
+            "version": 2,
+            "options": 0
+          }
+        ],
+        "indexOfFirstTxProcessed": 0,
+        "indexOfLastTxProcessed": 0
+      }
+    ]
+  }
+]
