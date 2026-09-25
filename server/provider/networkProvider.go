@@ -18,8 +18,6 @@ import (
 	"github.com/multiversx/mx-chain-storage-go/lrucache"
 )
 
-const blockStatusReverted = "reverted"
-
 var log = logger.GetOrCreate("server/provider")
 
 type ArgsNewNetworkProvider struct {

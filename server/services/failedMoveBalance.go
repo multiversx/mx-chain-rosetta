@@ -5,7 +5,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
 )
 
-func failedMoveBalanceTransfers(txs []*transaction.ApiTransactionResult, shard uint32) map[string]*transaction.ApiTransactionResult {
+func findFailedMoveBalanceTransfers(txs []*transaction.ApiTransactionResult, shard uint32) map[string]*transaction.ApiTransactionResult {
 	var failed map[string]*transaction.ApiTransactionResult
 	for _, tx := range txs {
 		if tx.Type == string(transaction.TxTypeNormal) && tx.Status == transaction.TxStatusFail &&
@@ -32,8 +32,19 @@ func applyFailedMoveBalanceOperations(tx *transaction.ApiTransactionResult, resu
 	}
 
 	original, found := failed[tx.OriginalTransactionHash]
-	if !found || tx.Type != string(transaction.TxTypeUnsigned) || tx.IsRefund ||
-		tx.Sender != original.Receiver || tx.Receiver != original.Sender || tx.Value != original.Value {
+	if !found {
+		return
+	}
+
+	isSmartContractResult := tx.Type == string(transaction.TxTypeUnsigned)
+	isGasRefund := tx.IsRefund
+	if !isSmartContractResult || isGasRefund {
+		return
+	}
+
+	hasReversedAddresses := tx.Sender == original.Receiver && tx.Receiver == original.Sender
+	hasSameValue := tx.Value == original.Value
+	if !hasReversedAddresses || !hasSameValue {
 		return
 	}
 

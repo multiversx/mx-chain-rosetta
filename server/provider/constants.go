@@ -1,5 +1,7 @@
 package provider
 
+const blockStatusReverted = "reverted"
+
 var (
 	nativeCurrencyNumDecimals = 18
 	genesisBlockNonce         = 0

@@ -52,7 +52,7 @@ func (transformer *transactionsTransformer) transformBlockTxs(block *api.Block) 
 	txs = filterOutIntrashardRelayedTransactionAlreadyHeldInInvalidMiniblock(txs)
 
 	rosettaTxs := make([]*types.Transaction, 0)
-	failedTransfers := failedMoveBalanceTransfers(txs, block.Shard)
+	failedTransfers := findFailedMoveBalanceTransfers(txs, block.Shard)
 	for _, tx := range txs {
 		rosettaTx, err := transformer.txToRosettaTx(tx, txs)
 		if err != nil {

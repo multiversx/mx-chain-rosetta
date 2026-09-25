@@ -120,7 +120,7 @@ func TestFailedMoveBalanceDoesNotChangeOtherEffects(t *testing.T) {
 		ProcessingTypeOnSource:      transactionProcessingTypeMoveBalance,
 		ProcessingTypeOnDestination: transactionProcessingTypeMoveBalance,
 	}
-	failed := failedMoveBalanceTransfers([]*transaction.ApiTransactionResult{tx}, 0)
+	failed := findFailedMoveBalanceTransfers([]*transaction.ApiTransactionResult{tx}, 0)
 	for _, test := range []struct {
 		name   string
 		change func(*transaction.ApiTransactionResult)
@@ -145,12 +145,12 @@ func TestFailedMoveBalanceDoesNotChangeOtherEffects(t *testing.T) {
 			require.Nil(t, result.Operations[0].Status)
 		})
 	}
-	require.Empty(t, failedMoveBalanceTransfers([]*transaction.ApiTransactionResult{tx}, 1))
+	require.Empty(t, findFailedMoveBalanceTransfers([]*transaction.ApiTransactionResult{tx}, 1))
 	tx.Status = transaction.TxStatusSuccess
-	require.Empty(t, failedMoveBalanceTransfers([]*transaction.ApiTransactionResult{tx}, 0))
+	require.Empty(t, findFailedMoveBalanceTransfers([]*transaction.ApiTransactionResult{tx}, 0))
 	tx.Status = transaction.TxStatusFail
 	tx.ProcessingTypeOnDestination = transactionProcessingTypeContractInvoking
-	require.Empty(t, failedMoveBalanceTransfers([]*transaction.ApiTransactionResult{tx}, 0))
+	require.Empty(t, findFailedMoveBalanceTransfers([]*transaction.ApiTransactionResult{tx}, 0))
 }
 
 func TestSupernovaExecutionEffectsReportedOnlyInTheirOwnBlock(t *testing.T) {
