@@ -35,9 +35,13 @@ func (transformer *transactionsTransformer) transformBlockTxs(block *api.Block) 
 
 	for _, miniblock := range block.MiniBlocks {
 		for _, tx := range miniblock.Transactions {
+			if tx.Status == transaction.TxStatusNotExecutable {
+				continue
+			}
 			// Make sure SCRs also have the block nonce set.
-			tx.BlockNonce = block.Nonce
-			txs = append(txs, tx)
+			txCopy := *tx
+			txCopy.BlockNonce = block.Nonce
+			txs = append(txs, &txCopy)
 		}
 		for _, receipt := range miniblock.Receipts {
 			receipts = append(receipts, receipt)
@@ -48,10 +52,21 @@ func (transformer *transactionsTransformer) transformBlockTxs(block *api.Block) 
 	txs = filterOutIntrashardRelayedTransactionAlreadyHeldInInvalidMiniblock(txs)
 
 	rosettaTxs := make([]*types.Transaction, 0)
+	failedTransfers := failedMoveBalanceTransfers(txs, block.Shard)
 	for _, tx := range txs {
 		rosettaTx, err := transformer.txToRosettaTx(tx, txs)
 		if err != nil {
 			return nil, err
+		}
+
+		applyFailedMoveBalanceOperations(tx, rosettaTx, failedTransfers)
+		if tx.Status != "" {
+			for _, operation := range rosettaTx.Operations {
+				if operation.Metadata == nil {
+					operation.Metadata = objectsMap{}
+				}
+				operation.Metadata["nodeTransactionStatus"] = string(tx.Status)
+			}
 		}
 
 		rosettaTxs = append(rosettaTxs, rosettaTx)

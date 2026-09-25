@@ -719,6 +719,9 @@ func TestTransactionsTransformer_SCCallWithTransferValueEvent(t *testing.T) {
 		},
 		Metadata: extractTransactionMetadata(blocks[0].MiniBlocks[0].Transactions[0]),
 	}
+	for _, operation := range expectedTransferTx.Operations {
+		operation.Metadata = objectsMap{"nodeTransactionStatus": "success"}
+	}
 	require.Equal(t, expectedTransferTx, txs[0])
 }
 
@@ -778,7 +781,13 @@ func TestTransactionsTransformer_TransformBlockTxsHavingESDTTransferAndLogs(t *t
 		},
 	}
 
+	for _, operation := range expectedTransferTx.Operations {
+		operation.Metadata = objectsMap{"nodeTransactionStatus": "success"}
+	}
 	require.Equal(t, expectedTransferTx, txs[0])
+	for _, operation := range expectedRefundTx.Operations {
+		operation.Metadata = objectsMap{"nodeTransactionStatus": "success"}
+	}
 	require.Equal(t, expectedRefundTx, txs[1])
 }
 
@@ -1268,6 +1277,9 @@ func TestTransactionsTransformer_TransformBlockTxsHavingClaimDeveloperRewards(t 
 			Metadata: extractTransactionMetadata(blocks[0].MiniBlocks[0].Transactions[0]),
 		}
 
+		for _, operation := range expectedTx0.Operations {
+			operation.Metadata = objectsMap{"nodeTransactionStatus": "success"}
+		}
 		require.Equal(t, expectedTx0, txs[0])
 
 		// Fee refund
@@ -1284,6 +1296,9 @@ func TestTransactionsTransformer_TransformBlockTxsHavingClaimDeveloperRewards(t 
 			},
 		}
 
+		for _, operation := range expectedTx1.Operations {
+			operation.Metadata = objectsMap{"nodeTransactionStatus": "success"}
+		}
 		require.Equal(t, expectedTx1, txs[1])
 	})
 }

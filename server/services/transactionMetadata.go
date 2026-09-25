@@ -18,6 +18,11 @@ func extractTransactionMetadata(tx *transaction.ApiTransactionResult) objectsMap
 		"miniblockType":     tx.MiniBlockType,
 	}
 
+	// This is the node's shard-local status, not the final cross-shard outcome; use operation statuses for accounting.
+	if tx.Status != "" {
+		metadata["nodeTransactionStatus"] = string(tx.Status)
+	}
+
 	if len(tx.RelayerAddress) > 0 {
 		metadata["relayer"] = tx.RelayerAddress
 	}
