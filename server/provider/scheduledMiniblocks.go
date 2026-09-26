@@ -7,6 +7,10 @@ import (
 )
 
 func (provider *networkProvider) simplifyBlockWithScheduledTransactions(block *api.Block) error {
+	if block.LastExecutionResult != nil {
+		return nil
+	}
+
 	previousBlock, err := provider.doGetBlockByNonce(block.Nonce - 1)
 	if err != nil {
 		return err

@@ -220,6 +220,9 @@ func (provider *networkProvider) GetBlockByNonce(nonce uint64) (*api.Block, erro
 		log.Warn("GetBlockByNonce()", "nonce", nonce, "err", err)
 		return nil, err
 	}
+	if block.Status == blockStatusReverted {
+		return nil, errCannotGetBlock
+	}
 
 	// The block (copy) returned by doGetBlockByNonce() is now mutated.
 	// The mutated copy is not held in a cache (not needed).
@@ -275,20 +278,9 @@ func createBlockCopy(block *api.Block) *api.Block {
 		}
 	}
 
-	return &api.Block{
-		Nonce:         block.Nonce,
-		Round:         block.Round,
-		Epoch:         block.Epoch,
-		Shard:         block.Shard,
-		NumTxs:        block.NumTxs,
-		Hash:          block.Hash,
-		PrevBlockHash: block.PrevBlockHash,
-		StateRootHash: block.StateRootHash,
-		Status:        block.Status,
-		Timestamp:     block.Timestamp,
-		TimestampMs:   block.TimestampMs,
-		MiniBlocks:    miniblocksCopy,
-	}
+	blockCopy := *block
+	blockCopy.MiniBlocks = miniblocksCopy
+	return &blockCopy
 }
 
 func (provider *networkProvider) getBlockByNonceCached(nonce uint64) (*api.Block, bool) {
@@ -317,6 +309,14 @@ func (provider *networkProvider) GetBlockByHash(hash string) (*api.Block, error)
 	if err != nil {
 		log.Warn("GetBlockByHash()", "hash", hash, "err", err)
 		return nil, err
+	}
+
+	latestNonce, err := provider.getLatestBlockNonce()
+	if err != nil {
+		return nil, err
+	}
+	if block.Nonce > latestNonce || block.Status == blockStatusReverted {
+		return nil, errCannotGetBlock
 	}
 
 	err = provider.simplifyBlockWithScheduledTransactions(block)
