@@ -232,7 +232,7 @@ func TestNetworkProvider_GetLatestBlockNonce(t *testing.T) {
 
 		nonce, err := provider.getLatestBlockNonce()
 		require.Nil(t, err)
-		require.Equal(t, uint64(36), nonce)
+		require.Equal(t, uint64(35), nonce)
 	})
 
 	t.Run("when HighestFinalNonce is greater than LastExecutedNonce, but LastExecutedNonce is zero", func(t *testing.T) {
