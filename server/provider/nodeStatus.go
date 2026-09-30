@@ -75,21 +75,25 @@ func (provider *networkProvider) getLatestBlockNonce() (uint64, error) {
 }
 
 func getLatestNonceGivenHighestFinalNonceAndLastExecutedNonce(highestFinalNonce uint64, lastExecutedNonce uint64) (uint64, error) {
-	// Account for rollback-related edge cases while node is syncing (in conjunction with scheduled miniblocks).
-	const nonceDelta = 2
-
-	if highestFinalNonce <= nonceDelta {
+	const (
+		finalNonceDelta    = 5
+		executedNonceDelta = 1
+	)
+	if highestFinalNonce <= finalNonceDelta {
 		return 0, errCannotGetLatestBlockNonce
 	}
-
-	nonceToReturn := highestFinalNonce - nonceDelta
-	if lastExecutedNonce > 0 && nonceToReturn > lastExecutedNonce {
-		return lastExecutedNonce, nil
+	candidateFinal := highestFinalNonce - finalNonceDelta
+	if lastExecutedNonce == 0 {
+		// Pre-Supernova observer (no execution info): only finality matters.
+		return candidateFinal, nil
 	}
+	candidateExecuted := uint64(0)
+	if lastExecutedNonce > executedNonceDelta {
+		candidateExecuted = lastExecutedNonce - executedNonceDelta
+	}
+	return min(candidateFinal, candidateExecuted), nil
 
-	return nonceToReturn, nil
 }
-
 func (provider *networkProvider) getOldestNonceWithHistoricalStateGivenNodeStatus(status *resources.NodeStatus) (uint64, error) {
 	oldestEligibleEpoch := provider.getOldestEligibleEpoch(status.CurrentEpoch)
 	epochStartInfo, err := provider.getEpochStartInfo(oldestEligibleEpoch)

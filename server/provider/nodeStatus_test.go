@@ -57,16 +57,16 @@ func TestNetworkProvider_GetNodeStatusWithSuccess(t *testing.T) {
 	}
 
 	observerFacade.GetBlockByNonceCalled = func(shardID uint32, nonce uint64, options common.BlockQueryOptions) (*data.BlockApiResponse, error) {
-		// 998 = HighestFinalNonce - 2
-		if nonce == 998 {
+		// 995 = HighestFinalNonce - 5
+		if nonce == 995 {
 			return &data.BlockApiResponse{
 				Data: data.BlockApiResponsePayload{
 					Block: api.Block{
-						Nonce:         998,
-						Hash:          "00000998",
-						PrevBlockHash: "00000997",
-						Timestamp:     998,
-						TimestampMs:   998200,
+						Nonce:         995,
+						Hash:          "00000995",
+						PrevBlockHash: "00000994",
+						Timestamp:     995,
+						TimestampMs:   995200,
 					},
 				},
 			}, nil
@@ -100,11 +100,11 @@ func TestNetworkProvider_GetNodeStatusWithSuccess(t *testing.T) {
 	}
 
 	expectedSummaryOfLatest := resources.BlockSummary{
-		Nonce:             998,
-		Hash:              "00000998",
-		PreviousBlockHash: "00000997",
-		Timestamp:         998,
-		TimestampMs:       998200,
+		Nonce:             995,
+		Hash:              "00000995",
+		PreviousBlockHash: "00000994",
+		Timestamp:         995,
+		TimestampMs:       995200,
 	}
 
 	expectedSummaryOfOldest := resources.BlockSummary{
@@ -172,7 +172,7 @@ func TestNetworkProvider_GetLatestBlockNonce(t *testing.T) {
 	require.Nil(t, errC)
 	require.NotNil(t, provider)
 
-	t.Run("when HighestFinalNonce <= 2 (node didn't start syncing)", func(t *testing.T) {
+	t.Run("when HighestFinalNonce <= 5 (node didn't start syncing)", func(t *testing.T) {
 
 		observerFacade.CallGetRestEndPointCalled = func(baseUrl, path string, value interface{}) (int, error) {
 			if path == "/node/status" {
@@ -193,7 +193,7 @@ func TestNetworkProvider_GetLatestBlockNonce(t *testing.T) {
 		require.Equal(t, uint64(0), nonce)
 	})
 
-	t.Run("when HighestFinalNonce > 2", func(t *testing.T) {
+	t.Run("when HighestFinalNonce > 5", func(t *testing.T) {
 
 		observerFacade.CallGetRestEndPointCalled = func(baseUrl, path string, value interface{}) (int, error) {
 			if path == "/node/status" {
@@ -211,7 +211,7 @@ func TestNetworkProvider_GetLatestBlockNonce(t *testing.T) {
 
 		nonce, err := provider.getLatestBlockNonce()
 		require.Nil(t, err)
-		require.Equal(t, uint64(40), nonce)
+		require.Equal(t, uint64(37), nonce)
 	})
 	t.Run("when HighestFinalNonce is greater than LastExecutedNonce", func(t *testing.T) {
 
@@ -220,7 +220,7 @@ func TestNetworkProvider_GetLatestBlockNonce(t *testing.T) {
 				value.(*resources.NodeStatusApiResponse).Data = resources.NodeStatusApiResponsePayload{
 					Status: resources.NodeStatus{
 						HighestFinalNonce: 42,
-						LastExecutedNonce: 39,
+						LastExecutedNonce: 36,
 					},
 				}
 
@@ -232,7 +232,7 @@ func TestNetworkProvider_GetLatestBlockNonce(t *testing.T) {
 
 		nonce, err := provider.getLatestBlockNonce()
 		require.Nil(t, err)
-		require.Equal(t, uint64(39), nonce)
+		require.Equal(t, uint64(35), nonce)
 	})
 
 	t.Run("when HighestFinalNonce is greater than LastExecutedNonce, but LastExecutedNonce is zero", func(t *testing.T) {
@@ -254,10 +254,10 @@ func TestNetworkProvider_GetLatestBlockNonce(t *testing.T) {
 
 		nonce, err := provider.getLatestBlockNonce()
 		require.Nil(t, err)
-		require.Equal(t, uint64(40), nonce)
+		require.Equal(t, uint64(37), nonce)
 	})
 
-	t.Run("when LastExecutedNonce is greater than or equal to HighestFinalNonce minus two", func(t *testing.T) {
+	t.Run("when LastExecutedNonce is greater than or equal to HighestFinalNonce minus five", func(t *testing.T) {
 
 		observerFacade.CallGetRestEndPointCalled = func(baseUrl, path string, value interface{}) (int, error) {
 			if path == "/node/status" {
@@ -276,7 +276,7 @@ func TestNetworkProvider_GetLatestBlockNonce(t *testing.T) {
 
 		nonce, err := provider.getLatestBlockNonce()
 		require.Nil(t, err)
-		require.Equal(t, uint64(40), nonce)
+		require.Equal(t, uint64(37), nonce)
 	})
 }
 

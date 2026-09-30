@@ -18,7 +18,7 @@ func TestSupernovaBlockWithoutExecutedSuccessor(t *testing.T) {
 	args.ObserverFacade = facade
 	provider, err := NewNetworkProvider(args)
 	require.NoError(t, err)
-	executedNonce := uint64(10)
+	executedNonce := uint64(11)
 	facade.CallGetRestEndPointCalled = func(_, _ string, value interface{}) (int, error) {
 		value.(*resources.NodeStatusApiResponse).Data.Status = resources.NodeStatus{
 			HighestFinalNonce: 20, LastExecutedNonce: executedNonce,
@@ -77,10 +77,10 @@ func TestBlockReadinessByHashAndNonce(t *testing.T) {
 		statusErr       error
 		wantError       bool
 	}{
-		{name: "execution boundary", final: 20, executed: 10},
+		{name: "execution boundary", final: 20, executed: 11},
 		{name: "execution pending", final: 20, executed: 9, wantError: true},
-		{name: "finality boundary", final: 12, executed: 15},
-		{name: "finality pending", final: 11, executed: 15, wantError: true},
+		{name: "finality boundary", final: 15, executed: 15},
+		{name: "finality pending", final: 14, executed: 15, wantError: true},
 		{name: "reverted", final: 20, executed: 15, status: "reverted", wantError: true},
 		{name: "status unavailable", statusErr: errors.New("offline"), wantError: true},
 	} {
