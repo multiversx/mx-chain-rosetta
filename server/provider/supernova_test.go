@@ -79,8 +79,8 @@ func TestBlockReadinessByHashAndNonce(t *testing.T) {
 	}{
 		{name: "execution boundary", final: 20, executed: 10},
 		{name: "execution pending", final: 20, executed: 9, wantError: true},
-		{name: "finality boundary", final: 12, executed: 15},
-		{name: "finality pending", final: 11, executed: 15, wantError: true},
+		{name: "finality boundary", final: 15, executed: 15},
+		{name: "finality pending", final: 14, executed: 15, wantError: true},
 		{name: "reverted", final: 20, executed: 15, status: "reverted", wantError: true},
 		{name: "status unavailable", statusErr: errors.New("offline"), wantError: true},
 	} {
