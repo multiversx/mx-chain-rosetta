@@ -76,7 +76,7 @@ func (provider *networkProvider) getLatestBlockNonce() (uint64, error) {
 
 func getLatestNonceGivenHighestFinalNonceAndLastExecutedNonce(highestFinalNonce uint64, lastExecutedNonce uint64) (uint64, error) {
 	// Account for rollback-related edge cases while node is syncing (in conjunction with scheduled miniblocks).
-	const nonceDelta = 2
+	const nonceDelta = 5
 
 	if highestFinalNonce <= nonceDelta {
 		return 0, errCannotGetLatestBlockNonce
