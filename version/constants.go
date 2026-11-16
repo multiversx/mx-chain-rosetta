@@ -8,4 +8,7 @@ const (
 var (
 	// RosettaMiddlewareVersion is the version of this package (application)
 	RosettaMiddlewareVersion = "v0.7.2"
+
+	// AggregatorVersion is the version of the Rosetta Aggregator (cmd/rosetta-aggregator)
+	AggregatorVersion = "v0.1.0"
 )

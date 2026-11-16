@@ -222,6 +222,35 @@ oldest_epoch = max(first_historical_epoch, current_epoch - num_historical_epochs
 oldest_block_identifier = first block of oldest_epoch
 ```
 
+## Aggregator: all shards as one chain
+
+One Rosetta instance observes one shard. The **Rosetta Aggregator** (`cmd/rosetta-aggregator`) sits in front of one instance per shard and presents the whole network as a single Rosetta chain, whose blocks correspond to the metachain blocks. A cross-shard transaction appears as two linked transactions: one in the block where the sender's shard executed it, one (with the identifier `<hash>-dst`) in the later block where the receiver's shard executed it.
+
+The reasoning is in [CROSS_SHARD_ANALYSIS.md](CROSS_SHARD_ANALYSIS.md), the specification and the implementation status in [CROSS_SHARD_AGGREGATOR_DESIGN.md](CROSS_SHARD_AGGREGATOR_DESIGN.md).
+
+**Status:** tested against mocks and a simulated network only. It has not been validated on a real network yet.
+
+Setup:
+
+ - one observer and one Rosetta instance (as described above) for each shard, all started with the same `--network-name` and `--handle-contracts`;
+ - one metachain observer (only block headers are read from it);
+ - the aggregator, which is the only component that clients talk to.
+
+```
+cd mx-chain-rosetta/cmd/rosetta-aggregator
+go build .
+cp config.example.toml config.toml   # then adjust it
+./rosetta-aggregator --config=config.toml
+```
+
+The state of the aggregator (tip of the unified chain, reachability of the shard instances and of the metachain observer) is available at `GET /health`.
+
+Tests (no network needed):
+
+```
+go test ./aggregator/... ./cmd/rosetta-aggregator/...
+```
+
 ## Implementation notes
 
  - We do not support the `related_transactions` property, since it's not feasible to properly filter the related transactions of a given transaction by source / destination shard (with respect to the observed shard).

@@ -8,3 +8,11 @@ logs/**
 
 **/__pycache__/**
 venv/**
+
+# Rosetta Aggregator
+cmd/rosetta-aggregator/rosetta-aggregator
+cmd/rosetta-aggregator/logs/**
+**/aggregator-index/**
+
+# JetBrains
+.idea/

@@ -1,0 +1,66 @@
+# Example configuration of the Rosetta Aggregator.
+#
+#   rosetta-aggregator --config=config.toml
+#
+# The aggregator presents all shards as one Rosetta chain. It needs:
+#   - one Rosetta instance ("rosetta" binary of this repository) per shard, in online mode;
+#   - one metachain observer (only block headers are read from it).
+
+[server]
+# Address to bind to. Empty means all interfaces.
+host = ""
+port = 8090
+# In offline mode, only the endpoints that do not need access to the chain are available
+# (a single shard instance, itself in offline mode, is then sufficient; [metachain] and [index] are not used).
+offline = false
+# Adds permissive CORS headers to the responses.
+enable_cors = false
+
+[network]
+blockchain = "MultiversX"
+# Must be equal to the "--network-name" of the shard instances.
+name = "mainnet"
+# Number of regular shards (the metachain is not counted).
+num_shards = 3
+# Must be equal to the "--handle-contracts" of the shard instances.
+handle_contracts = false
+# Hash and timestamp (seconds) of the genesis block of the metachain.
+genesis_block_hash = "cd229e4ad2753708e4bab01d7f249affe29441829524c9529e84d51b6d12f2a7"
+genesis_timestamp = 1596117600
+
+[metachain]
+# REST API of a metachain observer. Several URLs can be given, for fail-over.
+observer_urls = ["http://observer-metachain:8080"]
+
+# One [[shard]] per regular shard. Several URLs (replicas of the same shard instance) can be given, for fail-over.
+[[shard]]
+id = 0
+rosetta_urls = ["http://rosetta-shard-0:8091"]
+
+[[shard]]
+id = 1
+rosetta_urls = ["http://rosetta-shard-1:8091"]
+
+[[shard]]
+id = 2
+rosetta_urls = ["http://rosetta-shard-2:8091"]
+
+[index]
+# Folder where the notarization index is persisted. The index is derived from the metachain: it can be deleted, and it is then rebuilt.
+# If empty, the index is kept in memory.
+path = "./aggregator-index"
+# A new index starts at the first metablock of this epoch. Use the first epoch for which the shard instances hold historical balances
+# (the "--first-historical-epoch" of the shard instances). If not set, "start_nonce" is used (by default: the genesis block).
+start_epoch = 1800
+# start_nonce = 0
+
+[limits]
+backend_timeout_seconds = 60
+max_concurrent_backend_requests = 32
+block_cache_size = 256
+sync_interval_milliseconds = 500
+max_request_body_bytes = 1048576
+
+[cross_shard]
+# The source leg of a cross-shard transfer links ("forward") to its destination leg, when the destination leg is certain to appear.
+forward_links = true
